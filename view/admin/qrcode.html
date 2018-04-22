@@ -1,0 +1,113 @@
+﻿<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html ng-app="lqBig">
+<head>
+    <title>卡卷核销</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta content="width=device-width,user-scalable=no" name="viewport">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="expires" content="0">
+    <link href="../resources/css/lq.css" rel="stylesheet" type="text/css">
+    <script type="text/javascript" src="../resources/js/angular.min.js"></script>
+    <script type="text/javascript" src="../resources/js/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="../resources/js/angular-route.min.js"></script>
+    <script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+    <script>
+        var shareData = {
+            title: ' ',
+            desc: '',
+            link: window.location.href,
+            imgUrl: 'http://tkb.meiyeedu.com/resources/lq/12.png'
+        };
+
+        var appId = "${wx.appid}";
+        var timestamp = "${wx.timestamp}";
+        var nonceStr = "${wx.nonceStr}";
+        var signature = "${wx.signature}";
+
+    </script>
+    <script type="text/javascript" src="../resources/js/lq/WeiXin.js?t=6"></script>
+    <script type="text/javascript" src="../resources/js/admin/qrcode.js?t=6"></script>
+    <style>
+        .cardinfo{
+            background: rgba(0,0,0,0.75);
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0px;
+            left: 0px;
+            right: 0px;
+            bottom: 0px;
+        }
+        .cardinfo .card{
+            background-color: #ac2925;
+            border-radius: 10px;
+            width: 90%;
+            margin: 0px auto;
+            color: gold;
+            font-size: 18px;
+            line-height: 32px;
+            padding: 0px 0px;
+        }
+        .cardinfo .card ul{
+            list-style: none;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body ng-controller="qrcodeCtrl">
+<table style="width: 100%;text-align: center;">
+    <tbody>
+    <tr>
+        <td></td>
+    </tr>
+    <tr>
+        <td>
+
+
+        </td>
+    </tr>
+    <tr>
+        <td>
+
+                <table style="width: 100%;border: 0px;border-spacing: 0;">
+                    <tbody>
+
+                    <tr style="height: 76px;">
+
+                    </tr>
+                    <tr style="height: 76px;">
+                        <td width="40%" align="center">
+                            <button ng-click="getQCode()"
+                                    style="width: 100%;font-size: 24px;height: 50px;border: none;background-color: #ffac1b;border-radius: 5px;color: white;"
+                                    type="button">核销卡卷</button></td>
+
+                    </tr>
+
+                    </tbody>
+                </table>
+        </td>
+    </tr>
+    <tr>
+        <td align="bottom" style="height: 200px;">
+            <h2 style="color: #f5847c;"><a href="">@技术支持：厦门十成信息技术有限公司</a></h2></td>
+    </tr>
+    </tbody>
+</table>
+</div>
+<div class="cardinfo" ng-show="isCardInfo">
+    <div class="card">
+        <form ng-submit="consume()">
+            <ul>
+                <li>{{base_info.brand_name}}</li>
+                <li>{{base_info.title}}</li>
+                <li>{{base_info.notice}}</li>
+                <li>{{base_info.description}}</li>
+                <li>金额：{{cash.reduce_cost/100}}元</li>
+                <li><input style="width: 100%;background-color: #449d44;border: none;border-radius: 5px;font-size: 25px;padding: 5px 0px;color:white;margin: 10px 0px;" type="submit" value="确认核销"></li>
+            </ul>
+        </form>
+    </div>
+</div>
+</body>
+</html>

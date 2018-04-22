@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html ng-app="appModule">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta content="width=device-width,user-scalable=no" name="viewport">
+    <title>用户登记</title>
+    <link rel="stylesheet" href="/resources/act/css/act.css">
+    <script type="text/javascript" src="/resources/jquery/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="/resources/act/js/act_common.js"></script>
+    <script type="text/javascript" src="/resources/angular/angular.min.js"></script>
+    <script type="text/javascript">
+        var addModule = angular.module("appModule", []);
+        var redirect = "${redirect}";
+        addModule.controller("formController", function ($http, $scope) {
+
+            $scope.user = {id:"${user.id}",name: "${user.name}", tel: "${user.tel}"};
+            $scope.reset = function () {
+                //$scope.user = angular.copy($scope.master);
+                $scope.user={};
+            };
+            $scope.login = function () {
+                var from = new FormData();
+                from.append("action","change");
+                from.append("name",$scope.user.name);
+                from.append("tel",$scope.user.tel);
+                from.append("id",$scope.user.id);
+                $http.post("/account/user",from,{transformRequest: angular.identity,headers: {'Content-Type':undefined}}).success(function (response) {
+
+                    var status = response;
+                    if (status.success) {
+                        ShowDialogAlert("",status.message,function () {
+                            if (redirect == "") {
+                                window.history.back();
+                            } else {
+                                window.location.replace(redirect);
+                            }
+                        });
+                        //alert(status.message);
+                    } else {
+                        ShowDialogAlert("",status.message);
+
+                    }
+
+                });
+            };
+
+        })
+    </script>
+    <style>
+        html, body {
+            padding: 0px;
+            margin: 0px;
+
+        }
+        html{
+            height: 100%;
+        }
+        body{
+
+            background: #e4403f;
+            background-size:cover;
+            background-position: center;
+        }
+        * {
+            font-family: "微软雅黑", "Helvetica Neue", Arial, Verdana, sans-serif;
+        }
+
+        table {
+            width: 100%;
+
+        }
+
+        #content {
+            margin: 10px;
+            font-size: 16px;
+        }
+        #content label{
+            color: white;
+        }
+        #content input,#content button{
+            width: 100%;
+            font-size: 16px;
+            margin: 10px 0px;
+            box-shadow: 0px 0px 0px 3px rgba(0,0,0,0.1);
+            border: none;
+        }
+        input{
+            background-color: white;
+            border-radius: 5px;
+            border: none;
+            padding: 10px 0px;
+            text-indent: 8px;
+            font-size: 14px;
+            box-shadow: 0px 0px 0px 3px rgba(0,0,0,0.1);
+        }
+        #head{
+            text-align: center;
+            border-radius: 10px;
+            margin: 10px;
+            color:white;
+            background-color: rgba(255, 255, 255, 0.2);
+            background-image: none;
+            border-bottom:none;
+            padding: 10px;
+        }
+
+    </style>
+</head>
+<body ng-controller="formController">
+
+<div id="head">
+    <h2>请先登记您的信息</h2>
+    <h5>请认真填写以下信息，将是您享受相关活动的凭证</h5>
+</div>
+<div id="content">
+    <form style="border: none;" ng-submit="login()">
+        <table>
+            <tbody>
+            <tr>
+                <td>
+                    <label>姓名</label>
+                    <input type="text" maxlength="6" minlength="2" placeholder="请输入姓名" required ng-model="user.name"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label>手机号</label>
+                    <input type="tel" maxlength="11" minlength="11" placeholder="请输入手机号" required ng-model="user.tel"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="submit" style="margin: 10px 0px;background-color: #FFF6A6;color:black;border-radius: 3px;line-height: 32px;" value="提交">
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </form>
+</div>
+</body>
+</html>

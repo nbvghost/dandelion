@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="frontApp" ng-cloak>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+    <title>结算订单</title>
+    <link rel="stylesheet" href="/resources/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/resources/weui/weui.min.css">
+    <script type="text/javascript" src="/resources/jquery/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="/resources/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
+    <script type="text/javascript" src="/resources/angular/angular.min.js"></script>
+    <script type="text/javascript" src="/resources/angular/plugins/ng-file-upload/ng-file-upload.min.js"></script>
+    <script type="text/javascript" src="/resources/angular/i18n/angular-locale_zh-cn.js"></script>
+    <script type="text/javascript" src="/resources/angular/angular-route.min.js"></script>
+    <script type="text/javascript" src="/resources/front/js/front.js"></script>
+    <script>
+        wx.config({
+            debug:true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+            appId:'{{.params.appId}}', // 必填，公众号的唯一标识
+            timestamp:{{.params.timestamp}}, // 必填，生成签名的时间戳
+            nonceStr:'{{.params.nonceStr}}', // 必填，生成签名的随机串
+            signature:'{{.params.signature}}',// 必填，签名，见附录1
+            jsApiList: ["chooseWXPay"] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+        });
+        wx.ready(function(){
+
+        });
+        wx.error(function(res){
+
+        });
+    </script>
+</head>
+<body ng-controller="orderPayController">
+<div class="panel panel-default" style="border: none;box-shadow: none;">
+    <div class="panel-body">
+        <div class="form-group">
+            <label>支付方式</label>
+            <div style="width: 100%;border: 2px solid #4cae4c;border-radius: 3px;">
+                <img src="/resources/front/images/pay/wxpay/wxpay.jpg">
+            </div>
+        </div>
+        <ul class="list-group" ng-repeat="(ShopID,Value) in Obj">
+            <li class="list-group-item" style="background-color: #ffe8c0;">
+                <div class="row">
+                    <div class="col-xs-6 text-left">
+                       @{Value.ShopName}@
+                    </div>
+                    <div class="col-xs-6 text-right">
+
+                    </div>
+                </div>
+            </li>
+            <li class="list-group-item">
+                <div class="row">
+                    <div class="col-xs-6 text-left">
+
+                        <div class="form-group">
+                            <label>配送信息</label>
+                            <div class="input-group">
+                                <span class="input-group-addon">号码</span>
+                                <input type="text" ng-model="Position" class="form-control" placeholder="位置号/包厢号/桌号">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon">留言备注</span>
+                                <input type="text" ng-model="Tip" class="form-control" placeholder="一句话提示商家">
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-xs-6 text-right">
+
+                    </div>
+                </div>
+            </li>
+            <li class="list-group-item" ng-repeat="m in Value.Orders">
+                <p class="text-left"><strong>@{m.Title}@</strong></p>
+                <div class="row">
+                    <div class="col-xs-6 text-left">商品</div>
+                    <div class="col-xs-6 text-right">@{(m.Count*m.Price)/100|currency}@</div>
+                </div>
+                <p class="text-right">数量：@{m.Count}@，单价：@{m.Price/100|currency}@</p>
+                <p class="text-right">
+                    <button ng-click="plus(ShopID,m.$index)" class="btn btn-success btn-sm">
+                        <span class="glyphicon glyphicon-plus"></span>
+                    </button>
+                    <button ng-click="minus(ShopID,m.$index)" class="btn btn-success btn-sm">
+                        <span class="glyphicon glyphicon-minus"></span>
+                    </button>
+                    <button ng-click="delete(ShopID,m.$index)" class="btn btn-danger btn-sm">删除</button>
+                </p>
+            </li>
+            <li class="list-group-item" style="background-color: #e8e8e8;" ng-show="orderShopNum!=1">
+                <div class="row">
+                    <div class="col-xs-6 text-left btn-lg" style="text-indent: 10px;">
+                        总金额：@{Value.Total/100|currency}@
+                    </div>
+                    <div class="col-xs-6 text-right">
+                        <button class="btn btn-success btn-lg" ng-click="pay(ShopID)">支付</button>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </div>
+</div>
+<div ng-show="orderShopNum==1" style="position: fixed;bottom: 0px;width: 100%;background: white;border: 1px solid #4cae4c;">
+    <div class="row">
+        <div class="col-xs-6 text-left btn-lg" style="text-indent: 10px;">
+            总金额：@{Total/100|currency}@
+        </div>
+        <div class="col-xs-6 text-right">
+            <button class="btn btn-success btn-lg" ng-click="pay()" style="border-radius: 0px;">支付</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>

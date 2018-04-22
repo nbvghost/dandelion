@@ -1,0 +1,64 @@
+<div class="ui teal attached inverted stackable menu">
+    <div class="header item">
+        @{$root.title==undefined?"蒲公英营销助手":$root.title}@
+    </div>
+    <a class="item" ng-show="$root.isgoback" onclick="javascript:window.history.length<=0?window.location.href='/admin':window.history.back();" >返回</a>
+    <a class="item">
+        <i class="home icon"></i> Home
+    </a>
+    <a class="item">
+        <i class="grid layout icon"></i> Browse
+    </a>
+    <a class="item">
+        <i class="mail icon"></i> Messages
+    </a>
+    <a class="item">Link</a>
+    <div class="ui mini simple dropdown item">
+        订购系统
+        <i class="dropdown icon"></i>
+        <div class="mini menu">
+            <a class="item"><i class="edit icon"></i>KTV系统</a>
+        </div>
+    </div>
+    <div class="ui mini simple dropdown item">
+        预约系统
+        <i class="dropdown icon"></i>
+        <div class="mini menu">
+            <a class="item"><i class="edit icon"></i>报名/预约</a>
+            <a class="item"><i class="globe icon"></i>快递预约</a>
+        </div>
+    </div>
+    <div class="ui mini simple dropdown item">
+        营销
+        <i class="dropdown icon"></i>
+        <div class="mini menu">
+            <a class="item"><i class="edit icon"></i>微信热文营销</a>
+        </div>
+    </div>
+    <div class="ui mini simple dropdown item">
+        内容管理
+        <i class="mini dropdown icon"></i>
+        <div class="menu">
+            <a class="item"><i class="edit icon"></i>发布文章</a>
+            <a class="item"><i class="edit icon"></i>添加图片</a>
+            <a class="item"><i class="edit icon"></i>添加图片</a>
+        </div>
+    </div>
+    <div class="right menu">
+        <div class="item">
+            <div class="ui action left icon input">
+                <i class="search icon"></i>
+                <input type="text" placeholder="Search">
+                <button class="ui mini red button">搜索</button>
+            </div>
+        </div>
+        <div class="ui mini simple dropdown item">
+            我的
+            <i class="mini dropdown icon"></i>
+            <div class="menu">
+                <a class="item"><i class="edit icon"></i>修改密码</a>
+                <a class="item"><i class="edit icon"></i>退出</a>
+            </div>
+        </div>
+    </div>
+</div>

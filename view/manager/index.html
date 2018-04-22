@@ -1,0 +1,55 @@
+﻿<html ng-app="manager">
+<head>
+    <title></title>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta content="width=device-width,user-scalable=no" name="viewport">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+
+    <link href="/resources/admin/css/default.css" type="text/css" rel="stylesheet" />
+    <link href="/resources/common/css/components.css" type="text/css" rel="stylesheet" />
+    <link href="/resources/admin/css/index.css" type="text/css" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="/resources/semantic-ui/semantic.min.css">
+
+    <script type="text/javascript" src="/resources/jquery/3/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="/resources/semantic-ui/semantic.min.js"></script>
+
+
+    <link href="/resources/datatables/dataTables.semanticui.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="/resources/datatables/datatables.min.js"></script>
+    <script type="text/javascript" src="/resources/datatables/dataTables.semanticui.js"></script>
+
+    <script type="text/javascript" src="/resources/angular/angular.min.js"></script>
+    <script type="text/javascript" src="/resources/angular/plugins/ng-file-upload/ng-file-upload.min.js"></script>
+    <script type="text/javascript" src="/resources/angular/i18n/angular-locale_zh-cn.js"></script>
+    <script type="text/javascript" src="/resources/angular/angular-route.min.js"></script>
+    <script type="text/javascript" src="/resources/angular/angular-messages.min.js"></script>
+
+    <script>
+        var server_time = "{{.time}}";
+    </script>
+    <script type="text/javascript" src="/resources/manager/js/manager.js"></script>
+</head>
+<body>
+
+{{IncludeHTML `manager/pub/header.html` .}}
+<div class="ui container">
+    <div></div>
+    <div class="ui segments">
+
+        <div class="ui segment">
+            <div class="view" ng-view></div>
+        </div>
+        <div class="ui secondary segment">
+        {{IncludeHTML `manager/pub/footer.html` .}}
+        </div>
+    </div>
+</div>
+<div class="ui container right">
+
+</div>
+
+
+</body>
+</html>

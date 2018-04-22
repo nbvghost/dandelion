@@ -1,0 +1,52 @@
+﻿<h3><b>文章类型管理</b></h3>
+<table class="table table-hover">
+    <thead>
+    <tr>
+        <th>类别名称</th>
+        <th>操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="m in articleCategorys">
+        <td>@{m.Label}@</td>
+        <td><input class="btn btn-primary" type="button" value="删除" ng-click="delArticleCategory(m.ID);"></td>
+    </tr>
+    </tbody>
+</table>
+
+
+<div class="panel panel-info">
+    <div class="panel-heading">添加类别</div>
+    <div class="panel-body">
+        <input type="text" class="form-control" ng-model="article_category_name" placeholder="请输入类别名称，不能添加重复的名称！">
+        <button type="button" ng-click="addArticleCategory();" class="btn btn-primary">添加类别</button>
+    </div>
+</div>
+
+<div class="panel panel-info">
+    <div class="panel-heading">分类文章</div>
+    <div class="panel-body">
+        <select ng-model="articleCategoryIndex" class="form-control" ng-change="selectArticleCategory();"
+                ng-options="o.ID as o.Label for o in articleCategorys">
+            <option value="991">显示全部</option>
+        </select>
+
+        <table class="table table-hover">
+            <thead>
+            <tr>
+                <th>文章标题</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="m in articles">
+                <td><a href="add_article?id=@{m.ID}@"> @{m.Title}@---------@{m.CreatedAt|date:'yyyy-MM-dd HH:mm'}@</a></td>
+                <td><input class="btn btn-primary" type="button" value="删除" ng-click="del(m.ID);"></td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<a href="add_article?id=-1"><input class="btn btn-primary" type="button" value="添加文章"></a>

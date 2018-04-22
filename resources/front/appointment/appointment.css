@@ -1,0 +1,31 @@
+body{
+    padding: 0px;
+    margin: 0px;
+    overflow: scroll;
+}
+.container{
+    max-width: 750px;
+    margin: 0px auto;
+}
+.container .content img{
+    border: none;
+    margin: 0px;
+    padding: 0px;
+    display: block;
+}
+#buy_select_box{
+    border: 1px solid red;
+    width: 100%;
+    max-width: 750px;
+    margin: 0px auto;
+    position: fixed;
+    bottom: 0px;
+    background: white;
+
+}
+#buy_select_box .select_box{
+    margin: 10px;
+}
+#buy_select_box .select_box input{
+    text-align: center;
+}

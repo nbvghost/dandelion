@@ -1,0 +1,35 @@
+<div class="ui blue attached inverted stackable menu">
+    <div class="header item">
+        系统管理后台
+    </div>
+    <a class="item" onclick="javascript:window.history.length<=0?window.location.href='/manager':window.history.back();" >
+        <i class="chevron left icon"></i>返回</a>
+    <a class="item" href="/manager">
+        <i class="home icon"></i> Home
+    </a>
+    <a class="item">
+        <i class="grid layout icon"></i>Browse
+    </a>
+    <a class="item">
+        <i class="mail icon"></i> Messages
+    </a>
+
+    <a  class="item" href="#!/add_admin">添加用户</a>
+    <a  class="item" href="#!/list_user">客户列表</a>
+    <a  class="item" href="#!/wx_menus">微信菜单</a>
+    <a  class="item" href="#!/system">系统设置</a>
+    <a  class="item" href="#!/tgdx">推广短信（百度地图获取）</a>
+
+
+    <div class="right menu">
+
+        <div class="ui mini simple dropdown item">
+            我的
+            <i class="mini dropdown icon"></i>
+            <div class="menu">
+                <a class="item"><i class="edit icon"></i>修改密码</a>
+                <a class="item"><i class="edit icon"></i>退出</a>
+            </div>
+        </div>
+    </div>
+</div>

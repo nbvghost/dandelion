@@ -1,0 +1,155 @@
+﻿<!DOCTYPE html>
+<html ng-app="appModule">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta content="width=device-width,user-scalable=no" name="viewport">
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta content="black" name="apple-mobile-web-app-status-bar-style" />
+
+    <link href="/resources/admin/css/style.css" rel="stylesheet" type="text/css">
+    <link href="/resources/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
+    <title>用户登陆</title>
+    <script type="text/javascript" src="/resources/jquery/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="/resources/messenger/js/messenger.min.js" charset="UTF-8"></script>
+    <script type="text/javascript" src="/resources/messenger/js/messenger-theme-flat.js" charset="UTF-8"></script>
+    <link rel="stylesheet" href="/resources/messenger/css/messenger.css">
+    <link rel="stylesheet" href="/resources/messenger/css/messenger-theme-flat.css">
+    <script type="text/javascript" src="/resources/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/resources/angular/angular.min.js"></script>
+    <script type="text/javascript" src="/resources/angular/angular-messages.min.js"></script>
+    <script type="text/javascript">
+        Messenger.options = {
+            extraClasses: 'messenger-fixed messenger-on-bottom',
+            theme: 'flat',
+            messageDefaults:{hideAfter:3}
+        }
+        var addModule = angular.module("appModule", ["ngMessages"]);
+        var redirect = "{{.query.redirect}}";
+        addModule.controller("formController", function ($http, $scope) {
+
+            $scope.admin = {account: "123456@qq.com", password: "123456"};
+
+            $scope.login = function () {
+
+                if($scope.admin.account==undefined || $scope.admin.password==undefined || $scope.admin.account=="" || $scope.admin.password==""){
+                    Messenger().post("帐号或密码不能为空！");
+                    return
+                }
+
+                $('#progressBar').modal({keyboard:false,show:true,backdrop:"static"});
+
+                var form = new FormData();
+                form.append("account",$scope.admin.account);
+                form.append("password",$scope.admin.password);
+
+                $http.post("loginUser",form,{transformRequest: angular.identity,headers: {'Content-Type':undefined}}).then(function (response) {
+
+                    $('#progressBar').modal('hide');
+                    var status = response.data;
+                    if (status.Success) {
+                        if(redirect==""){
+                            window.location.replace(redirect);
+                            return;
+                        }
+                        window.location.replace("/account/openPage?redirect="+redirect);
+                    } else {
+                        Messenger().post(status.Message);
+                        $scope.admin.password ="";
+
+                    }
+
+                });
+            };
+
+
+        })
+    </script>
+    <style>
+        html, body {
+            padding: 0px;
+            margin: 0px;
+        }
+
+        * {
+            font-family: "微软雅黑", "Helvetica Neue", Arial, Verdana, sans-serif;
+        }
+
+        table {
+            width: 100%;
+
+        }
+
+        #content {
+
+            padding: 20px;
+        }
+
+        #foot {
+            text-align: center;
+            margin-top: 100px;
+
+            bottom: 0px;
+            left: 0px;
+            right: 0px;
+        }
+    </style>
+</head>
+<body ng-controller="formController">
+<div style="border-radius: 0px;" class="panel panel-primary">
+    <div class="panel-heading" style="text-align: center;">登陆</div>
+    <div class="panel-body">
+        <form style="border: none;" name="mainForm" novalidate ng-submit="login();" >
+            <div class="form-group">
+                <label>帐号</label>
+                <small></small>
+                <input type="tel"  required="" class="form-control" maxlength="32" minlength="6" placeholder="手机号/邮箱" name="user_account" ng-model="admin.account">
+                <div ng-messages="mainForm.user_account.$error" style="color:maroon" role="alert">
+                    <div ng-message="required"></div>
+                    <div ng-message="minlength">最小长度必须6位</div>
+                    <div ng-message="maxlength">最大长度必须32位</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <small></small>
+                <input type="password"  required="" class="form-control" minlength="6" maxlength="32" ng-model="admin.password" name="user_password" placeholder="请输入密码">
+                <div ng-messages="mainForm.user_password.$error" style="color:maroon" role="alert">
+                    <div ng-message="required"></div>
+                    <div ng-message="minlength">最小长度必须6位</div>
+                    <div ng-message="maxlength">最大长度必须32位</div>
+                </div>
+            </div>
+            <div class="form-group">
+                <input type="submit" class="btn btn-success btn-block btn-lg" value="登 录">
+            </div>
+            <div class="form-group">
+                <small>请先通过邀请链接注册开通 &nbsp; <a href="/account/forget">忘记密码？</a></small>
+            </div>
+            <div class="form-group">
+                <small><a href="http://mp.weixin.qq.com/s?__biz=MzA3OTc1MTQ5MA==&mid=500466740&idx=1&sn=e835c41764ffd9d14e7614f6d0a7bdc1">蒲公英营销助手功能介绍</a></small>
+            </div>
+        </form>
+    </div>
+    </div>
+<div class="modal fade" id="progressBar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">正在登陆。。。</h4>
+            </div>
+            <div class="modal-body">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                        <span class="sr-only">100% Complete</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

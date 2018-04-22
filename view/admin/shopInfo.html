@@ -1,0 +1,183 @@
+<style type="text/css">
+    .menus {
+        margin: 0px 5%;
+        border: 1px solid #333;
+        height: 35px;
+        text-align: center;
+        padding-top: 15px;
+    }
+
+    #passwordlist {
+        margin: 10px 5%;
+        width: 90%;
+        border: solid 1px #333;
+    }
+
+    #passwordlist .item {
+        width: 150px;
+        background-color: #eeeeee;
+        height: 70px;
+        float: left;
+        border: 1px solid #eeeeee;
+        padding: 5px;
+        margin: 5px;
+    }
+
+    #passwordlist .item:hover {
+        border: 1px solid #2467e0;
+        background-color: #dbe7ff;
+    }
+
+    .select_tab_true {
+        background-color: #3d77ff;
+        color: #FFFFFF;
+    }
+
+    body {
+        background-color: #F4F4F4;
+        padding: 10px;
+    }
+
+    .redbord{
+        border: 1px solid red;
+    }
+    body{
+        padding: 0px;
+        margin: 0px;
+    }
+    #shopInfo .images_box{
+
+    }
+
+</style>
+<div id="shopInfo">
+    <div class="panel-body">
+        <form name="mainForm"  novalidate ng-submit="submit(mainForm.$valid);">
+            <div class="form-group">
+                <label>店名</label>
+                <small>（仅为商户名，如：国美、麦当劳，不应包含地区、地址、分店名等信息，错误示例：北京国美）</small>
+                <input type="text"  required class="form-control" maxlength="32" placeholder="门店名称" name="shop_business_name" ng-model="shop.Name">
+            </div>
+            <div class="form-group">
+                <label>省</label>
+                <select class="form-control" ng-class="{true:'redbord'}[province==undefined]" ng-options="m.ProID as m.name for m in provinceJson" ng-model="province" ng-change="change_province()"></select>
+            </div>
+            <div class="form-group">
+                <label>市</label>
+                <select class="form-control"  ng-class="{true:'redbord'}[city==undefined]" ng-options="m.CityID as m.name for m in cityJson[province]" ng-model="city" ng-change="change_city()">
+                    <option ng-selected="$index==city"></option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>县、区</label>
+                <select class="form-control"  ng-class="{true:'redbord'}[district==undefined]" ng-options="m.Id as m.DisName for m in areaJson[city]" ng-model="district"  ng-change="change_district()">
+                    <option ng-selected="$index==district"></option>
+                </select>
+                <p class="help-block"></p>
+            </div>
+            <div class="form-group">
+                <label>街道地址</label>
+                <input type="text" required  ng-change="change_address()" maxlength="32" class="form-control" placeholder="输入详细地址，请勿重复填写省市区信息" ng-model="shop.Address">
+                <p class="help-block"></p>
+            </div>
+            <div class="form-group">
+                <label>电话</label>
+                <input type="text" required  class="form-control" maxlength="11" placeholder="手或固定电话" ng-model="shop.Telephone">
+            </div>
+            <div  class="form-group">
+                <label>门店的类型</label>
+                <div>
+                    <select  class="form-control" ng-class="{true:'redbord'}[categories_a==undefined]" style="width:120px;float: left;" ng-model="categories_a">
+                        <option ng-repeat="m in categories" ng-selected="$index==categories_a" value="@{$index}@">@{m}@</option>
+                    </select>
+
+                    <select  class="form-control" ng-class="{true:'redbord'}[categories_b==undefined]" style="margin-left:10px;width:120px;float: left;" ng-model="categories_b">
+                        <option ng-repeat="m in categoriesSub['0_'+categories_a]" ng-selected="$index==categories_b" value="@{$index}@">@{m}@@{$index}@</option>
+                    </select>
+                </div>
+                <div style="clear: both;"></div>
+            </div>
+            <div style="display:none;" class="form-group">
+                <label>经度/纬度</label>
+                <div>
+                    <input type="text" style="width: 100px;float: left;" readonly class="form-control" placeholder="" ng-model="shop.Longitude">
+                    <input type="text" style="width: 100px;float: left;" readonly class="form-control" placeholder="" ng-model="shop.Latitude">
+                </div>
+                <div style="clear: both;"></div>
+            </div>
+            <div class="form-group images_box">
+                <label>门店图片(图片内容不允许与门店不相关)(点击图片删除)(<font color="#aaaaaa">选填</font>)</label>
+                <div>
+                    <p>
+                        <button type="file" class="btn btn-success" ngf-select="uploadImage('progress-bar',$file,$invalidFiles)" accept="image/*" ngf-max-size="1MB">添加图片</button>
+                    </p>
+                    <div class="progress">
+                        <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+
+                        </div>
+                    </div>
+                    <ul class="images_view">
+                        <li ng-repeat="m in photoLists">
+                            <img width="100%" ng-click="deleteImage(m);" ng-src="/file/load?path=@{m}@">
+                        </li>
+                    </ul>
+                </div>
+                <div style="clear: both;"></div>
+            </div>
+            <div class="form-group">
+                <label>特色服务(如免费wifi，免费停车，送货上门)(<font color="#aaaaaa">选填</font>)</label>
+                <input type="text" class="form-control" maxlength="32" placeholder="特色服务" ng-model="shop.Special">
+            </div>
+
+            <div class="form-group">
+                <label>营业时间(24小时制表示,如8:00-20:00)(<font color="#aaaaaa">选填</font>)</label>
+                <input type="text" class="form-control" maxlength="32" placeholder="营业时间" ng-model="shop.Opentime">
+            </div>
+
+            <div class="form-group">
+                <label>人均价格(<font color="#aaaaaa">选填,只能填写大于0的整数</font>)</label>
+                <input type="number" min="1" pattern="[0-9]*"  class="form-control" max="9999999" placeholder="人均价格" ng-model="shop.Avgprice">
+            </div>
+
+            <div class="form-group">
+                <label>商户简介(<font color="#aaaaaa">选填</font>)</label>
+                <textarea class="form-control"  maxlength="120" rows="3" ng-model="shop.Introduction"></textarea>
+                <p class="help-block">@{shop.Introduction.length}@/120</p>
+            </div>
+            <div class="form-group">
+                <label>推荐品(<font color="#aaaaaa">选填</font>)</label>
+                <textarea class="form-control"  maxlength="120" rows="3" ng-model="shop.Recommend"></textarea>
+                <p class="help-block">@{shop.Recommend.length}@/120</p>
+            </div>
+            <table width="100%">
+                <tr>
+                    <td align="center">
+                        <input type="submit" class="btn btn-primary btn-block" value="提交">
+                    </td>
+                    <td align="center">
+                    </td>
+                </tr>
+            </table>
+
+        </form>
+
+    </div>
+
+<div class="modal fade" id="progressBar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">正在上传。。。</h4>
+            </div>
+            <div class="modal-body">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                        <span class="sr-only">100% Complete</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>

@@ -1,0 +1,243 @@
+<%--
+  Created by IntelliJ IDEA.
+  User: SIX4
+  Date: 2014-10-26
+  Time: 9:10
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<jsp:include page="common_head.jsp"/>
+<body ng-controller="seckillCtrl">
+<jsp:include page="common_content_front.jsp"/>
+
+<div class="modal" id="qrcode_alert" tabindex="-1" role="dialog" aria-labelledby="qrcode_alert_ModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="qrcode_alert_ModalLabel">查看二维码</h4>
+            </div>
+            <div class="modal-body">
+                <img width="100%" ng-src="/images/qrcode?content=${host_url}/act/seckill/{{shopID}}/{{seckill.id}}">
+                <h4 align="center">扫描秒享我们优惠，加入平台年赚百万</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" style="width: 100%;" class="btn btn-default" data-dismiss="modal">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal" id="set_preitem_alert" tabindex="-1" role="dialog" aria-labelledby="set_preitem_alert_ModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="set_preitem_alert_ModalLabel">添加要设置的产品</h4>
+            </div>
+            <form style="border: none;" name="mainForm" ng-submit="setPreItemInfo(mainForm.$valid);">
+                <div class="modal-body">
+                    <p ng-show="selectItemID!=undefined">
+                        <span>选择秒杀产品(列表中没有秒杀产品？<a href="add_products">添加</a>)</span>
+                        <select ng-model="selectItemID" ng-change="addProduct();" class="form-control" ng-options="m.id as (m.title+'---'+(m.type=='products'?'产品':m.type=='service'?'服务':m.type=='prize'?'奖项':'其它')) for m in productsObj">
+                        </select>
+                    </p>
+                    <div ng-show="currentItem.productID!=undefined">
+                        <h4 class="list-group-item-heading">{{products[currentItem.productID].title}}<small></small></h4>
+                        <p class="list-group-item-text">
+                            <span>折扣价：{{products[currentItem.productID].price*(currentItem.discount/10)|currency}}</span>&nbsp;&nbsp;&nbsp;<span>现价：{{products[currentItem.productID].price|currency}}</span>
+                        </p>
+                        <p class="list-group-item-text">
+                            每天数量：{{currentItem.stock}}
+                        </p>
+                        <p class="list-group-item-text">
+                            持续天数：{{currentItem.total}}
+                        </p>
+                        <p class="list-group-item-text">
+                            每天开始时间：{{currentItem.begin_timestamp_h}}时{{currentItem.begin_timestamp_m}}分
+                        </p>
+                        <p class="list-group-item-text">
+                            每天结束时间：{{currentItem.end_timestamp_h}}时{{currentItem.end_timestamp_m}}分
+                        </p>
+                        <hr>
+                        <p>
+                            <span>折扣(输入0折为免费)：<input type="number" class="form-control" required min="0" max="10" placeholder="请输入秒杀折扣0~10" name="currentItem_discount" ng-model="currentItem.discount"></span>
+                            <div ng-messages="mainForm.currentItem_discount.$error" style="color:maroon" role="alert">
+                                <div ng-message="required">必填字段</div>
+                                <div ng-message="min">最小数值必须大于等于0</div>
+                                <div ng-message="max">最大数值必须小于等于10</div>
+                            </div>
+                        </p>
+                        <p>
+                            <span>每天可秒杀的数量：<input type="number" class="form-control" required min="1" max="10000" placeholder="数量1~10000" name="currentItem_stock" ng-model="currentItem.stock"></span>
+                            <div ng-messages="mainForm.currentItem_stock.$error" style="color:maroon" role="alert">
+                                <div ng-message="required">必填字段</div>
+                                <div ng-message="min">最小数值必须大于等于1</div>
+                                <div ng-message="max">最大数值必须小于等于10000</div>
+                            </div>
+                        </p>
+                        <p>
+                            <span>持续天数：<input type="number" class="form-control" required min="1" max="365" name="currentItem_total" placeholder="持续天数1~365" ng-model="currentItem.total"></span>
+                            <div ng-messages="mainForm.currentItem_total.$error" style="color:maroon" role="alert">
+                                <div ng-message="required">必填字段</div>
+                                <div ng-message="min">最小数值必须大于等于1</div>
+                                <div ng-message="max">最大数值必须小于等于365</div>
+                            </div>
+                        </p>
+                        <p>
+                            <span>每天开始时间： </span>
+                            <br>
+                            <select style="width: 80px;float: left;" ng-model="currentItem.begin_timestamp_h" ng-change="currentItem.end_timestamp_h=null;currentItem.end_timestamp_m=null;" class="form-control">
+                                <option value="0">0时</option>
+                                <option value="1">1时</option>
+                                <option value="2">2时</option>
+                                <option value="3">3时</option>
+                                <option value="4">4时</option>
+                                <option value="5">5时</option>
+                                <option value="6">6时</option>
+                                <option value="7">7时</option>
+                                <option value="8">8时</option>
+                                <option value="9">9时</option>
+                                <option value="10">10时</option>
+                                <option value="11">11时</option>
+                                <option value="12">12时</option>
+                                <option value="13">13时</option>
+                                <option value="14">14时</option>
+                                <option value="15">15时</option>
+                                <option value="16">16时</option>
+                                <option value="17">17时</option>
+                                <option value="18">18时</option>
+                                <option value="19">19时</option>
+                                <option value="20">20时</option>
+                                <option value="21">21时</option>
+                                <option value="22">22时</option>
+                                <option value="23">23时</option>
+                            </select>
+                            <select style="width: 80px;float: left;" ng-model="currentItem.begin_timestamp_m" ng-change="currentItem.end_timestamp_h=null;currentItem.end_timestamp_m=null;" class="form-control">
+                                <option value="0">0分</option>
+                                <option value="5">5分</option>
+                                <option value="10">10分</option>
+                                <option value="15">15分</option>
+                                <option value="20">20分</option>
+                                <option value="25">25分</option>
+                                <option value="30">30分</option>
+                                <option value="35">35分</option>
+                                <option value="40">40分</option>
+                                <option value="45">45分</option>
+                                <option value="50">50分</option>
+                                <option value="55">55分</option>
+                            </select>
+                        </p>
+                        <br style="clear: both;">
+                        <p>
+                            <span>每天结束时间： </span>
+                            <br>
+                            <select style="width: 80px;float: left;" ng-model="currentItem.end_timestamp_h" class="form-control">
+
+                                <option ng-show="currentItem.begin_timestamp_h<=0" value="0">0点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=1" value="1">1点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=2" value="2">2点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=3" value="3">3点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=4" value="4">4点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=5" value="5">5点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=6" value="6">6点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=7" value="7">7点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=8" value="8">8点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=9" value="9">9点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=10" value="10">10点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=11" value="11">11点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=12" value="12">12点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=13" value="13">13点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=14" value="14">14点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=15" value="15">15点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=16" value="16">16点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=17" value="17">17点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=18" value="18">18点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=19" value="19">19点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=20" value="20">20点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=21" value="21">21点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=22" value="22">22点</option>
+                                <option ng-show="currentItem.begin_timestamp_h<=23" value="23">23点</option>
+
+                            </select>
+                            <select style="width: 80px;float: left;" ng-model="currentItem.end_timestamp_m" class="form-control">
+                                <option  value="0">0分</option>
+                                <option  value="5">5分</option>
+                                <option  value="10">10分</option>
+                                <option  value="15">15分</option>
+                                <option  value="20">20分</option>
+                                <option  value="25">25分</option>
+                                <option  value="30">30分</option>
+                                <option  value="35">35分</option>
+                                <option  value="40">40分</option>
+                                <option  value="45">45分</option>
+                                <option  value="50">50分</option>
+                                <option  value="55">55分</option>
+                            </select>
+                        </p>
+                    </div>
+                    <br style="clear: both;">
+                </div>
+                <div class="modal-footer" ng-show="currentItem.productID!=undefined">
+                    <input type="submit" class="btn btn-primary btn-block" value="确定">
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<h3>限时秒杀设置</h3>
+<form style="border:none;" ng-submit="submit();" name="form">
+    <div class="form-group">
+        <label>限时秒杀条件</label>
+        <small>用户在参与秒杀前，先进行积赞（默认为0，不限制条件。）</small>
+        <input type="number"  required class="form-control" min="0" max="99" placeholder="输入一个数，表示积赞的个数。" ng-model="seckill.threshold">
+    </div>
+    <input type="submit" class="btn btn-primary btn-block" value="提交">
+</form>
+<h3>选择秒杀产品</h3>
+<p>
+    <button class="btn btn-success" ng-click="listProduct();">选择秒杀产品</button>
+</p>
+<div class="list-group">
+    <div ng-repeat="m in perItems" class="list-group-item">
+        <h4 class="list-group-item-heading">{{products[m.productID].title}}
+            <small ng-if="products[m.productID].type=='products'">产品</small>
+            <small ng-if="products[m.productID].type=='service'">服务</small>
+            <small ng-if="products[m.productID].type=='prize'">奖项</small>
+        </h4>
+        <p class="list-group-item-text">
+            <span>折扣价：{{products[m.productID].price*(m.discount/10)|currency}}</span>&nbsp;&nbsp;&nbsp;<span>现价：{{products[m.productID].price|currency}}</span>
+        </p>
+        <p class="list-group-item-text">
+            每天数量：{{m.stock}}
+        </p>
+        <p class="list-group-item-text">
+            开始时间：{{m.begin_timestamp|date:'yyyy-MM-dd HH:mm'}}
+        </p>
+        <p class="list-group-item-text">
+            结束时间：{{m.end_timestamp|date:'yyyy-MM-dd HH:mm'}}
+        </p>
+        <hr style="margin: 10px 0px;">
+        <p class="list-group-item-text">
+            <button class="btn btn-info btn-xs" style="float: left;" ng-click="setPreItem(m);">修改</button>
+        <div style="width: 10px;float: left;height: 1px;"></div>
+            <button class="btn btn-danger btn-xs" style="float: left;" ng-show="m.id!=undefined" ng-click="delPreItem(m);">删除</button>
+            <div style="width: 10%;float: left;height: 1px;"></div>
+            <a href="/act/preItem/{{shopID}}/{{m.id}}" style="float: left;" class="btn btn-info btn-xs">单品发布</a>
+            <div style="width:10px;float: left;height: 1px;"></div>
+            <a data-clipboard-text="${host_url}/act/preItem/{{shopID}}/{{m.id}}" style="float: left;" class="btn btn-danger btn-xs">复制单品链接</a>
+            <div style="clear: both;"></div>
+        </p>
+    </div>
+</div>
+
+<p><a class="btn btn-danger btn-block" data-clipboard-text="${host_url}/act/seckill/{{shopID}}/{{seckill.id}}">复制链接地址</a></p>
+<p><a class="btn btn-info btn-block" href="/act/seckill/{{shopID}}/{{seckill.id}}">发布并分享</a></p>
+<p><a class="btn btn-info btn-block" href="" data-toggle="modal" data-target="#qrcode_alert">查看二维码</a></p>
+
+<jsp:include page="common_content_after.jsp"/>
+</body>
+</html>

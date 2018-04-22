@@ -1,0 +1,171 @@
+<%--
+  Created by IntelliJ IDEA.
+  User: sixf
+  Date: 2/18/2016
+  Time: 7:08 PM
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<jsp:include page="common_head.jsp"/>
+<body ng-controller="add_productsCtrl">
+<jsp:include page="common_content_front.jsp"/>
+<style>
+    #add_products{
+        margin: 0px 10px;
+    }
+    #add_products ul{
+        padding: 0px;
+        margin: 0px;
+        list-style: none;
+    }
+    #add_products ul li{
+        float: left;
+        width: 64px;
+        height: 64px;
+        border: 1px solid #3d64ff;
+        line-height: 64px;
+        vertical-align: middle;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+</style>
+<div id="add_products">
+     <form style="border: none;" name="mainForm" ng-submit="saveProduct(mainForm.$valid)">
+         <div class="form-group">
+             <label>选择产品类型</label>
+             <small></small>
+             <select class="form-control" ng-disabled="pid!=undefined" ng-model="product.type" required>
+                 <option value="products">产品</option>
+                 <option value="service">服务(可用于报名/预约)</option>
+                 <option value="prize">奖项（可用于转盘相关的奖项）</option>
+             </select>
+         </div>
+         <div class="form-group">
+             <label>标题</label>
+             <small></small>
+             <input type="text"  required class="form-control" minlength="2" name="product_title" maxlength="{{(product.type!='prize'?32:12)}}" placeholder="请输入标题" ng-model="product.title">
+             <div ng-messages="mainForm.product_title.$error" style="color:maroon" role="alert">
+                 <div ng-message="required">必填字段</div>
+                 <div ng-message="minlength">最小长度必须2位</div>
+                 <div ng-message="maxlength">最大长度必须32位</div>
+             </div>
+         </div>
+         <div class="form-group">
+             <label>项目介绍文字</label>
+             <small></small>
+             <textarea type="text" class="form-control" placeholder="请输入产品相关的介绍信息" maxlength="240" minlength="2" ng-model="product.description" name="product_description" required></textarea>
+             <div ng-messages="mainForm.product_description.$error" style="color:maroon" role="alert">
+                 <div ng-message="required">必填字段</div>
+                 <div ng-message="minlength">最小长度必须2位</div>
+                 <div ng-message="maxlength">最大长度必须240位</div>
+             </div>
+         </div>
+         <div class="form-group" style="display: none;">
+             <label>项目缩略图</label>
+             <small></small>
+             <file-uploader name="small_image"></file-uploader>
+             <ul>
+                 <li>
+                     <img width="100%" ng-click="deleteSmallImageImage();" ng-src="/datas/file?path={{product.smallImage}}">
+                 </li>
+             </ul>
+             <div style="clear: both;"></div>
+         </div>
+         <div class="form-group">
+             <label>项目轮播图(点击图片删除)</label>
+             <small></small>
+             <file-uploader name="photo_lists"></file-uploader>
+             <ul>
+                 <li ng-repeat="m in photoLists">
+                     <img width="100%" ng-click="deleteImage(m);" ng-src="/datas/file?path={{m}}">
+                 </li>
+             </ul>
+             <div style="clear: both;"></div>
+         </div>
+         <div class="form-group">
+             <label>项目介绍图片(点击图片删除)</label>
+             <small></small>
+             <file-uploader name="description_images"></file-uploader>
+             <ul>
+                 <li ng-repeat="m in descriptionImages">
+                     <img width="100%" ng-click="deleteDescriptionImages(m);" ng-src="/datas/file?path={{m}}">
+                 </li>
+             </ul>
+             <div style="clear: both;"></div>
+         </div>
+         <div class="form-group">
+             <label>相关链接</label>
+             <small></small>
+             <div style="clear: both;"></div>
+             <input type="text" style="width: 30%;float: left;" class="form-control" placeholder="请输入链接名称" maxlength="240" minlength="1" ng-model="links_text" name="links_text">
+
+             <input type="url" style="width: 60%;float: left;" class="form-control" placeholder="请输入链接地址" maxlength="240" minlength="7" ng-model="links_link" name="links_link">
+
+             <div style="clear: both;"></div>
+             <div ng-messages="mainForm.links_text.$error" style="color:maroon" role="alert">
+                 <div ng-message="minlength">最小长度必须大于1个字符</div>
+                 <div ng-message="maxlength">最大长度必须小于240字符</div>
+             </div>
+             <div ng-messages="mainForm.links_link.$error" style="color:maroon" role="alert">
+                 <div ng-message="url">必须是有效url地址，必须带http://或https://</div>
+                 <div ng-message="minlength">最小长度必须大于7个字符，必须带http://或https://</div>
+                 <div ng-message="maxlength">最大长度必须小于240位，太长了请使用短地址。<a href="">在线转换</a></div>
+             </div>
+         </div>
+
+         <div class="form-group">
+             <label>现价（元）</label>
+             <small></small>
+             <input type="number" class="form-control" placeholder="请输入价格" max="999999999" min="0" ng-model="product.price" name="product_price" required>
+             <div ng-messages="mainForm.product_price.$error" style="color:maroon" role="alert">
+                 <div ng-message="required">必填字段</div>
+                 <div ng-message="min">最小数值必须大于等于0</div>
+                 <div ng-message="max">最大数值必须小于等于999999999</div>
+             </div>
+         </div>
+
+         <div class="form-group">
+             <label>预设库存</label>
+             <small></small>
+             <input type="number" class="form-control" placeholder="请输入库存数量" max="999999999" min="0" ng-model="product.stock" name="product_stock" required>
+             <div ng-messages="mainForm.product_stock.$error" style="color:maroon" role="alert">
+                 <div ng-message="required">必填字段</div>
+                 <div ng-message="min">最小数值必须大于等于0</div>
+                 <div ng-message="max">最大数值必须小于等于999999999</div>
+             </div>
+         </div>
+         <div class="form-group">
+             <label>是否可以限时秒杀</label>
+             <small></small>
+             <input type="checkbox" ng-model="product.seckill">
+         </div>
+         <div class="form-group">
+             <label>参与一元购</label>
+             <small></small>
+             <input type="checkbox" ng-model="product.oneBuy">
+         </div>
+        <input type="submit" class="btn btn-primary" value="提交">
+    </form>
+</div>
+<jsp:include page="common_content_after.jsp"/>
+<div class="modal fade" id="progressBar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">正在上传。。。</h4>
+            </div>
+            <div class="modal-body">
+                <div class="progress">
+                    <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+                        <span class="sr-only">100% Complete</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

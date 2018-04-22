@@ -1,0 +1,95 @@
+<!DOCTYPE HTML>
+<html ng-app="main" ng-cloak>
+<head>
+    <title>蒲公英营销助手</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta content="width=device-width,user-scalable=no" name="viewport">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    {{/*<script type="text/javascript" src="/resources/jquery/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="/resources/messenger/js/messenger.min.js" charset="UTF-8"></script>
+    <script type="text/javascript" src="/resources/messenger/js/messenger-theme-flat.js" charset="UTF-8"></script>*/}}
+
+    <link href="/resources/admin/css/default.css" type="text/css" rel="stylesheet" />
+    <link href="/resources/common/css/components.css" type="text/css" rel="stylesheet" />
+    <link href="/resources/admin/css/index.css" type="text/css" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="/resources/semantic-ui/semantic.min.css">
+
+    <script type="text/javascript" src="/resources/jquery/3/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="/resources/semantic-ui/semantic.min.js"></script>
+
+    {{/*<link rel="stylesheet" href="/resources/messenger/css/messenger.css">
+    <link rel="stylesheet" href="/resources/messenger/css/messenger-theme-flat.css">*/}}
+    {{/*<link rel="stylesheet" href="/resources/bootstrap/css/bootstrap.min.css">*/}}
+    {{/*<script type="text/javascript" src="/resources/bootstrap/js/bootstrap.min.js" charset="UTF-8"></script>*/}}
+
+
+
+    <script type="text/javascript" src="/resources/angular/angular.min.js"></script>
+    <script type="text/javascript" src="/resources/angular/plugins/ng-file-upload/ng-file-upload.min.js"></script>
+    <script type="text/javascript" src="/resources/angular/i18n/angular-locale_zh-cn.js"></script>
+    <script type="text/javascript" src="/resources/angular/angular-route.min.js"></script>
+    <script type="text/javascript" src="/resources/angular/angular-messages.min.js"></script>
+    <script>
+        /*Messenger.options = {
+            extraClasses: 'messenger-fixed messenger-on-bottom',
+            theme: 'flat',
+            messageDefaults: {hideAfter: 3}
+        }*/
+        var server_time = "{{.time}}";
+        var shopID = '{{.session.SESSION_SHOP.ID}}';
+        var adminID = '{{.session.SESSION_ADMIN.ID}}';
+
+
+        $(document).ready(function () {
+            $('.ui.container').popup();
+
+            $('.ui.container .menu .browse').popup({target: '.menu .header',position : 'right center',on:'click', popup: '.ui.flowing',inline:true,delay:{show:300,hide:800}});
+           // $('.button').popup({boundary: '.boundary.example .segment'});
+        });
+
+
+
+    </script>
+    <script src="/resources/common/js/components.js" type="text/javascript"></script>
+    <script type="text/javascript" src="/resources/admin/js/admin.js"></script>
+    {{/*
+
+    <script type="text/javascript" src="/resources/clipboard/clipboard.min.js" charset="UTF-8"></script>*/}}
+    {{/*<script>
+        var clipboard = new Clipboard('.btn');
+        clipboard.on('success', function(e) {
+            Messenger().post("复制成功");
+            e.clearSelection();
+        });
+        clipboard.on('error', function(e) {
+            //Messenger().post(JSON.stringify(e));
+            var data=e.trigger.attributes.getNamedItem("data-clipboard-text").textContent;
+            try {
+                window.copy(data);
+                Messenger().post("复制成功");
+            }catch(e){
+                try {
+                    window.copyText(data);
+                    Messenger().post("复制成功");
+                }catch(e){
+                    try {
+                        window.clipboardData.setData("Text",data);
+                        Messenger().post("复制成功");
+                    }catch(e){
+                        Messenger().post("复制失败");
+                    }
+                }
+            }
+        });
+    </script>*/}}
+</head>
+<body>
+{{IncludeHTML `admin/pub/header.html` .}}
+<div class="view" ng-view></div>
+<div class="ui container right">
+{{IncludeHTML `admin/pub/footer.html` .}}
+</div>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%--
+  Created by IntelliJ IDEA.
+  User: sixf
+  Date: 3/28/2016
+  Time: 1:40 AM
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>结果</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" />
+    <style>
+        body{
+
+        }
+        .message{
+            border-radius: 3px;
+            background-color: rgba(18, 198, 62, 0.45);
+            color: #1e780e;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+        }
+        #tip{
+            text-align:center;
+            font-size: 12px;
+            margin: 10px;
+        }
+        #tip b{
+            color: red;
+        }
+    </style>
+
+</head>
+<body>
+<c:if test="${actionStatus.success}">
+    <div class="message">佣金已经打开你的微信零钱里，请注意查收</div>
+    <script>
+            var time =2;
+            var timer = setInterval(function () {
+
+                if(time<=0){
+                    window.location.href="/admin/brokeragePage";
+                }
+                window.document.getElementById("tip").innerHTML = "<b>"+(time+1)+"</b>秒后跳转到管理页面";
+
+                time --;
+
+            },1000);
+
+    </script>
+</c:if>
+<c:if test="${!actionStatus.success}">
+    <div class="message">${actionStatus.message}</div>
+    <script>
+
+        var time =2;
+        var timera = setTimeout(function () {
+            //window.document.getElementById("tip").innerHTML = "<b>3</b>秒后返回";
+
+            var timerb = setInterval(function () {
+
+                if(time<=0){
+                    window.history.back();
+                }
+                window.document.getElementById("tip").innerHTML = "<b>"+(time+1)+"</b>秒后返回";
+
+                time --;
+
+            },1000);
+
+        },3000);
+
+    </script>
+</c:if>
+<div id="tip"></div>
+</body>
+</html>

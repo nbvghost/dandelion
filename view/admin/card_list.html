@@ -1,0 +1,63 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<jsp:include page="common_head.jsp"/>
+<body ng-controller="CardListCtrl">
+<jsp:include page="common_content_front.jsp"/>
+<style>
+    #create_card{
+        width:100%;
+
+    }
+    #create_card .card_list{
+        padding: 5px;
+    }
+    #create_card .card_list .card_item{
+        margin: 10px 0px;
+        border: 1px solid silver;
+        padding: 5px;
+    }
+    #create_card .card_list .card_item td{
+
+    }
+    #create_card .card_list .card_item:hover{
+        background-color: #5c9dff;
+        color: white;
+    }
+</style>
+<div id="create_card">
+    <div class="card_list">
+        <div class="card_item" ng-repeat="m in listCash">
+            <table width="100%">
+                <tr>
+                    <td width="80" rowspan="3">
+                        <img width="100%" style="padding: 10px;" ng-src="../datas/file?path={{m[1].logo_url}}">
+                    </td>
+                    <td colspan="3">
+                        <h3 class="list-group-item-heading">{{m[1].title}}</h3>
+                    </td>
+
+                </tr>
+                <tr>
+                    <td></td>
+                    <td colspan="3">库存：{{m[2].quantity}}</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td colspan="3">
+                        <div ng-show="m[3].end_timestamp==undefined || m[3].end_timestamp>=(serverTime/1000)">
+                            <span ng-show="!m[1].pass">审核没有通过</span>
+                            <span ng-show="m[1].pass"><button ng-click="thowin(m[0].id);" class="btn btn-default" type="button">投放</button></span>
+                            <span><a href="make_card?id={{m[0].id}}"><button type="button" class="btn btn-info">详情</button></a></span>
+                        </div>
+                        <div ng-show="m[3].end_timestamp!=undefined && m[3].end_timestamp<(serverTime/1000)">
+                            <div><h4>已过期</h4></div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+<jsp:include page="common_content_after.jsp"/>
+</body>
+</html>

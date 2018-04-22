@@ -1,0 +1,67 @@
+<%--
+  Created by IntelliJ IDEA.
+  User: sixf
+  Date: 2016/4/9
+  Time: 22:51
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>蒲公英营销助手-推广奖励-挑战100万</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0">
+    <script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+    <script>
+        var shareData = {
+            title: "蒲公英营销助手-推广奖励-挑战100万",
+            desc: "商铺必备营销工具",
+            link: window.location.href,
+            imgUrl: '${wx.host_url}/resources/account/popularize/popularize_info_thumb.jpg'
+        };
+        var appId = "${wx.appid}";
+        var timestamp = "${wx.timestamp}";
+        var nonceStr = "${wx.nonceStr}";
+        var signature = "${wx.signature}";
+    </script>
+    <script type="text/javascript" src="/resources/act/js/act_common.js"></script>
+    <style>
+        body{
+            padding: 0px;
+            margin: 0px;
+        }
+        a:active{
+            outline: 0;
+            box-shadow:0px 0px 10px 5px rgba(0, 0, 0, 0.1) inset;
+        }
+        input[type=button]:active, input[type=reset]:active, input[type=submit]:active,
+        button:active{
+            outline: 0;
+            box-shadow:0px 0px 10px 5px rgba(0, 0, 0, 0.3) inset;
+        }
+        a.open_btn{
+            padding: 5px 0px;
+            background: #ffb003;
+            background: linear-gradient(#ffe25e, #ffb003);
+            border: 2px solid white;
+            box-shadow: 0px 0px 3px #333;
+            font-weight: bold;
+            text-decoration: none;
+            color: #333;
+            font-size: 18px;
+            margin-top: 20px;
+            display: block;
+            text-align: center;
+            position: fixed;
+            width: 100%;
+            bottom: 0px;
+            max-width: 640px;
+        }
+    </style>
+</head>
+<body>
+<div style="max-width: 640px;margin: 0px auto;">
+    <img src="/resources/account/popularize/popularize.png" width="100%">
+    <a href="/account/${shopID}/register" class="open_btn">免费试用</a>
+</div>
+</body>
+</html>

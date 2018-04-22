@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="frontApp" ng-cloak>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+    <title>{{.params.shop.Name}}--{{.params.appointment.Name}}</title>
+    <link rel="stylesheet" href="/resources/front/appointment/appointment.css">
+    <link rel="stylesheet" href="/resources/swiper/css/swiper.min.css">
+    <script type="text/javascript" src="/resources/jquery/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="/resources/angular/angular.min.js"></script>
+    <script type="text/javascript" src="/resources/angular/plugins/ng-file-upload/ng-file-upload.min.js"></script>
+    <script type="text/javascript" src="/resources/angular/i18n/angular-locale_zh-cn.js"></script>
+    <script type="text/javascript" src="/resources/angular/angular-route.min.js"></script>
+    <script type="text/javascript" src="/resources/front/js/front.js"></script>
+    <style>
+        html, body {
+            position: relative;
+            height: 100%;
+        }
+        body {
+            background: #eee;
+            font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            color:#000;
+            margin: 0;
+            padding: 0;
+        }
+        .swiper-container {
+            width: 100%;
+            height: 240px;
+        }
+        .swiper-slide {
+            text-align: center;
+            font-size: 18px;
+            background: #fff;
+
+            /* Center slide text vertically */
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: -webkit-flex;
+            display: flex;
+            -webkit-box-pack: center;
+            -ms-flex-pack: center;
+            -webkit-justify-content: center;
+            justify-content: center;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
+            -webkit-align-items: center;
+            align-items: center;
+        }
+        .swiper-slide img {
+            width: auto;
+            height: auto;
+            max-width: 100%;
+            max-height: 100%;
+            -ms-transform: translate(-50%, -50%);
+            -webkit-transform: translate(-50%, -50%);
+            -moz-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+            position: absolute;
+            left: 50%;
+            top: 50%;
+        }
+    </style>
+</head>
+<body ng-controller="appointmentIndexController">
+<div class="container">
+    <div class="swiper-container">
+        <div class="swiper-wrapper">
+            {{range $k,$v:=(FromJSONToArray .params.appointment.Gallery)}}
+            <div class="swiper-slide">
+                <img class="swiper-lazy swiper-lazy-loaded" src="/file/load?path={{$v}}">
+            </div>
+            {{end}}
+        </div>
+        <!-- Add Pagination -->
+        <div class="swiper-pagination"></div>
+    </div>
+    <h5>{{.params.appointment.Name}}</h5>
+    <h5>原价：@{'{{.params.appointment.Orig}}'|currency}@</h5>
+    <h5>现价：@{'{{.params.appointment.Price}}'|currency}@</h5>
+
+    <div class="info_property">
+        {{$property:=(FromJSONToArray .params.appointment.Property)}}
+        {{if gt (len $property) 0}}
+            <h5>
+                属性：
+                {{range $k,$v:=$property}}
+                {{$v.Key}}:{{$v.Value}}
+                {{end}}
+            </h5>
+        {{end}}
+    </div>
+
+    <div class="info_link">
+        {{$link:=(FromJSONToMap .params.appointment.Link)}}
+        {{if $link.Show}}
+        <p>
+            相关链接：<a href="{{$link.Url}}" target="_blank">{{$link.Name}}</a>
+        </p>
+        {{end}}
+    </div>
+
+    <div class="info_order">
+        <button ng-click="addShopingCart()">加入购物车</button>
+        <button ng-click="buy()">立即购买</button>
+    </div>
+
+    <div class="content">
+        <h5>{{.params.appointment.Introduction}}</h5>
+        {{range $k,$v:=(FromJSONToArray .params.appointment.Picture)}}
+
+        <img width="100%" src="/file/load?path={{$v}}">
+
+        {{end}}
+    </div>
+    <div id="buy_select_box" style="display: none;">
+        <div class="select_box">
+            <h4>{{.params.appointment.Name}}</h4>
+            <p>
+
+                <h5>
+                    <label>数量：</label>
+                    <button ng-click="addCount()">+</button>
+                    <input value="1" type="number" min="1" ng-model="count">
+                    <button ng-click="minusCount()">-</button>
+                </h5>
+            </p>
+            <h6>
+                <button ng-click="submit()">@{btnTxt}@</button>
+                <button onclick="$('#buy_select_box').hide();">取消</button>
+            </h6>
+        </div>
+    </div>
+</div>
+
+
+<script src="/resources/swiper/js/swiper.min.js"></script>
+<script>
+    var swiper = new Swiper('.swiper-container', {
+        pagination: '.swiper-pagination',
+        paginationClickable: true
+    });
+</script>
+</body>
+</html>

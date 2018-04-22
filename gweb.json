@@ -1,0 +1,13 @@
+{
+  "ViewDir": "view",
+  "ResourcesDir": "resources",
+  "DefaultPage": "index",
+  "JsonDataPath": "data.json",
+  "HttpPort": ":80",
+  "HttpsPort": ":443",
+  "ViewSuffix": ".html",
+  "ViewActionMapping": true,
+  "TLSCertFile": "cert/1_nutsy.cc_bundle.crt",
+  "TLSKeyFile": "cert/2_nutsy.cc.key",
+  "DBUrl": "root:123456@tcp(127.0.0.1:3306)/dandelion?charset=utf8&parseTime=True&loc=Local"
+}

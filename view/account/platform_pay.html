@@ -1,0 +1,336 @@
+<%--
+  Created by IntelliJ IDEA.
+  User: sixf
+  Date: 3/11/2016
+  Time: 3:57 PM
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+
+<!DOCTYPE html>
+<html ng-app="account" lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="telephone=no" name="format-detection">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>${title}</title>
+    <script type="text/javascript" src="/resources/jquery/jquery-1.12.0.min.js"></script>
+    <script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
+    <script type="text/javascript" src="/resources/angular/angular.min.js"></script>
+    <script type="text/javascript" src="/resources/angular/i18n/angular-locale_zh-cn.js"></script>
+    <script type="text/javascript" src="/resources/angular/angular-route.min.js"></script>
+    <script>
+
+        var vips = ${vip};
+        var shopID = "${shopID}";
+        var action = ${action};
+        var openID = "${openID}";
+
+        wx.config({
+            debug: false,         // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+            appId: "${config.appid}", // 必填，公众号的唯一标识
+            timestamp:${config.timestamp}, // 必填，生成签名的时间戳
+            nonceStr:"${config.nonceStr}", // 必填，生成签名的随机串
+            signature:"${config.signature}",// 必填，签名，见附录1
+            jsApiList: ['checkJsApi',
+                'onMenuShareTimeline',
+                'onMenuShareAppMessage',
+                'onMenuShareQQ',
+                'onMenuShareWeibo',
+                'onMenuShareQZone',
+                'hideMenuItems',
+                'showMenuItems',
+                'hideAllNonBaseMenuItem',
+                'showAllNonBaseMenuItem',
+                'translateVoice',
+                'startRecord',
+                'stopRecord',
+                'onRecordEnd',
+                'playVoice',
+                'pauseVoice',
+                'stopVoice',
+                'uploadVoice',
+                'downloadVoice',
+                'chooseImage',
+                'previewImage',
+                'uploadImage',
+                'downloadImage',
+                'getNetworkType',
+                'openLocation',
+                'getLocation',
+                'hideOptionMenu',
+                'showOptionMenu',
+                'closeWindow',
+                'scanQRCode',
+                'chooseWXPay',
+                'openProductSpecificView',
+                'addCard',
+                'chooseCard',
+                'openCard'] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+        });
+        wx.error(function (res) {
+            //alert(JSON.stringify(res));
+        });
+        wx.ready(function () {
+            // 1 判断当前版本是否支持指定 JS 接口，支持批量判断
+            wx.checkJsApi({
+                jsApiList:['chooseWXPay'],
+                success: function (res) {
+                    //alert(JSON.stringify(res));
+                    wx.hideAllNonBaseMenuItem();
+                    //pay();
+                }
+
+            });
+        });
+
+        function boxalert(error,time){
+
+            if($(".reg_error").length<=0){
+                $("body").append('<div class="reg_error"></div>');
+            }
+
+            if(!time){
+                time = 2000;
+            }
+
+            $(".reg_error").html(error).show();
+
+            setTimeout(function(){
+                $(".reg_error").fadeOut(100);
+            },time);
+
+        }
+
+
+
+    </script>
+    <script type="text/javascript" src="/resources/account/js/account.js"></script>
+</head>
+<style>
+    body,html{
+        padding: 0px;
+        margin: 0px;
+        height: 100%;
+    }
+    .reg_error {
+        display: none;
+        position: fixed;
+        top: 39%;
+        left: 50%;
+        width: 220px;
+        margin-left: -120px;
+        font-size: 14px;
+        padding: 10px;
+        line-height: 22px;
+        color: #fff;
+        background: rgba(0,0,0,0.75);
+        border-radius: 5px;
+        text-align: center;
+        z-index: 90000;
+    }
+    .upg_time ul li.on{color:white;border:1px solid red;background-color: red;font-weight: bold;}
+    .pay_icon img.on1 {border: 1px solid #0066bf;}
+    .app_bg{background: #f0f3f5;}
+    .header{
+        position: relative;
+        height: 50px;
+        line-height: 50px;
+        color: #fff;
+        font-size: 18px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        background: #e4403f;
+        text-align: center;
+        padding: 0 65px;
+    }
+    .header a{
+        position: absolute;
+        display: inline-block;
+        height: 30px;
+        padding: 10px;
+    }
+    .header img {
+        margin-top: 5px;
+        vertical-align: top;
+        height: 20px !important;
+    }
+    a.back {
+        left: 0;
+    }
+    .back_cs {
+        line-height: 30px;
+        vertical-align: top;
+        margin: 0 0 0 5px;
+        color: #FFF;
+        font-size: 16px;
+    }
+    .upg_top {
+        text-align: center;
+        background: #fff;
+    }
+    .upg_type {
+        color: #333;
+        font-size: 15px;
+        margin: 0px;
+    }
+    ul,li{
+        list-style: none;
+        margin: 0px;
+        padding: 0px;
+    }
+    .upg_money {
+        padding: 15px 0;
+        color:red;
+        font-size: 19px;
+        margin: 0px;
+    }
+
+    .upg_check {
+        margin: 15px auto;
+    }
+
+    .check_time {
+        color: #333;
+        font-size: 16px;
+        margin: 0 10px 5px;
+    }
+
+    .upg_time {
+        text-align: center;
+        cursor: pointer;
+    }
+
+    .upg_time ul li {
+        margin: 10px 0 0 10px;
+        float: left;
+        border: 1px solid #999;
+        color: #999;
+        font-size: 16px;
+        width: 29%;
+        padding: 7px 0;
+        cursor: pointer;
+    }
+    .clear{clear:both;}
+    .upg_check {
+        margin: 15px auto;
+    }
+
+    .check_time {
+        color: #333;
+        font-size: 16px;
+        margin: 0 10px 5px;
+    }
+    .pay_icon img {
+        margin-bottom: 8px;
+    }
+
+    .pay_icon img {
+        width: 168px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+        overflow: hidden;
+        background: #fff;
+    }
+    .pay_icon {
+        margin: 15px 10px;
+        overflow: hidden;
+    }
+    .fl {
+        float: left;
+    }
+    .pay_button {
+        color: #fff;
+        width: 94%;
+        margin: 0 3%;
+        font-size: 16px;
+        height: 40px;
+        line-height: 40px;
+        border-radius: 3px;
+        background: #e4403f;
+
+        padding: 0;
+        border: none;
+        border: 0;
+        cursor: pointer;
+    }
+    #zxloading {
+        position: fixed;
+        height: 100%;
+        width: 100%;
+        left: 0;
+        top: 0;
+        z-index: 1000000;
+        background: rgba(255,255,255,0.8);
+    }
+    #zxloading #loadtext {
+        width: 214px;
+        padding: 8px 0;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        margin-left: -110px;
+        margin-top: -55px;
+        text-align: center;
+        font-size: 15px;
+        z-index: 1000001;
+        border-radius: 5px;
+        background: rgba(0,0,0,0.8);
+    }
+    #zxloading #loadtext img {
+        width: 60px;
+        height: 60px;
+    }
+    #zxloading #loadtext p {
+        margin-top: 5px;
+        color: #fff;
+    }
+</style>
+
+<body ng-controller="orderPayController" class="app_bg">
+
+<div class="header">
+    ${title}
+    <a href="javascript:history.back();" class="back">
+        <img src="/resources/account/pay/back.png"><span class="back_cs"></span>
+    </a>
+</div>
+<div class="upg_top">
+    <!--<p><img src="/web/img/sf.png" style="margin: 10px 0 10px;"></p>-->
+    <p class="upg_type" style="font-size:16px;padding-top:20px;">${name}，请确认付款金额</p>
+    <p class="upg_money" style="padding: 10px 0;font-size: 22px;"><span class="price" style="font-size:30px;">{{pic}}元</span></p>
+</div>
+
+<div class="upg_check">
+    <div class="check_time">请选择服务版本</div>
+    <div class="upg_time">
+        <ul>
+            <li ng-repeat="(key, value) in vips" ng-class="{true:'on'}[selectIndex==key]" ng-click="selectItem(key)">{{value.name}}</li>
+        </ul>
+    </div>
+</div>
+<div class="clear"></div>
+
+<div style="color:#0066bf;margin: 10px;">
+    (不支持补差价升级，钻石版奖励最高！)
+</div>
+
+<div class="upg_check">
+    <div class="check_time">请选择支付方式</div>
+    <div class="pay_icon">
+        <ul>
+            <li><img src="/resources/account/pay/wxpay.png" class="fl on1 pay_failed" data-id="1"></li>
+            <!--<li><img src="/web/img/bank_pay.png" class="fr back_pay" data-id="3"></li>-->
+        </ul>
+    </div>
+</div>
+<div class="hidden_btn">
+    <button type="submit" ng-click="createOrder();" class="pay_button">立即支付</button>
+    <a href="/account/pay/${userID}?type={{selectIndex}}&action=${action}"></a>
+</div>
+
+<div id="zxloading" style="display: none;"><div id="loadtext">	<h1><img src="/resources/account/loading.gif"></h1>	<p>加载中，请稍候…</p></div></div>
+</body>
+</html>

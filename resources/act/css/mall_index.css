@@ -1,0 +1,329 @@
+h1,h2,h3,h4,h5,h6,th {
+    font-size: 100%;
+    font-weight: normal;
+}
+.m-index-promot {
+    margin-bottom: 10px;
+    height: 120px;
+    border-bottom: 1px solid #dcdcdc;
+}
+.w-slide {
+    background: #fff;
+    overflow: hidden;
+    position: relative;
+}
+.m-index-promot .w-slide-wrap {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+.w-slide-wrap {
+    overflow: hidden;
+}
+.m-index-promot .w-slide-wrap-list {
+    position: relative;
+    left: 0;
+    overflow: hidden;
+}
+.m-index-promot .w-slide-wrap-list-item {
+    width: 100%;
+    height: 120px;
+}
+.w-slide-wrap-list-item {
+    float: left;
+}
+.m-index-promot .frame {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+.m-index-promot .frame img {
+    margin: 0 auto;
+    height: 100%;
+}
+img {
+    display: block;
+}
+.m-index-reveal {
+    margin-bottom: 10px;
+    height: auto;
+}
+.m-index-mod {
+    background-color: #fff;
+    border-top: 1px solid #dcdcdc;
+    border-bottom: 1px solid #dcdcdc;
+    position: relative;
+}
+.m-index-mod-hd {
+    position: relative;
+    padding: 0 10px;
+    height: 33px;
+    line-height: 33px;
+}
+.m-index-mod-more {
+    position: absolute;
+    right: 10px;
+    bottom: 0px;
+    color: #666;
+    font-size: 12px;
+}
+.m-index-mod-bd {
+    overflow: hidden;
+}
+.w-goodsList-brief {
+    width: 101%;
+    overflow: hidden;
+}
+.w-goodsList {
+    overflow: hidden;
+}
+
+ul, ol {
+    list-style: none;
+}
+
+.w-goodsList-brief .w-goodsList-item {
+    float: left;
+    width: 33%;
+    margin-bottom: 10px;
+    border-right: 1px solid #dcdcdc;
+}
+.w-goodsList-item {
+    overflow: hidden;
+    position: relative;
+}
+
+.w-goods-brief {
+    padding: 0 5px;
+    text-align: center;
+}
+.w-goods {
+    overflow: hidden;
+    background-color: #fff;
+    color: #999;
+    font-size: 13px;
+    position: relative;
+}
+.w-goods-brief .w-goods-pic {
+    margin: 0 auto;
+    width: 70px;
+    height: 70px;
+}
+.w-goods-pic {
+    position: relative;
+}
+.w-goods-pic img {
+    width: 100%;
+}
+
+.m-index-popular {
+    background: none;
+    border: 0;
+}
+.m-index-popular-list {
+    padding: 0 2px;
+}
+.w-goodsList-s .w-goodsList-item {
+    float: left;
+    width: 50%;
+}
+
+
+
+
+
+.w-goodsList-s .w-goods {
+    padding: 8px 6px;
+    border: 1px solid #dcdcdc;
+}
+.w-goodsList-s .w-goods {
+    margin: 0 2px 5px;
+}
+.w-goods-ing {
+    position: relative;
+}
+.w-goods-ing .w-goods-pic {
+    margin: 0 auto 7px;
+    width: 140px;
+    height: 140px;
+}
+
+.w-goods-ing .w-goods-title {
+    margin-bottom: 9px;
+}
+.w-goods-ing .w-goods-title {
+    margin-bottom: 5px;
+    width: 100%;
+}
+
+.w-goods p {
+    line-height: 18px;
+}
+.f-txtabb {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.w-goods-ing .w-progressBar {
+    margin-right: 50px;
+}
+.w-progressBar {
+    font-size: 12px;
+}
+.w-goods-title a {
+    color: #666;
+    line-height: 18px;
+}
+.w-goods-ing .w-progressBar .txt {
+    margin-bottom: 3px;
+    font-size: 12px;
+    color: #999999;
+}
+.w-progressBar .txt {
+    overflow: hidden;
+}
+.w-goods-ing .w-progressBar .txt strong {
+    color: #0079fe;
+}
+.w-goods-ing .w-progressBar .wrap {
+    margin-bottom: 12px;
+}
+.w-progressBar .wrap {
+    position: relative;
+    margin-bottom: 10px;
+    height: 5px;
+    border-radius: 5px;
+    background-color: #efeeee;
+    overflow: hidden;
+}
+.w-progressBar .bar {
+    overflow: hidden;
+}
+.w-progressBar .bar, .w-progressBar .color {
+    display: block;
+    height: 100%;
+    border-radius: 4px;
+}
+.w-progressBar .color {
+    width: 100%;
+    background: #FFA538;
+    background: -webkit-gradient(linear,left top,right top,from(#FFCB3D),to(#FF8533));
+    background: -moz-linear-gradient(left,#FFCB3D,#FF8533);
+    background: -o-linear-gradient(left,#FFCB3D,#FF8533);
+    background: -ms-linear-gradient(left,#FFCB3D,#FF8533);
+}
+.w-progressBar .bar, .w-progressBar .color {
+    display: block;
+    height: 100%;
+    border-radius: 4px;
+}
+time, mark, output, meter, address, cite, em, code, var, dfn, ins, i, th, caption {
+    font-style: normal;
+    text-decoration: none;
+}
+.w-goods-ing .w-goods-shortFunc {
+    position: absolute;
+    right: 5px;
+    bottom: 16px;
+}
+.w-button-addToCart:before {
+    top: 15px;
+    left: 8px;
+    height: 0;
+    border-top: 2px solid #fff;
+}
+.w-button-addToCart:after {
+    top: 8px;
+    left: 15px;
+    width: 0;
+    border-left: 2px solid #fff;
+}
+.w-button-addToCart:before, .w-button-addToCart:after {
+    content: "";
+    display: block;
+    position: absolute;
+    width: 17px;
+    height: 17px;
+    overflow: hidden;
+}
+.w-button {
+    text-align: center;
+    white-space: nowrap;
+    font-size: 14px;
+    display: inline-block;
+    vertical-align: middle;
+    color: #fff;
+    background: #3399FE;
+    border-width: 0;
+    border-style: solid;
+    border-color: #1B7DE0;
+    padding: 0 15px;
+    text-align: center;
+    height: 30px;
+    line-height: 30px;
+    border-radius: 3px;
+    cursor: pointer;
+    text-decoration: none!important;
+    outline: none;
+}
+.w-button-round {
+    display: block;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    background: #db3652;
+    border: 0;
+    border-radius: 50%;
+    text-indent: -999em;
+    overflow: hidden;
+    position: relative;
+}
+
+.w-goodsList-s .ico-label {
+    left: 2px;
+}
+.ico-label-goods {
+    width: 30px;
+    height: auto;
+    background: none;
+}
+.ico-label {
+    position: absolute;
+    width: 30px;
+    height: 35px;
+    z-index: 1;
+}
+
+.w-goods-brief .w-countdown, .w-goods-brief .w-countWaiting {
+    margin-top: 5px;
+}
+.w-countdown, .w-countWaiting {
+    color: #999;
+    line-height: 16px;
+    font-size: 12px;
+}
+.w-countdown-title {
+    color: #999;
+}
+.w-countdown-nums, .w-countWaiting {
+    color: #db3652;
+}
+.m-index-popular .w-more {
+    margin: 5px 4px 0;
+    line-height: 30px;
+    background: #fff;
+}
+.w-loading, .w-more {
+    text-align: center;
+    line-height: 50px;
+    font-size: 12px;
+    color: #999;
+}
+.m-index-popular .w-more a {
+    display: block;
+    height: 100%;
+}
+.w-more a {
+    color: #999;
+}

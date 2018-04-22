@@ -1,0 +1,23 @@
+<%--
+  Created by IntelliJ IDEA.
+  User: sixf
+  Date: 2016/4/15
+  Time: 4:56
+  To change this template use File | Settings | File Templates.
+--%>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<html>
+<head>
+    <title>保存图片</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta content="width=device-width,user-scalable=no" name="viewport">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+<body style="text-align: center;padding-top: 10px;">
+<div style="max-width: 640px;margin: 0px auto;">
+    <h5 style="border: 1px lightgrey solid;border-radius: 100px;padding: 10px;">长按下面图片，保存到手机里，分享给朋友</h5>
+    <img width="100%" src="<%="/images/popularize?content="+request.getParameter("url")%>">
+</div>
+
+</body>
+</html>

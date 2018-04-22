@@ -1,0 +1,20 @@
+#content{
+
+    margin: 0px auto;
+    background: white;
+    height: 100%;
+    overflow: hidden;
+}
+#header{
+
+    color: white;
+    background:teal;
+    padding: 5px 0px;
+}
+#view{
+
+}
+#header ul{
+    display: flex;
+    justify-content: space-between;
+}
