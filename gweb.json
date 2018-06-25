@@ -3,7 +3,7 @@
   "ResourcesDir": "resources",
   "DefaultPage": "index",
   "JsonDataPath": "data.json",
-  "HttpPort": ":80",
+  "HttpPort": ":8080",
   "HttpsPort": ":443",
   "ViewSuffix": ".html",
   "ViewActionMapping": true,

@@ -87,7 +87,7 @@ func loginAction(context *gweb.Context) gweb.Result {
 		as.Success = false
 		as.Message = "手机/邮箱/密码不正确！"
 	} else {
-		md5Password := tool.Md5(password)
+		md5Password := tool.Md5ByString(password)
 		if strings.EqualFold(admin.Password, md5Password) {
 			as.Success = true
 			as.Message = ""
@@ -120,7 +120,7 @@ func loginUserAction(context *gweb.Context) gweb.Result {
 		as.Success = true
 		as.Message = "账号/密码不正确！"
 	} else {
-		md5Password := tool.Md5(password)
+		md5Password := tool.Md5ByString(password)
 		if strings.EqualFold(user.Password, md5Password) {
 			as.Success = true
 			as.Message = ""
@@ -149,7 +149,7 @@ func loginManager(context *gweb.Context) gweb.Result {
 		as.Success = false
 		as.Message = "账号/密码不正确！"
 	} else {
-		md5Password := tool.Md5(password)
+		md5Password := tool.Md5ByString(password)
 		if strings.EqualFold(user.PassWord, md5Password) {
 			as.Success = true
 			as.Message = ""
