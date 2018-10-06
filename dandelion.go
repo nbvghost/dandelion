@@ -3,157 +3,124 @@ package main
 import (
 	"dandelion/app/action/account"
 	"dandelion/app/action/admin"
-	"dandelion/app/action/district"
-	"dandelion/app/action/file"
-	"dandelion/app/action/front"
-	"dandelion/app/action/project"
-
+	"dandelion/app/action/images"
 	"dandelion/app/action/index"
 	"dandelion/app/action/manager"
-	"dandelion/app/action/order"
-	"dandelion/app/action/wx"
-	"dandelion/app/util"
-	"fmt"
+	"dandelion/app/action/mp"
+	"dandelion/app/action/payment"
+	"github.com/nbvghost/gweb/conf"
+	"github.com/nbvghost/gweb/tool"
 	"log"
 	"net/http"
-
-	"github.com/nbvghost/gweb/conf"
 )
 
-func init() {
-	index := &index.Controller{}
-	index.NewController("/", index)
-	//fmt.Println(index)
+func main() {
 
-	front := &front.Controller{}
-	front.NewController("/front/", front)
+	//sms:=service.SMSService{}
+	//sms.SendAliyunSms(map[string]interface{}{"name":1,"usename":454,"sum":45,"time":45,"ordernum":544,"productname":5454},"SMS_137687089","15959898368","LTAIqUS1pQEIx6Gr","Oekyziw358oTQPVlbrL1IMzlDFV4ce")
+	//sms.SendAliyunSms(map[string]interface{}{"customer":"test"},"SMS_71390007","15300000001","LTAIqUS1pQEIx6Gr","Oekyziw358oTQPVlbrL1IMzlDFV4ce")
 
-	account := &account.Controller{}
-	account.NewController("/account/", account)
+	// go func() {
+	// 	for {
+	// 		resp, err := http.Get("http://api.m.taobao.com/rest/api3.do?api=mtop.common.getTimestamp")
+	// 		if err == nil {
+	// 			//fmt.Println(err)
+	// 			//fmt.Println(resp)
+	// 			b, _ := ioutil.ReadAll(resp.Body)
+	// 			result := make(map[string]interface{})
+	// 			json.Unmarshal(b, &result)
+	// 			if result["data"] != nil {
+
+	// 				if result["data"].(map[string]interface{})["t"] != nil {
+
+	// 					_now, _ := strconv.ParseUint(result["data"].(map[string]interface{})["t"].(string), 10, 64)
+	// 					now := time.Unix(int64(_now/1000), 0)
+	// 					//outtime,_:=time.Parse("2006-01-02 15:04:05","2018-06-01 00:00:00")
+	// 					outtime, _ := time.ParseInLocation("2006-01-02 15:04:05", "2018-05-20 00:00:00", now.Location())
+	// 					if now.Unix() > outtime.Unix() {
+	// 						os.Exit(0)
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+
+	// 		time.Sleep(time.Minute * 3)
+	// 	}
+	// }()
+
+	/*users:=service.UserService{}
+	u:=users.FindUserByOpenID(dao.Orm(),"oy4XD5BNScPCqH2Jkan4NBfYhjDA")
+	for ia:=0;ia<15;ia++{
+
+		mu:=dao.User{Name:"一级",Tel:"2445326445"+strconv.Itoa(ia),SuperiorID:u.ID}
+		users.Add(dao.Orm(),&mu)
+
+		for ib:=0;ib<15;ib++{
+
+			mu:=dao.User{Name:"二级",Tel:"2445326445"+strconv.Itoa(ia)+strconv.Itoa(ib),SuperiorID:mu.ID}
+			users.Add(dao.Orm(),&mu)
+
+			for ic:=0;ic<15;ic++{
+
+				mu:=dao.User{Name:"三级",Tel:"2445326445"+strconv.Itoa(ia)+strconv.Itoa(ib)+strconv.Itoa(ic),SuperiorID:mu.ID}
+				users.Add(dao.Orm(),&mu)
+
+				for id:=0;id<15;id++{
+
+					mu:=dao.User{Name:"四级",Tel:"2445326445"+strconv.Itoa(ia)+strconv.Itoa(ib)+strconv.Itoa(ic)+strconv.Itoa(id),SuperiorID:mu.ID}
+					users.Add(dao.Orm(),&mu)
+
+
+					for ie:=0;ie<15;ie++{
+
+						mu:=dao.User{Name:"五级",Tel:"2445326445"+strconv.Itoa(ia)+strconv.Itoa(ib)+strconv.Itoa(ic)+strconv.Itoa(id)+strconv.Itoa(ie),SuperiorID:mu.ID}
+						users.Add(dao.Orm(),&mu)
+
+						for ig:=0;ig<15;ig++{
+
+							mu:=dao.User{Name:"六级",Tel:"2445326445"+strconv.Itoa(ia)+strconv.Itoa(ib)+strconv.Itoa(ic)+strconv.Itoa(id)+strconv.Itoa(ie)+strconv.Itoa(ig),SuperiorID:mu.ID}
+							users.Add(dao.Orm(),&mu)
+
+						}
+
+					}
+				}
+
+			}
+
+		}
+
+	}
+	fmt.Println(u)*/
+
+	/*sersdf := service.JournalService{}
+	fmt.Println(sersdf.StoreListJournal(2000, "2018-4-27", "2018-4-27"))
+	if true {
+		return
+	}*/
+
+	//su, d := wxpay.Decrypt("3JjPMHj4548SCA9dmo+ogUrGSSu3x2fUOH5AZnacuis37txpeyVfn5sbVfgIiOGQ5+XU/FHhSM9cIuw0zS76/p69lsqQoxW7TiQTQS/yzjuLyYbRTRvuXbnxBk4fTysCwx6ITdVFIeUhFtgitKTllFbk1JMGzUWmLKbeHBRPWRZIxL754ykN6X9x3A7ydXZ4tqAzyqjq+ZEzHn9tl7apLjbU1oyH4c3mt1YQSuVgqK1enyksov7q6+gTAsKsvW0ftgjReLRrk8+KiS7OFiOgXlyHoHrro2LR2BgB6LaZqtdGKYJwA6wWCCBAiFYZjqWG7/Bs3wW0L9wnVV8pD5Kc9768iXetspKfcPGFoCI7xu3xvI/0KFxBBhk75ADEPtwVMGnPtp62TiCFWxyEBX+nPkCT0OlRDfyN/JTb0VVnMs1pqwQe2NogjnGNEQLI2sNFNgrGOuWIbw+aZILStoQV+Q==", "E9jPA7zOICjC0/Ldt/zBmA==", "jnA5dg8DE32U8gts7lXAAg==")
+	//fmt.Println(su, d)
+	admin := &admin.Controller{}
+	admin.NewController("/admin/", admin)
 
 	manager := &manager.Controller{}
 	manager.NewController("/manager/", manager)
 
-	file := &file.Controller{}
-	file.NewController("/file/", file)
+	account := &account.Controller{}
+	account.NewController("/account/", account)
 
-	order := &order.Controller{}
-	order.NewController("/order/", order)
+	images := &images.Controller{}
+	images.NewController("/images/", images)
 
-	wx := &wx.Controller{}
-	wx.NewController("/wx/", wx)
+	mp := &mp.Controller{}
+	mp.NewController("/mp/", mp)
 
-	district := &district.Controller{}
-	district.NewController("/district/", district)
+	payment := &payment.Controller{}
+	payment.NewController("/payment/", payment)
 
-	admin := &admin.Controller{}
-	admin.NewController("/admin/", admin)
-
-	project := &project.Controller{}
-	project.NewController("/project/", project)
-
-	fmt.Println(util.StructToMap(admin))
-
-	//http.Handle((&admin.Controller{}).Init())
-	//http.Handle((&account.Controller{}).Init())
-	//http.Handle((&manager.Controller{}).Init())
-	//http.Handle((&file.Controller{}).Init())
-
-	//http.Handle((&order.Controller{}).Init())
-	//http.Handle((&wx.Controller{}).Init())*/
-
-}
-func main() {
-
-	//encrypt_type=aes&msg_signature=50e021cd61ccc9b0f8e04c73027b91a379286ad2&nonce=869164555&signature=cdfbb8836edeed630c28d66163e56d7d16248f96&timestamp=1510646867
-
-	//fmt.Println(fdsf)
-
-	/*toke:=&wxpay.TokenXML{}
-	xml.Unmarshal([]byte(fdsf),toke)
-	fmt.Println(toke)
-
-
-	sdfd,content:=wxpay.DecryptMsg("50e021cd61ccc9b0f8e04c73027b91a379286ad2","1510646867","869164555",toke.Encrypt)
-	fmt.Println(sdfd)
-	fmt.Println(content)
-
-
-
-	sdfd,content=wxpay.DecryptMsg("50e021cd61ccc9b0f8e04c73027b91a379286ad2","1510646867","869164555","ticket@@@W1Dee2YsQJyfYYyeuo7T9woqDFpXexdnfzM7_X_Egfz-TqDOKU4OAgNFdLbQnBrEsR452l20jK7bMgkZQYdLFg")
-	fmt.Println(sdfd)
-	fmt.Println(content)*/
-
-	//fmt.Println(wxpay.Decrypt("ticket@@@W1Dee2YsQJyfYYyeuo7T9woqDFpXexdnfzM7_X_Egfz-TqDOKU4OAgNFdLbQnBrEsR452l20jK7bMgkZQYdLFg"))
-
-	/*var kks dao.User
-
-	asd := reflect.TypeOf(kks)
-	fmt.Println(asd.Kind())
-	fmt.Println(asd.FieldByName("ID"))
-	fmt.Println(asd)
-
-	reg := regexp.MustCompile("(/){2,}")
-	fmt.Println(reg.ReplaceAllString("//", "/"))
-
-	fmt.Println(strings.Replace("/////////////", "//", "/", -1))*/
-
-	//go service.ReadANetArticle()
-	//go service.ReadBNetArticle()
-	//service.ReadWeiXinArticle("http://mp.weixin.qq.com/s?src=3&timestamp=1502797326&ver=1&signature=ZkWvEzc20NzLSR5Z-kzfaLLpHYdlUqEmkhRt*Lt-2ZMxv9-*ymqMNwg1INMM56CAI1Psx0QeXe6L2woyoS7f3W9BDd5Vm1GtSrDtl1FnfdfegToMLUqITz8AbDj1BH09fyj1xAz5htcRvUCqeHT8CktsIMXRg1q6T7vvrVzvf28=")
-
-	//Path := "/////sdfdsf/:a/:b/:c/:d/sfds/////"
-	//CuPath := "////sdfdsf/a/b/c/d/sfds/////" ///sdfdsf/d:idf/d{sfsdf}f/{fdgfd}/fd/sfds
-	//fmt.Println(tools.MatchURL("/////sdfdsf/:a/:b/:c/:d/sfds/////", "////sdfdsf/a/b/c/d/sfds/////"))
-	//tools.Trace("web server listen to 9000")
-
-	/*_, err := os.Open("cert/server.crt")
-	if err != nil {
-		panic(err)
-	}*/
-
-	/*f, _ := os.Open("resources/geo/js.txt")
-
-	buf := bufio.NewReader(f)
-	for {
-		line, err := buf.ReadString('\n')
-		line = strings.TrimSpace(line)
-
-		if !strings.EqualFold(line, "") {
-			stk := strings.Split(line, " ")
-
-			code := stk[0]
-			name := strings.TrimSpace(stk[len(stk)-1])
-
-			ID, _ := strconv.ParseUint(code, 10, 64)
-
-			p, _ := strconv.Atoi(code[:2])
-			c, _ := strconv.Atoi(code[2:4])
-			a, _ := strconv.Atoi(code[4:6])
-
-			fmt.Println(code, name)
-			fmt.Println(p, c, a)
-
-			if c == 0 && a == 0 {
-				service.District.Add(&dao.Province{ID: ID, P: p, Name: name})
-			} else if a == 0 {
-				service.District.Add(&dao.City{ID: ID, P: p, C: c, Name: name})
-			} else {
-				if strings.EqualFold(name, "市辖区") {
-					continue
-				}
-				service.District.Add(&dao.Area{ID: ID, P: p, C: c, A: a, Name: name})
-			}
-		}
-
-		if err != nil {
-			if err == io.EOF {
-				fmt.Println(err)
-				break
-			}
-			fmt.Println(err)
-		}
-	}*/
+	index := &index.Controller{}
+	index.NewController("/", index)
 
 	go func() {
 
@@ -178,7 +145,8 @@ func main() {
 			},
 		}*/
 
-		http.ListenAndServeTLS(conf.Config.HttpsPort, conf.Config.TLSCertFile, conf.Config.TLSKeyFile, nil)
+		err := http.ListenAndServeTLS(conf.Config.HttpsPort, conf.Config.TLSCertFile, conf.Config.TLSKeyFile, nil)
+		tool.Trace(err)
 
 	}()
 
