@@ -509,21 +509,16 @@ main.controller("AddAdminCtrl", function ($http, $scope, $rootScope, $routeParam
     $scope.admin = {};
     $rootScope.title = "添加客户";
 
-
     $scope.isEdit = false;
-
 
     if ($routeParams.id != undefined) {
         $rootScope.title = "修改客户信息";
         $scope.isEdit = true;
         $http.get("admin", {params: {action: "get", id: $routeParams.id}}).then(function (response) {
             $scope.admin = response.data.Data;
-            $scope.admin.rePassword = $scope.admin.Password;
+            $scope.admin.rePassword = $scope.admin.PassWord;
                 //alert("非管理员信息，不支持修改。");
                // window.history.back();
-
-
-
         });
     }
 
@@ -535,20 +530,19 @@ main.controller("AddAdminCtrl", function ($http, $scope, $rootScope, $routeParam
     $scope.addAdminUser = function () {
 
 
-        if ($scope.admin.Email == undefined || $scope.admin.Email.length < 5) {
-            alert("邮箱不能为空或格式不正确！");
+        if ($scope.admin.Account == undefined || $scope.admin.Account.length < 5) {
+            alert("账号起码要5个字符");
             return;
         }
-        $scope.admin.authority = "admin";
+
 
         if ($routeParams.id != undefined) {
 
 
             var form = {};
-            form.Name=$scope.admin.Name;
-            form.Password=$scope.admin.Password;
-            form.Email=$scope.admin.Email;
-            form.Tel=$scope.admin.Tel;
+            form.Account=$scope.admin.Account;
+            form.PassWord=$scope.admin.PassWord;
+            form.Domain=$scope.admin.Domain;
             form.ID=$scope.admin.ID;
             $http.post("admin?action=change",$.param(form), {
                 transformRequest: angular.identity,
@@ -579,10 +573,9 @@ main.controller("AddAdminCtrl", function ($http, $scope, $rootScope, $routeParam
         } else {
 
             var form = {};
-            form.Name=$scope.admin.Name;
-            form.Password=$scope.admin.Password;
-            form.Email=$scope.admin.Email;
-            form.Tel=$scope.admin.Tel;
+            form.Account=$scope.admin.Account;
+            form.PassWord=$scope.admin.PassWord;
+            form.Domain=$scope.admin.Domain;
             $http.post("admin?action=add",$.param(form), {
                 transformRequest: angular.identity,
                 headers: {"Content-Type": "application/x-www-form-urlencoded"}

@@ -1,45 +1,10 @@
-var main = angular.module("main", ['ngRoute',"ngMessages","ngFileUpload"]).config(['$interpolateProvider', function ($interpolateProvider) {
+var main = angular.module("managerApp", ['ngRoute',"ngMessages","ngFileUpload"]);
+//main.config(function ($interpolateProvider){$interpolateProvider.startSymbol("@{").endSymbol("}@");});
+
+main.config(function($routeProvider, $locationProvider,$provide,$httpProvider,$httpParamSerializerJQLikeProvider,$interpolateProvider) {
     $interpolateProvider.startSymbol("@{").endSymbol("}@");
-}]);
-main.filter('fromJson',function(){
-    return function(str){
-
-        return JSON.parse(str);
-    }
-});
-main.run(function($rootScope,$timeout) {
-
-
-
-    //$rootScope.progressbar = ngProgressFactory.createInstance();
-    //$rootScope.progressbar.setColor("#e4403f");
-    //$rootScope.progressbar.setHeight("3px");
-
-    /*$rootScope.$on('$routeChangeStart', function(ev,data) {
-        $rootScope.progressbar.start();
-        $timeout($rootScope.progressbar.complete(), 5000);
-    });
-    $rootScope.$on('$routeChangeSuccess', function(ev,data) {
-        $rootScope.progressbar.complete();
-    });*/
-
-});
-function GetQueryString(name)
-{
-    var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
-    var r = window.location.search.substr(1).match(reg);
-    if(r!=null){
-        return  unescape(r[2]);
-    }else {
-        return null;
-    }
-}
-main.config(function ($routeProvider, $locationProvider,$provide,$httpProvider,$httpParamSerializerJQLikeProvider) {
-
     //console.dir($httpProvider.defaults.transformRequest);
-
     $httpProvider.defaults.transformRequest.unshift($httpParamSerializerJQLikeProvider.$get());
-
     $httpProvider.defaults.headers.post={'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'};
 
     /*$provide.factory('httpInterceptor', function($q,$rootScope,$timeout) {
@@ -70,645 +35,920 @@ main.config(function ($routeProvider, $locationProvider,$provide,$httpProvider,$
 
     $routeProvider.when("/", {
         templateUrl: "main",
-        controller: "mainCtrl"
+        controller: "main_controller"
     });
-    $routeProvider.when("/checkItem", {
-        templateUrl: "checkItem",
-        controller: "checkCtrl"
+
+    $routeProvider.when("/add_goods", {
+        templateUrl: "add_goods",
+        controller: "add_goods_controller"
     });
-    $routeProvider.when("/myShop", {
-        templateUrl: "myShop",
-        controller: "myShopCtrl"
+
+    $routeProvider.when("/goods_list", {
+        templateUrl: "goods_list",
+        controller: "goods_list_controller"
     });
-    $routeProvider.when("/ktv/index", {
-        templateUrl: "ktv/index",
-        controller: "ktvIndexCtrl"
+    $routeProvider.when("/goods_type_list", {
+        templateUrl: "goods_type_list",
+        controller: "goods_type_list_controller"
     });
-    $routeProvider.when("/lotteryPage", {
-        templateUrl: "lotteryPage",
-        controller: "lotteryCtrl"
+    $routeProvider.when("/store_stock_manager", {
+        templateUrl: "store_stock_manager",
+        controller: "store_stock_manager_controller"
     });
-    $routeProvider.when("/brokeragePage", {
-        templateUrl: "brokeragePage",
-        controller: "brokerageCtrl"
+    $routeProvider.when("/goods_type_child_list", {
+        templateUrl: "goods_type_child_list",
+        controller: "goods_type_child_list_controller"
     });
-    $routeProvider.when("/products", {
-        templateUrl: "products",
-        controller: "productsCtrl"
+
+
+    $routeProvider.when("/score_goods_list", {
+        templateUrl: "score_goods_list",
+        controller: "score_goods_list_controller"
     });
-    $routeProvider.when("/add_products", {
-        templateUrl: "add_products",
-        controller: "add_productsCtrl"
+    $routeProvider.when("/voucher_list", {
+        templateUrl: "voucher_list",
+        controller: "voucher_list_controller"
     });
-    $routeProvider.when("/QRCode", {
-        templateUrl: "QRCode",
-        controller: "qrcodeCtrl"
+    $routeProvider.when("/fullcut_list", {
+        templateUrl: "fullcut_list",
+        controller: "fullcut_list_controller"
     });
-    $routeProvider.when("/appointment", {
-        templateUrl: "appointmentPage",
-        controller: "appointmentCtrl"
+    $routeProvider.when("/timesell_list", {
+        templateUrl: "timesell_list",
+        controller: "timesell_list_controller"
     });
-    $routeProvider.when("/appointmentInfo", {
-        templateUrl: "appointmentInfoPage",
-        controller: "appointmentInfoCtrl"
+    $routeProvider.when("/add_timesell", {
+        templateUrl: "add_timesell",
+        controller: "add_timesell_controller"
     });
-    $routeProvider.when("/shopInfo", {
-        templateUrl: "shopInfo",
-        controller: "shopInfoCtrl"
+    $routeProvider.when("/add_store", {
+        templateUrl: "add_store",
+        controller: "add_store_controller"
     });
-   
-    $routeProvider.when("/card_list", {
-        templateUrl: "card_list",
-        controller: "CardListCtrl"
+    $routeProvider.when("/store_list", {
+        templateUrl: "store_list",
+        controller: "store_list_controller"
     });
-    $routeProvider.when("/makeCard", {
-        templateUrl: "makeCard",
-        controller: "makeCardCtrl"
+    $routeProvider.when("/admin_list", {
+        templateUrl: "admin_list",
+        controller: "admin_list_controller"
     });
-    $routeProvider.when("/articlePage", {
-        templateUrl: "articlePage",
-        controller: "articleCtrl"
+    $routeProvider.when("/express", {
+        templateUrl: "express",
+        controller: "express_controller"
     });
-    $routeProvider.when("/expressPage", {
-        templateUrl: "expressPage",
-        controller: "expressCtrl"
+    $routeProvider.when("/add_express", {
+        templateUrl: "add_express",
+        controller: "add_express_controller"
     });
-    //CardListCtrl
-    $routeProvider.when("/seckill", {
-        templateUrl: "seckillPage",
-        controller: "seckillCtrl"
+    $routeProvider.when("/order_list", {
+        templateUrl: "order_list",
+        controller: "order_list_controller"
     });
+    $routeProvider.when("/users", {
+        templateUrl: "users",
+        controller: "users_controller"
+    });
+    $routeProvider.when("/user_setup", {
+        templateUrl: "user_setup",
+        controller: "user_setup_controller"
+    });
+    $routeProvider.when("/give_voucher", {
+        templateUrl: "give_voucher",
+        controller: "give_voucher_controller"
+    });
+    $routeProvider.when("/view_situation", {
+        templateUrl: "view_situation",
+        controller: "view_situation_controller"
+    });
+    $routeProvider.when("/carditem_list", {
+        templateUrl: "carditem_list",
+        controller: "carditem_list_controller"
+    });
+    $routeProvider.when("/store_situation", {
+        templateUrl: "store_situation",
+        controller: "store_situation_controller"
+    });
+    $routeProvider.when("/poster", {
+        templateUrl: "poster",
+        controller: "poster_controller"
+    });
+
+    $routeProvider.when("/content_list", {
+        templateUrl: "content_templets/content_list_templet",
+        controller: "content_list_controller"
+    });
+
+    $routeProvider.when("/add_articles", {
+        templateUrl: "content_templets/add_articles_templet",
+        controller: "content_add_articles_controller"
+    });
+    $routeProvider.when("/articles", {
+        templateUrl: "content_templets/articles_templet",
+        controller: "content_articles_controller"
+    });
+    
 });
-//验证手机电话号码或者座机
-isTrueMobil = function (s) {
-    /*
-     if (/^((0\d{2,3})-)(\d{7,8})(-(\d{3,}))?$/.test(s)) {
-     return true;
-     } else
-     */
+main.controller("content_articles_controller", function ($http, $scope, $routeParams, $rootScope,$timeout,$location,Upload) {
+    $scope.ContentSubTypes=[];
+    $scope.ContentSubTypeChilds=[];
 
-    if (!(/^1[3|4|5|6|7-8][0-9]\d{8}$/.test(s))) {
-        return false;
-    } else if (/^1((([3]{2})|([5][3])|([8][0-1|9]))\d{8}$|^1([3][4][9])\d{7})|1(([7][0]{2})\d{7})$/.test(s)) {
-        return true;
-    } else if (/^1((([3][4-9])|([4][7])|([5][0-2|7-9])|([7][8])|([8][2-4|7-8]))\d{8})|1(([7][0][5])\d{7})$/.test(s)) {
-        return true;
-    } else if (/^1((([3][0-2])|([4][5])|([5][56])|([7][6])|([8][5-6]))\d{8})|1(([7][0|6|7|8|9])\d{8})$/.test(s)) {
-        return true;
-    }
-    return false;
-};
+    $scope.ContentSubTypeID;
+    $scope.MContentSubTypeID;
+    $scope.MContentSubTypeChildID;
 
-//orderID
-var queryTime =0;
-const  TaskType_orderQuery = 1;
-var taskList = [];
-function AddTask(TaskType,Data,CallBack) {
-    taskList.push({TaskType:TaskType,Data:Data,CallBack:CallBack})
-}
-function RemoveTask(TaskType){
-    for(var i=0;i<taskList.length;i++){
-        var task = taskList[i];
-        if(task.TaskType==TaskType_orderQuery){
-            taskList.splice(i,1);
-            break;
-        }
+    $scope.ContentID=$routeParams.ContentID;
+    $scope.Type=$routeParams.Type;
 
-    }
-}
-queryTime = setInterval(function () {
+    var table;
 
-    for(var i=0;i<taskList.length;i++){
-        var task = taskList[i];
-        switch (task.TaskType){
+    $scope.listContentSubTypes = function(){
+        //content/list
+        $http.get("content_sub_type/list/"+$routeParams.ContentID).then(function (value){
 
-            case TaskType_orderQuery:
-                $.ajax({
-                    url: "/account/orderQuery?orderID="+task.Data.orderID,
-                    data:{},
-                    success: function(response,status,xhr){
-                        task.CallBack(response)
-                    },
-                    dataType: "json"
-                });
-                break
-        }
-
-    }
-
-},3000);
-main.controller('expressCtrl', function ($http, $scope, $rootScope, $routeParams,$document,$interval) {
-
-    $rootScope.title = "快递预约";
-    $rootScope.goback = "#/";
-    $rootScope.isgoback = true;
-
-
-
-
-    $scope.good_salesmans=[];
-    $scope.good_salesmans_obj={};
-    $scope.listSalesman = function () {
-        $http.get("salesman?action=list").then(function (response) {
-            var salesmans =response.data.data;
-            var good_salesmans = [];
-            var good_salesmans_obj = {};
-            for(var i=0;i<salesmans.length;i++){
-                var item =salesmans[i];
-                if(item){
-                    if(item.validate==true){
-                        good_salesmans.push(item);
-                        good_salesmans_obj[item.user.id] = item.user;
-                    }
-
-                }
-            }
-            $scope.salesmans = salesmans;
-            $scope.good_salesmans = good_salesmans;
-            $scope.good_salesmans_obj = good_salesmans_obj;
+            $scope.ContentSubTypes = value.data.Data;
 
         });
     }
-    $scope.listSalesman();
+    $scope.listContentSubTypes();
 
-    $scope.confirmSalesmans = function (m) {
-        if(confirm("确认要在把这个任务分配给这个用户？")){
 
-            var form = new FormData();
-            form.append("action","allocation");
-            form.append("pid",m.id);
-            form.append("data",m.executor.id);
+    $scope.listContentSubTypeChilds = function(ContentID,ParentContentSubTypeID){
+        //content/list
+        $http.get("content_sub_type/child/list/"+ContentID+"/"+ParentContentSubTypeID).then(function (value){
 
-            $http.post("express",form,{transformRequest:angular.identity,headers:{"Content-Type":undefined}}).then(function (data, status, headers, config,statusText) {
+            $scope.ContentSubTypeChilds = value.data.Data;
 
-                alert(data.data.message);
-                $scope.listOrders();
+        });
+    }
+
+
+    $scope.changeContentSubTypeChilds = function(){
+        $scope.ContentSubTypeID=$scope.MContentSubTypeChildID;
+        table.ajax.reload();
+
+    }
+    $scope.changeContentSubTypes = function(){
+        $scope.ContentSubTypeID=$scope.MContentSubTypeID;
+        $scope.ContentSubTypeChilds=[];
+        if($scope.ContentSubTypeID){
+            $scope.listContentSubTypeChilds($scope.ContentID,$scope.ContentSubTypeID);
+        }
+        table.ajax.reload();
+    }
+
+    $timeout(function () {
+
+        table = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Title"},
+                {data:"Author"},
+                {data:"Look"},
+                {data:"ContentID",visible:false},
+                {data:"ContentSubTypeID",visible:false},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+                        return '<button  class="ui edit blue mini button">修改</button>'+
+                            '<button class="ui delete red mini button">删除</button>';
+
+                    }}
+            ],
+            paging: true,
+            //"dom": '<"toolbar">frtip',
+            "pagingType": "full_numbers",
+            searching: true,
+            "processing": true,
+            "serverSide": true,
+            "order":[[1,"asc"]],
+            "ajax": {
+                "url": "article/datatables/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function (d){
+                    d.columns[4].search.value=parseInt($scope.ContentID).toString();
+
+
+                    if($scope.ContentSubTypeID){
+                        d.columns[5].search.value=parseInt($scope.ContentSubTypeID).toString();
+                    }
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+
+        $('#table_local').on('click','td.opera .edit', function () {
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
+            console.log(row.data());
+            window.location.href="#!/add_articles?ContentID="+row.data().ContentID+"&ID="+row.data().ID;
+        });
+
+        $('#table_local').on('click','td.opera .delete', function () {
+                var tr = $(this).closest('tr');
+                var row = table.row(tr);
+                console.log(row.data());
+
+                if (confirm("确定删除？")) {
+
+                    var form ={};
+                    form.ID =row.data().ID;
+                    $http.post("article/delete",$.param(form), {
+                        transformRequest: angular.identity,
+                        headers: {"Content-Type": "application/x-www-form-urlencoded"}
+                    }).then(function (data, status, headers, config) {
+
+                        alert(data.data.Message);
+                        table.ajax.reload();
+
+                    });
+
+                }
+            }
+        );
+    })
+
+
+});
+main.controller("content_add_articles_controller", function ($http, $scope, $routeParams, $rootScope,$timeout,$location,Upload) {
+    $scope.ContentSubTypes=[];
+    $scope.ContentSubTypeChilds=[];
+
+
+
+    $scope.Article={ContentID:$routeParams.ContentID};
+
+    //$scope.ContentSubTypeID;
+    $scope.MContentSubTypeID;
+    $scope.MContentSubTypeChildID;
+
+
+    console.log($location)
+
+
+    $scope.saveArticle = function(){
+
+        //$scope.ContentSubTypeID;
+        //$scope.ContentSubTypeChildID;
+        //console.log(quill.container.firstChild.innerHTML)
+        $scope.Article.ContentID=parseInt($routeParams.ContentID);
+
+        $scope.Article.Content=quill.container.firstChild.innerHTML;
+
+        if(!$scope.Article.ContentSubTypeID){
+            //$scope.Article.ContentSubTypeID=$scope.ContentSubTypeID;
+            //$scope.Article.ContentSubTypeChildID=$scope.ContentSubTypeChildID;
+        //}else{
+            alert("请选择分类");
+            return
+        }
+        $http.post("article/save",JSON.stringify($scope.Article), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+            console.log(data);
+            alert(data.data.Message);
+            if(data.data.Success){
+                window.history.back();
+            }
+        });
+    }
+
+    $scope.listContentSubTypes = function(){
+        //content/list
+        $http.get("content_sub_type/list/"+$routeParams.ContentID).then(function (value){
+
+            $scope.ContentSubTypes = value.data.Data;
+
+        });
+    }
+    $scope.listContentSubTypes();
+
+
+    $scope.changeContentSubTypes = function(){
+        //$scope.ContentSubTypeChildID=undefined;
+        $scope.Article.ContentSubTypeID=$scope.MContentSubTypeID;
+        $scope.ContentSubTypeChilds=[];
+        console.log($scope.ContentSubTypeID);
+        $scope.listContentSubTypeChilds($routeParams.ContentID,$scope.Article.ContentSubTypeID);
+    }
+    $scope.changeContentSubTypeChilds = function(){
+        //alert($scope.MContentSubTypeChildID);
+        if($scope.MContentSubTypeChildID){
+            $scope.Article.ContentSubTypeID=$scope.MContentSubTypeChildID;
+        }else{
+            $scope.Article.ContentSubTypeID=$scope.MContentSubTypeID;
+        }
+
+        //$scope.Article.;
+    }
+
+    //content_sub_type/child/list/:ParentContentSubTypeID
+
+    $scope.listContentSubTypeChilds = function(ContentID,ParentContentSubTypeID){
+        //content/list
+        $http.get("content_sub_type/child/list/"+ContentID+"/"+ParentContentSubTypeID).then(function (value){
+
+            $scope.ContentSubTypeChilds = value.data.Data;
+
+        });
+    }
+
+
+    $scope.UploadThumbnailImage = function (file, errFiles) {
+        if (file) {
+            var thumbnail =Upload.upload({
+                url: '/file/up',
+                data: {file: file},
             });
-
+            thumbnail.then(function (response) {
+                var url =response.data.Data;
+                $scope.Article.Thumbnail=url;
+            }, function (response) {
+                console.log(response);
+            }, function (evt) {
+                // Math.min is to fix IE which reports 200% sometimes
+                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                //upload_progress.progress('update progress',progress);
+                //$("."+progressID).text(progress+"%");
+                //$("."+progressID).css("width",progress+"%");
+            });
+        }else{
+            if(errFiles.length>0){
+                alert(JSON.stringify(errFiles));
+            }
 
         }
-
     }
 
+    $scope.EditImages=[];
+    $scope.UploadImages = function (progressID,files, errFiles) {
 
-    //$('#set_preitem_alert').modal('show');
+        var upload_progress = $(progressID);
+        upload_progress.progress({
+            duration : 100,
+            total    : 100,
+            text:{
+                active: '{value} of {total} done'
+            }
+        });
 
+        upload_progress.progress('reset');
+        //upload_progress.progress('update progress',50);
 
-    var code_id =undefined;
-    $scope.showCodeAlert = function (m) {
-        code_id = m.id;
-        $scope.code = m.code;
-        if(m.orders!=undefined){
-            $scope.amount = m.orders.amount/100;
+        if (files && files.length) {
+            for (var i = 0; i < files.length; i++) {
+                Upload.upload({url: '/file/up',data:{file: files[i]}}).then(function (response) {
+                    var url =response.data.Data;
+
+                    if($scope.EditImages.indexOf(url)==-1){
+                        $scope.EditImages.push(url);
+                    }
+
+                },function (response) {
+
+                },function (evt) {
+
+                    var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                    upload_progress.progress('update progress',progress);
+
+                });
+            }
+        }else{
+            UpImageError(errFiles);
         }
-
-        $('#code_alert').show();
     }
-    $scope.hideCodeAlert = function () {
-        $('#code_alert').hide();
-        $scope.payIndex = 0;
-        $("#pay_success").hide();
-        window.location.reload(window.location.href);
-    }
+    var quill;
+    $timeout(function () {
 
-    $scope.codeInput = function () {
+        let Inline = Quill.import('blots/inline');
+        let Block = Quill.import('blots/block');
+        let BlockEmbed = Quill.import('blots/block/embed');
 
-        if($scope.code==undefined || $scope.code.length<5){
+        class BoldBlot extends Inline { }
+        BoldBlot.blotName = 'bold';
+        BoldBlot.tagName = 'strong';
 
-            alert("请输入一个正确的编号");
-            return
+        class ItalicBlot extends Inline { }
+        ItalicBlot.blotName = 'italic';
+        ItalicBlot.tagName = 'em';
+
+        class LinkBlot extends Inline {
+            static create(url) {
+                let node = super.create();
+                node.setAttribute('href', url);
+                node.setAttribute('target', '_blank');
+                return node;
+            }
+
+            static formats(node) {
+                return node.getAttribute('href');
+            }
         }
-        if(parseFloat($scope.amount)==NaN||parseFloat($scope.amount)==0){
+        LinkBlot.blotName = 'link';
+        LinkBlot.tagName = 'a';
 
-            alert("请输入一个正确的金额");
-            return
+        class BlockquoteBlot extends Block { }
+        BlockquoteBlot.blotName = 'blockquote';
+        BlockquoteBlot.tagName = 'blockquote';
+
+        class HeaderBlot extends Block {
+            static formats(node) {
+                return HeaderBlot.tagName.indexOf(node.tagName) + 1;
+            }
         }
-        //amount
-        var form = new FormData();
-        form.append("action","code");
-        form.append("pid",code_id);
-        form.append("data",$scope.code);
-        form.append("amount",$scope.amount);
+        HeaderBlot.blotName = 'header';
+        HeaderBlot.tagName = ['H1', 'H2'];
 
-        var sqCount = 0
+        class DividerBlot extends BlockEmbed { }
+        DividerBlot.blotName = 'divider';
+        DividerBlot.tagName = 'hr';
 
-        $http.post("express",form,{transformRequest:angular.identity,headers:{"Content-Type":undefined}}).then(function (data, status, headers, config,statusText) {
+        class ImageBlot extends BlockEmbed {
+            static create(value) {
+                let node = super.create();
+                node.setAttribute('alt', value.alt);
+                node.setAttribute('src', value.url);
+                return node;
+            }
+
+            static value(node) {
+                return {
+                    alt: node.getAttribute('alt'),
+                    url: node.getAttribute('src')
+                };
+            }
+        }
+        ImageBlot.blotName = 'image';
+        ImageBlot.tagName = 'img';
 
 
 
-            alert(data.data.message);
 
-            $scope.listOrders();
-            if(data.data.success==true){
-                $scope.payIndex = 1;
-                $scope.code_url = data.data.data.returnData.code_url;
+        class VideoBlot extends BlockEmbed {
+            static create(url) {
+                let node = super.create();
+                node.setAttribute('src', url);
+                node.setAttribute('frameborder', '0');
+                node.setAttribute('allowfullscreen', true);
+                return node;
+            }
 
-                AddTask(TaskType_orderQuery,{orderID:data.data.data.returnData.orderID},function (data) {
-                    //alert(data.success==false);
-                    if(data.success==true){
-                        $("#pay_success").show();
-                        RemoveTask(TaskType_orderQuery);
+            static formats(node) {
+                let format = {};
+                if (node.hasAttribute('height')) {
+                    format.height = node.getAttribute('height');
+                }
+                if (node.hasAttribute('width')) {
+                    format.width = node.getAttribute('width');
+                }
+                return format;
+            }
+
+            static value(node) {
+                return node.getAttribute('src');
+            }
+
+            format(name, value) {
+                if (name === 'height' || name === 'width') {
+                    if (value) {
+                        this.domNode.setAttribute(name, value);
+                    } else {
+                        this.domNode.removeAttribute(name, value);
+                    }
+                } else {
+                    super.format(name, value);
+                }
+            }
+        }
+        VideoBlot.blotName = 'video';
+        VideoBlot.tagName = 'iframe';
+
+        Quill.register(BoldBlot);
+        Quill.register(ItalicBlot);
+        Quill.register(LinkBlot);
+        Quill.register(BlockquoteBlot);
+        Quill.register(HeaderBlot);
+        Quill.register(DividerBlot);
+        Quill.register(ImageBlot);
+        Quill.register(VideoBlot);
+
+        quill = new Quill('#editor-container', {
+            modules: {
+                formula: true,
+                syntax: true,
+                toolbar: '#toolbar-container'
+            },
+            placeholder: 'Compose an epic...',
+            theme: 'snow'
+        });
+
+        if($routeParams.ID){
+            //article/get/:ID
+            $http.get("article/get/"+$routeParams.ID).then(function (responea){
+
+                $scope.Article = responea.data.Data;
+                quill.clipboard.dangerouslyPasteHTML($scope.Article.Content);
+
+                //content_sub_type
+                $http.get("content_sub_type/"+$scope.Article.ContentSubTypeID).then(function (responeb){
+                    var ContentSubType = responeb.data.Data.ContentSubType;
+                    var ParentContentSubType = responeb.data.Data.ParentContentSubType;
+
+
+                    $timeout(function () {
+                        if(ParentContentSubType.ID>0){
+                            $scope.MContentSubTypeID=ParentContentSubType.ID;
+                            $scope.MContentSubTypeChildID=ContentSubType.ID;
+                            $scope.listContentSubTypeChilds($scope.Article.ContentID,$scope.MContentSubTypeID);
+                        }else{
+                            $scope.MContentSubTypeID=ContentSubType.ID;
+                            $scope.MContentSubTypeChildID=ParentContentSubType.ID;
+                            $scope.listContentSubTypeChilds($scope.Article.ContentID,$scope.MContentSubTypeID);
+                        }
+
+                    });
+
+
+
+                });
+
+
+
+
+
+
+            });
+        }
+
+        quill.getModule("toolbar").addHandler("image", function (e) {
+
+            //var baseUrl ="//"+$location.host()+":"+$location.port();
+
+            $("#SelectImageModal").modal({onApprove:function (e) {
+
+
+                    if($scope.EditImages.length>0){
+
+
+                        for(var ii=0;ii<$scope.EditImages.length;ii++){
+
+                            var range = quill.getSelection(true);
+                            quill.insertText(range.index, '\n', Quill.sources.USER);
+                            quill.insertEmbed(range.index + 1, 'image', {
+                                alt: '软件定制开发，QQ/微信：274455411',
+                                url: $scope.EditImages[ii]
+                            }, Quill.sources.USER);
+                            quill.setSelection(range.index + 2, Quill.sources.SILENT);
+                        }
+
+
+                            /*for(var ii=0;ii<$scope.EditImages.length;ii++){
+
+                                quill.insertEmbed(range.index, 'image',);
+                                range = quill.getSelection();
+                            }*/
+
+                            $scope.$apply(function () {
+                                $scope.EditImages=[];
+                            });
+                            return true;
+
+
+
                     }else{
-
+                        return false;
                     }
-                });
-            }
+                },closable:false}).modal("show");
         });
-
-    }
-    $scope.payIndex = 0;
-    $scope.addSalesman = function () {
-
-        if(isTrueMobil($scope.pass)==false){
-
-            alert("请输入正确的手机号");
-            return;
-        }
-        var form = new FormData();
-        form.append("action","add");
-        form.append("data",$scope.pass);
-
-        $http.post("salesman",form,{transformRequest:angular.identity,headers:{"Content-Type":undefined}}).then(function (data, status, headers, config,statusText) {
-
-
-            //alert(JSON.stringify([data,status,headers,config,statusText]));
-            alert(data.data.message);
-            $scope.listSalesman();
-
-        });
-
-    }
-    $scope.delSalesman = function (id) {
-        if(confirm("确定要删除这个业务员？")){
-
-            var form = new FormData();
-            form.append("action","del");
-            form.append("pid",id);
-            $http.post("salesman",form,{transformRequest:angular.identity,headers:{"Content-Type":undefined}}).then(function (data, status, headers, config,statusText) {
-
-                alert(data.data.message);
-                $scope.listSalesman();
-
-            });
-        }
-    }
-    $scope.delExpress = function (id) {
-        if(confirm("确定要删除这一条数据？")){
-
-            var form = new FormData();
-            form.append("action","del");
-            form.append("data",id);
-            $http.post("express",form,{transformRequest:angular.identity,headers:{"Content-Type":undefined}}).then(function (data, status, headers, config,statusText) {
-
-
-                alert(data.data.message);
-                $scope.listOrders();
-
-            });
-        }
-    }
-    var sqCount = 0;
-
-    $scope.listOrders = function () {
-        $http.get("express?action=express_orders").then(function (response) {
-            var orders =response.data.data;
-            for(var i=0;i<orders.length;i++){
-                var item = orders[i];
-                if(item.photos!=undefined){
-                    item.images = item.photos.split(",");
-                }
-                if(item.executor==undefined){
-                    item.executor = {};
-                }
-                orders[i] =item;
-            }
-            $scope.orders = orders;
-            if( $scope.orders==null ||  $scope.orders==undefined){
-                $scope.orders = [];
-
-            }
-            var _sqCount = parseInt($scope.orders.length);
-            if(_sqCount!=sqCount){
-                $document.find("#new_music")[0].play();
-            }
-            sqCount = _sqCount;
-        });
-
-    }
-
-    var stop = $interval(function() {
-
-        $scope.listOrders();
-
-    }, 10000);
-
-
-    $scope.$on('$destroy', function() {
-        $interval.cancel(stop);
-    });
-
-    $scope.listOrders();
-});
-main.controller('makeCardCtrl', function ($http, $scope, $rootScope, $routeParams) {
-
-    $rootScope.title = "蒲公英营销助手";
-    //$rootScope.goback = "#/";
-    $rootScope.isgoback = true;
-
-    $scope.Cash = {card_type: "CASH", least_cost: 0, reduce_cost: 1};
-    $scope.Card = {};
-    $scope.date_info = {type: "DATE_TYPE_FIX_TIME_RANGE", fixed_term: 0, fixed_begin_term: 0};
-    $scope.sku = {quantity: 1};
-    //https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token=ACCESS_TOKEN
-    //Messager(access_token)
-    //var formData = new FormData();
-    //formData.append('buffer', file);
-
-    $scope.colorData = {};
-    $scope.colorData['Color010'] = '#63b359';
-    $scope.colorData['Color020'] = '#2c9f67';
-    $scope.colorData['Color030'] = '#509fc9';
-    $scope.colorData['Color040'] = '#5885cf';
-    $scope.colorData['Color050'] = '#9062c0';
-    $scope.colorData['Color060'] = '#d09a45';
-    $scope.colorData['Color070'] = '#e4b138';
-    $scope.colorData['Color080'] = '#ee903c';
-    $scope.colorData['Color081'] = '#f08500';
-    $scope.colorData['Color082'] = '#a9d92d';
-    $scope.colorData['Color090'] = '#dd6549';
-    $scope.colorData['Color100'] = '#cc463d';
-    $scope.colorData['Color101'] = '#cf3e36';
-    $scope.colorData['Color102'] = '#5E6671';
-
-
-    $scope.getCardData = function (id) {
-        $http.get("card", {params: {action: "get", pid: id}}).success(function (response) {
-            $scope.Card = response.data.card;
-            $scope.Cash = response.data.cash;
-            $scope.date_info = response.data.dateInfo;
-            $scope.sku = response.data.sku;
-
-
-            var view = eval('(' + response.data.view + ')');
-            // 删除返回数据中的ID （与数据结构中的ID冲突）
-            //delete view.card.cash.base_info["id"];
-
-            $scope.Card.notice = view.card.cash.base_info.notice;
-            $scope.Card.description = view.card.cash.base_info.description;
-            //$scope.Card.color = view.card.cash.base_info.color;
-            //$scope.Card.get_limit = view.card.cash.base_info.get_limit;
-            //$scope.Card.can_share = view.card.cash.base_info.can_share;
-            //$scope.Card.can_give_friend = view.card.cash.base_info.can_give_friend;
-
-            //Messager(view.card.cash.base_info.color);
-            $scope.mcolor = view.card.cash.base_info.color;
-
-            //Messager($scope.date_info.end_timestamp)
-            if ($scope.date_info.end_timestamp != null) {
-                $scope.date_info.end_timestamp = $scope.date_info.end_timestamp * 1000;
-            }
-
-
-            //$scope.date_info = view.card.cash.base_info.date_info;
-
-            //$scope.Cash.least_cost = view.card.cash.least_cost;
-            $scope.Cash.reduce_cost = view.card.cash.reduce_cost / 100;
-
-            //$scope.sku = view.card.cash.base_info.sku;
-            //$('.datepicker').datepicker('update', new Date(2011, 2, 5));
-            //https://api.weixin.qq.com/card/get?access_token=TOKEN
-
-        });
-    }
-
-    if (GetQueryString("id") != undefined) {
-        $scope.getCardData(GetQueryString("id"));
-    }
-
-});
-main.controller("CardListCtrl", function ($http, $scope, $rootScope, $routeParams, $location) {
-
-    $rootScope.title = "蒲公英营销助手";
-    //$rootScope.goback = "#/";
-    $rootScope.isgoback = true;
-
-    $scope.serverTime = server_time;
-    $scope.thowin = function (id) {
-        ////tkb.meiyeedu.com/rp/index?id={{m[0].id}}
-        //$location.path("http://tkb.meiyeedu.com/rp/index").search({pid:id});
-        //window.location.href="//tkb.meiyeedu.com/rp/index?id="+id;
-
-        //
-        $http.get("card", {params: {action: "get", pid: id}}).success(function (response) {
-            //$scope.Card = response.status.data.card;
-            //$scope.Cash = response.status.data.cash;
-            //$scope.date_info = response.status.data.dateInfo;
-            //$scope.sku = response.status.data.sku;
-            var view = eval('(' + response.data.view + ')');
-
-            if (view != undefined && view.card != undefined && view.card.cash != undefined && view.card.cash.base_info && view.card.cash.base_info.status != undefined) {
-                if (view.card.cash.base_info.status == "CARD_STATUS_VERIFY_OK") {
-                    //window.location.href = "//exp.asvital.com/act/index?shopID=" + shopID + "&id=" + id;
-                } else if (view.card.cash.base_info.status == "CARD_STATUS_NOT_VERIFY") {
-
-                    Messager("待审核,无法投放");
-
-                } else if (view.card.cash.base_info.status == "CARD_STATUS_VERIFY_FAIL") {
-                    Messager("审核失败,无法投放");
-
-                } else if (view.card.cash.base_info.status == "CARD_STATUS_DISPATCH") {
-                    Messager("在公众平台投放过的卡券,无法投放");
-
-                } else if (view.card.cash.base_info.status == "CARD_STATUS_USER_DELETE") {
-                    Messager("卡券被商户删除,无法投放");
-
-                }
-            } else {
-                Messager("error")
-            }
-
-        });
-    }
-
-
-    $http.get("card", {params: {action: "list_cash"}}).success(function (response) {
-        $scope.listCash = response.data;
-    });
-});
-main.controller("articleCtrl", function ($http, $scope, $routeParams, $rootScope, $location) {
-    $rootScope.title = "朋友圈热文营销";
-    //$rootScope.goback = "#/";
-    $rootScope.isgoback = true;
-
-
-    $scope.checkbox = function (a, b, c) {
-        $scope.shop.showSeckill = a;
-        $scope.shop.showYuyue = b;
-        $scope.shop.showLottery = c;
-    }
-
-    $scope.tabIndex = 0;
-
-    $scope.listArticle = function (id) {
-        if ($scope.tabIndex == 0) {
-            $http.get("article", {params: {action: "listByCategory", pid: id}}).success(function (response) {
-                $scope.articles = response.data;
-            });
-
-        } else if ($scope.tabIndex == 1) {
-            $http.get("article", {params: {action: "listByCategorySystem", pid: id}}).success(function (response) {
-                $scope.articles = response.data;
-            });
-        }
-
-        /*$http.get("article",{params:{action:"get"}}).success(function(response){
-         $scope.articles = response.data;
-         });*/
-    }
-    $scope.deleteArticle = function (pid, title) {
-        function confirmFunc() {
-            $http.get("article", {params: {action: "del", pid: pid}}).success(function (response) {
-                Messager(response.message);
-                //window.location.href=window.location.href;
-                //$location.reload();
-                window.history.go(0);
-            });
-        }
-        MessagerConfirm("确定要删除这条文章？" + title,confirmFunc);
-
-
-    }
-    $http.get("category", {params: {action: "list"}}).success(function (response) {
-        $scope.articleCategorys = response.data;
-        if ($scope.articleCategorys[0] != undefined) {
-            $scope.articleCategoryID = $scope.articleCategorys[0].id;
-            $scope.listArticle($scope.articleCategoryID);
-        }
 
     });
 
-    $scope.selectArticleCategory = function () {
-        $scope.listArticle($scope.articleCategoryID);
+
+});
+main.controller('content_list_controller', function ($http, $scope, $rootScope, $routeParams,$document,$interval) {
+
+    $scope.MenuTypes=[];
+    $scope.Menus;
+
+    var ActionTarget={method:'POST',url:'menus',title:'添加菜单'};
+
+    $http.get("content_type/list").then(function (value){
+
+        $scope.MenuTypes = value.data.Data;
+
+    });
+    $scope.listMenus = function(){
+        //content/list
+        $http.get("content/list").then(function (value){
+
+            $scope.MenusList = value.data.Data;
+
+        });
     }
+    $scope.listClassify = function(){
+        //content/list
+        $http.get("content_sub_type/list/"+$scope.Menus.ID).then(function (value){
 
-    $scope.saveShop = function () {
+            $scope.ClassifyList = value.data.Data;
 
-        $scope.saveAr();
+        });
+    }
+    $scope.listChildClassify = function(ContentID,ParentID){
+        //content/list
+        $http.get("content_sub_type/child/list/"+ContentID+"/"+ParentID).then(function (value){
 
-        /*
-        if ($scope.shop.showPackage != "-1") {
-            $scope.saveAr();
-            /!*$http.get("card", {params: {action: "get",pid:$scope.shop.showPackage}}).success(function (response) {
-             //$scope.Card = response.status.data.card;
-             //$scope.Cash = response.status.data.cash;
-             //$scope.date_info = response.status.data.dateInfo;
-             //$scope.sku = response.status.data.sku;
+            $scope.ClassifyChildList = value.data.Data;
 
-             var view = eval('(' + response.data.view+ ')');
+        });
+    }
+    $scope.saveMenu = function(){
 
-             if(view!=undefined && view.card!=undefined && view.card.cash!=undefined && view.card.cash.base_info && view.card.cash.base_info.status!=undefined){
-             if(view.card.cash.base_info.status=="CARD_STATUS_VERIFY_OK"){
-
-             $scope.saveAr();
-
-             }else if(view.card.cash.base_info.status=="CARD_STATUS_NOT_VERIFY"){
-
-             Messager("待审核,无法投放");
-             return
-
-             }else if(view.card.cash.base_info.status=="CARD_STATUS_VERIFY_FAIL"){
-             Messager("审核失败,无法投放");
-             return
-
-             }else if(view.card.cash.base_info.status=="CARD_STATUS_DISPATCH"){
-             Messager("在公众平台投放过的卡券,无法投放");
-             return
-
-             }else if(view.card.cash.base_info.status=="CARD_STATUS_USER_DELETE"){
-             Messager("卡券被商户删除,无法投放");
-             return
-
-             }
-             }else{
-             Messager("error")
-             return
-             }
-
-             });*!/
-        } else {
-            $scope.saveAr();
-        }*/
-
-
-    };
-    $scope.shop = {};
-    $scope.saveAr = function () {
-
-        var formData = new FormData();
-        formData.append("action", "change_show");
-        formData.append("json", angular.toJson($scope.shop));
         $http({
-            method: "POST",
-            url: "shop",
-            data: formData,
-            headers: {'Content-Type': undefined},
-            transformRequest: angular.identity
-        }).success(function (data, status, headers, config) {
-            Messager("保存成功");
+            method:ActionTarget.method,
+            url:ActionTarget.url,
+            data:JSON.stringify($scope.Menus),
+            transformRequest:angular.identity,
+            headers:{"Content-Type":"application/json;charset=utf-8"}
+        }).then(function(data){
+
+
+            $scope.listMenus();
+            $scope.Menus=null;
+            alert(data.data.Message);
+
+        });
+
+    }
+    $scope.upIndex = function(index){
+        if(index==0){
+            return
+        }
+        var current = angular.copy($scope.MenusList[index]);//1
+        var targetIndex = (index-1)<=0?0:(index-1);
+        var target = angular.copy($scope.MenusList[targetIndex]);//0
+
+
+        $scope.MenusList[targetIndex]=current;
+        $scope.MenusList[index]=target;
+
+        current.Sort=targetIndex;
+        target.Sort=index;
+
+        ActionTarget={method:'PUT',url:'content/index/'+target.ID,title:'修改菜单'};
+        $http({
+            method:ActionTarget.method,
+            url:ActionTarget.url,
+            data:JSON.stringify(target),
+            transformRequest:angular.identity,
+            headers:{"Content-Type":"application/json;charset=utf-8"}
+        }).then(function(data){
+            ActionTarget={method:'PUT',url:'content/index/'+current.ID,title:'修改菜单'};
+            $http({
+                method:ActionTarget.method,
+                url:ActionTarget.url,
+                data:JSON.stringify(current),
+                transformRequest:angular.identity,
+                headers:{"Content-Type":"application/json;charset=utf-8"}
+            }).then(function(data){
+
+                $scope.listMenus();
+                $scope.Menus=null;
+
+            });
+        });
+
+
+
+
+    }
+
+
+
+    $scope.changeHide = function(m){
+
+        ActionTarget={method:'PUT',url:'content/hide/'+m.ID,title:'修改显示'};
+        $http({
+            method:ActionTarget.method,
+            url:ActionTarget.url,
+            data:JSON.stringify({Hide:m.Hide}),
+            transformRequest:angular.identity,
+            headers:{"Content-Type":"application/json;charset=utf-8"}
+        }).then(function(data){
+
+            $scope.listMenus();
+            $scope.Menus=null;
+
+        });
+
+    }
+    $scope.downIndex = function(index){
+
+
+        if($scope.MenusList.length-1==index){
+            return
+        }
+        var current = angular.copy($scope.MenusList[index]);//1
+        var targetIndex = (index+1)>=$scope.MenusList.length-1?$scope.MenusList.length-1:(index+1);
+        var target = angular.copy($scope.MenusList[targetIndex]);//0
+
+
+        $scope.MenusList[targetIndex]=current;
+        $scope.MenusList[index]=target;
+
+        current.Sort=targetIndex;
+        target.Sort=index;
+
+        ActionTarget={method:'PUT',url:'content/index/'+target.ID,title:'修改菜单'};
+        $http({
+            method:ActionTarget.method,
+            url:ActionTarget.url,
+            data:JSON.stringify(target),
+            transformRequest:angular.identity,
+            headers:{"Content-Type":"application/json;charset=utf-8"}
+        }).then(function(data){
+            ActionTarget={method:'PUT',url:'content/index/'+current.ID,title:'修改菜单'};
+            $http({
+                method:ActionTarget.method,
+                url:ActionTarget.url,
+                data:JSON.stringify(current),
+                transformRequest:angular.identity,
+                headers:{"Content-Type":"application/json;charset=utf-8"}
+            }).then(function(data){
+
+                $scope.listMenus();
+                $scope.Menus=null;
+
+            });
+        });
+
+    }
+    $scope.saveMenuInline = function(){
+        ActionTarget={method:'POST',url:'content',title:'添加菜单'};
+        $scope.saveMenu();
+    }
+    //{method:'PUT',url:''}
+
+    $scope.editMenus = function(m){
+        $scope.selectClassify=null;
+        $scope.classifyChild=null;
+
+        ActionTarget={method:'PUT',url:'content/'+m.ID,title:'修改菜单'};
+        $scope.Menus=m;
+
+        $scope.classify = {ContentID:$scope.Menus.ID};
+
+        $("#editMenus").modal({centered: false,allowMultiple: true}).modal("show");
+
+        $scope.listClassify();
+    }
+    $scope.deleteMenus = function(ID){
+        $http.delete("content/"+ID,{transformRequest:angular.identity,headers:{"Content-Type":"application/json;charset=utf-8"}}).then(function(data){
+
+            alert(data.data.Message);
+
+            $scope.listMenus();
+
+            $scope.Menus=null;
+
         });
     }
-    /*$scope.cashs = [];
-     $http.get("card", {params: {action:"list_cash"}}).success(function (response) {
-     $scope.cashs = response.data;
-     });*/
+    $scope.listMenus();
+
+
+    $scope.classify=null;
+
+    $scope.ActionClassifyTarget={method:'POST',url:'content_sub_type',title:'添加分类'};
+
+    $scope.deleteClassify = function(m){
+
+        $http.delete("content_sub_type/"+m.ID,{transformRequest:angular.identity,headers:{"Content-Type":"application/json;charset=utf-8"}}).then(function(data){
+
+            alert(data.data.Message);
+            $scope.listClassify();
+
+        });
+
+    }
+    $scope.editClassify = function(m){
+
+        $scope.classify=m;
+        $scope.ActionClassifyTarget={method:'PUT',url:'content_sub_type/'+m.ID,title:'修改分类'};
+        //$scope.saveClassify();
+    }
+    $scope.saveClassify = function () {
+
+        $http({
+            method:$scope.ActionClassifyTarget.method,
+            url:$scope.ActionClassifyTarget.url,
+            data:JSON.stringify($scope.classify),
+            transformRequest:angular.identity,
+            headers:{"Content-Type":"application/json;charset=utf-8"}
+        }).then(function(data){
+
+            $scope.listClassify();
+            $scope.classify.Name='';
+            $scope.classify.ID=null;
+            $scope.ActionClassifyTarget={method:'POST',url:'content_sub_type',title:'添加分类'};
+            alert(data.data.Message);
+        });
+
+
+    }
+
+
+
+
+
+    $scope.selectClassifyFunc = function(m){
+        //$scope.ActionClassifyTarget={method:'PUT',url:'content_sub_type/'+m.ID,title:'修改分类'};
+        $scope.selectClassify=m;
+        $scope.listChildClassify($scope.selectClassify.ContentID,$scope.selectClassify.ID);
+    }
+
+
+    $scope.selectClassify=null;
+    $scope.classifyChild=null;
+
+    $scope.ActionClassifyChildTarget={method:'POST',url:'content_sub_type',title:'添加子分类'};
+
+    //saveClassifyChild
+    $scope.saveClassifyChild = function () {
+
+        if(!$scope.selectClassify){
+            alert("请选择父类");
+            return
+        }
+        if(!$scope.Menus){
+            alert("请菜单");
+            return
+        }
+
+
+        $scope.classifyChild.ParentContentSubTypeID=$scope.selectClassify.ID;
+        //{ContentID:$scope.Menus.ID};
+        $scope.classifyChild.ContentID=$scope.Menus.ID;
+        //$scope.classifyChild.MenusID=$scope.Menus.ID;
+        //{MenusID:$scope.Menus.ID}
+
+        $http({
+            method:$scope.ActionClassifyChildTarget.method,
+            url:$scope.ActionClassifyChildTarget.url,
+            data:JSON.stringify($scope.classifyChild),
+            transformRequest:angular.identity,
+            headers:{"Content-Type":"application/json;charset=utf-8"}
+        }).then(function(data){
+            alert(data.data.Message);
+            $scope.listChildClassify($scope.selectClassify.ContentID,$scope.selectClassify.ID);
+
+            $scope.classifyChild.Name='';
+            $scope.classifyChild.ID=null;
+            $scope.ActionClassifyChildTarget={method:'POST',url:'content_sub_type',title:'添加分类'};
+        });
+
+
+    }
+    $scope.deleteClassifyChild = function(m){
+
+        $http.delete("content_sub_type/"+m.ID,{transformRequest:angular.identity,headers:{"Content-Type":"application/json;charset=utf-8"}}).then(function(data){
+
+            alert(data.data.Message);
+            $scope.listChildClassify($scope.selectClassify.ContentID,$scope.selectClassify.ID);
+
+        });
+
+    }
+    $scope.editClassifyChild = function(m){
+        $scope.classifyChild=m;
+        $scope.ActionClassifyChildTarget={method:'PUT',url:'content_sub_type/'+m.ID,title:'修改分类'};
+        //$scope.saveClassify();
+    }
+
+
 
 });
-main.controller("appointmentInfoCtrl", function ($http, $scope, $routeParams,$timeout,$rootScope,Upload) {
-    $rootScope.title = "设置项目";
-    $rootScope.isgoback = true;
 
-    var ID = $routeParams.ID;
-
-    $scope.appointments={};
-    $scope.appointments.Invite=0;
-    $scope.appointments.Prize={Begin:0,End:0};
-    $scope.appointments.Link={Show:false,Name:"",Url:""};
-    $scope.appointments.UseTime={Show:false,Week:false,Begin:0,End:0};
-
-    $scope.appointments.Property =[];
-    $scope.appointments.Gallery =[];
-    $scope.appointments.Picture =[];
+main.controller("poster_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+    $scope.poster=null;
+    $http.post("configuration/list",JSON.stringify([1002]), {
+        transformRequest: angular.identity,
+        headers: {"Content-Type": "application/json"}
+    }).then(function (data, status, headers, config) {
+        var obj =data.data.Data;
+        $scope.poster =obj[1002];
+    });
 
 
-    if(ID!="" && ID!=undefined){
-        $http.get("appointmentAction", {params: {action: "get",ID:ID}}).then(function (response) {
 
-            var appointments = response.data.Data;
-            appointments.Property =JSON.parse(appointments.Property);
-            appointments.Gallery =JSON.parse(appointments.Gallery);
-            appointments.Picture =JSON.parse(appointments.Picture);
-            appointments.UseTime =JSON.parse(appointments.UseTime);
-            appointments.Link =JSON.parse(appointments.Link);
-            $scope.appointments = appointments;
-        });
-    }
+    $scope.savePoster = function(){
+        if($scope.poster==null){
+            alert("请上传海报图片");
+            return
+        }
 
-
-    $scope.submit = function () {
-
-        var  appointments  = angular.copy($scope.appointments);
-
-        appointments.Prize = angular.toJson($scope.appointments.Prize);
-        appointments.Link = angular.toJson($scope.appointments.Link);
-        appointments.UseTime = angular.toJson($scope.appointments.UseTime);
-        appointments.Property = angular.toJson($scope.appointments.Property);
-        appointments.Gallery = angular.toJson($scope.appointments.Gallery);
-        appointments.Picture = angular.toJson($scope.appointments.Picture);
-
-        var form = {};
-        form.json=angular.toJson(appointments);
-        $http.post("appointmentAction",form,{
-            params:{action:"save"}
+        $http.post("configuration/change",JSON.stringify({K:1002,V:$scope.poster}), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
         }).then(function (data, status, headers, config) {
 
             alert(data.data.Message);
@@ -717,1623 +957,2748 @@ main.controller("appointmentInfoCtrl", function ($http, $scope, $routeParams,$ti
 
     }
 
-    $scope.deleteImageGallery = function (item) {
-        var imageIndex =  $scope.appointments.Gallery.indexOf(item);
-        if(imageIndex!=-1){
-            function deleteFunc() {
-                var arr = angular.copy($scope.appointments.Gallery);
-                arr.splice(imageIndex,1);
-                $scope.$apply(function () {
-                    $scope.appointments.Gallery = arr;
-                });
-            }
-            MessagerConfirm("确定要删除这张图片？",deleteFunc);
-        }
-    }
-    $scope.deleteImagePicture = function (item) {
-        var imageIndex =  $scope.appointments.Picture.indexOf(item);
-        if(imageIndex!=-1){
-            function deleteFunc() {
-                var arr = angular.copy($scope.appointments.Picture);
-                arr.splice(imageIndex,1);
-                $scope.$apply(function () {
-                    $scope.appointments.Picture = arr;
-                });
-            }
-            MessagerConfirm("确定要删除这张图片？",deleteFunc);
-        }
-    }
-
-    $scope.propertyUp = function (m) {
-        var index = $scope.appointments.Property.indexOf(m);
-        var newIndex = index;
-        if(newIndex-1<0){
-            newIndex = 0;
-        }else{
-            newIndex =newIndex-1;
-        }
-
-        var mm = $scope.appointments.Property.splice(index,1);
-        $scope.appointments.Property.splice(newIndex,0,mm[0]);
-    }
-    $scope.propertyDown = function (m) {
-        var index = $scope.appointments.Property.indexOf(m);
-        var newIndex = index;
-        if(newIndex+1>$scope.appointments.Property.length-1){
-            newIndex = $scope.appointments.Property.length-1;
-        }else{
-            newIndex =newIndex+1;
-        }
-
-        var mm = $scope.appointments.Property.splice(index,1);
-        $scope.appointments.Property.splice(newIndex,0,mm[0]);
-    }
-    $scope.propertyRemove = function (m) {
-            if(confirm("删除："+m.Key+"?")){
-                var index = $scope.appointments.Property.indexOf(m);
-                $scope.appointments.Property.splice(index,1);
-            }
-    }
-
-
-    $scope.ClassifyChange = function(m){
-        if(m.Label=="" || m.Label==undefined){
-            alert("名称不能为空");
-            return;
-        }
-
-        var form = {};
-        form.Label=m.Label;
-        form.ID=m.ID;
-        $http.post("classifyAction",form, {
-            params:{"action":"change"}
-        }).then(function (response) {
-            alert(response.data.Message);
-            $scope.listClassify();
-        });
-    }
-    $scope.ClassifyRemove = function(m){
-        $http.get("classifyAction", {params: {action: "del",ID:m.ID}}).then(function (response) {
-            alert(response.data.Message);
-            $scope.listClassify();
-        });
-    }
-    $scope.addClassify = function () {
-        if($scope.Classify_Label=="" || $scope.Classify_Label==undefined){
-            alert("名称不能为空");
-            return;
-        }
-
-        var form = {};
-        form.Label=$scope.Classify_Label;
-        $http.post("classifyAction",form, {
-            params:{"action":"add"}
-        }).then(function (response) {
-           alert(response.data.Message);
-            $scope.Classify_Label="";
-            $scope.listClassify();
-        });
-
-    }
-    $scope.addProperty = function () {
-        if($scope.appointments.Property.length>9){
-            alert("最多添加10个属性");
-            return
-        }
-
-        $scope.appointments.Property.push({Key:"",Value:""});
-    }
-
-    $scope.showPropertyBox=function () {
-        $('#property_box').modal('show');
-    }
-    $scope.showClassifyBox=function () {
-        $('#classify_box').modal('show');
-        $scope.listClassify();
-    }
-    $scope.showGalleryBox=function () {
-        $('#gallery_box').modal('show');
-
-    }
-    $scope.showPictureBox=function () {
-        $('#picture_box').modal('show');
-    }
-
-
-    $scope.listClassify = function(){
-        $http.get("classifyAction", {params: {action: "list"}}).then(function (response) {
-
-            $scope.Classifys = response.data.Data;
-        });
-    }
-    $scope.listClassify();
-
-
-
-    $scope.uploadGalleryImage = function (progressID,file, errFiles) {
-        $("."+progressID).text(0+"%");
-        $("."+progressID).css("width",0+"%");
+    $scope.uploadPoster = function (progressID,file, errFiles) {
 
         if (file) {
-
-            if($scope.appointments.Gallery.length>9){
-                alert("最多10张图片");
-                return
-            }
-
             var thumbnail =Upload.upload({
                 url: '/file/up',
                 data: {file: file},
             });
             thumbnail.then(function (response) {
-
                 $timeout(function () {
-                    var url =response.data.Data;
-                    if($scope.appointments.Gallery.indexOf(url)==-1){
-                        $scope.appointments.Gallery.push(url);
-                        $('.carousel').carousel();
-                    }
+                    $scope.poster =response.data.Data;
                 });
             }, function (response) {
-
                 if (response.status > 0){
-
                     $scope.errorMsg = response.status + ': ' + response.data;
                 }
             }, function (evt) {
                 // Math.min is to fix IE which reports 200% sometimes
-                var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
-                $("."+progressID).text(progress+"%");
-                $("."+progressID).css("width",progress+"%");
+                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                //$("."+progressID).text(progress+"%");
+                //$("."+progressID).css("width",progress+"%");
             });
         }else{
-            //alert(JSON.stringify(errFiles))
+            UpImageError(errFiles);
         }
     }
-    $scope.uploadPictureImage = function (progressID,file, errFiles) {
-        $("."+progressID).text(0+"%");
-        $("."+progressID).css("width",0+"%");
 
-        if (file) {
-            if($scope.appointments.Picture.length>19){
-                alert("最多20张图片");
-                return
-            }
-            var thumbnail =Upload.upload({
-                url: '/file/up',
-                data: {file: file},
-            });
-            thumbnail.then(function (response) {
 
-                $timeout(function () {
-                    var url =response.data.Data;
-                    if($scope.appointments.Picture.indexOf(url)==-1){
-                        $scope.appointments.Picture.push(url);
-                        $('.carousel').carousel();
-                    }
-                });
-            }, function (response) {
-
-                if (response.status > 0){
-
-                    $scope.errorMsg = response.status + ': ' + response.data;
-                }
-            }, function (evt) {
-                // Math.min is to fix IE which reports 200% sometimes
-                var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
-                $("."+progressID).text(progress+"%");
-                $("."+progressID).css("width",progress+"%");
-            });
-        }else{
-            //alert(JSON.stringify(errFiles))
-        }
-    }
 
 })
-main.controller("appointmentCtrl", function ($http, $scope, $routeParams, $rootScope) {
-    $rootScope.title = "发布报名/预约";
-    //$rootScope.goback = "#/products";
-    $rootScope.isgoback = true;
+main.controller("store_situation_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+    //store_journal/list
+    $scope.StartTime =new Date();
+    $scope.EndTime =new Date();
 
-    $scope.getAppointment=function (m) {
-
-        var Gallery = JSON.parse(m.Gallery);
-
-        var style = {};
-        style["background"]="url('/file/load?path="+Gallery[0]+"') center";
-        style["width"]="120px";
-        style["height"]="120px";
-        style["background-size"]="cover";
-        //style.width="100px";
-        //style.height = "200px";
-        return style;
-    }
-    $scope.getAppointmentList = function () {
-        $http.get("appointmentAction", {params: {action: "list"}}).then(function (response) {
-
-            $scope.appointments = response.data.Data;
-        });
-    }
-
-    $scope.getAppointmentList();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    $scope.preferential = null;
-    $scope.perItems = [];
-
-    $scope.shopID = "";
-    $scope.userID = "";
-
-
-    $scope.currentItem = {};
-    $scope.setPreItem = function (m) {
-
-        $scope.currentItem = m;
-        $('#set_preitem_alert').modal('show');
-
-
-    }
-    $scope.delPreItem = function (m) {
-        if(m.id==undefined){
-
-            return
+    $scope.tabIndex =1;
+    $scope.selectTab= function (index) {
+        $scope.tabIndex =index;
+        if(table_local!=undefined){
+            table_local.ajax.reload();
         }
-        function confirmFunc() {
-            $http.get("perItem/preferential", {params: {action: "del", pid: m.id}}).success(function (response) {
-                //Messager(JSON.stringify(response.status.data));
-                Messager(response.message);
-                if (response.success) {
-                    $scope.productsObj[m.productID] = $scope.products[m.productID];
-                    for (var ii = 0; ii < $scope.perItems.length; ii++) {
-                        var itm = $scope.perItems[ii];
-                        if (itm != null && itm.id == m.id) {
-                            $scope.perItems.splice(ii, 1);
-                            break;
-                        }
-                    }
-                }
-            });
-        }
-
-        MessagerConfirm("确定要删除这条记录？",confirmFunc);
-
-
-    }
-
-
-
-    $scope.setPreItemInfo = function (valid) {
-        if(valid==false){
-            Messager("请完善内容在提交");
-            return
-        }
-        var formData = new FormData();
-        formData.append("action", "add");
-        formData.append("json", angular.toJson($scope.currentItem));
-        formData.append("pid", $scope.preferential.id);
-
-        $scope.currentItem = {};
-
-        $http.post("perItem/preferential", formData, {
-            transformRequest: angular.identity,
-            headers: {'Content-Type': undefined}
-        }).success(function (responseb) {
-            if (responseb.success) {
-                Messager(responseb.message);
-                $('#set_preitem_alert').modal('hide');
-                $scope.currentItem = {};
-                $scope.getListProduct();
-            } else {
-                Messager(responseb.message);
-            }
-
-
-        });
-    }
-    $scope.selectProduct=function () {
-        if ($scope.selectItemID==undefined) {
-            Messager("请选择");
-            return;
-        }
-        //$('#set_preitem_alert').modal('hide');
-        for (var key in $scope.products) {
-
-            var item = $scope.products[key];
-            if (item.id == $scope.selectItemID) {
-
-                //$scope.products.splice(i,1);
-                //var preitem = {};
-                $scope.currentItem.productID = item.id;
-                //$scope.perItems.push(preitem);
-                //delete $scope.productsObj[key];
-                break;
-            }
-        }
-    }
-
-
-    $scope.listProduct = function () {
-
-        $scope.selectItemID="";
-
-        $scope.currentItem={};
-
-        $('#set_preitem_alert').modal('show');
     };
-    /*$http.get("preferential", {params: {action: "geta"}}).success(function (reponse) {
 
-        if (reponse.data == undefined || reponse.data == null) {
+    var table_local;
+    $timeout(function () {
 
-        } else {
-            var preferential = reponse.data;
-            if (preferential != undefined) {
+        table_local = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Name"},
+                {data:"Detail"},
+                {data:"StoreID",searchable:false},
+                {data:"Type",searchable:false,visible:false},
+                {data:"Amount",searchable:false,render:function (data) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"Balance",searchable:false,render:function (data) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"CreatedAt",searchable:false,render:function (data,type,row) {
+                        return $filter("date")(data,"medium");
+                    }}
+            ],
+            "initComplete":function (d) {
 
-                if(preferential.timeBegin==null){
-                    preferential.timeBegin="9";
-                }
-                if(preferential.timeEnd==null){
-                    preferential.timeEnd = "10";
-                }
-                if(preferential.timeSection==null){
-                    preferential.timeSection="workDay";
-                    //preferential.timeSection="";
-                }
-                if(preferential.threshold==null){
-                    preferential.threshold=0;
-                }
-
-                preferential.timeBegin = preferential.timeBegin+"";
-                preferential.timeEnd = preferential.timeEnd+"";
-                preferential.threshold = preferential.threshold;
-            }
-
-            $scope.preferential =preferential;
-
-            $scope.getListProduct();
-
-        }
-    });*/
-
-    $scope.submit = function () {
-        /*var sss =angular.copy($scope.preferential);
-
-         sss.project0=sss.project0.join(",");
-         sss.project1=sss.project1.join(",");
-         sss.project2=sss.project2.join(",");
-         sss.project3=sss.project3.join(",");*/
-
-        var formData = new FormData();
-        formData.append("action", "change");
-        formData.append("json", angular.toJson($scope.preferential));
-
-
-        //$http.post("preferential",formData,{transformRequest: angular.identity,headers: {'Content-Type':"application/json;charset=UTF-8"}}).success(function (response) {
-        $http.post("preferential", formData, {
-            transformRequest: angular.identity,
-            headers: {'Content-Type': undefined}
-        }).success(function (response) {
-
-            var status = response;
-            if (status.success) {
-                Messager(status.message);
-            } else {
-                Messager(status.message);
-            }
-
-        });
-
-
-    };
-});
-main.controller('qrcodeCtrl', function ($http, $scope, $routeParams, $rootScope) {
-    $rootScope.title = "礼包二维码";
-    //$rootScope.goback = "#view?id=" + $routeParams.id;
-    $rootScope.isgoback = true;
-
-    //origin: "http://localhost:8080"
-    //pathname: "/expand/admin/index.action"
-    var pathname = window.location.pathname.split("\/");
-    pathname.splice(pathname.length - 2, 2);
-    var urls;
-    for (var i = 0; i < pathname.length; i++) {
-        if (pathname[i] == "" && i == 0) {
-            urls = "/admin";
-        } else {
-            urls = urls + pathname[i] + "/admin";
-        }
-    }
-});
-
-main.controller('checkCtrl', function ($http, $scope, $rootScope, $routeParams) {
-    $rootScope.title = "核销";
-    //$rootScope.goback = "#/";
-    $rootScope.isgoback = true;
-
-    $scope.phone = GetQueryString("phone");
-    $scope.acks = {};
-    $scope.selectType = "preferential";
-    /*$scope.usePreferential = function (id) {
-
-        $http.get("item", {params: {action: "usePreferential", pid: id}}).success(function (response) {
-            $scope.get();
-        });
-
-    }*/
-    $scope.usePack = function (id) {
-        $http.get("item", {params: {action: "usePack", pid: id}}).success(function (response) {
-            Messager(response.message);
-            $scope.get();
-        });
-    }
-    $scope.isExpiry = function (itemDate, expiry) {
-        var time = $scope.time == undefined ? new Date().getTime() : $scope.time;
-
-        //console.log(time)
-        //console.log(itemDate)
-        //console.log(expiry)
-        //console.log(((expiry-1000)*86400000))
-        /// console.log("-----------")
-        if (expiry > 1000) {
-            if (itemDate + ((expiry - 1000) * 86400000) > time) {
-                return false;
-            } else {
-                return true;
-            }
-        } else {
-            if (itemDate + (expiry * 2592000000) > time) {
-                return false;
-            } else {
-                return true;
-            }
-        }
-    }
-
-
-    $scope.get = function () {
-        $http.get("item", {
-            params: {
-                action: "verifyUser",
-                json: $scope.phone
-            }
-        }).success(function (response) {
-            //$scope.item = response.data;
-            if (response.success == true) {
-
-                var preferential = response.data.preferential;
-                //$scope.pack = response.data.pack;
-                //$scope.ack = response.data.ack;
-                $scope.time = response.time;
-                var seckill_ack = response.data.seckill_ack;
-                var lottery_ack = response.data.lottery_ack;
-
-                $scope.acks["preferential"] = preferential;
-                $scope.acks["seckill_ack"] = seckill_ack;
-                $scope.acks["lottery_ack"] = lottery_ack;
-
-            } else {
-                Messager(response.message);
-            }
-
-        });
-    };
-    $scope.get();
-
-});
-main.controller('headCtrl', function ($http, $scope, $rootScope) {
-    $scope.loginOut = function () {
-        $http.get("/account/loginOut").then(function (reponse) {
-
-            //window.location.href =reurl;
-            window.location.href="/admin";
-        });
-    }
-
-})
-function Messager(txt) {
-    Messenger().post(txt);
-}
-function MessagerConfirm(txt,callBack) {
-    var msg = Messenger().post({
-        message: txt,
-        hideAfter:10,
-        actions: {
-            retry: {
-                label: '确定',
-                auto: false,
-                delay: 3,
-                action: function () {
-                    msg.cancel();
-                    callBack();
-                }
             },
-            cancel: {
-                label: '取消',
-                action: function() {
-                    return msg.cancel();
+            "ajax": {
+                "url": "store_journal/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function (d){
+                    d.Customs =[];
+                    var st = $scope.StartTime;
+                    st.setHours(0,0,0,0);
+                    var et = $scope.EndTime;
+                    et.setHours(24,0,0,0);
+                    d.Customs.push({Name:"CreatedAt",Value:">='"+$filter("date")(st,"yyyy-MM-dd HH:mm:ss")+"'"});
+                    d.Customs.push({Name:"CreatedAt",Value:"<'"+$filter("date")(et,"yyyy-MM-dd HH:mm:ss")+"'"});
+
+                    if($scope.StoreID!=undefined&&$scope.StoreID!=""){
+                        d.columns[3].search.value="'"+$scope.StoreID+"'";
+                    }
+
+                    d.columns[4].search.value="'"+$scope.tabIndex+"'";
+                    return JSON.stringify(d);
                 }
             }
-        }
-    });
-}
-main.controller('mainCtrl', function ($http, $scope, $rootScope, $window) {
-    $rootScope.title = "蒲公英营销助手";
-    //$rootScope.goback = "#/";
-    $rootScope.isgoback = false;
-
-
-    $scope.loginOut = function () {
-        $http.get("/account/loginOut").then(function (reponse) {
-
-            $window.location.href = "/admin";
-            //window.history.back();
-            //window.location.reload(reurl);
         });
-    }
-
-    function keyDown(e) {
-
-        if (e.keyCode == 13) {
-            $scope.checkItem();
-        }
-    }
 
 
-    window.document.onkeydown = keyDown;
 
-
-    $scope.phone = "";
-
-    $scope.checkItem = function () {
-
-        if ($scope.phone == undefined || $scope.phone.length == 0 || $scope.phone == "") {
-
-            Messager("请输入手机号");
-            return;
-        }
-        window.location.href = "checkItem?phone=" + $scope.phone;
-        return;
-    };
+    });
 
 });
-//seckillCtrl
-main.controller("seckillCtrl", function ($http, $scope, $rootScope, $routeParams, $location) {
+main.controller("carditem_list_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
 
+    $scope.StartTime =new Date();
+    $scope.EndTime =new Date();
 
-    $rootScope.title = "发布限时秒杀";
-    //$rootScope.goback = "#/";
-    $rootScope.isgoback = true;
+    $scope.tabIndex ="OrdersGoods";
+    $scope.selectTab= function (index) {
+        $scope.tabIndex =index;
 
-
-    $scope.seckill = undefined;
-    $scope.perItems = [];
-
-    $scope.shopID = shopID;
-    $scope.userID = userID;
-
-    $scope.statisItem = {total:15,begin_timestamp_h:"8",begin_timestamp_m:"0",end_timestamp_h:"23",end_timestamp_m:"0"};
-    $scope.currentItem = angular.copy($scope.statisItem);
-
-    $scope.setPreItem = function (m) {
-        $scope.selectItemID =undefined;
-        $scope.currentItem={};
-        $scope.currentItem = m;
-        $('#set_preitem_alert').modal('show');
-    }
-    $scope.delPreItem = function (m) {
-        function confirmFunc() {
-            $http.get("perItem/seckill", {params: {action: "del", pid: m.id}}).success(function (response) {
-                //Messager(JSON.stringify(response.status.data));
-                Messager(response.message);
-                if (response.success) {
-                    $scope.productsObj[m.productID] = $scope.products[m.productID];
-                    for (var ii = 0; ii < $scope.perItems.length; ii++) {
-                        var itm = $scope.perItems[ii];
-                        if (itm != null && itm.id == m.id) {
-                            $scope.perItems.splice(ii, 1);
-                            break;
-                        }
-                    }
-                }
-            });
+        if(table_local!=undefined){
+            table_local.ajax.reload();
         }
-        MessagerConfirm("确定要删除这个项？",confirmFunc);
-    }
-    $scope.setPreItemInfo = function (valid) {
-
-        if(valid==false){
-            Messager("请完善内容在提交");
-            return
-        }
-
-        if($scope.currentItem.productID==undefined){
-            Messager("请选择项目");
-            return;
-        }
-        $scope.selectItemID =undefined;
-
-        if($scope.currentItem.begin_timestamp_h==undefined || $scope.currentItem.begin_timestamp_m==undefined || $scope.currentItem.end_timestamp_h==undefined || $scope.currentItem.end_timestamp_m==undefined){
-
-            Messager("请选择时间");
-            return;
-
-        }
-        if(parseInt($scope.currentItem.end_timestamp_h)<parseInt($scope.currentItem.begin_timestamp_h)){
-            Messager("结束时间太小");
-            return;
-        }
-        if(parseInt($scope.currentItem.end_timestamp_h)==parseInt($scope.currentItem.begin_timestamp_h) && parseInt($scope.currentItem.end_timestamp_m)<=parseInt($scope.currentItem.begin_timestamp_m)){
-            Messager("结束时间太小");
-            return;
-        }
-
-        $scope.currentItem.begin_timestamp=$scope.currentItem.begin_timestamp_h+":"+$scope.currentItem.begin_timestamp_m;
-        $scope.currentItem.end_timestamp=$scope.currentItem.end_timestamp_h+":"+$scope.currentItem.end_timestamp_m;
-
-        var formData = new FormData();
-        formData.append("action", "add");
-        formData.append("json", angular.toJson($scope.currentItem));
-        formData.append("pid", $scope.seckill.id);
-
-        $scope.currentItem = {};
-
-        $http.post("perItem/seckill", formData, {
-            transformRequest: angular.identity,
-            headers: {'Content-Type': undefined}
-        }).success(function (response) {
-
-            var status = response;
-            if (status.success) {
-                Messager(status.message);
-                $('#set_preitem_alert').modal('hide');
-                $scope.currentItem = {};
-            } else {
-                Messager(status.message);
-            }
-            $scope.getListProduct();
-        });
-
-
-
-    }
-    $scope.addProduct = function () {
-        if ($scope.selectItemID == undefined) {
-            Messager("请选择");
-            return
-        }
-
-        //$('#set_preitem_alert').modal('hide');
-
-        $scope.currentItem={};
-        $scope.currentItem = angular.copy($scope.statisItem);
-
-        for (var key in $scope.products) {
-
-            var item = $scope.products[key];
-            if (item.id == $scope.selectItemID) {
-                //$scope.products.splice(i,1);
-                $scope.currentItem.productID = item.id;
-                $scope.currentItem=$scope.currentItem;
-                //$scope.perItems.push(preitem);
-                //delete $scope.productsObj[key];
-                break;
-            }
-
-
+    };
+    $scope.submit = function () {
+        if(table_local!=undefined){
+            table_local.ajax.reload();
         }
     }
 
-    $scope.getListProduct = function () {
-        $http.get("products_action", {params: {action: "seckill"}}).success(function (response) {
+    var table_local;
+    $timeout(function () {
 
 
-            var products = response.data;
-            var ojbs = {};
+        table_local = $('#table_local').DataTable({
+            "columns": [
+                {data:"Type",searchable:false,render:function (data, type, row){
 
-
-
-            for (var i = 0; i < products.length; i++) {
-                ojbs[products[i].id] = products[i];
-            }
-            $scope.products = ojbs;
-            $scope.productsObj = angular.copy(ojbs);
-
-            $http.get("perItem/seckill", {
-                params: {
-                    action: "get",
-                    pid: $scope.seckill.id
-                }
-            }).success(function (response) {
-
-                var perItems = response.data;
-
-                for (var ii = 0; ii < perItems.length; ii++) {
-
-
-
-                    var perItem = perItems[ii];
-                    var arr=[];
-                    if(perItem.begin_timestamp==null){
-                        arr[0]="8";
-                        arr[1]="0";
+                    if(data=="OrdersGoods"){
+                        return "商品";
+                    }else if(data=="ScoreGoods"){
+                        return "积分商品";
+                    }else if(data=="Voucher"){
+                        return "卡卷";
                     }else{
-                        arr =perItem.begin_timestamp.split(":");
-                        if(arr.length<2){
-                            arr[0]="8";
-                            arr[1]="0";
-                        }
+                        return "无";
                     }
-                    perItem.begin_timestamp_h =arr[0];
-                    perItem.begin_timestamp_m=arr[1];
+                    }},
+                {data:"ID"},
+                {data:"UserID"},
+                {data:"Data",searchable:false,render:function (data, type, row){
+                        //console.log(type);
+                        console.log(row.Type);
 
-                    arr=[];
-                    if(perItem.end_timestamp==null){
-                        arr[0]="23";
-                        arr[1]="0";
-                    }else{
-                        arr =perItem.end_timestamp.split(":");
-                        if(arr.length<2){
-                            arr[0]="23";
-                            arr[1]="0";
+                        var Data = JSON.parse(data);
+
+                        if(row.Type=="OrdersGoods"){
+                            Data.Goods=JSON.parse(Data.Goods)
+                            Data.Specification=JSON.parse(Data.Specification)
+                            return Data.Goods.Title+"-"+Data.Specification.Label+"("+(Data.Specification.Num*Data.Specification.Weight/1000)+"Kg)";
+                        }else if(row.Type=="ScoreGoods"){
+                            return Data.Name;
+                        }else if(row.Type=="Voucher"){
+                            return Data.Name;
+                        }else{
+                            return "无";
                         }
-                    }
+                    }},
+                {data:"Quantity",searchable:false},
+                {data:"UseQuantity",searchable:false},
+                {data:"ExpireTime",searchable:false,render:function (data,type,row) {
+                        return $filter("date")(data,"medium");
+                    }},
+                {data:"PostType",searchable:false,render:function (data,type,row) {
+                       if(data==1){
+                           return "邮寄";
+                       }else{
+                           return "线下核销";
+                       }
+                    }},
+                {data:"CreatedAt",searchable:false,render:function (data,type,row) {
+                        return $filter("date")(data,"medium");
+                    }}
+            ],
+            "initComplete":function (d) {
 
-                    perItem.end_timestamp_h=arr[0];
-                    perItem.end_timestamp_m=arr[1];
+            },
+            "ajax": {
+                "url": "carditem/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function (d){
+                    //d.columns[0].search.value=$scope.tabIndex;
+                    d.columns[0].search.value="'"+$scope.tabIndex+"'";
+                    d.Customs =[];
 
-                    delete $scope.productsObj[perItem.productID];
+                    var st = $scope.StartTime;
+                    st.setHours(0,0,0,0);
+                    //console.log(new Date());
+
+                    var et = $scope.EndTime;
+                    et.setHours(24,0,0,0);
+                    //console.log(et.getFullYear(),et.getMonth(),et.getDate());
+
+                    d.Customs.push({Name:"CreatedAt",Value:">='"+$filter("date")(st,"yyyy-MM-dd HH:mm:ss")+"'"});
+                    d.Customs.push({Name:"CreatedAt",Value:"<'"+$filter("date")(et,"yyyy-MM-dd HH:mm:ss")+"'"});
+                    return JSON.stringify(d);
                 }
-
-                $scope.perItems = perItems;
-            });
+            }
         });
-    }
-    $scope.listProduct = function () {
-        $scope.selectItemID="";
 
-        if($scope.perItems.length>=10){
-            Messager("转盘奖项总共只要10个，不能再添加其它奖项，可以删除已有的奖项添加。");
-            return;
-        }
-        $('#set_preitem_alert').modal('show');
-    };
-    $http.get("seckill", {params: {action: "geta"}}).success(function (reponse) {
 
-        if (reponse.data == undefined || reponse.data == null) {
 
-        } else {
-            $scope.seckill = reponse.data;
-            $scope.getListProduct();
-        }
     });
 
-    $scope.submit = function () {
-        var formData = new FormData();
-        formData.append("action", "change");
-        formData.append("json", angular.toJson($scope.seckill));
-
-        //$http.post("preferential",formData,{transformRequest: angular.identity,headers: {'Content-Type':"application/json;charset=UTF-8"}}).success(function (response) {
-        $http.post("seckill", formData, {
-            transformRequest: angular.identity,
-            headers: {'Content-Type': undefined}
-        }).success(function (response) {
-
-            var status = response;
-            if (status.success) {
-                Messager(status.message);
-            } else {
-                Messager(status.message);
-            }
-
-        });
-
-
-    };
-
-
 });
+main.controller("view_situation_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
 
-//makeCardCtrl
-
-//myShopCtrl
-main.controller("lotteryCtrl", function ($http, $scope, $rootScope) {
-    $rootScope.title = "幸运大转盘";
-    //$rootScope.goback = "#/";
-    $rootScope.isgoback = true;
-
-
-    $scope.lottery = undefined;
-    $scope.perItems = [];
-
-    $scope.shopID = shopID;
-    $scope.userID = userID;
-
-
-    $scope.currentItem = {};
-    $scope.setPreItem = function (m) {
-        $scope.currentItem = m;
-        $('#set_preitem_alert').modal('show');
-    }
-    $scope.delPreItem = function (m) {
-        function confirmFunc() {
-            $http.get("perItem/lottery", {params: {action: "del", pid: m.id}}).success(function (response) {
-                //Messager(JSON.stringify(response.status.data));
-                Messager(response.message);
-                if (response.success) {
-                    $scope.productsObj[m.productID] = $scope.products[m.productID];
-                    for (var ii = 0; ii < $scope.perItems.length; ii++) {
-                        var itm = $scope.perItems[ii];
-                        if (itm != null && itm.id == m.id) {
-                            $scope.perItems.splice(ii, 1);
-                            break;
-                        }
-                    }
-                }
-            });
-        }
-        MessagerConfirm("确定要删除这个项？",confirmFunc);
-    }
-    $scope.setPreItemInfo = function (valid) {
-
-        if(valid==false){
-            Messager("请完善内容在提交");
-            return
-        }
-
-        var formData = new FormData();
-        formData.append("action", "add");
-        formData.append("json", angular.toJson($scope.currentItem));
-        formData.append("pid", $scope.lottery.id);
-
-        $scope.selectItemID = undefined;
-        $http.post("perItem/lottery", formData, {
-            transformRequest: angular.identity,
-            headers: {'Content-Type': undefined}
-        }).success(function (response) {
-
-            var status = response;
-            if (status.success) {
-                Messager(status.message);
-                $('#set_preitem_alert').modal('hide');
-                $scope.currentItem = {};
-            } else {
-                Messager(status.message);
-            }
-            $scope.getListProduct();
-        });
-
-    }
-    $scope.addProduct = function () {
-        if ($scope.selectItemID == undefined) {
-            Messager("请选择");
-            return
-        }
-
-        //$('#set_preitem_alert').modal('hide');
-        $scope.currentItem={};
-        for (var key in $scope.products) {
-
-            var item = $scope.products[key];
-            if (item.id == $scope.selectItemID) {
-                //$scope.products.splice(i,1);
-                $scope.currentItem.productID = item.id;
-                //$scope.perItems.unshift(preitem);
-                //delete $scope.productsObj[key];
-                break;
-            }
-        }
-    }
-
-    $scope.getListProduct = function () {
-        $http.get("products_action", {params: {action: "lottery"}}).success(function (response) {
-
-
-            var products = response.data;
-            var ojbs = {};
+    $scope.StartTime =new Date();
+    $scope.EndTime =new Date();
+    $scope.situation ={};
 
 
 
-            for (var i = 0; i < products.length; i++) {
-                ojbs[products[i].id] = products[i];
-            }
-            $scope.products = ojbs;
-            $scope.productsObj = angular.copy(ojbs);
-
-            $http.get("perItem/lottery", {
-                params: {
-                    action: "get",
-                    pid: $scope.lottery.id
-                }
-            }).success(function (response) {
-
-
-                var perItems = response.data;
-                var totalCount=0;
-                for (var ii = 0; ii < perItems.length; ii++) {
-                    totalCount=totalCount+perItems[ii].stock;
-                    delete $scope.productsObj[perItems[ii].productID];
-                }
-                $scope.totalCount =totalCount;
-                $scope.perItems = perItems;
-            });
-        });
-    }
-    $scope.listProduct = function () {
-        $scope.selectItemID="";
-        if($scope.perItems.length>=10){
-            Messager("转盘奖项总共只要10个，不能再添加其它奖项，可以删除已有的奖项添加。");
-            return;
-        }
-        $('#set_preitem_alert').modal('show');
-    };
-    $http.get("lottery", {params: {action: "geta"}}).success(function (reponse) {
-
-        if (reponse.data == undefined || reponse.data == null) {
-
-        } else {
-            $scope.lottery = reponse.data;
-            $scope.getListProduct();
-
-        }
-    });
 
     $scope.submit = function () {
-        /*var sss =angular.copy($scope.preferential);
 
-         sss.project0=sss.project0.join(",");
-         sss.project1=sss.project1.join(",");
-         sss.project2=sss.project2.join(",");
-         sss.project3=sss.project3.join(",");*/
+        var form ={};
+        form.StartTime = $scope.StartTime.getTime();
+        form.EndTime = $scope.EndTime.getTime();
 
-        var formData = new FormData();
-        formData.append("action", "change");
-        formData.append("json", angular.toJson($scope.lottery));
-
-
-        //$http.post("preferential",formData,{transformRequest: angular.identity,headers: {'Content-Type':"application/json;charset=UTF-8"}}).success(function (response) {
-        $http.post("lottery", formData, {
+        $http.post("situation",$.param(form), {
             transformRequest: angular.identity,
-            headers: {'Content-Type': undefined}
-        }).success(function (response) {
-
-            var status = response;
-            if (status.success) {
-                Messager(status.message);
-            } else {
-                Messager(status.message);
-            }
-
-        });
-
-    };
-});
-main.controller("oneBuyCtrl", function ($http, $scope, $rootScope) {
-    $rootScope.title = "一元购";
-    //$rootScope.goback = "#/";
-    $rootScope.isgoback = true;
-
-
-    $scope.delOneBuyProduct = function (m) {
-
-       if(confirm("确定删除【"+m.products.title+"】")){
-           $http.get("oneBuy_action", {params: {action: "del",data:m.id}}).then(function (response) {
-               //alert(JSON.stringify(response));
-               alert(response.data.message);
-               $scope.getListProduct();
-           });
-       }
-
-    }
-
-    $scope.getListProduct = function () {
-        $http.get("products_action", {params: {action: "list"}}).success(function (response) {
-            var products = response.data;
-            var ojbs = {};
-
-            for (var i = 0; i < products.length; i++) {
-                ojbs[products[i].id] = products[i];
-            }
-            $scope.products = ojbs;
-            $scope.productsObj = angular.copy(ojbs);
-
-            $http.get("oneBuy_action", {
-                params: {
-                    action: "list"
-                }
-            }).success(function (response) {
-
-                var oneBuys = response.data;
-
-                for (var ii = 0; ii < oneBuys.length; ii++) {
-                    delete $scope.productsObj[oneBuys[ii].products.id];
-                }
-                $scope.oneBuys = oneBuys;
-            });
-        });
-    }
-    $scope.selectProduct = function () {
-        var items =[];
-        for(var key in $scope.productsObj){
-            if($scope.productsObj[key]["select"]==true){
-                items.push($scope.productsObj[key].id);
-            }
-            //$scope.productsObj[key]["select"]=$scope.selectAll;
-        }
-        //alert(JSON.stringify(items));
-
-
-        var formData = new FormData();
-        formData.append("action", "add");
-        formData.append("data", angular.toJson(items));
-
-
-        //$http.post("preferential",formData,{transformRequest: angular.identity,headers: {'Content-Type':"application/json;charset=UTF-8"}}).success(function (response) {
-        $http.post("oneBuy_action", formData, {
-            transformRequest: angular.identity,
-            headers: {'Content-Type': undefined}
-        }).success(function (response) {
-
-            $('#set_onebuy_alert').modal('hide');
-            $scope.getListProduct();
-
-        });
-
-    }
-    $scope.selectAll=false;
-    $scope.select = function () {
-        for(var key in $scope.productsObj){
-            $scope.productsObj[key]["select"]=$scope.selectAll;
-        }
-    }
-    $scope.currentOneBuy=undefined;
-    $scope.changeOneBuyProduct=function (m) {
-        //change_one_buy_product
-        $scope.currentOneBuy=m;
-        $scope.unit=$scope.currentOneBuy.unit/100;
-        $('#change_one_buy_product').modal('show');
-    }
-
-    $scope.changeUnit = function () {
-        if($scope.unit<=0 || $scope.unit>100){
-            alert("购买单位要：大于0小于100");
-            return
-        }
-        $http.get("oneBuy_action", {params: {action: "change_unit",pid:$scope.currentOneBuy.id,data:$scope.unit}}).then(function (response) {
-            //alert(JSON.stringify(response));
-            alert(response.data.message);
-            $('#change_one_buy_product').modal('hide');
-            $scope.getListProduct();
-        });
-    }
-
-
-    $scope.getListProduct();
-
-    $scope.listProduct = function () {
-        $('#set_onebuy_alert').modal('show');
-    };
-
-});
-main.controller('myShopCtrl', function ($http, $scope, $rootScope) {
-    $rootScope.title = "我的商铺";
-    //$rootScope.goback = "#/";
-    $rootScope.isgoback = true;
-
-    $scope.shop = {};
-    $scope.currentTel = "";
-
-    var canSendSmsCode = true;
-
-    $scope.actionStatus = {};
-    $scope.gcode = "";
-    $scope.tcode = "";
-    var timer;
-    $scope.getUserInfo = function () {
-        $http.get("user", {params: {action: "geta"}}).success(function (reponse) {
-
-            $scope.currentTel = reponse.data.user.tel;
-            //reponse.data.user.tel = "";
-            reponse.data.user.password = "";
-
-            $scope.user = reponse.data.user;
-            $scope.shop = reponse.data.shop;
-        });
-    }
-    $scope.getUserInfo();
-
-    $scope.onSendTCode = function () {
-
-
-        if (canSendSmsCode == false) {
-
-            return;
-        }
-        if($scope.user.tel == ""){
-            $scope.user.tel = $scope.currentTel;
-        }
-        if ($scope.user.tel == "" || $scope.gcode == "") {
-            Messager("手机或图形验证码不能为空");
-            return;
-        }
-        if ($scope.user.tel.length < 11) {
-            Messager("手机必须是11位");
-            return;
-        }
-        $http.get("/datas/sms_code", {
-            params: {
-                phone: $scope.user.tel,
-                captcha: $scope.gcode
-            }
-        }).success(function (response) {
-
-
-            if (response.type == 1) {
-                Messager(response.message);
-            }
-            if (response.success) {
-
-                $("#sendcode").attr("value", "发送成功");
-                canSendSmsCode = false;
-                var po = 60;
-                timer = setInterval(function () {
-                    if (po <= 0) {
-
-                        canSendSmsCode = true;
-                        $("#sendcode").attr("value", "获取验证码");
-                        clearInterval(timer);
-                        return;
-                    }
-                    $("#sendcode").attr("value", po + "秒可重新发送");
-                    po--;
-                }, 1000);
-
-            }
-
-        });
-
-    }
-
-    $scope.save = function (valid) {
-
-        if(valid==false){
-            Messager("请完善内容在提交");
-            return;
-        }
-
-        if (($scope.user.tel != "" && $scope.user.tel != $scope.currentTel) || $scope.user.password != "") {
-
-            if ($scope.gcode == "" || $scope.tcode == "") {
-                Messager("图形验证码和短信验证码不能为空");
-                return
-            }
-        }
-        var form = new FormData();
-        form.append("action", "change");
-        form.append("gcode", $scope.gcode);
-        form.append("tcode", $scope.tcode);
-        form.append("json", angular.toJson($scope.user));
-        $http.post("user", form, {
-            transformRequest: angular.identity,
-            headers: {'Content-Type': undefined}
-        }).success(function (response) {
-
-            canSendSmsCode = true;
-            $scope.actionStatus = response;
-
-            $scope.user.password ="";
-            $scope.repassword ="";
-
-
-            $("#sendcode").attr("value", "获取验证码");
-            $("#captcha").attr("src", "/images/captcha");
-            $scope.gcode = "";
-            $scope.tcode = "";
-            $scope.getUserInfo();
-            clearInterval(timer);
-
-        });
-
-
-    }
-
-
-})
-//brokerageCtrl
-main.controller('downriverCtrl', function ($http, $scope, $rootScope) {
-
-    $scope.showShopInfo = function (shopID) {
-
-        var form = new FormData();
-        form.append("action", "get");
-        form.append("json",shopID);
-        $http.post("shop", form, {
-            transformRequest: angular.identity,
-            headers: {'Content-Type': undefined}
-        }).success(function (response) {
-            $scope.shop = response.data;
-            $('#shop_info_alert').modal('show');
-        });
-
-
-    }
-});
-main.controller('ktvIndexCtrl', function ($http, $scope, $rootScope) {
-
-});
-main.controller('brokerageCtrl', function ($http, $scope, $rootScope) {
-    $rootScope.title = "我的推广";
-    //$rootScope.goback = "#/myShop";
-    $rootScope.isgoback = true;
-
-    $http.get("brokerage", {params: {action: "list"}}).success(function (reponse) {
-        $scope.brokerage = reponse.data;
-
-    });
-    $scope.balance = function () {
-
-        $http.get("brokerage", {params: {action: "order"}}).success(function (reponse) {
-
-            Messager(reponse.message);
-            var timer = setTimeout(function () {
-                window.history.go(0);
-            },3000);
-
-        });
-
-    }
-
-});
-main.controller("publicNumberController",function ($http, $scope, $rootScope, $routeParams) {
-    $rootScope.title = "公众号设置";
-    //$rootScope.goback = "#/";
-    $rootScope.isgoback = true;
-    $scope.wxconfig={};
-    $scope.submit = function () {
-
-           // $scope.wxconfig.appID =appID;
-            //$scope.wxconfig.appSecret =appSecret;
-            //$scope.wxconfig.token =token;
-
-        var form = new FormData();
-        form.append("action", "wxconfig");
-        form.append("json",angular.toJson($scope.wxconfig));
-
-        $http.post("shop", form, {
-            transformRequest: angular.identity,
-            headers: {'Content-Type': undefined}
-        }).success(function (response) {
-
-            Messager(response.message);
-            if (response.success == true) {
-                $scope.wxconfig = response.data;
-            } else {
-
-            }
-
-        });
-
-    }
-
-    $scope.upImageComplete = function (m) {
-        $scope.wxconfig.unitqrcode=m.data.url;
-    }
-
-    //e.target.files[0], $attrs.name
-    $scope.upload = function (file, name) {
-
-        $('#progressBar').modal({keyboard:false,show:true,backdrop:"static"});
-
-        var formData = new FormData();
-        formData.append('file', file);
-        //formData.append('access_token', access_token);
-        $http({
-            method: 'POST',
-            url: '/file/upImage',
-            data: formData,
-            headers: {'Content-Type': undefined},
-            transformRequest: angular.identity
-        }).success(function (data, status, headers, config) {
-
-            $('#progressBar').modal('hide');
-            ///Messager(JSON.stringify(data));
-            Messager(data.message);
-            $scope.wxconfig.qrcode=data.data.url;
-
-        }).error(function (data, status, headers, config) {
-            $('#progressBar').modal('hide');
-        });
-
-
-    }
-
-    $scope.getData=function () {
-        $http.get("user", {params: {action: "geta"}}).success(function (reponse) {
-            $scope.user = reponse.data.user;
-            $scope.shop = reponse.data.shop;
-            $scope.wxconfig = reponse.data.wxconfig;
-        });
-    }
-    $scope.getData();
-});
-main.controller('shopInfoCtrl', function ($http, $scope, $rootScope,Upload,$timeout) {
-    $rootScope.title = "我的商铺资料";
-    //$rootScope.goback = "#/myShop";
-    $rootScope.isgoback = true;
-
-    $scope.user = {};
-    $scope.shop = {};
-
-    var categories = $scope.categories= ["美食", "基础设施", "医疗保健", "生活服务", "休闲娱乐", "购物", "运动健身", "汽车", "酒店宾馆", "旅游景点", "文化场馆", "教育学校", "银行金融", "地名地址", "房产小区", "丽人", "结婚", "亲子", "公司企业", "机构团体", "其它"];
-
-    var categoriesSub = {};
-    categoriesSub["0_0"]=["江浙菜", "粤菜", "川菜", "湘菜", "东北菜", "徽菜", "闽菜", "鲁菜", "台湾菜", "西北菜", "东南亚菜", "西餐", "日韩菜", "火锅", "清真菜", "小吃快餐", "海鲜", "烧烤", "自助餐", "面包甜点", "茶餐厅", "咖啡厅", "其它美食"];
-    categoriesSub["0_1"]=["交通设施", "公共设施", "道路附属", "其它基础设施"];
-    categoriesSub["0_2"]=["专科医院", "综合医院", "诊所", "急救中心", "药房药店", "疾病预防", "其它医疗保健"];
-    categoriesSub["0_3"]=["家政", "宠物服务", "旅行社", "摄影冲印", "洗衣店", "票务代售", "邮局速递", "通讯服务", "彩票", "报刊亭", "自来水营业厅", "电力营业厅", "教练", "生活服务场所", "信息咨询中心", "招聘求职", "中介机构", "事务所", "丧葬", "废品收购站", "福利院养老院", "测字风水", "家装", "其它生活服务"];
-    categoriesSub["0_4"]=["洗浴推拿足疗", "KTV", "酒吧", "咖啡厅", "茶馆", "电影院", "棋牌游戏", "夜总会", "剧场音乐厅", "度假疗养", "户外活动", "网吧", "迪厅", "演出票务", "其它娱乐休闲"];
-    categoriesSub["0_5"]=["综合商场", "便利店", "超市", "花鸟鱼虫", "家具家居建材", "体育户外", "服饰鞋包", "图书音像", "眼镜店", "母婴儿童", "珠宝饰品", "化妆品", "食品烟酒", "数码家电", "农贸市场", "小商品市场", "旧货市场", "商业步行街", "礼品", "摄影器材", "钟表店", "拍卖典当行", "古玩字画", "自行车专卖", "文化用品", "药店", "品牌折扣店", "其它购物"];
-    categoriesSub["0_6"]=["健身中心", "游泳馆", "瑜伽", "羽毛球馆", "乒乓球馆", "篮球场", "足球场", "壁球场", "马场", "高尔夫场", "保龄球馆", "溜冰", "跆拳道", "海滨浴场", "网球场", "橄榄球", "台球馆", "滑雪", "舞蹈", "攀岩馆", "射箭馆", "综合体育场馆", "其它运动健身"];
-    categoriesSub["0_7"]=["加油站", "停车场", "4S店", "汽车维修", "驾校", "汽车租赁", "汽车配件销售", "汽车保险", "摩托车", "汽车养护", "洗车场", "汽车俱乐部", "汽车救援", "二手车交易市场", "车辆管理机构", "其它汽车"];
-    categoriesSub["0_8"]=["星级酒店", "经济型酒店", "公寓式酒店", "度假村", "农家院", "青年旅社", "酒店宾馆", "旅馆招待所", "其它酒店宾馆"];
-    categoriesSub["0_9"]=["公园", "其它旅游景点", "风景名胜", "植物园", "动物园", "水族馆", "城市广场", "世界遗产", "国家级景点", "省级景点", "纪念馆", "寺庙道观", "教堂", "海滩"];
-    categoriesSub["0_10"]=["博物馆", "图书馆", "美术馆", "展览馆", "科技馆", "天文馆", "档案馆", "文化宫", "会展中心", "其它文化场馆"];
-    categoriesSub["0_11"]=["小学", "幼儿园", "其它教育学校", "培训", "大学", "中学", "职业技术学校", "成人教育"];
-    categoriesSub["0_12"]=["银行", "自动提款机", "保险公司", "证券公司", "财务公司", "其它银行金融"];
-    categoriesSub["0_13"]=["交通地名", "地名地址信息", "道路名", "自然地名", "行政地名", "门牌信息", "其它地名地址"];
-    categoriesSub["0_14"]=["住宅区", "产业园区", "商务楼宇", "它房产小区"];
-    categoriesSub["0_15"]=["美发", "美容", "SPA", "瘦身纤体", "美甲", "写真", "其它"];
-    categoriesSub["0_16"]=["婚纱摄影", "婚宴", "婚戒首饰", "婚纱礼服", "婚庆公司", "彩妆造型", "司仪主持", "婚礼跟拍", "婚车租赁", "婚礼小商品", "婚房装修", "其它"];
-    categoriesSub["0_17"]=["亲子摄影", "亲子游乐", "亲子购物", "孕产护理"];
-    categoriesSub["0_18"]=["农林牧渔基地", "企业/工厂", "其它公司企业"];
-    categoriesSub["0_19"]=["公检法机构", "外国机构", "工商税务机构", "政府机关", "民主党派", "社会团体", "传媒机构", "文艺团体", "科研机构", "其它机构团体"];
-    categoriesSub["0_20"]=["其它"];
-    $scope.categoriesSub = categoriesSub;
-
-
-    var provinceName =undefined;
-    var cityName = undefined;
-    var districtName = undefined;
-
-    $scope.change_province = function () {
-
-        var provinces = $scope.provinceJson;
-        //alert(JSON.stringify(citys));
-        for(var i=0;i<provinces.length;i++){
-            var item = provinces[i];
-            if(item.ProID==$scope.province){
-                provinceName = item.name;
-                break;
-            }
-        }
-    }
-    $scope.change_city = function () {
-        var citys = $scope.cityJson[$scope.province];
-        //alert(JSON.stringify(citys));
-        for(var i=0;i<citys.length;i++){
-            var item = citys[i];
-            if(item.CityID==$scope.city){
-                cityName = item.name;
-                break;
-            }
-        }
-    }
-    $scope.change_district = function () {
-        var area = $scope.areaJson[$scope.city];
-        //alert(JSON.stringify(citys));
-        for(var i=0;i<area.length;i++){
-            var item = area[i];
-            if(item.Id==$scope.district){
-                districtName = item.DisName;
-                break;
-            }
-        }
-
-    }
-    $scope.change_address = function () {
-    }
-
-    $scope.submit = function (valid) {
-        if(valid==false){
-            Messager("请完善内容在提交");
-            return;
-        }
-
-        if (provinceName == undefined || provinceName == "") {
-
-            Messager("请选择省");
-            return
-        }
-        if (cityName == undefined || cityName == "") {
-
-            Messager("请选择城市");
-            return
-        }
-        if (districtName == undefined || districtName == "") {
-
-            Messager("请选择区域");
-            return
-        }
-        if ($scope.shop.Address == undefined || $scope.shop.Address == "") {
-
-            Messager("还没有填写街道地址");
-            return
-        }
-
-
-
-        var Categories =$scope.categories[$scope.categories_a]+"-"+categoriesSub["0_"+$scope.categories_a][$scope.categories_b];
-
-
-        if (Categories == undefined || Categories == "") {
-
-            Messager("请选择门店类型");
-            return
-        }
-
-        var Photos = $scope.photoLists.join(",");
-
-        var form = {};
-        form.Photos=Photos;
-        form.Categories=Categories;
-        form.Province=provinceName;
-        form.City=cityName;
-        form.District=districtName;
-
-        form.Name=$scope.shop.Name;
-        form.Address=$scope.shop.Address;
-        form.Telephone=$scope.shop.Telephone;
-        form.Special=$scope.shop.Special;
-        form.Opentime=$scope.shop.Opentime;
-        form.Avgprice=$scope.shop.Avgprice;
-        form.Introduction=$scope.shop.Introduction;
-        form.Recommend=$scope.shop.Recommend;
-
-        $http.post("shop?action=change",$.param(form), {
-            transformRequest: angular.identity,
+            //headers: {"Content-Type": "application/x-www-form-urlencoded"}
             headers: {"Content-Type": "application/x-www-form-urlencoded"}
         }).then(function (data, status, headers, config) {
 
-            Messager(data.data.Message);
-            if (data.data.Success == true) {
-                $scope.shop = response.data;
-                var timer = setTimeout(function () {
-                    window.history.back();
-                },1000);
-            } else {
+            $scope.situation =data.data.Data;
 
-            }
         });
+
+    }
+    $scope.submit();
+
+
+    //situation
+
+
+});
+main.controller("give_voucher_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+    //showAddGiveVoucher
+
+
+    $scope.GiveVoucher=null;
+
+    $scope.showAddGiveVoucher = function(){
+
+        $scope.GiveVoucher=null;
+        //add_rank
+        $("#add_give_voucher").modal("show");
+
+        table_vouchers.ajax.reload();
+
+    }
+    $scope.saveGiveVoucher = function(){
+
+        if(!$scope.GiveVoucher.ScoreMaxValue){
+
+            return
+        }
+        if(!$scope.GiveVoucher.VoucherID){
+            alert("请选择卡卷");
+            return
+        }
+
+
+
+        $http.post("give_voucher/save",JSON.stringify($scope.GiveVoucher), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            alert(data.data.Message);
+            if(data.data.Success){
+                table_local.ajax.reload();
+                $("#add_give_voucher").modal("hide");
+                $scope.GiveVoucher=null;
+            }
+
+
+        });
+
+
     }
 
 
-    $scope.getData=function () {
-        $http.get("shop", {params: {action: "get"}}).then(function (reponse) {
+    var table_vouchers;
+    var table_local;
+    $timeout(function () {
 
-            var shop = $scope.shop = reponse.data.Data;
 
-            if(shop.Photos!=null && shop.Photos!=""){
-                $scope.photoLists=shop.Photos.split(",");
-            }else{
-                $scope.photoLists=[];
-            }
+        table_local = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"ScoreMaxValue"},
+                {data:"VoucherID"},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+                        return '<button  class="ui edit blue mini button">编辑</button><button  class="ui delete red mini button">删除</button>';
 
-            //$scope.provinceJson = [];
-            //$scope.cityJson = {};
-            //$scope.areaJson = {};
+                    }}
+            ],
+            "initComplete":function (d) {
 
-            provinceName =shop.Province;
-            cityName = shop.City;
-            districtName = shop.District;
-
-            for(var i=0;i<$scope.provinceJson.length;i++){
-                var item = $scope.provinceJson[i];
-                if(item.name==shop.Province){
-                    $scope.province = item.ProID;
+            },
+            "ajax": {
+                "url": "give_voucher/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
                 }
             }
-            if($scope.province!=undefined){
-                for(var i=0;i<$scope.cityJson[$scope.province].length;i++){
-                    var item = $scope.cityJson[$scope.province][i];
-                    if(item.name==shop.City){
-                        $scope.city = item.CityID;
-                    }
-                }
-            }
-            if($scope.city!=undefined){
-                for(var i=0;i<$scope.areaJson[$scope.city].length;i++){
-                    var item = $scope.areaJson[$scope.city][i];
-                    if(item.DisName==shop.District){
-                        $scope.district = item.Id;
-                    }
-                }
-            }
+        });
 
-            if(shop.Categories!="" && shop.Categories!=undefined){
-                var Categories = shop.Categories.split("-");
-                $scope.categories_a = categories.indexOf(Categories[0]);
-                // categoriesSub["0_20"]=["其它"];
-                //$scope.categories_b = categoriesSub["0_"+$scope.categories_a].indexOf(Categories[1]);
-                $timeout(function () {
+        $('#table_local').on('click','td.opera .edit', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local.row(tr);
+            //console.log(row.data());
+            $scope.$apply(function () {
+                $scope.GiveVoucher=row.data();
+            });
 
-                    $scope.categories_b = categoriesSub["0_"+$scope.categories_a].indexOf(Categories[1]);
+            $("#add_give_voucher").modal("show");
+            table_vouchers.ajax.reload();
+            //$("tr[id="+row.data().ID+"]").addClass("select");
+        });
+
+        $('#table_local').on('click','td.opera .delete', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local.row(tr);
+            //console.log(row.data());
+            if(confirm("确定删除？")){
+                $http.delete("give_voucher/"+row.data().ID,{}).then(function (data) {
+                    alert(data.data.Message);
+                    table_local.ajax.reload();
+
                 })
             }
+        });
+
+        table_vouchers = $('#table_vouchers').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Name"},
+                {data:"Amount",render:function (data) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"UseDay",render:function (data) {
+                        return data+"天";
+                    }},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+                        return '<button type="button" class="ui select blue mini button">选择</button>';
+
+                    }}
+            ],
+            createdRow:function (row, data, index){
+                $(row).attr("id",data.ID);
+            },
+            "initComplete":function (d) {
+
+            },
+            "ajax": {
+                "url": "voucher/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+        $('#table_vouchers').on('click','td.opera .select', function () {
+            var tr = $(this).closest('tr');
+            var row = table_vouchers.row(tr);
+            //console.log(row.data());
+
+            $scope.$apply(function () {
+                if(!$scope.GiveVoucher){
+                    $scope.GiveVoucher={};
+                }
+                $scope.GiveVoucher.VoucherID=row.data().ID;
+            });
+
+
+        });
+
+    });
+
+});
+main.controller("user_setup_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    $scope.rank =null;
+    $scope.ConfigurationKey_ScoreConvertGrowValue =1;
+
+
+    $scope.showAddRank = function(){
+        //add_rank
+        $("#add_rank").modal("show");
+
+    }
+
+    $scope.saveLeveConfiguration = function(){
+
+
+        var total = $scope.ConfigurationKey_BrokerageLeve1+$scope.ConfigurationKey_BrokerageLeve2+$scope.ConfigurationKey_BrokerageLeve3+$scope.ConfigurationKey_BrokerageLeve4+$scope.ConfigurationKey_BrokerageLeve5+$scope.ConfigurationKey_BrokerageLeve6;
+        if(total!=100){
+            if(total!=0){
+                alert("分佣比例不正确，比例总和为100或0");
+                return
+            }
+        }
+
+
+        $http.post("configuration/change",JSON.stringify({K:1201,V:$scope.ConfigurationKey_BrokerageLeve1.toString()}), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            //alert(data.data.Message);
+
+            $http.post("configuration/change",JSON.stringify({K:1202,V:$scope.ConfigurationKey_BrokerageLeve2.toString()}), {
+                transformRequest: angular.identity,
+                headers: {"Content-Type": "application/json"}
+            }).then(function (data, status, headers, config) {
+
+                //alert(data.data.Message);
+
+                $http.post("configuration/change",JSON.stringify({K:1203,V:$scope.ConfigurationKey_BrokerageLeve3.toString()}), {
+                    transformRequest: angular.identity,
+                    headers: {"Content-Type": "application/json"}
+                }).then(function (data, status, headers, config) {
+
+                    //alert(data.data.Message);
+
+                    $http.post("configuration/change",JSON.stringify({K:1204,V:$scope.ConfigurationKey_BrokerageLeve4.toString()}), {
+                        transformRequest: angular.identity,
+                        headers: {"Content-Type": "application/json"}
+                    }).then(function (data, status, headers, config) {
+
+                        //alert(data.data.Message);
+
+                        $http.post("configuration/change",JSON.stringify({K:1205,V:$scope.ConfigurationKey_BrokerageLeve5.toString()}), {
+                            transformRequest: angular.identity,
+                            headers: {"Content-Type": "application/json"}
+                        }).then(function (data, status, headers, config) {
+
+                            //alert(data.data.Message);
+
+                            $http.post("configuration/change",JSON.stringify({K:1206,V:$scope.ConfigurationKey_BrokerageLeve6.toString()}), {
+                                transformRequest: angular.identity,
+                                headers: {"Content-Type": "application/json"}
+                            }).then(function (data, status, headers, config) {
+
+                                alert(data.data.Message);
+
+                            });
+
+                        });
+
+                    });
+
+                });
+
+            });
+
+        });
+
+
+    }
+
+    $scope.saveConfiguration = function(k,v){
+
+        $http.post("configuration/change",JSON.stringify({K:k,V:v}), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            alert(data.data.Message);
 
         });
     }
+    $scope.saveRank = function(){
+
+        $http.post("rank/add",JSON.stringify($scope.rank), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            alert(data.data.Message);
+            $("#add_rank").modal("hide");
+
+            table_local.ajax.reload();
+            $scope.rank =null;
 
 
-    var provinceJson=$scope.provinceJson = [];
-    var cityJson=$scope.cityJson = {};
-    var areaJson=$scope.areaJson = {};
+        });
 
-    $http.get("/resources/admin/geo/province.json", {params: {}}).then(function (reponse) {
-        $scope.provinceJson=reponse.data;
-        $http.get("/resources/admin/geo/city.json", {params: {}}).then(function (reponse) {
-            var cityJson=reponse.data;
+        //configuration/list
 
-            for(var i=0;i<cityJson.length;i++){
-                var city = cityJson[i];
-                var arr = $scope.cityJson[city.ProID]
-                if(arr==null){
-                    $scope.cityJson[city.ProID]=[];
+    }
+    $scope.configurations={}
+    $http.post("configuration/list",JSON.stringify([1100,1201,1202,1203,1204,1205,1206]), {
+        transformRequest: angular.identity,
+        headers: {"Content-Type": "application/json"}
+    }).then(function (data, status, headers, config) {
+
+        var obj =data.data.Data;
+        $scope.configurations=obj;
+       // console.log(data.data.Data);
+        $scope.ConfigurationKey_ScoreConvertGrowValue =parseInt(obj[1100]);
+
+        $scope.ConfigurationKey_BrokerageLeve1=parseInt(obj[1201]);
+        $scope.ConfigurationKey_BrokerageLeve2=parseInt(obj[1202]);
+        $scope.ConfigurationKey_BrokerageLeve3=parseInt(obj[1203]);
+        $scope.ConfigurationKey_BrokerageLeve4=parseInt(obj[1204]);
+        $scope.ConfigurationKey_BrokerageLeve5=parseInt(obj[1205]);
+        $scope.ConfigurationKey_BrokerageLeve6=parseInt(obj[1206]);
+    });
+    var table_local;
+    $timeout(function () {
+
+
+        table_local = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"GrowMaxValue"},
+                {data:"Title"},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+
+                        return '<button class="ui delete red mini button">删除</button>';
+
+                    }}
+            ],
+            "initComplete":function (d) {
+
+            },
+            "ajax": {
+                "url": "rank/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
                 }
-                $scope.cityJson[city.ProID].push(city);
             }
-            $http.get("/resources/admin/geo/area.json", {params: {}}).then(function (reponse) {
-                var areaJson=reponse.data;
-                for(var i=0;i<areaJson.length;i++){
-                    var area = areaJson[i];
-                    var arr = $scope.areaJson[area.CityID]
-                    if(arr==null){
-                        $scope.areaJson[area.CityID]=[];
-                    }
-                    $scope.areaJson[area.CityID].push(area);
+        });
+
+        $('#table_local').on('click','td.opera .delete', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local.row(tr);
+            //console.log(row.data());
+            if(confirm("确定删除？")){
+                $http.delete("rank/"+row.data().ID,{}).then(function (data) {
+                    alert(data.data.Message);
+                    table_local.ajax.reload();
+
+                })
+            }
+        });
+
+    });
+
+});
+main.controller("users_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    var table_local;
+    var table_locala;
+    var table_localb;
+    var table_localc;
+
+
+    var UserID = -1;
+    var UseraID = -1;
+    var UserbID = -1;
+    var UsercID = -1;
+
+    $timeout(function () {
+
+
+        $('#table_local').on('click','td.opera .select', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local.row(tr);
+            console.log(row.data());
+            UserID = row.data().ID;
+
+            UseraID=-1;
+            UserbID=-1;
+            UsercID=-1;
+
+            table_locala.ajax.reload();
+            table_localb.ajax.reload();
+            table_localc.ajax.reload();
+
+
+        });
+
+        $('#table_locala').on('click','td.opera .select', function () {
+            var tr = $(this).closest('tr');
+            var row = table_locala.row(tr);
+            console.log(row.data());
+
+            UseraID = row.data().ID;
+
+
+            UserbID=-1;
+            UsercID=-1;
+
+            table_localb.ajax.reload();
+
+
+            table_localc.ajax.reload();
+
+        });
+
+        $('#table_localb').on('click','td.opera .select', function () {
+            var tr = $(this).closest('tr');
+            var row = table_localb.row(tr);
+            console.log(row.data());
+            UserbID = row.data().ID;
+
+            UsercID=-1;
+
+            table_localc.ajax.reload();
+
+
+
+        });
+        $('#table_localc').on('click','td.opera .select', function () {
+            var tr = $(this).closest('tr');
+            var row = table_localc.row(tr);
+            console.log(row.data());
+
+
+            UsercID = row.data().ID;
+            //table_locald.ajax.reload();
+
+        });
+
+        table_local = $('#table_local').DataTable({
+            "columns": [
+                {data:"SuperiorID",visible:true},
+                {data:"ID"},
+                {data:"Name"},
+                {data:"Tel"},
+                {data:"Amount",searchable:false,render:function (data,type,row) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"Growth",searchable:false},
+                {data:"Portrait",searchable:false,render:function (data, type, row) {
+
+                    return '<img height="32" src="'+data+'">'
+                    }},
+                {data:"Gender",searchable:false,render:function (data,type,row) {
+                        return data==1?'男':'女';
+                    }},
+                {data:"LastLoginAt",searchable:false,render:function (data,type,row) {
+                        return $filter("date")(data,"medium");
+                    }},
+                {data:"Score",searchable:false},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+
+                        return '<button class="ui select red mini button">选择</button>';
+
+                    }}
+            ],
+            "initComplete":function (d) {
+                /*var info = table_local.page.info();
+                var dataRows = info.recordsTotal;
+                if(dataRows>0){
+                    $("#add_express_btn").hide();
+                }else{
+                    $("#add_express_btn").show();
+                }*/
+            },
+            "ajax": {
+                "url": "user/all/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+
+
+
+
+        table_locala = $('#table_locala').DataTable({
+            "columns": [
+                {data:"SuperiorID",visible:true},
+                {data:"ID"},
+                {data:"Name"},
+                {data:"Tel"},
+                {data:"Amount",searchable:false,render:function (data,type,row) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"Growth",searchable:false},
+                {data:"Portrait",searchable:false,render:function (data, type, row) {
+
+                        return '<img height="32" src="'+data+'">'
+                    }},
+                {data:"Gender",searchable:false,render:function (data,type,row) {
+                        return data==1?'男':'女';
+                    }},
+                {data:"LastLoginAt",searchable:false,render:function (data,type,row) {
+                        return $filter("date")(data,"medium");
+                    }},
+                {data:"Score",searchable:false},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+
+                        return '<button class="ui select blue mini button">选择</button>';
+
+                    }}
+            ],
+            "initComplete":function (d) {
+                /*var info = table_local.page.info();
+                var dataRows = info.recordsTotal;
+                if(dataRows>0){
+                    $("#add_express_btn").hide();
+                }else{
+                    $("#add_express_btn").show();
+                }*/
+            },
+            "ajax": {
+                "url": "user/all/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    d.columns[0].search.value=parseInt(UserID).toString();
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+
+
+
+
+        table_localb = $('#table_localb').DataTable({
+            "columns": [
+                {data:"SuperiorID",visible:true},
+                {data:"ID"},
+                {data:"Name"},
+                {data:"Tel"},
+                {data:"Amount",searchable:false,render:function (data,type,row) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"Growth",searchable:false},
+                {data:"Portrait",searchable:false,render:function (data, type, row) {
+
+                        return '<img height="32" src="'+data+'">'
+                    }},
+                {data:"Gender",searchable:false,render:function (data,type,row) {
+                        return data==1?'男':'女';
+                    }},
+                {data:"LastLoginAt",searchable:false,render:function (data,type,row) {
+                        return $filter("date")(data,"medium");
+                    }},
+                {data:"Score",searchable:false},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+
+                        return '<button class="ui select green mini button">选择</button>';
+
+                    }}
+            ],
+            "initComplete":function (d) {
+                /*var info = table_local.page.info();
+                var dataRows = info.recordsTotal;
+                if(dataRows>0){
+                    $("#add_express_btn").hide();
+                }else{
+                    $("#add_express_btn").show();
+                }*/
+            },
+            "ajax": {
+                "url": "user/all/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    d.columns[0].search.value=parseInt(UseraID).toString();
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+
+
+
+        table_localc = $('#table_localc').DataTable({
+            "columns": [
+                {data:"SuperiorID",visible:true},
+                {data:"ID"},
+                {data:"Name"},
+                {data:"Tel"},
+                {data:"Amount",searchable:false,render:function (data,type,row) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"Growth",searchable:false},
+                {data:"Portrait",searchable:false,render:function (data, type, row) {
+
+                        return '<img height="32" src="'+data+'">'
+                    }},
+                {data:"Gender",searchable:false,render:function (data,type,row) {
+                        return data==1?'男':'女';
+                    }},
+                {data:"LastLoginAt",searchable:false,render:function (data,type,row) {
+                        return $filter("date")(data,"medium");
+                    }},
+                {data:"Score",searchable:false},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+
+                        return '<button class="ui select grey mini button">选择</button>';
+
+                    }}
+            ],
+            "initComplete":function (d) {
+                /*var info = table_local.page.info();
+                var dataRows = info.recordsTotal;
+                if(dataRows>0){
+                    $("#add_express_btn").hide();
+                }else{
+                    $("#add_express_btn").show();
+                }*/
+            },
+            "ajax": {
+                "url": "user/all/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    //return JSON.stringify(d);
+                    d.columns[0].search.value=parseInt(UserbID).toString();
+                    return JSON.stringify(d);
+                }
+            }
+        });
+    });
+});
+main.controller("order_list_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+    $scope.tabIndex = parseInt(window.localStorage.getItem("TabIndex"));
+    if(!$scope.tabIndex){
+        $scope.tabIndex=0;
+    }
+    $scope.tabs=[
+        {lable:"所有",status:""},
+        {lable:"待付款",status:"Order"},
+        {lable:"待发货",status:"Pay"},
+        {lable:"待收货",status:"Deliver"},
+        {lable:"申请退货退款",status:"Refund"},
+        {lable:"订单完成",status:"OrderOk"},
+        {lable:"申请订单取消",status:"Cancel"},
+        {lable:"已取消",status:"CancelOk"}
+    ];
+    $scope.currentTab =$scope.tabs[$scope.tabIndex];
+    $scope.selectTab = function (index) {
+        $scope.tabIndex =index;
+        $scope.currentTab =$scope.tabs[$scope.tabIndex];
+
+        window.localStorage.setItem("TabIndex",$scope.tabIndex);
+
+        if(table_local){
+            table_local.ajax.reload();
+        }
+    }
+    var table_local;
+    $timeout(function () {
+
+        //UserID uint64, PostType int, Status
+
+        table_local = $('#table_local').DataTable({
+            //searching: false,
+            "columns": [
+                {data:"User.ID",orderable:false,render:function (data, type, row){return "";}},
+                {data:"Orders.PostType",orderable:false,render:function (data, type, row){return "";}},
+                {data:"Orders.Status",orderable:false,render:function (data, type, row){return "";}},
+                {data:null,orderable:false,render:function (data, type, row){return "";}},
+                {data:null,orderable:false,render:function (data, type, row){return "";}}
+
+            ],
+            createdRow:function ( row, data, index ) {
+                //console.log(row);
+                //console.log(data);
+                //console.log(index);
+                //$(row).hide();
+            },
+            drawCallback:function (settings) {
+
+            },
+            "rowCallback": function(row,data) {
+                var rowsdfsdf = table_local.row(row);
+                //console.log(row);
+
+
+
+                console.log(row);
+
+                var html =$('<div class="rowContent"></div>');
+
+
+                var top =$('<div class=""></div>');
+
+                if(data.Orders.PostType==1){
+                    top =$('<div class="top post"></div>');
+                }else if(data.Orders.PostType==2){
+                    top =$('<div class="top store"></div>');
                 }
 
-                $scope.getData();
-            })
 
-        })
+
+                var info =$('<div class="info"></div>');
+                info.text('订单#ID：'+data.Orders.ID);
+                top.append(info);
+
+
+                var info =$('<div class="info"></div>');
+                info.html($filter("date")(data.Orders.CreatedAt,"medium"));
+                top.append(info);
+
+
+                var info =$('<div class="info"></div>');
+                info.text(data.User.Name+"/"+data.User.Tel);
+                top.append(info);
+
+                var info =$('<div class="info"></div>');
+                info.text('订单号：'+data.Orders.OrderNo);
+                top.append(info);
+
+                var info =$('<div class="info"></div>');
+                info.text(data.Orders.IsPay==1?'支付成功':'未支付');
+                top.append(info);
+
+                //(data.Orders.IsPay==1?'支付':'未支付')
+
+                html.append(top);
+
+
+                var table = $('<table></table>');
+
+
+                for(var i=0;i<data.OrdersGoodsList.length;i++){
+
+                    var ordersGoods = data.OrdersGoodsList[i];
+
+                    var Specification = JSON.parse(ordersGoods.Specification);
+                    var Goods = JSON.parse(ordersGoods.Goods);
+                    Goods.Images = JSON.parse(Goods.Images);
+
+                    var tr = $('<tr data-index="'+i+'"></tr>');
+
+                    var td = $('<td></td>');
+                    var img = $("<img>");
+                    img.attr("src",'/file/load?path='+Goods.Images[0]);
+                    img.attr("width","100");
+                    img.attr("height","100");
+                    td.append(img);
+                    tr.append(td);
+
+                    var title =$('<td style="text-align: left;"></td>');
+
+                    title.append('<div>'+Goods.Title+'</div>');
+                    title.append('<div>规格：'+Specification.Label+'/'+(Specification.Num*Specification.Weight/1000)+'Kg</div>');
+                    title.append('<div>'+('原价：'+Specification.CostPrice/100+'元，'+'市价：'+Specification.MarketPrice/100+'元，'+'分佣：'+Specification.Brokerage/100)+'元</div>');
+                    tr.append(title);
+
+                    var price =$('<td></td>');
+                    price.append('<div style="color:#999;"><del>原价：'+(ordersGoods.CostPrice/100)+'元</del></div>');
+                    price.append('<div>现价：'+(ordersGoods.SellPrice/100)+'元</div>');
+                    tr.append(price);
+
+
+                    var num =$('<td></td>');
+                    num.append('<div>数量：'+(ordersGoods.Quantity)+'</div>');
+                    tr.append(num);
+
+
+
+                    var num =$('<td></td>');
+                    num.append('<div><b>总金额：'+(ordersGoods.SellPrice*ordersGoods.Quantity/100)+'</b></div>');
+                    tr.append(num);
+
+
+
+                    if(i==0){
+                        var num =$('<td class="operation" rowspan="99"></td>');
+                        switch (data.Orders.Status){
+                            case "Order":
+                                //('<button class="ui blue mini button">修改支付金额</button>')
+                                num.append('<div><button disabled class="ui mini button">等待支付</button><button class="ui blue PayMoney mini button">修改支付金额</button></div>');
+                                break;
+                            case "Pay":
+                                if(data.Orders.PostType==1){
+                                    num.append('<div><button class="ui red Deliver button">发货</button><button class="ui blue Cancel button">取消用户订单</button></div>');
+                                }
+                                break;
+                            case "Refund":
+                                num.append('<div><button disabled class="ui button">部分商品退款中</button></div>');
+                                break;
+                            case "Deliver":
+                                num.append('<div><button disabled class="ui button">等待收货</button></div>');
+                                break;
+                            case "Cancel":
+                                num.append('<div><button class="ui CancelOk blue button">处理取消申请</button></div>');
+                                break;
+                            case "CancelOk":
+                                num.append('<div><button disabled class="ui button">取消成功</button></div>');
+                                break;
+                            case "OrderOk":
+                                num.append('<div><button disabled class="ui button">订单完成</button></div>');
+                                break;
+                        }
+
+
+                        if(data.Orders.PostType==1){
+
+                            num.append('<div style="margin: 10px 0px;color:#666;">邮寄商品</div>');
+
+                        }else if(data.Orders.PostType==2){
+                            num.append('<div style="margin: 10px 0px;color:#666;">线下商品</div>');
+                        }
+
+                        ////是否支付，0=未支付，1=支付
+                        //var ispay =$('<div><label>'+(data.Orders.IsPay==1?'支付':'未支付')+'</label></div>');
+                        //num.append(ispay);
+
+                        tr.append(num);
+
+
+
+                        //var info =$('<div class="info"></div>').text("状态："+(data.Orders.Status));
+                        //footer.append(info);
+                    }
+
+
+
+
+
+
+                    table.append(tr);
+
+
+
+
+                    var tr = $('<tr data-index="'+i+'" class="tip"></tr>');
+                    var num =$('<td colspan="5"></td>');
+
+                    if(ordersGoods.Status=="OGAskRefund"){
+
+
+                        var RefundInfo = JSON.parse(ordersGoods.RefundInfo);
+
+
+                        var content=$('<div class="content"></div>');
+
+
+                        var div = $('<div></div>');
+                        div.text(RefundInfo.Reason);
+                        content.append(div);
+
+                        var div = $('<div></div>');
+
+                        //包含货
+                        if(RefundInfo.HasGoods){
+                            div.append('<button class="ui blue RefundOk mini button">允许退货</button>');
+                            div.append('<button class="ui RefundNo red mini button">拒绝申请</button>');
+                        }else{
+                            div.append('<button class="ui blue RefundOk mini button">允许退货</button>');
+                            div.append('<button class="ui blue RefundComplete mini button">允许退款</button>');
+                            div.append('<button class="ui RefundNo red mini button">拒绝申请</button>');
+                        }
+
+
+                        content.append(div);
+
+                        num.append(content);
+
+
+                    }else if(ordersGoods.Status=="OGRefundNo"){
+
+                        var content=$('<div class="content"></div>');
+
+
+                        var div = $('<div></div>');
+                        content.append(div);
+
+                        var div = $('<div>已经拒绝用户申请</div>');
+                        content.append(div);
+
+                        var div = $('<div></div>');
+                        content.append(div);
+
+
+                        num.append(content);
+
+                    }else if(ordersGoods.Status=="OGRefundOk"){
+
+
+                        var content=$('<div class="content"></div>');
+
+                        var div = $('<div></div>');
+                        content.append(div);
+
+                        var div = $('<div>已经同意用户退货申请，等待用户退货</div>');
+                        content.append(div);
+
+                        var div = $('<div></div>');
+                        content.append(div);
+
+                        num.append(content);
+                    }else if(ordersGoods.Status=="OGRefundInfo"){
+
+
+                        var RefundInfo = JSON.parse(ordersGoods.RefundInfo);
+
+                        var content=$('<div class="content"></div>');
+
+                        var div = $('<div></div>');
+                        div.append('<div>快递名称：'+RefundInfo.ShipName+'</div>');
+                        div.append('<div>快递编号：'+RefundInfo.ShipNo+'</div>');
+                        content.append(div);
+
+                        var div = $('<div></div>');
+                        div.append(RefundInfo.ShipName);
+                        content.append(div);
+
+
+
+
+                        var div = $('<div><button class="ui red RefundComplete mini button">收到退货商品</button></div>');
+                        content.append(div);
+
+                        num.append(content);
+                    }else if(ordersGoods.Status=="OGRefundComplete"){
+                        var content=$('<div class="content"></div>');
+
+                        var div = $('<div></div>');
+                        content.append(div);
+
+                        var div = $('<div>单品退货退款完成</div>');
+                        content.append(div);
+
+                        var div = $('<div></div>');
+                        content.append(div);
+
+                        num.append(content);
+                    }
+
+                    tr.append(num);
+                    table.append(tr);
+
+                }
+
+
+                html.append(table);
+
+                var  footer =$('<div class="footer"></div>');
+
+
+                var info =$('<div class="info"></div>').text("商品金额："+(data.Orders.GoodsMoney/100)+"元");
+                footer.append(info);
+
+                var info =$('<div class="info"></div>').text("运费："+(data.Orders.ExpressMoney/100)+"元");
+                footer.append(info);
+
+                var info =$('<div class="info"></div>').text("优惠金额："+(data.Orders.DiscountMoney/100)+"元");
+                footer.append(info);
+
+                var info =$('<div style="color:blue;" class="info"></div>').text("总金额："+((data.Orders.GoodsMoney+data.Orders.ExpressMoney-data.Orders.DiscountMoney)/100)+"元");
+                footer.append(info);
+
+                var info =$('<div style="color:red;font-weight: bold;" class="info"></div>').text("支付金额："+(data.Orders.PayMoney/100)+"元");
+                footer.append(info);
+
+
+                var Address=JSON.parse(data.Orders.Address);
+                var info =$('<div style="width: 250px;" class="info"></div>').text("邮寄地址："+(Address.Name+","+Address.Tel+","+Address.ProvinceName+Address.CityName+Address.CountyName+Address.Detail+","+Address.PostalCode));
+                footer.append(info);
+
+
+
+
+                html.append(footer);
+
+
+                var info =$('<td colspan="99"></td>');
+                info.append(html);
+
+                $(row).empty().append(info);
+
+                //rowsdfsdf.child(html).show();
+            },
+            "initComplete":function (d) {},
+            "ajax": {
+                "url": "order/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function (d){
+                    d.columns[2].search.value=$scope.currentTab.status;
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+
+        $('#table_local').on('click','td.operation .PayMoney', function () {
+            var tr = $(this).closest('tr[role=row]');
+            var row = table_local.row(tr);
+            console.log(row.data());
+
+
+            $scope.$apply(function () {
+
+                $scope.currentOrders=row.data();
+                $("#ChangePayMoney").modal("show");
+
+            });
+
+        });
+        $('#table_local').on('click','td.operation .Deliver', function () {
+            var tr = $(this).closest('tr[role=row]');
+            var row = table_local.row(tr);
+            console.log(row.data());
+            $scope.$apply(function () {
+
+                $scope.currentOrders=row.data();
+                $("#Deliver").modal("show");
+
+            });
+
+        });
+        $('#table_local').on('click','td.operation .Cancel', function () {
+            var tr = $(this).closest('tr[role=row]');
+            var row = table_local.row(tr);
+            console.log(row.data());
+            $scope.$apply(function () {
+
+                $scope.currentOrders=row.data();
+
+
+                if(confirm("确定要取消用户的这个订单？")){
+                    var form ={};
+                    form.Action="Cancel";
+                    form.ID=$scope.currentOrders.Orders.ID;
+                    $http({
+                        method:"PUT",
+                        url:"order/change",
+                        data:$.param(form),
+                        transformRequest: angular.identity,
+                        headers: {'Content-Type':'application/x-www-form-urlencoded'}
+                    }).then(function (data, status, headers, config) {
+                        alert(data.data.Message);
+                        if(data.data.Success){
+                            if(table_local){
+                                table_local.ajax.reload();
+                            }
+                        }
+                    });
+                }
+
+                //$("#CancelOk").modal("show");
+
+            });
+
+        });
+        $('#table_local').on('click','td.operation .CancelOk', function () {
+            var tr = $(this).closest('tr[role=row]');
+            var row = table_local.row(tr);
+            console.log(row.data());
+            $scope.$apply(function () {
+
+                $scope.currentOrders=row.data();
+                $("#CancelOk").modal("show");
+
+            });
+
+        });
+        $('#table_local').on('click','tr.tip .RefundOk', function () {
+            var tr = $(this).closest('tr[role=row]');
+            var OrdersGoodsIndex = tr.find(".rowContent").find(".tip").data("index");
+            var row = table_local.row(tr);
+            $scope.currentOrdersGoods=row.data().OrdersGoodsList[OrdersGoodsIndex];
+
+            var form ={};
+            form.Action="RefundOk";
+            form.OrdersGoodsID= $scope.currentOrdersGoods.ID;
+            $http({
+                method:"PUT",
+                url:"order/change",
+                data:$.param(form),
+                transformRequest: angular.identity,
+                headers: {'Content-Type':'application/x-www-form-urlencoded'}
+            }).then(function (data, status, headers, config) {
+                alert(data.data.Message);
+                if(table_local){
+                    table_local.ajax.reload();
+                }
+            });
+
+        });
+        $('#table_local').on('click','tr.tip .RefundNo', function () {
+
+            var tr = $(this).closest('tr[role=row]');
+            var OrdersGoodsIndex = tr.find(".rowContent").find(".tip").data("index");
+            var row = table_local.row(tr);
+            $scope.currentOrdersGoods=row.data().OrdersGoodsList[OrdersGoodsIndex];
+
+
+
+
+            var form ={};
+            form.Action="RefundNo";
+            form.OrdersGoodsID=$scope.currentOrdersGoods.ID;
+            $http({
+                method:"PUT",
+                url:"order/change",
+                data:$.param(form),
+                transformRequest: angular.identity,
+                headers: {'Content-Type':'application/x-www-form-urlencoded'}
+            }).then(function (data, status, headers, config) {
+                alert(data.data.Message);
+                if(table_local){
+                    table_local.ajax.reload();
+                }
+            });
+
+        });
+        $('#table_local').on('click','tr.tip .RefundComplete', function () {
+
+            var tr = $(this).closest('tr[role=row]');
+            var OrdersGoodsIndex = tr.find(".rowContent").find(".tip").data("index");
+            var row = table_local.row(tr);
+
+            //RefundComplete
+
+            $scope.$apply(function () {
+                $scope.currentOrders=row.data().Orders;
+                $scope.currentOrdersGoods=row.data().OrdersGoodsList[OrdersGoodsIndex];
+                $("#RefundComplete").modal("show");
+
+            });
+
+
+            /*var tr = $(this).closest('tr[role=row]');
+            var row = table_local.row(tr);
+
+            if(confirm("退款将该单品金额退回给用户，如有参加满减活动，则按比例扣除金额。")){
+
+
+                var OrdersGoodsID = tr.find(".rowContent").find(".tip").data("id");
+                var RefundType = tr.find(".rowContent").find(".tip").find(".RefundComplete").data("refundtype");
+
+                var form ={};
+                form.Action="RefundComplete";
+                form.OrdersGoodsID=OrdersGoodsID;
+                form.RefundType=parseInt(RefundType);
+                $http({
+                    method:"PUT",
+                    url:"order/change",
+                    data:$.param(form),
+                    transformRequest: angular.identity,
+                    headers: {'Content-Type':'application/x-www-form-urlencoded'}
+                }).then(function (data, status, headers, config) {
+                    alert(data.data.Message);
+                    if(table_local){
+                        table_local.ajax.reload();
+                    }
+                });
+
+            }*/
+
+
+
+        });
 
     });
 
 
+    $scope.currentOrders={};
+    $scope.PayMoney=-1;
+    $scope.ChangePayMoney = function () {
+
+        if($scope.PayMoney<0){
+            alert("请输入正确的金额");
+            return;
+        }
 
 
-
-
-    $scope.photoLists=[];
-    function deleteFunc() {
-        var arr = angular.copy($scope.photoLists);
-        arr.splice(imageIndex,1);
-        $scope.$apply(function () {
-            $scope.photoLists = arr;
+        var form ={};
+        form.Action="PayMoney";
+        form.PayMoney=$scope.PayMoney;
+        form.ID=$scope.currentOrders.Orders.ID;
+        $http({
+            method:"PUT",
+            url:"order/change",
+            data:$.param(form),
+            transformRequest: angular.identity,
+            headers: {'Content-Type':'application/x-www-form-urlencoded'}
+        }).then(function (data, status, headers, config) {
+            alert(data.data.Message);
+            if(data.data.Success){
+                $("#ChangePayMoney").modal("hide");
+                if(table_local){
+                    table_local.ajax.reload();
+                }
+            }
         });
+
     }
-    var imageIndex;
-    $scope.deleteImage = function (url) {
-        imageIndex =  $scope.photoLists.indexOf(url);
-        if(imageIndex!=-1){
-            MessagerConfirm("确定要删除这张图片？",deleteFunc);
+    $scope.ShipName=null;
+    $scope.ShipNo=null;
+    $scope.DeliverSubmit = function () {
+
+        if($scope.ShipName==""){
+
+            return;
+        }
+        if($scope.ShipNo==""){
+
+            return;
+        }
+
+
+        var form ={};
+        form.Action="Deliver";
+        form.ShipName=$scope.ShipName;
+        form.ShipNo=$scope.ShipNo;
+        form.ID=$scope.currentOrders.Orders.ID;
+        $http({
+            method:"PUT",
+            url:"order/change",
+            data:$.param(form),
+            transformRequest: angular.identity,
+            headers: {'Content-Type':'application/x-www-form-urlencoded'}
+        }).then(function (data, status, headers, config) {
+            alert(data.data.Message);
+            if(data.data.Success){
+                $("#Deliver").modal("hide");
+                if(table_local){
+                    table_local.ajax.reload();
+                }
+            }
+        });
+
+    }
+
+    $scope.RefundType = 0;
+    $scope.RefundCompleteSubmit = function(){
+
+
+
+        if(confirm("退款将该单品金额退回给用户，如有参加满减活动，则按比例扣除金额。")){
+
+            var form ={};
+            form.Action="RefundComplete";
+            form.OrdersGoodsID=$scope.currentOrdersGoods.ID;
+            form.RefundType=parseInt($scope.RefundType);
+            $http({
+                method:"PUT",
+                url:"order/change",
+                data:$.param(form),
+                transformRequest: angular.identity,
+                headers: {'Content-Type':'application/x-www-form-urlencoded'}
+            }).then(function (data, status, headers, config) {
+                alert(data.data.Message);
+
+                if(data.data.Success){
+
+                    $("#RefundComplete").modal("hide");
+                    $scope.currentOrders=null;
+                    $scope.currentOrdersGoods=null;
+                    if(table_local){
+                        table_local.ajax.reload();
+                    }
+                }
+
+            });
+
+        }
+
+    }
+
+    $scope.RefundType = 0;
+    $scope.CancelOkSubmit = function () {
+
+
+        var form ={};
+        form.Action="CancelOk";
+        form.ID=$scope.currentOrders.Orders.ID;
+        form.RefundType=$scope.RefundType;
+        $http({
+            method:"PUT",
+            url:"order/change",
+            data:$.param(form),
+            transformRequest: angular.identity,
+            headers: {'Content-Type':'application/x-www-form-urlencoded'}
+        }).then(function (data, status, headers, config) {
+            alert(data.data.Message);
+            if(data.data.Success){
+                $("#CancelOk").modal("hide");
+                if(table_local){
+                    table_local.ajax.reload();
+                }
+            }
+        });
+
+    }
+
+
+
+})
+main.controller("add_express_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+
+    $scope.TypeN={Type:"N",Areas:[],N:0};
+    $scope.TypeM={Type:"M",Areas:[],M:0};
+    $scope.TypeNM={Type:"NM",Areas:[],N:0,M:0};
+
+    $scope.Template={Name:'',Type:'ITEM',Drawee:"BUYERS"};
+    $scope.FreeItems=[];
+    $scope.FreeItem={Areas:[],Type:'N'};
+    $scope.defaultFreeItem=angular.copy($scope.FreeItem);
+    $scope.deleteFreeItem = function(index){
+        if(confirm("确定删除？")){
+            $scope.FreeItems.splice(index,1);
         }
     }
-    $scope.uploadImage = function (progressID,file, errFiles) {
-        $("."+progressID).text(0+"%");
-        $("."+progressID).css("width",0+"%");
+    $scope.addFreeItem = function(){
+
+        var Type=$scope.FreeItem.Type;
+        if(Type=="N"){
+            if($scope.FreeItem.N<=0){
+                return
+            }
+        }
+        if(Type=="M"){
+            if($scope.FreeItem.M<=0){
+                return
+            }
+        }
+        if(Type=="NM"){
+            if($scope.FreeItem.N<=0){
+                return
+            }
+            if($scope.FreeItem.M<=0){
+                return
+            }
+        }
+        if($scope.FreeItem.Areas.length<=0){
+            return
+        }
+
+        $scope.FreeItems.push($scope.FreeItem);
+
+        $scope.FreeItem=angular.copy($scope.defaultFreeItem);
+
+    }
+
+    $scope.saveExpress = function(){
+
+
+        //express_template/save
+
+        for(var i=0;i<$scope.FreeItems.length;i++){
+            var item =$scope.FreeItems[i];
+
+            if(item.Type=="N"){
+                if(item.N<=0){
+                    alert("数据不完整");
+                    return
+                }
+            }
+            if(item.Type=="M"){
+                if(item.M<=0){
+                    alert("数据不完整");
+                    return
+                }
+            }
+            if(item.Type=="NM"){
+                if(item.N<=0){
+                    alert("数据不完整");
+                    return
+                }
+                if(item.M<=0){
+                    alert("数据不完整");
+                    return
+                }
+            }
+            if(item.Areas.length<=0){
+                alert("数据不完整");
+                return
+            }
+        }
+
+
+
+        var dfd=$scope.jcsj($scope.items.Default);
+        if(dfd==false){
+            alert("数据不完整");
+            return
+        }
+        for(var i=0;i<$scope.items.Items.length;i++){
+            var item  = $scope.items.Items[i];
+            if(item.Areas.length<=0){
+                alert("数据不完整");
+                return false
+            }
+            var ii = $scope.jcsj(item);
+            if(ii==false){
+                //alert("数据不完整");
+                return
+            }
+        }
+
+        var Template = {};
+        Template.ID = $scope.Template.ID;
+        Template.Name = $scope.Template.Name;
+        Template.Type = $scope.Template.Type;
+        Template.Drawee = $scope.Template.Drawee;
+        Template.Template =JSON.stringify($scope.items);
+        Template.Free =JSON.stringify($scope.FreeItems);
+
+        $http.post("express_template/save",JSON.stringify(Template), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            alert(data.data.Message);
+            if(data.data.Success==true){
+                window.history.back();
+            }
+
+        });
+    }
+
+    $scope.jcsj = function(item){
+
+        if(item.N<=0){
+            alert("数据不完整");
+            return false
+        }
+        if(item.M<=0){
+            alert("数据不完整");
+            return false
+        }
+        if(item.AN<=0){
+            alert("数据不完整");
+            return false
+        }
+        if(item.ANM<=0){
+            alert("数据不完整");
+            return false
+        }
+
+        return true;
+    }
+    $scope.dq =["上海","江苏省","浙江省","安徽省","江西省","北京","天津","山西省","山东省","河北省","内蒙古自治区","湖南省","湖北省","河南省","广东省","广西壮族自治区","福建省","海南省","辽宁省","吉林省","黑龙江省","陕西省","新疆维吾尔自治区","甘肃省","宁夏回族自治区","青海省","重庆","云南省","贵州省","西藏自治区","四川省"];
+
+
+    //ng-checked="Template.FreeN.Enable"
+    $scope.items ={Default:{Areas:[],N:0,M:0,AN:0,ANM:0},Items:[]};
+    $scope.copyDefault = angular.copy($scope.items.Default);
+
+    $scope.deleteItem = function(index){
+        $scope.items.Items.splice(index,1);
+    }
+    $scope.addItem = function(){
+        $scope.items.Items.push(angular.copy($scope.copyDefault));
+    }
+
+    $scope.currentItemIndex=-1;
+    $scope.selectArea = function(index){
+
+        //alert($scope.dq[index]);
+        var area = $scope.dq[index];
+        var areaIndex = $scope.items.Items[$scope.currentItemIndex].Areas.indexOf(area);
+        if(areaIndex!=-1){
+            $scope.items.Items[$scope.currentItemIndex].Areas.splice(areaIndex,1);
+        }else{
+            $scope.items.Items[$scope.currentItemIndex].Areas.push(area);
+        }
+        console.log($scope.items.Items);
+    }
+    $scope.AreaIndexList = [];
+    $scope.addArea = function(index){
+        $scope.currentItemIndex=index;
+        $scope.AreaIndexList=[];
+
+        for(var i=0;i<$scope.items.Items.length;i++){
+            if(i!=$scope.currentItemIndex){
+                var Areas = $scope.items.Items[i].Areas;
+                for(var o=0;o<Areas.length;o++){
+                    var area = Areas[o];
+                    var areaIndex = $scope.AreaIndexList.indexOf(area);
+                    if(areaIndex==-1){
+                        $scope.AreaIndexList.push(area);
+                    }
+
+                }
+
+            }
+
+        }
+        console.log($scope.AreaIndexList);
+
+        $("#area_item").modal("show");
+    }
+
+
+    $scope.AreaTjIndexList=[];
+    var AreaTjIndex =-1;
+    $scope.addAreaJT = function(index){
+        AreaTjIndex =index;
+        //$scope.FreeItems=[];
+        $scope.AreaTjIndexList=[];
+
+        for(var i=0;i<$scope.FreeItems.length;i++){
+
+            if(i!=index){
+                $scope.AreaTjIndexList=$scope.AreaTjIndexList.concat($scope.FreeItems[i].Areas)
+            }
+        }
+
+        console.log($scope.AreaTjIndexList);
+        $("#area_tj").modal("show");
+    }
+    //selectAreaTJ
+
+    $scope.selectAreaTJ = function(areaTxt){
+
+        if(AreaTjIndex==-1){
+            var areaIndex =$scope.FreeItem.Areas.indexOf(areaTxt);
+            if(areaIndex==-1){
+                $scope.FreeItem.Areas.push(areaTxt);
+            }else{
+                $scope.FreeItem.Areas.splice(areaIndex,1);
+            }
+
+        }else{
+            var areaIndex =$scope.FreeItems[AreaTjIndex].Areas.indexOf(areaTxt);
+            if(areaIndex==-1){
+                $scope.FreeItems[AreaTjIndex].Areas.push(areaTxt);
+            }else{
+                $scope.FreeItems[AreaTjIndex].Areas.splice(areaIndex,1);
+            }
+        }
+
+        //alert($scope.dq[index]);
+        //var area = $scope.dq[index];
+        /*var areaIndex = $scope.Template[TargetFree].Areas.indexOf(areaTxt);
+        if(areaIndex!=-1){
+            $scope.Template[TargetFree].Areas.splice(areaIndex,1);
+        }else{
+            $scope.Template[TargetFree].Areas.push(areaTxt);
+        }
+        console.log($scope.Template);*/
+    }
+
+
+    //alert($routeParams.ID);
+
+
+
+    if($routeParams.ID!=undefined){
+
+        $http.get("express_template/"+$routeParams.ID,JSON.stringify({}), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+           var et = data.data.Data;
+
+
+
+            var Template = {};
+            Template.ID = et.ID;
+            Template.Name = et.Name;
+            Template.Type = et.Type;
+            Template.Drawee = et.Drawee;
+
+            $scope.FreeItems =JSON.parse(et.Free);
+
+            $scope.items =JSON.parse(et.Template);
+
+            $scope.Template = Template;
+
+
+        });
+    }
+
+    //express_template/:ID
+
+    $timeout(function () {
+        //$('.ui.radio.checkbox').checkbox();
+        //$('.ui.checkbox').checkbox();
+        //$(".ui.modal").modal("show");
+    });
+});
+main.controller("express_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+
+    var table_local;
+    $timeout(function () {
+
+        table_local = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Name"},
+                {data:"Drawee"},
+                {data:"Type"},
+                {data:"Free",orderable:false,render:function (data, type, row) {
+
+                        var m = {};
+                        try {
+                            m = JSON.parse(data)
+                        }catch (e) {
+
+                        }
+                        return m.length>0?'是':'否';
+
+                    }},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+
+                        return '<button class="ui edit blue mini button">修改/查看</button>'+
+                            '<button class="ui delete red mini button">删除</button>';
+
+                    }}
+            ],
+            "initComplete":function (d) {
+                var info = table_local.page.info();
+                var dataRows = info.recordsTotal;
+                if(dataRows>0){
+                    $("#add_express_btn").hide();
+                }else{
+                    $("#add_express_btn").show();
+                }
+            },
+            "ajax": {
+                "url": "express_template/datatables/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+
+        $('#table_local').on('click','td.opera .delete', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local.row(tr);
+            console.log(row.data());
+            if(confirm("确定删除？")){
+                $http.delete("express_template/"+row.data().ID,{}).then(function (data) {
+                    alert(data.data.Message);
+                    table_local.ajax.reload();
+
+                })
+            }
+        });
+        $('#table_local').on('click','td.opera .edit', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local.row(tr);
+            console.log(row.data());
+
+            //$scope.Admin=row.data();
+
+            window.location.href="#!/add_express?ID="+row.data().ID;
+
+            //$scope.showAdminModal({method:'PUT',url:'admin/'+$scope.Admin.ID,title:'修改密码'});
+
+        });
+
+    });
+
+});
+main.controller("admin_list_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    $scope.TargetAction={method:"",url:"",title:""};
+
+    $scope.Admin=null;
+
+    var table_local;
+
+    $scope.saveAdmin = function () {
+
+
+        $http({
+            method: $scope.TargetAction.method,
+            url: $scope.TargetAction.url,
+            data: JSON.stringify($scope.Admin),
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            alert(data.data.Message);
+
+            table_local.ajax.reload();
+
+            $("#adminModal").modal("hide");
+
+            $scope.Admin=null;
+            $scope.PassWord=null;
+
+        });
+
+
+
+
+    }
+    $scope.showAdminModal = function (targetAction) {
+
+        $timeout(function () {
+            $scope.TargetAction=targetAction;
+            $("#adminModal").modal("show");
+        });
+    }
+
+    $timeout(function () {
+        table_local = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Account",render:function (data) {
+                        if(data==LoginAccount){
+                            return data+"【自己】";
+                        }else{
+                            return data;
+                        }
+                    }},
+                {data:"LastLoginAt",render:function (data) {
+
+                    return $filter("date")(data,"medium");
+
+                    }},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+
+                        if(LoginAccount=="admin"){
+                            return '<button class="ui edit blue mini button">修改密码</button>'+
+                                '<button class="ui authority teal mini button">权限管理</button>'+
+                                '<button class="ui delete red mini button">删除</button>';
+                        }else{
+                            if(data.Account==LoginAccount){
+                                return '<button class="ui edit blue mini button">修改密码</button>';
+                            }else{
+                                return '';
+                            }
+
+                        }
+
+
+                    }}
+            ],
+            "ajax": {
+                "url": "admin/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
+                }
+            }
+        });
+        $('#table_local').on('click','td.opera .authority', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local.row(tr);
+            console.log(row.data());
+
+            //$scope.showAdminModal({method:'POST',url:'admin',title:'添加管理员'});
+
+            //authorityModal
+
+            $http.get("admin/"+row.data().ID,{}).then(function (data) {
+
+                var authoritys =[];
+                $scope.Admin=data.data.Data;
+                authoritys = JSON.parse($scope.Admin.Authority);
+
+                $('#authorityModal .ui.toggle.checkbox').checkbox("set unchecked");
+
+                for(var i=0;i<authoritys.length;i++){
+
+                    var name = authoritys[i];
+                    $('#authorityModal .ui.toggle.checkbox input[name='+name+']').parent().checkbox("set checked");
+                }
+
+                // console.log($('#authorityModal .ui.toggle.checkbox input[name='+key+']'))
+
+                $("#authorityModal").modal({centered:false,onApprove:function () {
+
+
+                        $http({
+                            method:"PUT",
+                            url:'admin/authority/'+$scope.Admin.ID,
+                            data: JSON.stringify({Authority:JSON.stringify(authoritys)}),
+                            transformRequest: angular.identity,
+                            headers: {"Content-Type": "application/json"}
+                        }).then(function (data, status, headers, config) {
+
+                            alert(data.data.Message);
+
+                            $("#authorityModal").modal("hide");
+
+                            $scope.Admin=null;
+
+
+                        });
+
+
+                        return false;
+
+                    }}).modal('setting', 'closable', false).modal("show");
+
+
+
+                $('#authorityModal .ui.toggle.checkbox').checkbox({
+                    onChecked: function() {
+                        //console.log($(this).data("value"));
+                        //console.log(eval("("+$(this).data("value")+")"));
+                        //authoritys[$(this).attr("name")]=eval("("+$(this).data("value")+")");
+                        authoritys.push($(this).attr("name"));
+                    },
+                    onUnchecked: function() {
+                        //console.log($(this).attr("name"));
+                        //delete authoritys[$(this).attr("name")];
+                        var name = $(this).attr("name");
+                        var index = authoritys.indexOf(name);
+                        authoritys.splice(index,1);
+
+                        console.log(authoritys);
+                    },
+                });
+
+
+
+
+
+            })
+
+        });
+        $('#table_local').on('click','td.opera .delete', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local.row(tr);
+            console.log(row.data());
+            if(confirm("确定删除？")){
+                $http.delete("admin/"+row.data().ID,{}).then(function (data) {
+                    alert(data.data.Message);
+                    table_local.ajax.reload();
+
+                })
+            }
+        });
+        $('#table_local').on('click','td.opera .edit', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local.row(tr);
+            console.log(row.data());
+
+            $scope.Admin=row.data();
+
+            $scope.showAdminModal({method:'PUT',url:'admin/'+$scope.Admin.ID,title:'修改密码'});
+
+        });
+    });
+
+});
+main.controller("store_stock_manager_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    $scope.Store={};
+    $scope.Store.ID=$routeParams.ID;
+    if($scope.Store.ID==undefined){
+
+        alert("无没有门店信息")
+        window.history.back();
+    }
+
+
+    $scope.Specifications=[];
+
+    $http({
+        method:"GET",
+        url:"store/"+$scope.Store.ID,
+        data:{},
+        transformRequest: angular.identity,
+        headers: {"Content-Type": "application/json"}
+    }).then(function (data, status, headers, config) {
+        var Store = data.data.Data;
+        $scope.Images=JSON.parse(Store.Images);
+        $scope.Pictures=JSON.parse(Store.Pictures);
+        $scope.Store=Store;
+
+    });
+
+
+    $scope.TargetAction={method:"",url:"",title:""};
+    $scope.cancelStoreStock = function(){
+        $scope.StoreStock={};
+        $scope.TargetAction={method:"POST",url:"store_stock",title:"添加产品规格数量"}
+
+    }
+    $scope.AddStoreStockStock=0;
+    $scope.saveStoreStock = function(){
+
+        if($scope.SelectGoods==null){
+            alert("请选择产品");
+            return
+        }
+
+        if($scope.StoreStock.SpecificationID==undefined){
+            alert("请选择产品规格");
+            return
+        }
+
+
+        $scope.StoreStock.StoreID =parseInt($routeParams.ID);
+        $scope.StoreStock.GoodsID=$scope.SelectGoods.ID;
+
+        var form ={};
+        form.StoreID=parseInt($routeParams.ID);
+        form.GoodsID=$scope.SelectGoods.ID;
+        form.ID=$scope.StoreStock.ID;
+        form.SpecificationID=$scope.StoreStock.SpecificationID;
+        form.AddStoreStockStock=$scope.AddStoreStockStock;
+
+        $http({
+            method: $scope.TargetAction.method,
+            url: $scope.TargetAction.url,
+            data:$.param(form),
+            transformRequest: angular.identity,
+            headers: {'Content-Type':'application/x-www-form-urlencoded'}
+        }).then(function (data, status, headers, config) {
+            $scope.StoreStock=null;
+
+            alert(data.data.Message);
+
+            $scope.cancelStoreStock();
+            $scope.AddStoreStockStock=0;
+
+            table_local_goods.ajax.reload(null,false);
+            table_local_stock.ajax.reload(null,false);
+            table_store_stock.ajax.reload(null,false);
+
+        });
+
+
+        //$("#add_store_stock").modal("hide");
+
+        /*$http({
+            method: $scope.TargetAction.method,
+            url: $scope.TargetAction.url,
+            data:$.param(form),
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            alert(data.data.Message);
+
+            $scope.cancelStoreStock();
+
+            table_local_goods.ajax.reload(null,false);
+            table_local_stock.ajax.reload(null,false);
+            table_store_stock.ajax.reload(null,false);
+
+        });
+
+        //$scope.SelectGoods=null;
+        $scope.StoreStock=null;*/
+
+
+
+
+
+
+
+    }
+
+    $scope.StoreStockModal = function(targetAction){
+        $scope.TargetAction = targetAction;
+
+        $("#add_store_stock").modal({centered:true,allowMultiple: true}).modal('setting', 'closable', false).modal("show");
+
+    }
+    $scope.addGoods = function () {
+
+        $("#list_goods").modal({centered:true,allowMultiple: false}).modal('setting', 'closable', false).modal("show");
+        //$scope.StoreStockModal();
+        //$scope.ListGoodsSpecification(2008);
+    }
+
+    $scope.SpecificationsDisable={};
+    $scope.StoreGoodsExist={};
+    $scope.ListGoodsSpecification = function (GoodsID) {
+
+
+        $http.get("goods?action=get_goods",{params:{ID:GoodsID}}).then(function (data) {
+
+            //alert(data.data.Message);
+            //$scope.StoreStock=row.data();
+            $scope.SelectGoods=data.data.Data.Goods;
+            $scope.Specifications=data.data.Data.Specifications;
+            // $scope.StoreStockModal({method:"PUT",url:"store_stock/"+$scope.StoreStock.ID,title:"修改门店库存"});
+
+
+
+            if(table_store_stock!=null){
+
+                table_store_stock.ajax.url("store_stock/list/"+$scope.Store.ID+"/"+GoodsID).load(null,false);
+                return
+            }
+            table_store_stock = $('#table_store_stock').DataTable({
+                searching:false,
+                "createdRow": function( row, data, dataIndex ) {
+                    //console.log(row,data,dataIndex);
+                    var SpecificationsDisable = $scope.SpecificationsDisable;
+                    SpecificationsDisable[data.StoreStock.SpecificationID]=true;
+                    $scope.SpecificationsDisable=SpecificationsDisable;
+                },
+                "columns": [
+                    {data:"StoreStock.ID"},
+                    {data:"Goods.Title"},
+                    {data:"Specification.Label"},
+                    {data:"StoreStock.Stock",render:function (data, type, row) {
+                            //console.log(row.StoreStock.Stock-row.StoreStock.UseStock)
+                            return row.StoreStock.Stock-row.StoreStock.UseStock;
+
+                        }},
+                    {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+                            return '<button class="ui edit blue mini button">编辑</button><button class="ui delete red mini button">删除</button>';
+
+                        }}
+                ],
+                "ajax": {
+                    "url": "store_stock/list/"+$scope.Store.ID+"/"+GoodsID,
+                    "type": "POST",
+                    "contentType": "application/json",
+                    "data": function ( d ) {
+                        //d.columns[1].search.value=$scope.Store.ID.toString();
+                        return JSON.stringify(d);
+                    }
+                }
+            });
+            $('#table_store_stock').on('click','td.opera .edit', function () {
+                var tr = $(this).closest('tr');
+                var row = table_store_stock.row(tr);
+                //console.log(row.data());
+
+                $scope.StoreStock=row.data().StoreStock;
+                //$scope.selectGoods=null;
+
+                ///$scope.TargetAction={method:"POST",url:"store_stock",title:"产品规格数量"}
+
+
+                //$scope.TargetAction={method:"PUT",url:"store_stock/"+row.data().StoreStock.ID,title:"修改产品规格数量"}
+                $scope.TargetAction={method:"PUT",url:"store_stock",title:"修改产品规格数量"}
+                $scope.ListGoodsSpecification(row.data().StoreStock.GoodsID);
+
+            });
+
+            $('#table_store_stock').on('click','td.opera .delete', function () {
+                var tr = $(this).closest('tr');
+                var row = table_store_stock.row(tr);
+
+                if(confirm("确定删除？")){
+                    $scope.SpecificationsDisable=[];
+                    $http.delete("store_stock/"+row.data().StoreStock.ID,{}).then(function (data) {
+                        alert(data.data.Message);
+                        table_store_stock.ajax.reload(null,false);
+
+                    })
+                }
+            });
+
+        })
+        //modal('attach events', '#add_store_stock .actions .button').
+        $("#add_store_stock").modal({detachable:true,centered:true,allowMultiple: false}).modal('setting', 'closable', false).modal("show");
+        //$("#list_goods").modal({centered:true,allowMultiple: false}).modal('setting', 'closable', false).modal("show");
+        //$scope.StoreStockModal();
+    }
+
+    var table_local_goods;
+    var table_local_stock;
+    var table_store_stock;
+
+    $timeout(function () {
+
+
+        table_local_goods = $('#table_local_goods').DataTable({
+            fixedColumns: true,
+            "columns": [
+                {data:"ID"},
+                {data:"Title"},
+                {data:"Stock"},
+                {data:"Price",render:function (data) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+
+                        if($scope.StoreGoodsExist[data.ID]){
+                            return '<button disabled class="ui blue mini button">已选</button>';
+                        }else {
+                            return '<button class="ui select blue mini button">选择</button>';
+                        }
+                    }}
+            ],
+            "ajax": {
+                "url": "goods?action=list_goods",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+        $('#table_local_goods').on('click','td.opera .select', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local_goods.row(tr);
+
+            $timeout(function () {
+                //$("#list_goods").modal({centered:true,allowMultiple: true}).modal('setting', 'closable', false).modal("hide");
+
+                $scope.SelectGoods=row.data();
+                $scope.StoreStock=null;
+
+                $scope.TargetAction={method:"POST",url:"store_stock",title:"添加产品规格数量"}
+                //$scope.StoreStockModal({method:"POST",url:"store_stock",title:"添加门店库存"});
+
+                //$scope.TargetAction={method:"POST",url:"store_stock",title:"产品规格数量"}
+
+                //$scope.TargetAction={method:"POST",url:"store_stock",title:"产品规格数量"}
+                $scope.ListGoodsSpecification($scope.SelectGoods.ID);
+
+            });
+        });
+
+
+        table_local_stock = $('#table_local_stock').DataTable({
+            searching:false,
+            "columns": [
+                {data:"GoodsID"},
+                {data:"StoreID",visible:false},
+                {data:"Title"},
+                {data:"Total"},
+                {data:"Stock",render:function (data,type,row) {
+                        //console.log(row);
+                        //row.Stock-row.UseStock
+                        return row.Stock-row.UseStock;
+
+                    }},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+                        return '<button class="ui edit blue mini button">编辑</button>';//<button class="ui delete red mini button">删除</button>';
+
+                    }}
+            ],
+            "drawCallback": function(settings) {
+
+                //store_stock/able/goods/:StoreID
+
+                $http.get("store_stock/exist/goods/"+$scope.Store.ID).then(function (data) {
+                    console.log(data.data.Data);
+                    var list = data.data.Data;
+                    var StoreGoodsExist = {};
+                    for(var i=0;i<list.length;i++){
+                        StoreGoodsExist[list[i].GoodsID] = true;
+                    }
+                    $scope.StoreGoodsExist=StoreGoodsExist;
+
+                    table_local_goods.draw(false);
+                })
+            },
+            "ajax": {
+                "url": "store_stock/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    d.columns[1].search.value=$scope.Store.ID.toString();
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+        $('#table_local_stock').on('click','td.opera .edit', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local_stock.row(tr);
+            //console.log(row.data());
+
+            //$scope.StoreStock=null;
+            //$scope.selectGoods=null;
+
+            $scope.TargetAction={method:"POST",url:"store_stock",title:"添加产品规格数量"}
+            //$scope.TargetAction={method:"PUT",url:"store_stock/"+$scope.StoreStock.ID,title:"修改产品规格数量"}
+            $scope.ListGoodsSpecification(row.data().GoodsID);
+
+        });
+
+
+    });
+
+})
+main.controller("store_list_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    $scope.selectGoods=null;
+    $scope.StoreStock=null;
+    $scope.Store=null;
+
+    var table_local_goods;
+    var table_local_stock;
+    var table_local;
+
+
+    $scope.TargetAction={method:"",url:"",title:""};
+
+    $timeout(function () {
+
+        table_local = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Name"},
+                {data:"Phone"},
+                {data:"Address",render:function (data, type, row) {
+                    var address =JSON.parse(data);
+                    //{"ProvinceName":"福建省","CityName":"三明市","CountyName":"梅列区",
+                        // "Detail":"列东街道东新二路45号天元列东饭店",
+                        // "PostalCode":"350402","Name":"fsdfdsfsd","Tel":"13809549424"}
+
+                    return address.ProvinceName+address.CityName+address.CountyName+address.Detail;
+
+                    }},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+                        return '<a href="#!/add_store?ID='+data.ID+'" class="ui edit blue mini button">编辑</a>'+
+                            '<button class="ui add_goods_stock teal mini button">库存管理</button>'+
+                            '<button class="ui delete red mini button">删除</button>';
+
+                    }}
+            ],
+            "ajax": {
+                "url": "store/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+        $('#table_local').on('click','td.opera .delete', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local.row(tr);
+            console.log(row.data());
+            if(confirm("确定删除？")){
+                $http.delete("store/"+row.data().ID,{params:{}}).then(function (data) {
+
+                    alert(data.data.Message);
+
+                    table_local.ajax.reload();
+
+                })
+            }
+        });
+
+        $('#table_local').on('click','td.opera .add_goods_stock', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local.row(tr);
+            //console.log(row.data());
+            window.location.href="#!/store_stock_manager?ID="+row.data().ID;
+            //$scope.Store=row.data();
+            //$('#table_local_stock').DataTable().column(1).search($scope.Store.ID).draw();
+            //$("#add_goods_stock").modal({centered:true,allowMultiple: true}).modal('setting', 'closable', false).modal("show");
+            //$("#add_store_stock").modal({centered:true,allowMultiple: true}).modal('setting', 'closable', false).modal("show");
+
+        });
+
+
+    });
+
+});
+main.controller("add_store_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    $scope.Images=[];
+    $scope.Pictures=[];
+
+    $scope.Store ={ID:$routeParams.ID};
+
+
+    $scope.TargetAction={method:"POST",url:"store",title:"添加门店"};
+
+    if($scope.Store.ID!=undefined){
+
+        $scope.TargetAction={method:"PUT",url:"store/"+$scope.Store.ID,title:"修改门店"};
+
+        $http({
+            method:"GET",
+            url:"store/"+$scope.Store.ID,
+            data:{},
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+            var Store = data.data.Data;
+            $scope.Images=JSON.parse(Store.Images);
+            $scope.Pictures=JSON.parse(Store.Pictures);
+
+            try {
+                $scope.address=JSON.parse(Store.Address);
+            }catch (e) {
+                $scope.address={};
+            }
+
+            $scope.Store=Store;
+
+        });
+
+
+    }
+
+
+
+
+
+
+    $scope.address ={};
+    $scope.showMapModal =function(){
+
+
+        var currentPositionResult;
+
+        $("#selectMap").modal({centered: false,onApprove:function (e) {
+
+                if(currentPositionResult==undefined){
+                    alert("请选择坐标");
+                    return false
+                }
+
+                $timeout(function () {
+                   // $scope.Store.Latitude=currentPositionResult.lat;
+                    //$scope.Store.Longitude=currentPositionResult.lng;
+                    $scope.Store.Latitude=currentPositionResult.P;
+                    $scope.Store.Longitude=currentPositionResult.O;
+
+                });
+
+            }}).modal("show");
+
+
+        AMapUI.loadUI(['misc/PositionPicker'], function(PositionPicker) {
+            var map = new AMap.Map('container', {
+                zoom: 16,
+                scrollWheel: false
+            })
+            var positionPicker = new PositionPicker({
+                mode: 'dragMarker',
+                map: map
+            });
+
+
+            var infoWindow = new AMap.InfoWindow({
+                autoMove: true,
+                offset: {x: 0, y: -30}
+            });
+
+
+
+            if($scope.Store.Longitude && $scope.Store.Latitude){
+                positionPicker.start(new AMap.LngLat($scope.Store.Longitude,$scope.Store.Latitude));
+                map.panTo(new AMap.LngLat($scope.Store.Longitude,$scope.Store.Latitude));
+            }
+
+
+            //map.panTo(currentPositionResult);
+            positionPicker.on('success', function(positionResult) {
+                currentPositionResult=positionResult.position;
+
+                console.log(positionResult);
+
+                //infoWindow.setContent(createContent(poiArr[0]));
+                //infoWindow.setContent($scope.Store.Address);
+                infoWindow.open(map,currentPositionResult);
+
+                $scope.address.ProvinceName=positionResult.regeocode.addressComponent.province;
+                $scope.address.CityName=positionResult.regeocode.addressComponent.city;
+                $scope.address.CountyName=positionResult.regeocode.addressComponent.district;
+                $scope.address.Detail=positionResult.regeocode.addressComponent.township+positionResult.regeocode.addressComponent.street+positionResult.regeocode.addressComponent.streetNumber;
+                if(positionResult.regeocode.pois.length>0){
+                    $scope.address.Detail=$scope.address.Detail+positionResult.regeocode.pois[0].name;
+                }
+
+                $scope.address.PostalCode=positionResult.regeocode.addressComponent.adcode;
+
+
+                infoWindow.setContent($scope.address.ProvinceName+$scope.address.CityName+$scope.address.CountyName+$scope.address.Detail);
+
+
+                document.getElementById('lnglat').innerHTML = positionResult.position;
+                document.getElementById('address').innerHTML = positionResult.address;
+                document.getElementById('nearestJunction').innerHTML = positionResult.nearestJunction;
+                document.getElementById('nearestRoad').innerHTML = positionResult.nearestRoad;
+                document.getElementById('nearestPOI').innerHTML = positionResult.nearestPOI;
+            });
+            positionPicker.on('fail', function(positionResult) {
+                document.getElementById('lnglat').innerHTML = ' ';
+                document.getElementById('address').innerHTML = ' ';
+                document.getElementById('nearestJunction').innerHTML = ' ';
+                document.getElementById('nearestRoad').innerHTML = ' ';
+                document.getElementById('nearestPOI').innerHTML = ' ';
+            });
+
+
+            /*AMap.service(["AMap.PlaceSearch"], function() {
+                var placeSearch = new AMap.PlaceSearch({ //构造地点查询类
+                    pageSize: 1,
+                    pageIndex: 1,
+                    //city: "010", //城市
+                    //map: map,
+                    //panel: "panel"
+                });
+
+                console.log($scope.address.ProvinceName+$scope.address.CityName+$scope.address.CountyName+$scope.address.Detail);
+                //关键字查询
+                placeSearch.search($scope.address.ProvinceName+$scope.address.CityName+$scope.address.CountyName+$scope.address.Detail,function(status,result){
+                    if(status=="complete"){
+                        if(result.poiList.pois.length>0){
+                            positionPicker.start(result.poiList.pois[0].location);
+                            currentPositionResult=result.poiList.pois[0].location;
+                        }else {
+                            currentPositionResult=null;
+                        }
+                    }else{
+                        alert(status);
+                    }
+
+                });
+            });*/
+
+
+            /*var onModeChange = function(e) {
+                positionPicker.setMode(e.target.value)
+            }*/
+            var startButton = document.getElementById('start');
+            var stopButton = document.getElementById('stop');
+            var dragMapMode = document.getElementsByName('mode')[0];
+            var dragMarkerMode = document.getElementsByName('mode')[1];
+
+            //serachValue   serachBtn
+
+            var serachValue = document.getElementById('serachValue');
+            var serachBtn = document.getElementById('serachBtn');
+
+
+
+            function PlaceSearch() {
+                var serachTxt = $(serachValue).val();
+                if(serachTxt==""){
+                    alert("请输入地点名称");
+                    return
+                }
+                //console.log($(serachValue).val());
+
+                AMap.service(["AMap.PlaceSearch"], function() {
+                    var placeSearch = new AMap.PlaceSearch({ //构造地点查询类
+                        pageSize: 1,
+                        pageIndex: 1,
+                        //city: "010", //城市
+                        //map: map,
+                        //panel: "panel"
+                    });
+                    //关键字查询
+                    placeSearch.search(serachTxt,function(status,result){
+                        if(status=="complete"){
+                            if(result.poiList.pois.length>0){
+                                positionPicker.start(result.poiList.pois[0].location);
+                                currentPositionResult=result.poiList.pois[0].location;
+                            }else {
+                                currentPositionResult=null;
+                            }
+                        }else{
+                            alert(status);
+                        }
+
+
+                    });
+                });
+            }
+            AMap.event.addDomListener(serachBtn, 'click',PlaceSearch);
+            AMap.event.addDomListener(serachValue, 'keypress',PlaceSearch);
+
+
+            AMap.event.addDomListener(startButton, 'click', function() {
+                //positionPicker.start(map.getBounds().getSouthWest())
+                map.panTo(currentPositionResult);
+            })
+            /*AMap.event.addDomListener(stopButton, 'click', function() {
+               // positionPicker.stop();
+            })*/
+            //AMap.event.addDomListener(dragMapMode, 'change', onModeChange)
+            //AMap.event.addDomListener(dragMarkerMode, 'change', onModeChange);
+            //positionPicker.start();
+
+            //map.panBy(0, 1);
+
+            map.addControl(new AMap.ToolBar({
+                liteStyle: true
+            }))
+        });
+
+
+    }
+
+    $scope.deleteArr = function(arr,index){
+        if(confirm("确认删除这项内容？")){
+            arr.splice(index,1);
+        }
+    }
+
+
+
+    $scope.save = function(){
+
+        $scope.Store.Images = JSON.stringify($scope.Images);
+        $scope.Store.Pictures = JSON.stringify($scope.Pictures);
+
+        if($scope.Store.Latitude==undefined||$scope.Store.Latitude==""||$scope.Store.Longitude==undefined||$scope.Store.Longitude==""){
+
+            alert("请选择坐标地址");
+            return
+        }
+
+
+        if($scope.address.Detail==undefined||$scope.address.Detail==""){
+
+            alert("请选择填写地址");
+            return
+        }
+
+        $scope.address.Name=$scope.Store.Name;
+        $scope.address.Tel=$scope.Store.ServicePhone;
+
+        $scope.Store.Address=JSON.stringify($scope.address);
+
+
+        $http({
+            method: $scope.TargetAction.method,
+            url: $scope.TargetAction.url,
+            data: JSON.stringify($scope.Store),
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            alert(data.data.Message);
+
+            if(data.data.Success==true){
+                window.location.href="#!/store_list";
+            }
+        });
+
+    }
+    $scope.uploadImages = function (progressID,file, errFiles) {
 
         if (file) {
             var thumbnail =Upload.upload({
@@ -2341,302 +3706,1528 @@ main.controller('shopInfoCtrl', function ($http, $scope, $rootScope,Upload,$time
                 data: {file: file},
             });
             thumbnail.then(function (response) {
-
                 $timeout(function () {
                     var url =response.data.Data;
-                    if($scope.photoLists.indexOf(url)==-1){
-                        $scope.photoLists.push(url);
+
+                    if($scope.Images.indexOf(url)==-1){
+                        $scope.Images.push(url);
                     }
+
                 });
             }, function (response) {
-
                 if (response.status > 0){
-
                     $scope.errorMsg = response.status + ': ' + response.data;
                 }
             }, function (evt) {
                 // Math.min is to fix IE which reports 200% sometimes
-                var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
-                $("."+progressID).text(progress+"%");
-                $("."+progressID).css("width",progress+"%");
+                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                //$("."+progressID).text(progress+"%");
+                //$("."+progressID).css("width",progress+"%");
+            });
+        }else{
+            UpImageError(errFiles);
+        }
+    }
+    $scope.uploadPictures = function (progressID,file, errFiles) {
+
+        if (file) {
+            var thumbnail =Upload.upload({
+                url: '/file/up',
+                data: {file: file},
+            });
+            thumbnail.then(function (response) {
+                $timeout(function () {
+                    var url =response.data.Data;
+
+                    if($scope.Pictures.indexOf(url)==-1){
+                        $scope.Pictures.push(url);
+                    }
+
+
+                });
+            }, function (response) {
+                if (response.status > 0){
+                    $scope.errorMsg = response.status + ': ' + response.data;
+                }
+            }, function (evt) {
+                // Math.min is to fix IE which reports 200% sometimes
+                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                //$("."+progressID).text(progress+"%");
+                //$("."+progressID).css("width",progress+"%");
             });
         }else{
             //alert(JSON.stringify(errFiles))
+            UpImageError(errFiles);
         }
     }
-    /*var focusTarget;
-    //$scope.getData();
-    $("input").focus(function (e) {
-        //alert("dsfsd");
-        focusTarget = e.target;
-    })*/
 
 });
-main.controller('productsCtrl', function ($http, $rootScope, $scope) {
-    $rootScope.title = "产品";
-    //$rootScope.goback = "#/";
-    $rootScope.isgoback = true;
+function UpImageError(error){
+    var errorTxt ="";
+    for(var i=0;i<error.length;i++){
 
-    $scope.shopID = shopID;
-    $scope.userID = userID;
-
-    $scope.tabIndex = "products";
-    $scope.selectTab = function (index) {
-        $scope.tabIndex = index;
+        if(errorTxt==""){
+            errorTxt=errorTxt+error[i].$error+":"+error[i].$errorParam;
+        }else{
+            errorTxt="/"+errorTxt+error[i].$error+":"+error[i].$errorParam;
+        }
     }
-    
-    $scope.products = {};
-    $http.get("products_action", {
-        params: {
-            action: "list"
-        }
-    }).success(function (reponse) {
+    if(errorTxt!="" && errorTxt!=undefined){
+        alert(errorTxt);
+    }
 
-        var pdu = reponse.data;
-        var das={};
-        for(var i=0;i<pdu.length;i++){
-            var item = pdu[i];
-            if(item!=null){
-                var arr = das[item.type];
-                if(arr==null){
-                    arr = [];
-                    das[item.type] =arr;
-                    arr = das[item.type];
+}
+main.controller("voucher_list_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    $scope.Voucher =null;
+    $scope.TargetAction=null;
+    var table;
+
+    $scope.add_score_goods = function(){
+
+        $http({
+            method:$scope.TargetAction.method,
+            url:$scope.TargetAction.url,
+            data:JSON.stringify({Name:$scope.Voucher.Name,Amount:$scope.Voucher.Amount,UseDay:$scope.Voucher.UseDay,Introduce:$scope.Voucher.Introduce}),
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+    }).then(function (data, status, headers, config) {
+            $scope.Voucher =null;
+            $scope.TargetAction=null;
+            alert(data.data.Message);
+            $("#add_score_goods").modal("hide");
+            table.ajax.reload();
+        });
+
+    }
+    $scope.showModal = function (ta) {
+        $scope.TargetAction = ta;
+        $("#add_score_goods").modal("show");
+    }
+    $timeout(function () {
+
+       table = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Name"},
+                {data:"Amount",render:function (data) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"UseDay",render:function (data) {
+                        return data+"天";
+                    }},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+                        return '<button  class="ui edit blue mini button">修改</button>'+
+                            '<button class="ui delete red mini button">删除</button>';
+
+                    }}
+            ],
+            "createdRow": function ( row, data, index ) {
+                //console.log(row,data,index);
+            },
+            columnDefs:[
+
+            ],
+            "initComplete":function (d) {
+
+            },
+            paging: true,
+            //"dom": '<"toolbar">frtip',
+            "pagingType": "full_numbers",
+            searching: true,
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "voucher/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
                 }
-                arr.push(item);
             }
-        }
-        $scope.products = das;
+        });
+
+
+        $('#table_local').on('click','td.opera .edit', function () {
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
+            console.log(row.data());
+
+
+            $http.get("voucher/"+row.data().ID,{}).then(function (data) {
+
+                $timeout(function () {
+                    $scope.Voucher=data.data.Data;
+                    $scope.showModal({title:'修改卡券',url:'voucher/'+row.data().ID,method:'PUT'});
+                });
+
+            });
+
+
+
+
+        });
+
+        $('#table_local').on('click','td.opera .delete', function () {
+                var tr = $(this).closest('tr');
+                var row = table.row(tr);
+                console.log(row.data());
+
+                if (confirm("确定删除？")) {
+
+                    $http.delete("voucher/"+row.data().ID,{}).then(function (data) {
+                        alert(data.data.Message);
+                        table.ajax.reload();
+                    });
+
+                }
+            }
+        );
+        
+    });
+})
+main.controller("fullcut_list_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    $scope.FullCut =null;
+    $scope.TargetAction=null;
+    var table;
+
+    $scope.add_score_goods = function(){
+
+        $http({
+            method:$scope.TargetAction.method,
+            url:$scope.TargetAction.url,
+            data:JSON.stringify($scope.FullCut),
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+    }).then(function (data, status, headers, config) {
+            $scope.FullCut =null;
+            $scope.TargetAction=null;
+            alert(data.data.Message);
+            $("#add_score_goods").modal("hide");
+            table.ajax.reload();
+        });
+
+    }
+    $scope.showModal = function (ta) {
+        $scope.TargetAction = ta;
+        $("#add_score_goods").modal("show");
+    }
+    $timeout(function () {
+
+       table = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Amount",render:function (data) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"CutAmount",render:function (data) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+                        return '<button  class="ui edit blue mini button">修改</button>'+
+                            '<button class="ui delete red mini button">删除</button>';
+
+                    }}
+            ],
+            "createdRow": function ( row, data, index ) {
+                //console.log(row,data,index);
+            },
+            columnDefs:[
+
+            ],
+            "initComplete":function (d) {
+
+            },
+            paging: true,
+            //"dom": '<"toolbar">frtip',
+            "pagingType": "full_numbers",
+            searching: true,
+            "processing": true,
+            "serverSide": true,
+           "order":[[1,"asc"]],
+            "ajax": {
+                "url": "fullcut/datatables/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function (d){
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+
+        $('#table_local').on('click','td.opera .edit', function () {
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
+            console.log(row.data());
+
+
+            $http.get("fullcut/"+row.data().ID,{}).then(function (data) {
+
+                $timeout(function () {
+                    $scope.FullCut=data.data.Data;
+                    $scope.showModal({title:'修改满减',url:'fullcut/save',method:'POST'});
+                });
+
+            });
+        });
+
+        $('#table_local').on('click','td.opera .delete', function () {
+                var tr = $(this).closest('tr');
+                var row = table.row(tr);
+                console.log(row.data());
+
+                if (confirm("确定删除？")) {
+
+                    $http.delete("fullcut/"+row.data().ID,{}).then(function (data) {
+                        alert(data.data.Message);
+                        table.ajax.reload();
+                    });
+
+                }
+            }
+        );
 
     });
-    $scope.del = function (id) {
-        function confirmFunc() {
-            $http.get("products_action", {
-                params: {
-                    action: "del",
-                    pid: id
-                }
-            }).success(function (reponse) {
+})
+main.controller("timesell_list_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
 
-                Messager(reponse.message);
-                window.location.reload();
+    $scope.H =[];
+    for(var i=0;i<24;i++){
+        $scope.H.push({k:i,v:i});
+    }
+    $scope.M =[];
+    for(var i=0;i<60;i++){
+        $scope.M.push({k:i,v:i});
+    }
+
+    $scope.Item =null;
+    $scope.TargetAction=null;
+    var table;
+
+    $scope.add_score_goods = function(){
+
+        $http({
+            method:$scope.TargetAction.method,
+            url:$scope.TargetAction.url,
+            data:JSON.stringify($scope.Item),
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+    }).then(function (data, status, headers, config) {
+            $scope.Item =null;
+            $scope.TargetAction=null;
+            alert(data.data.Message);
+            $("#add_score_goods").modal("hide");
+            table.ajax.reload();
+        });
+
+    }
+    $scope.showModal = function (ta) {
+        $scope.TargetAction = ta;
+        $("#add_score_goods").modal("show");
+    }
+    $timeout(function () {
+
+       table = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"BuyNum"},
+                {data:"DayNum"},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+                        return '<button  class="ui edit blue mini button">修改/查看</button>'+
+                            '<button class="ui delete red mini button">删除</button>';
+
+                    }}
+            ],
+            "createdRow": function ( row, data, index ) {
+                //console.log(row,data,index);
+            },
+            columnDefs:[
+
+            ],
+            "initComplete":function (d) {
+
+            },
+            paging: true,
+            //"dom": '<"toolbar">frtip',
+            "pagingType": "full_numbers",
+            searching: true,
+            "processing": true,
+            "serverSide": true,
+           "order":[[1,"asc"]],
+            "ajax": {
+                "url": "timesell/datatables/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function (d){
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+
+        $('#table_local').on('click','td.opera .edit', function () {
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
+            console.log(row.data());
+
+
+            window.location.href="#!/add_timesell?ID="+row.data().ID;
+        });
+
+        $('#table_local').on('click','td.opera .delete', function () {
+                var tr = $(this).closest('tr');
+                var row = table.row(tr);
+                console.log(row.data());
+
+                if (confirm("确定删除？")) {
+
+                    $http.delete("timesell/"+row.data().ID,{}).then(function (data) {
+                        alert(data.data.Message);
+                        table.ajax.reload();
+                    });
+
+                }
+            }
+        );
+
+    });
+})
+main.controller("add_timesell_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    $scope.H =[];
+    for(var i=0;i<24;i++){
+        $scope.H.push({k:i,v:i});
+    }
+    $scope.M =[];
+    for(var i=0;i<60;i++){
+        $scope.M.push({k:i,v:i});
+    }
+
+    $scope.Item =null;
+    $scope.GoodsList =[];
+    $scope.TargetAction={title:'添加限时抢购',url:'timesell/save',method:'POST'};
+    var table;
+
+
+    if($routeParams.ID!=undefined){
+
+
+        $scope.TargetAction={title:'修改限时抢购',url:'timesell/save',method:'POST'};
+
+        $http.get("timesell/"+$routeParams.ID,{}).then(function (data) {
+
+            var Item = data.data.Data;
+            Item.StartTime=new Date(Item.StartTime);
+            $scope.Item=Item;
+            //$scope.showModal({title:'修改优惠券',url:'timesell/save',method:'POST'});
+
+            //timesell/goods/:TimeSellID/list
+
+
+            $scope.listTimeSellGoods();
+
+
+
+        });
+
+    }
+    $scope.listTimeSellGoods = function(){
+        $http.get("timesell/goods/"+$routeParams.ID+"/list",{}).then(function (data) {
+
+            $scope.GoodsList = data.data.Data;
+
+        });
+    }
+    $scope.showGoods = function(){
+        //goods_list  goods_list
+        table.ajax.reload();
+        $("#goods_list").modal("show");
+    }
+    $scope.deleteTimeSellGoods = function(m){
+
+        //timesell/goods/:GoodsID
+
+        $http.delete("timesell/goods/"+m.ID,{}).then(function (data) {
+
+           alert(data.data.Message);
+            $scope.listTimeSellGoods();
+
+        });
+
+
+    }
+
+
+    //#!/add_timesell
+
+
+    $scope.add_score_goods = function(){
+
+        if($scope.GoodsList.length<=0){
+            alert("请选择产品");
+            return
+        }
+
+        var form ={};
+        form.TimeSell=JSON.stringify($scope.Item);
+        form.GoodsList=JSON.stringify($scope.GoodsList);
+
+        $http({
+            method:$scope.TargetAction.method,
+            url:$scope.TargetAction.url,
+            data:$.param(form),
+            transformRequest: angular.identity,
+            headers: {'Content-Type':'application/x-www-form-urlencoded'}
+        }).then(function (data, status, headers, config) {
+
+            $scope.Item =null;
+            $scope.TargetAction=null;
+            alert(data.data.Message);
+            window.history.back();
+
+        });
+
+
+
+        /*$http({
+            method:$scope.TargetAction.method,
+            url:$scope.TargetAction.url,
+            data:JSON.stringify($scope.Item),
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+    }).then(function (data, status, headers, config) {
+            $scope.Item =null;
+            $scope.TargetAction=null;
+            alert(data.data.Message);
+            $("#add_score_goods").modal("hide");
+            table.ajax.reload();
+        });*/
+
+    }
+    $scope.showModal = function (ta) {
+        $scope.TargetAction = ta;
+        $("#add_score_goods").modal("show");
+    }
+    $timeout(function () {
+
+        table = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Title"},
+                {data:"Stock"},
+                {data:"Price",render: function (data, type, row) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"CreatedAt",render: function (data, type, row) {
+
+                        return $filter("date")(data,"medium");
+                    }},
+                {data:"TimeSellID",className:"opera",orderable:false,render:function (data, type, row) {
+                        console.log(data);
+
+                        if($routeParams.ID==data){
+                            return '<button class="ui mini button">已选择</button>';
+                        }
+
+                        if(data==0){
+                            return '<button class="ui select blue mini button">选择</button>';
+                        }else{
+                            return '<button class="ui select blue mini button">替换成这个活动</button>';
+                        }
+                    }}
+            ],
+            "createdRow": function ( row, data, index ) {
+                //console.log(row,data,index);
+            },
+            columnDefs:[
+
+            ],
+            "initComplete":function (d) {
+
+            },
+            paging: true,
+            //"dom": '<"toolbar">frtip',
+            "pagingType": "full_numbers",
+            searching: true,
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "goods?action=list_goods",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+        $('#table_local').on('click','td.opera .select', function () {
+
+
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
+
+            console.log(row.data());
+
+            var itme = row.data();
+            var have = false;
+            for(var i=0;i<$scope.GoodsList.length;i++){
+                var mitem = $scope.GoodsList[i];
+                if(itme.ID==mitem.ID){
+                    have=true;
+                    break;
+                }
+            }
+
+            if(have==false){
+                $scope.$apply(function () {
+                    $scope.GoodsList.push(itme);
+                });
+
+            }
+
+
+
+
+            $("#goods_list").modal("hide");
+
+            //$scope.GoodsList
+
+
+        });
+
+    });
+});
+
+main.controller("score_goods_list_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    $scope.ScoreGoods =null;
+    $scope.TargetAction=null;
+    var table;
+
+
+
+    $scope.uploadImages = function (progressID,file, errFiles) {
+
+        if (file) {
+            var thumbnail =Upload.upload({
+                url: '/file/up',
+                data: {file: file},
+            });
+            thumbnail.then(function (response) {
+                $timeout(function () {
+                    var url =response.data.Data;
+
+                    $scope.ScoreGoods.Image=url;
+
+                });
+            }, function (response) {
+                if (response.status > 0){
+                    $scope.errorMsg = response.status + ': ' + response.data;
+                }
+            }, function (evt) {
+                // Math.min is to fix IE which reports 200% sometimes
+                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                //$("."+progressID).text(progress+"%");
+                //$("."+progressID).css("width",progress+"%");
+            });
+        }else{
+            UpImageError(errFiles);
+        }
+    }
+
+    $scope.add_score_goods = function(){
+
+        $http({
+            method:$scope.TargetAction.method,
+            url:$scope.TargetAction.url,
+            data:JSON.stringify($scope.ScoreGoods),
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+    }).then(function (data, status, headers, config) {
+            $scope.ScoreGoods =null;
+            $scope.TargetAction=null;
+            alert(data.data.Message);
+            $("#add_score_goods").modal("hide");
+            table.ajax.reload();
+        });
+    }
+    $scope.showModal = function (ta) {
+        $scope.TargetAction = ta;
+        $("#add_score_goods").modal("show");
+    }
+    $timeout(function () {
+
+       table = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Name"},
+                {data:"Score"},
+                {data:"Price",render:function (data, type, row) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+                        return '<button  class="ui edit blue mini button">修改</button>'+
+                            '<button class="ui delete red mini button">删除</button>';
+
+                    }}
+            ],
+            "createdRow": function ( row, data, index ) {
+                //console.log(row,data,index);
+            },
+            columnDefs:[
+
+            ],
+            "initComplete":function (d) {
+
+            },
+            paging: true,
+            //"dom": '<"toolbar">frtip',
+            "pagingType": "full_numbers",
+            searching: true,
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "score_goods/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+
+        $('#table_local').on('click','td.opera .edit', function () {
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
+            console.log(row.data());
+
+
+            $http.get("score_goods/"+row.data().ID,{}).then(function (data) {
+
+                $timeout(function () {
+                    $scope.ScoreGoods=data.data.Data;
+                    $scope.showModal({title:'修改积分产品',url:'score_goods/'+row.data().ID,method:'PUT'});
+                });
+
+            });
+
+
+
+
+        });
+
+        $('#table_local').on('click','td.opera .delete', function () {
+                var tr = $(this).closest('tr');
+                var row = table.row(tr);
+                console.log(row.data());
+
+                if (confirm("确定删除？")) {
+
+                    $http.delete("score_goods/"+row.data().ID,{}).then(function (data) {
+                        alert(data.data.Message);
+                        table.ajax.reload();
+                    });
+
+                }
+            }
+        );
+
+    });
+})
+
+
+
+main.controller("main_controller",function ($http, $scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+    
+});
+main.controller("goods_type_child_list_controller",function ($http, $scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    var ID = $routeParams.ID;
+
+    if(ID==undefined||ID==""||ID==0){
+        alert("数据出错，无法添加");
+        window.history.back();
+        return
+    }
+
+
+    $scope.GoodsTypeChild={Image:""};
+
+    $scope.GoodsTypeChildModalObj={Title:"添加子系列",Action:"add_goods_type_child"};
+    $scope.ShowGoodsTypeChildModal = function () {
+
+        $('#goods_type_child_modal').modal({
+            onApprove : function() {
+
+            }
+        }).modal('show');
+
+    }
+    $scope.loadList =function(){
+
+        $http.get("goods?action=list_goods_type_child_id&ID="+ID,{}, {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+            $scope.GoodsTypeChildList = data.data.Data;
+        });
+
+    }
+    $scope.loadList();
+
+    $scope.deleteGoodsTypeChild = function(m){
+
+        if(confirm("确定删除："+m.Name+"?")){
+            $http.get("goods?action=del_goods_type_child&ID="+m.ID,{}, {
+                transformRequest: angular.identity,
+                headers: {"Content-Type": "application/json"}
+            }).then(function (data, status, headers, config) {
+
+                alert(data.data.Message);
+                $scope.loadList();
 
             });
         }
-        MessagerConfirm("确定要删除这个项？删除这条记录将会删除与其相关的记录。",confirmFunc);
+    }
+    $scope.editGoodsTypeChild = function(m){
+
+        $scope.GoodsTypeChild=m;
+
+        $scope.GoodsTypeChildModalObj={Title:"修改子系列",Action:"change_goods_type_child"};
+
+        $('#goods_type_child_modal').modal('show');
+
 
     }
-    $scope.changeSeckill = function (m) {
-        var formData = new FormData();
-        formData.append("action", "change");
-        formData.append("json", angular.toJson(m));
-        //$('.datepicker').datepicker('update');
-        //Messager($scope.date_info.end_timestamp);
+    $scope.saveGoodsTypeChild = function () {
 
-        $http({
-            method: "POST",
-            url: "products_action",
-            data: formData,
-            headers: {'Content-Type': undefined},
-            transformRequest: angular.identity
-        }).success(function (data, status, headers, config) {
-            Messager(data.message);
-            //$scope.getCardData($routeParams.id);
+        if($scope.GoodsTypeChild.Image==""){
+
+            alert("请上传图片");
+            return
+        }
+
+        $scope.GoodsTypeChild.GoodsTypeID=parseInt(ID);
+        $http.post("goods?action="+$scope.GoodsTypeChildModalObj.Action,JSON.stringify($scope.GoodsTypeChild), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            $scope.GoodsTypeChild={Image:""};
+            alert(data.data.Message);
+            $('#goods_type_child_modal').modal("hide");
+
+            $scope.loadList();
+
         });
+
     }
+
+    $scope.uploadImages = function (progressID,file, errFiles) {
+
+        if (file) {
+            var thumbnail =Upload.upload({
+                url: '/file/up',
+                data: {file: file},
+            });
+            thumbnail.then(function (response) {
+                $timeout(function () {
+                    var url =response.data.Data;
+
+                    $scope.GoodsTypeChild.Image = url;
+
+                });
+            }, function (response) {
+                if (response.status > 0){
+                    $scope.errorMsg = response.status + ': ' + response.data;
+                }
+            }, function (evt) {
+                // Math.min is to fix IE which reports 200% sometimes
+                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                //$("."+progressID).text(progress+"%");
+                //$("."+progressID).css("width",progress+"%");
+            });
+        }else{
+            UpImageError(errFiles);
+        }
+    }
+
 });
-main.controller('add_productsCtrl', function ($http, $rootScope,$location,$scope, $routeParams) {
-    $rootScope.title = "添加产品";
-    //$rootScope.goback = "#/";
-    $rootScope.isgoback = true;
+main.controller("goods_type_list_controller",function ($http, $scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
 
+    $scope.GoodsType={Name:""};
 
-    //Messager($routeParams.id)
-    $scope.product = {seckill:true};
-    $scope.photoLists=[];
-    $scope.descriptionImages=[];
+    $scope.ModalType =[{Title:"添加系列",action:"add_goods_type"},{Title:"修改系列",action:"change_goods_type"}];
 
+    var table;
+    $scope.GoodsTypeModalObj =$scope.ModalType.add;
+    $scope.showGoodsTypeModal =function (index) {
+        $scope.GoodsTypeModalObj = $scope.ModalType[index];
 
-    $scope.pid = GetQueryString("pid");
-    if($scope.pid!=null){
-        $http.get("products_action", {
-            params: {
-                action: "get",
-                pid:$scope.pid
+        $('#add_goods_type').modal({
+            onApprove : function() {
+
             }
-        }).success(function (reponse) {
-            $scope.product = reponse.data;
-            var links =  $scope.product.links;
-            if(links!=undefined){
-                var linksarr = links.split(",");
-                $scope.links_text =linksarr[0];
-                $scope.links_link =linksarr[1];
-            }
-            if($scope.product.photoList!=null && $scope.product.photoList!=""){
-                $scope.photoLists=$scope.product.photoList.split(",");
-            }else{
-                $scope.photoLists=[];
-            }
+        }).modal('show');
+    }
+    $scope.addGoodsType = function () {
 
-            if($scope.product.descriptionImages!=null && $scope.product.descriptionImages!=""){
-                $scope.descriptionImages=$scope.product.descriptionImages.split(",");
-            }else{
-                $scope.descriptionImages=[];
-            }
+        $http.post("goods?action="+$scope.GoodsTypeModalObj.action,JSON.stringify($scope.GoodsType), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
 
+            $scope.GoodsType={Name:""};
+            alert(data.data.Message);
+            $('#add_goods_type').modal("hide");
+
+            table.ajax.reload();
         });
-    }
-
-//MessagerConfirm("确定要删除这条文章？" + title,confirmFunc);
-    function deleteFunc() {
-        var arr = angular.copy($scope.photoLists);
-        arr.splice(imageIndex,1);
-
-        $scope.$apply(function () {
-            $scope.photoLists = arr;
-        });
-    }
-    function deleteDescriptionImagesFunc() {
-        var arr = angular.copy($scope.descriptionImages);
-        arr.splice(imageIndex,1);
-
-        $scope.$apply(function () {
-            $scope.descriptionImages = arr;
-        });
-    }
-    var imageIndex;
-    $scope.deleteImage = function (url) {
-
-        imageIndex =  $scope.photoLists.indexOf(url);
-        if(imageIndex!=-1){
-            MessagerConfirm("确定要删除这张图片？",deleteFunc);
-        }
 
     }
-    $scope.deleteDescriptionImages = function (url) {
 
-        imageIndex =  $scope.descriptionImages.indexOf(url);
-        if(imageIndex!=-1){
-            MessagerConfirm("确定要删除这张图片？",deleteDescriptionImagesFunc);
-        }
+    $timeout(function () {
+        table = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Name"},
+                {data:null,className:"opera",orderable:false,render:function () {
+                    return '<button class="ui edit blue mini button">编辑</button>' +'<button class="ui child blue mini button">子类管理</button>' +
+                        '  <button class="ui delete red mini button">删除</button>';
 
-    }
-    
-    $scope.deleteSmallImageImage = function () {
-        //$scope.product.smallImage =null;
-        //var product = $scope.product;
-       // product.smallImage = "";
-        //$scope.product = product;
-    }
+                    }}
+            ],
+            "createdRow": function ( row, data, index ) {
+                //console.log(row,data,index);
+            },
+            columnDefs:[
 
-    $scope.upload = function (file, name) {
-        $('#progressBar').modal({keyboard:false,show:true,backdrop:"static"});
+            ],
+            "initComplete":function (d) {
 
-        var formData = new FormData();
-        formData.append('file', file);
-        //formData.append('access_token', access_token);
-        $http({
-            method: 'POST',
-            url: '../file/upImage',
-            data: formData,
-            headers: {'Content-Type': undefined},
-            transformRequest: angular.identity
-        }).success(function (data, status, headers, config) {
-
-            $('#progressBar').modal('hide');
-            ///Messager(JSON.stringify(data));
-            Messager(data.message);
-
-            if(name=="photo_lists"){
-                if($scope.photoLists.indexOf(data.data.url)==-1){
-                    $scope.photoLists.push(data.data.url);
-                }
-            }else if(name=="small_image"){
-
-                $scope.product.smallImage=data.data.url;
-
-            }else if(name=="description_images"){
-                if($scope.descriptionImages.indexOf(data.data.url)==-1){
-                    $scope.descriptionImages.push(data.data.url);
+            },
+            paging: true,
+            //"dom": '<"toolbar">frtip',
+            "pagingType": "full_numbers",
+            searching: false,
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "goods?action=list_goods_type",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
                 }
             }
-            //$scope.Card.logo_url = data.data.url;
-        }).error(function (data, status, headers, config) {
-            $('#progressBar').modal('hide');
         });
+
+        $('#table_local').on('click','td.opera .edit', function () {
+
+
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
+            console.log(row.data());
+
+            $timeout(function () {
+                $scope.GoodsType={Name:row.data().Name,ID:row.data().ID};
+                $scope.showGoodsTypeModal(1);
+            });
+
+        });
+        $('#table_local').on('click','td.opera .child', function () {
+
+
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
+            console.log(row.data());
+
+
+            window.location.href="#!/goods_type_child_list?ID="+row.data().ID;
+
+            $timeout(function () {
+                //$scope.GoodsType={Name:row.data().Name,ID:row.data().ID};
+                //$scope.showGoodsTypeModal(1);
+            });
+
+        });
+        $('#table_local').on('click','td.opera .delete', function () {
+
+
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
+
+            console.log(row.data());
+
+            /*$timeout(function () {
+                var data = row.data();
+                data.PassWord="";
+                $scope.onShowBox(data,1);
+            });*/
+
+            if(confirm("确定删除？")){
+                $http.get("goods?action=del_goods_type",{params:{ID:row.data().ID}}).then(function (data) {
+
+                    alert(data.data.Message);
+
+                    table.ajax.reload();
+
+                })
+            }
+
+
+
+        });
+    });
+
+});
+function LeftMoveArr(arr,index){
+    var item =arr[index];
+    if(index-1<0){
+        return
+    }
+    var newIndex =index-1;
+
+    var oldItem = arr[newIndex];
+
+    arr[newIndex]=item;
+    arr[index]=oldItem;
+
+}
+function RightMoveArr(arr,index){
+
+    var item =arr[index];
+    if(index+1>arr.length-1){
+        return
+    }
+    var newIndex =index+1;
+
+    var oldItem = arr[newIndex];
+
+    arr[newIndex]=item;
+    arr[index]=oldItem;
+
+}
+main.controller("add_goods_controller",function ($http, $scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    $scope.LeftMoveArr=LeftMoveArr;
+    $scope.RightMoveArr=RightMoveArr;
+
+    $scope.Images=[];
+    $scope.Videos=[];
+    $scope.Pictures=[];
+    $scope.Params=[];
+
+    $scope.Goods ={ID:$routeParams.ID};
+    $scope.param = {Name:"",Value:""};
+    $scope.GoodsTypeList = [];
+    $scope.GoodsTypeID=undefined;
+
+    $scope.Specification={};
+    $scope.Specifications=[];
+
+    $scope.PostAction={Action:"POST",Url:"goods?action=add_goods"};
+
+
+    $scope.addSpecifications = function(){
+
+        if($scope.Specification.Num==undefined){
+            alert("请填写：Num");
+            return
+        }
+        if($scope.Specification.Weight==undefined){
+            alert("请填写：Weight");
+            return
+        }
+        if($scope.Specification.Label==undefined){
+            alert("请填写：Label");
+            return
+        }
+        if($scope.Specification.Stock==undefined){
+            alert("请填写：Stock");
+            return
+        }
+        if($scope.Specification.CostPrice==undefined){
+            alert("请填写：CostPrice");
+            return
+        }
+        if($scope.Specification.MarketPrice==undefined){
+            alert("请填写：MarketPrice");
+            return
+        }
+        if($scope.Specification.Brokerage==undefined){
+            alert("请填写：Brokerage");
+            return
+        }
+        var copy = angular.copy($scope.Specification);
+        copy.Delete = 0;
+
+        $scope.Specifications.push(copy);
+        $scope.Specification={};
+
+        $scope.ayStock();
+    }
+
+    $scope.ayStock = function(){
+        var stock = 0;
+        var Price = 9999999999999999;
+        for(var i=0;i<$scope.Specifications.length;i++){
+            var item = $scope.Specifications[i];
+            stock=stock+parseInt(item.Stock);
+            Price = Math.min(Price,item.MarketPrice);
+        }
+        $scope.Goods.Stock=stock;
+        $scope.Goods.Price=Price;
+    }
+    $scope.deleteSpecification = function(index){
+        var item = $scope.Specifications[index];
+        $scope.Specifications.splice(index,1);
+        $scope.ayStock();
+        if(item.ID!=undefined&& item.ID>0){
+            $http.get("goods?action=delete_specification&ID="+item.ID).then(function (data, status, headers, config) {
+                alert(data.data.Message);
+            });
+        }
+
 
     }
 
-    $scope.saveProduct = function (valid) {
-        if(valid==false){
-            Messager("请完善内容在提交");
+    $scope.changeStock = function(){
+        $scope.ayStock();
+    }
+
+
+    $scope.expressTemplateInfo=null;
+    $scope.selectExpressTemplate = function(){
+        $scope.Units=[];
+        for(var i=0;i<$scope.ExpressTemplateList.length;i++){
+            var item = $scope.ExpressTemplateList[i];
+            if(item.ID==$scope.Goods.ExpressTemplateID){
+                $scope.expressTemplateInfo="当前快递为："+item.Name+"，"+(item.Drawee=='BUYERS'?'买家承担运费':'商家包邮')+"，计费方式："+(item.Type=='ITEM'?'件':'Kg');
+                break
+            }
+        }
+    }
+
+    $scope.ExpressTemplateList =[];
+    $http.get("express_template/list").then(function (data, status, headers, config) {
+        $scope.ExpressTemplateList = data.data.Data;
+
+        $scope.selectExpressTemplate();
+    });
+
+    $http.get("goods?action=list_goods_type_all",{}, {
+        transformRequest: angular.identity,
+        headers: {"Content-Type": "application/json"}
+    }).then(function (data, status, headers, config) {
+        $scope.GoodsTypeList = data.data.Data;
+
+            if($scope.Goods.ID!=undefined){
+
+                $scope.PostAction={Action:"POST",Url:"goods?action=change_goods"};
+
+                $http.get("goods?action=get_goods",{params:{ID:$scope.Goods.ID}}).then(function (data) {
+
+                    if(data.data.Success==true){
+
+                        var Goods = data.data.Data.Goods;
+                        Goods.Price= Goods.Price/100;
+                        $scope.Goods =Goods;
+
+                        var Specifications=data.data.Data.Specifications;
+                        for(var i=0;i<Specifications.length;i++){
+                            Specifications[i].Weight=Specifications[i].Weight/1000;
+                            Specifications[i].CostPrice=Specifications[i].CostPrice/100;
+                            Specifications[i].MarketPrice=Specifications[i].MarketPrice/100;
+                            Specifications[i].Brokerage=Specifications[i].Brokerage/100;
+                        }
+                        $scope.Specifications=Specifications;
+
+                        $scope.Videos=JSON.parse($scope.Goods.Videos);
+                        $scope.Images=JSON.parse($scope.Goods.Images);
+                        $scope.Pictures=JSON.parse($scope.Goods.Pictures);
+                        $scope.Params=JSON.parse($scope.Goods.Params);
+
+                        $scope.selectExpressTemplate();
+
+                        $http.get("goods?action=get_goods_type_child",{params:{ID:$scope.Goods.GoodsTypeChildID}}, {
+                            transformRequest: angular.identity,
+                            headers: {"Content-Type": "application/json"}
+                        }).then(function (data, status, headers, config) {
+                            var GoodsTypeChild = data.data.Data;
+
+
+                            $http.get("goods?action=list_goods_type_child_id",{params:{ID:GoodsTypeChild.GoodsTypeID}}, {
+                                transformRequest: angular.identity,
+                                headers: {"Content-Type": "application/json"}
+                            }).then(function (data, status, headers, config) {
+                                $scope.GoodsTypeChildList = data.data.Data;
+
+                                $timeout(function () {
+                                    $scope.GoodsTypeChildID =GoodsTypeChild.ID;
+                                    $scope.GoodsTypeID=GoodsTypeChild.GoodsTypeID;
+                                });
+
+                            });
+
+
+
+
+                        });
+
+
+
+
+                    }else{
+                        alert(data.data.Message);
+                    }
+
+                })
+            }
+
+
+
+
+
+    });
+
+
+    $scope.changeGoodsType = function(){
+        $scope.GoodsTypeChildList=[];
+
+        if($scope.GoodsTypeID!=undefined){
+            $http.get("goods?action=list_goods_type_child_id",{params:{ID:$scope.GoodsTypeID}}).then(function (data) {
+
+                $scope.GoodsTypeChildList = data.data.Data;
+
+            })
+        }
+    }
+
+
+    $scope.deleteArr = function(arr,index){
+
+        if(confirm("确认删除这项内容？")){
+            arr.splice(index,1);
+        }
+    }
+    $scope.showParamsModal = function(){
+        $('#params').modal({
+            onApprove : function() {
+                window.alert('Approved!');
+            }
+        }).modal('show');
+    }
+
+    $scope.addParams = function(){
+
+        $timeout(function () {
+            $scope.Params.push(angular.copy($scope.param));
+            $('#params').modal("hide");
+            $scope.param = {Name:"",Value:""};
+        });
+    }
+
+
+
+
+    $scope.saveGoods = function(){
+
+        $scope.Goods.Videos = JSON.stringify($scope.Videos);
+        $scope.Goods.Images = JSON.stringify($scope.Images);
+        $scope.Goods.Pictures = JSON.stringify($scope.Pictures);
+        $scope.Goods.Params = JSON.stringify($scope.Params);
+        //$scope.Goods.Specifications = $scope.Specifications;
+        $scope.Goods.GoodsTypeID = parseInt($scope.GoodsTypeID);
+        $scope.Goods.GoodsTypeChildID = parseInt($scope.GoodsTypeChildID);
+        $scope.Goods.Price =parseInt($scope.Goods.Price*100);
+        /*var form = new FormData();
+        form.append("goods",JSON.stringify($scope.Goods));
+        form.append("specifications",JSON.stringify($scope.Specifications));*/
+
+
+
+        if( $scope.Specifications.length<=0){
+            alert("请添加规格");
             return;
         }
 
-        /*var links =  $scope.product.links;
-        if(links!=undefined){
-            var linksarr = links.split(",");
-            $scope.links_text =linksarr[0];
-            $scope.links_link =linksarr[1];
-        }*/
 
-        if($scope.links_text!=undefined && $scope.links_text!=""){
-            if($scope.links_link==undefined || $scope.links_link==""){
 
-                Messager("链接地址不能为空");
-                return;
-            }
+
+
+        var Specifications=$scope.Specifications;
+
+        for(var i=0;i<Specifications.length;i++){
+            Specifications[i].Weight=parseInt(Specifications[i].Weight*1000);
+            Specifications[i].CostPrice=parseInt(Specifications[i].CostPrice*100);
+            Specifications[i].MarketPrice=parseInt(Specifications[i].MarketPrice*100);
+            Specifications[i].Brokerage=parseInt(Specifications[i].Brokerage*100);
         }
-        if($scope.links_link!=undefined && $scope.links_link!=""){
-            if($scope.links_text==undefined || $scope.links_text==""){
+        $scope.Specifications=Specifications;
 
-                Messager("链接名不能为空");
-                return;
-            }
-        }
-        if($scope.links_link!=undefined && $scope.links_link!="" && $scope.links_text!=undefined && $scope.links_text!=""){
-            $scope.product.links=$scope.links_text+","+$scope.links_link;
-        }else {
-            $scope.product.links=null;
-        }
 
-        $scope.product.photoList=$scope.photoLists.join(",");
-        $scope.product.descriptionImages=$scope.descriptionImages.join(",");
-        //Messager(JSON.stringify($scope.product));
-        if ($scope.product.type == undefined || $scope.product.type == null) {
-
-            Messager("请选择类型");
-            return
-
-        }
-
-        var formData = new FormData();
-        if (GetQueryString("pid") != undefined) {
-            formData.append("action", "change");
-        } else {
-            formData.append("action", "add");
-        }
-
-        formData.append("json", angular.toJson($scope.product));
-        //$('.datepicker').datepicker('update');
-        //Messager($scope.date_info.end_timestamp);
-
+        var form ={};
+        form.goods=JSON.stringify($scope.Goods);
+        form.specifications=JSON.stringify($scope.Specifications);
+        //$scope.PostAction={Action:"POST",Url:"goods?action=change_goods"};
         $http({
-            method: "POST",
-            url: "products_action",
-            data: formData,
-            headers: {'Content-Type': undefined},
-            transformRequest: angular.identity
-        }).success(function (data, status, headers, config) {
-            Messager(data.message);
-            if (data.success == true) {
-                window.location.href="/admin/products";
+            method:$scope.PostAction.Action,
+            url:$scope.PostAction.Url,
+            data:$.param(form),
+            transformRequest: angular.identity,
+            headers: {'Content-Type':'application/x-www-form-urlencoded'}
+        }).then(function (data, status, headers, config) {
+            alert(data.data.Message);
+            if(data.data.Success==true){
+                window.location.href="#!/goods_list";
             }
-
-            //$scope.getCardData($routeParams.id);
         });
 
+        /*$http.post("goods?action="+action,$.param(form), {
+            transformRequest: angular.identity,
+            //headers: {"Content-Type": "application/x-www-form-urlencoded"}
+            headers: {"Content-Type": "application/x-www-form-urlencoded"}
+        }).then(function (data, status, headers, config) {
+
+           alert(data.data.Message);
+            if(data.data.Success==true){
+                window.location.href="#!/goods_list";
+            }
+        });*/
+
     }
+    $scope.uploadVideos = function (progressID,files, errFiles) {
+
+        if (files && files.length) {
+
+            //progress-bar-videos
+            var progressObj ={};
+            $(progressID).text("0/"+(files.length*100));
+
+            for (var i = 0; i < files.length; i++) {
+                Upload.upload({url: '/file/up',data:{file: files[i]}}).then(function (response) {
+                    var url =response.data.Data;
+
+                    if($scope.Videos.indexOf(url)==-1){
+                        $scope.Videos.push(url);
+                    }
+
+                },function (resp) {
+                    console.log('Error status: ' + resp.status);
+                },function (evt) {
+                    var progressPercentage = parseInt(100.0 * evt.loaded / evt.total);
+                    console.log('progress: ' + progressPercentage + '% ' + evt.config.data.file.name);
+
+
+                    progressObj[evt.config.data.file.name]=progressPercentage;
+
+
+                    var showTexts =[];
+                    for(var key in progressObj){
+                        showTexts.push(key+":"+progressObj[key]+"%");
+                    }
+
+
+                    $(progressID).text(showTexts.join(","));
+                });
+            }
+        }else{
+            UpImageError(errFiles);
+        }
+    }
+    $scope.uploadImages = function (progressID,files, errFiles) {
+
+        if (files && files.length) {
+            for (var i = 0; i < files.length; i++) {
+                Upload.upload({url: '/file/up',data:{file: files[i]}}).then(function (response) {
+                    var url =response.data.Data;
+
+                    if($scope.Images.indexOf(url)==-1){
+                        $scope.Images.push(url);
+                    }
+                    
+                },function (response) {
+                    
+                },function (response) {
+                    
+                });
+            }
+        }else{
+            UpImageError(errFiles);
+        }
+    }
+    $scope.uploadPictures = function (progressID,files, errFiles) {
+
+        if (files && files.length) {
+            for (var i = 0; i < files.length; i++) {
+                Upload.upload({url: '/file/up',data:{file: files[i]}}).then(function (response) {
+                    var url =response.data.Data;
+                    if($scope.Pictures.indexOf(url)==-1){
+                        $scope.Pictures.push(url);
+                    }
+
+                },function (response) {
+
+                },function (response) {
+
+                });
+            }
+        }else{
+            UpImageError(errFiles);
+        }
+
+        /*if (file) {
+            var thumbnail =Upload.upload({
+                url: '/file/up',
+                data: {file: file},
+            });
+            thumbnail.then(function (response) {
+                $timeout(function () {
+                    var url =response.data.Data;
+
+                    if($scope.Pictures.indexOf(url)==-1){
+                        $scope.Pictures.push(url);
+                    }
+
+
+                });
+            }, function (response) {
+                if (response.status > 0){
+                    $scope.errorMsg = response.status + ': ' + response.data;
+                }
+            }, function (evt) {
+                // Math.min is to fix IE which reports 200% sometimes
+                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                //$("."+progressID).text(progress+"%");
+                //$("."+progressID).css("width",progress+"%");
+            });
+        }else{
+            UpImageError(errFiles);
+        }*/
+    }
+
+});
+main.controller("goods_list_controller",function ($http, $scope, $filter,$rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+
+    $http.get("goods?action=list_goods_type_child",{}, {
+        transformRequest: angular.identity,
+        headers: {"Content-Type": "application/json"}
+    }).then(function (data, status, headers, config) {
+        var _list = data.data.Data;
+        var GoodsTypeObj = {};
+        for(var i=0;i<_list.length;i++){
+            GoodsTypeObj[_list[i].ID]=_list[i].Name;
+        }
+
+
+
+        var table;
+        $timeout(function () {
+            table = $('#table_local').DataTable({
+                "columns": [
+                    {data:"ID"},
+                    {data:"Title"},
+                    {data:"Stock"},
+                   /* {data:"CostPrice",render: function (data, type, row) {
+
+                            return $filter("currency")(data/100);
+                        }},
+                    {data:"MarketPrice",render: function (data, type, row) {
+
+                            return $filter("currency")(data/100);
+                        }},*/
+                    {data:"CreatedAt",render: function (data, type, row) {
+
+                            return $filter("date")(data,"medium");
+                        }},
+                    {data:"GoodsTypeChildID",render: function (data, type, row) {
+                            if(GoodsTypeObj[data]){
+                                return GoodsTypeObj[data];
+                            }else {
+                                return "系列不存在"
+                            }
+
+                        }},
+                    {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+                            return '<a href="#!/add_goods?ID='+data.ID+'" class="ui edit blue mini button">编辑</a>'+
+                                '  <button class="ui delete red mini button">删除</button>';
+
+                        }}
+                ],
+                "createdRow": function ( row, data, index ) {
+                    //console.log(row,data,index);
+                },
+                columnDefs:[
+
+                ],
+                "initComplete":function (d) {
+
+                },
+                paging: true,
+                //"dom": '<"toolbar">frtip',
+                "pagingType": "full_numbers",
+                searching: false,
+                "processing": true,
+                "serverSide": true,
+                "ajax": {
+                    "url": "goods?action=list_goods",
+                    "type": "POST",
+                    "contentType": "application/json",
+                    "data": function ( d ) {
+                        return JSON.stringify(d);
+                    }
+                }
+            });
+
+            /*$('#table_local').on('click','td.opera .edit', function () {
+
+
+                var tr = $(this).closest('tr');
+                var row = table.row( tr );
+                console.log(row.data());
+
+                $timeout(function () {
+                    $scope.GoodsType={Name:row.data().Name,ID:row.data().ID};
+                    $scope.showGoodsTypeModal(1);
+                });
+
+            });*/
+            $('#table_local').on('click','td.opera .delete', function () {
+
+
+                var tr = $(this).closest('tr');
+                var row = table.row( tr );
+
+                console.log(row.data());
+
+                if(confirm("确定删除？")){
+                    $http.get("goods?action=del_goods",{params:{ID:row.data().ID}}).then(function (data) {
+
+                        alert(data.data.Message);
+
+                        table.ajax.reload();
+
+                    })
+                }
+
+                /*$timeout(function () {
+                    var data = row.data();
+                    data.PassWord="";
+                    $scope.onShowBox(data,1);
+                });*/
+
+
+
+            });
+        });
+    })
+
 
 
 });
