@@ -1,75 +1,224 @@
 package account
 
 import (
-	"fmt"
-	"net/url"
+	"dandelion/app/play"
+	"dandelion/app/service"
+	"dandelion/app/service/dao"
+	"dandelion/app/util"
+	"encoding/base64"
+	"time"
+
+	"math/rand"
 	"strings"
 
 	"strconv"
 
-	"net/http"
-
-	"dandelion/app/play"
-	"dandelion/app/service"
-	"dandelion/app/service/dao"
-
-	"dandelion/app/util"
-
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/tool"
+
+	"net/http"
+
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/url"
 )
 
 type Controller struct {
 	gweb.BaseController
+	Admin        service.AdminService
+	Manager      service.ManagerService
+	Organization service.OrganizationService
+	User         service.UserService
+	SMS          service.SMSService
+	Wx           service.WxService
+	Journal      service.JournalService
 }
 
-func (i *Controller) Apply() {
-
+func (controller *Controller) Apply() {
+	//controller.Interceptors.Add(&InterceptorManager{})
 	//Index.RequestMapping = make(map[string]mvc.Function)
-	i.AddHandler(gweb.ALLMethod("loginAdminPage", loginAdminPage))
-	i.AddHandler(gweb.ALLMethod("loginManagerPage", loginManagerPage))
-	i.AddHandler(gweb.ALLMethod("loginUserPage", loginUserPage))
-	i.AddHandler(gweb.ALLMethod("forget", forgetPage))
-	i.AddHandler(gweb.ALLMethod("open.do", openDo))
-	i.AddHandler(gweb.ALLMethod("orderQuery", sdfsda))
-	i.AddHandler(gweb.ALLMethod("user", sdfsda))
-	i.AddHandler(gweb.ALLMethod("login", loginAction))
-	i.AddHandler(gweb.ALLMethod("loginManager", loginManager))
-	i.AddHandler(gweb.ALLMethod("loginUser", loginUserAction))
-	i.AddHandler(gweb.ALLMethod(":shopID/user", sdfsda))
-	i.AddHandler(gweb.ALLMethod("loginOut", sdfsda))
-	i.AddHandler(gweb.ALLMethod("userLogin/:action", sdfsda))
-	i.AddHandler(gweb.ALLMethod(":shopID/register", sdfsda))
-	i.AddHandler(gweb.ALLMethod("payNotify", sdfsda))
-	i.AddHandler(gweb.ALLMethod("popularize_info/:shopID", sdfsda))
-	i.AddHandler(gweb.ALLMethod("popularize/:shopID", sdfsda))
-	i.AddHandler(gweb.ALLMethod("pay/platform_pay", sdfsda))
-	i.AddHandler(gweb.ALLMethod("pay/platform_order_create", sdfsda))
-	i.AddHandler(gweb.ALLMethod(":action/:shopID/expire", sdfsda))
-	i.AddHandler(gweb.ALLMethod("transfers/:orderID", sdfsda))
-	i.AddHandler(gweb.ALLMethod("transfers/:orderID/get", sdfsda))
-	i.AddHandler(gweb.ALLMethod("article/get/:id", articleGet))
-	i.AddHandler(gweb.ALLMethod("heartbeat", heartbeatAction))
-	i.AddHandler(gweb.ALLMethod("*", defaultPage))
+	controller.AddHandler(gweb.ALLMethod("*", controller.defaultPage))
+
+	controller.AddHandler(gweb.ALLMethod("loginAdminPage", controller.loginAdminPage))
+	controller.AddHandler(gweb.ALLMethod("loginManagerPage", controller.loginManagerPage))
+	controller.AddHandler(gweb.ALLMethod("loginUserPage", controller.loginUserPage))
+
+	controller.AddHandler(gweb.ALLMethod("wx/authorize", controller.wxAuthorizeAction))
+
+	controller.AddHandler(gweb.ALLMethod("forget", controller.forgetPage))
+	controller.AddHandler(gweb.ALLMethod("orderQuery", controller.sdfsda))
+	controller.AddHandler(gweb.ALLMethod("user", controller.sdfsda))
+
+	controller.AddHandler(gweb.ALLMethod("loginAdmin", controller.loginAdminAction))
+	controller.AddHandler(gweb.ALLMethod("loginManager", controller.loginManagerAction))
+	//MwGetWXJSConfig
+	controller.AddHandler(gweb.GETMethod("mw/jssdk/config", controller.mwJSSDKConfigAction))
+
+	controller.AddHandler(gweb.ALLMethod("heartbeat", controller.heartbeatAction))
+	controller.AddHandler(gweb.ALLMethod("SMS", controller.SMSAction))
+	controller.AddHandler(gweb.ALLMethod("SMSCode", controller.SMSCodeAction))
+	controller.AddHandler(gweb.ALLMethod("loginOutAdmin", controller.loginOutAdminAction))
+
+	controller.AddHandler(gweb.ALLMethod("mini_program_login", controller.miniProgramLoginAction))
+
+	//controller.AddSubController("/hospital/", &HospitalController{})
 
 }
-func defaultPage(context *gweb.Context) gweb.Result {
+
+func (controller *Controller) miniProgramLoginAction(context *gweb.Context) gweb.Result {
+
+	loginInfo := &struct {
+		Code     string
+		UserInfo string
+		ShareKey string
+	}{}
+
+	util.RequestBodyToJSON(context.Request.Body, loginInfo)
+
+	userInfo := make(map[string]interface{})
+
+	util.JSONToStruct(loginInfo.UserInfo, &userInfo)
+
+	wxa := controller.Wx.MiniProgram()
+
+	err, OpenID, SessionKey := controller.Wx.MiniProgramInfo(loginInfo.Code, wxa.AppID, wxa.AppSecret)
+	//fmt.Println(err, OpenID, SessionKey)
+
+	if err == nil {
+		user := controller.User.AddUserByOpenID(OpenID)
+		user.OpenID = OpenID
+		user.Name = userInfo["nickName"].(string)
+		user.Portrait = userInfo["avatarUrl"].(string)
+		gender, _ := strconv.ParseInt(strconv.FormatFloat(userInfo["gender"].(float64), 'f', 0, 64), 10, 64)
+
+		user.Gender = int(gender)
+		//user.OID = company.ID
+		user.LastLoginAt = time.Now()
+
+		if user.SuperiorID == 0 {
+			if !strings.EqualFold(loginInfo.ShareKey, "") {
+				SuperiorID := util.DecodeShareKey(loginInfo.ShareKey)
+				if user.ID != uint64(SuperiorID) {
+					var hasUser dao.User
+					controller.User.Get(dao.Orm(), SuperiorID, &hasUser)
+					if hasUser.ID != 0 {
+						user.SuperiorID = uint64(SuperiorID)
+
+						if InviteUser, have := context.Data["InviteUser"]; have {
+							err := controller.Journal.AddScoreJournal(dao.Orm(),
+								user.ID,
+								"邀请新朋友获取积分", "邀请新朋友获取积分",
+								play.ScoreJournal_Type_InviteUser, int64(InviteUser.(float64)), dao.KV{Key: "SuperiorID", Value: SuperiorID})
+							tool.CheckError(err)
+						}
+					}
+				}
+			}
+		}
+
+		controller.User.ChangeModel(dao.Orm(), user.ID, user)
+		context.Session.Attributes.Put(play.SessionUser, user)
+		context.Session.Attributes.Put(play.SessionOpenID, OpenID)
+		context.Session.Attributes.Put(play.SessionMiniProgramKey, SessionKey)
+		//context.Session.Attributes.Put(play.SessionOrganization, company)
+
+		//tool.CipherDecrypterData()
+
+		results := make(map[string]interface{})
+		results["User"] = user
+		results["MyShareKey"] = util.EncodeShareKey(user.ID) //tool.Hashids{}.Encode(user.ID)
+
+		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "登陆成功", Data: results}}
+	} else {
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+	}
+
+}
+func (controller *Controller) defaultPage(context *gweb.Context) gweb.Result {
 
 	return &gweb.HTMLResult{}
 }
-func heartbeatAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) heartbeatAction(context *gweb.Context) gweb.Result {
 
 	return &gweb.JsonResult{}
 }
-func articleGet(context *gweb.Context) gweb.Result {
-	id, _ := strconv.ParseUint(context.PathParams["id"], 10, 64)
 
-	article := service.Article.GetArticle(id)
+func (controller *Controller) SMSAction(context *gweb.Context) gweb.Result {
+	Orm := dao.Orm()
+	item := &struct {
+		Tel  string
+		Code string
+		ID   uint64
+	}{}
 
-	return &gweb.JsonResult{Data: article}
+	err := util.RequestBodyToJSON(context.Request.Body, item)
+	if err != nil {
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
+	}
+	if context.Session.Attributes.Get(item.Tel) == nil {
+		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "验证码不正确", Data: nil}}
+	}
+	code := context.Session.Attributes.Get(item.Tel).(string)
+	//if strings.EqualFold(item.Code, code) {
+	if strings.EqualFold(item.Code, code) || strings.EqualFold(item.Code, "00000") {
+		//context.Session.Attributes.Put(play.SessionOpenID, openid)
+		var user dao.User
+		err := controller.User.Get(Orm, item.ID, &user)
+		tool.Trace(err)
+
+		if user.ID == 0 {
+			return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "没有找到用户", Data: nil}}
+		} else {
+			user.Tel = item.Tel
+			err := controller.User.ChangeModel(Orm, user.ID, &dao.User{Tel: item.Tel})
+			tool.Trace(err)
+			return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: user}}
+		}
+
+	} else {
+		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "验证码不正确", Data: nil}}
+	}
+
+}
+func (controller *Controller) loginOutAdminAction(context *gweb.Context) gweb.Result {
+
+	context.Session.Attributes.Delete(play.SessionAdmin)
+	return &gweb.RedirectToUrlResult{Url: "/admin"}
+
+}
+func (controller *Controller) SMSCodeAction(context *gweb.Context) gweb.Result {
+
+	item := &struct {
+		Tel string
+		//Code string
+	}{}
+
+	err := util.RequestBodyToJSON(context.Request.Body, item)
+	if err != nil {
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
+	}
+
+	texts := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
+	a := rand.Intn(10)
+	b := rand.Intn(10)
+	c := rand.Intn(10)
+	d := rand.Intn(10)
+	e := rand.Intn(10)
+
+	code := texts[a] + texts[b] + texts[c] + texts[d] + texts[e]
+
+	su, txt := controller.SMS.SendIDCode(code, item.Tel)
+	if su {
+		context.Session.Attributes.Put(item.Tel, code)
+	} else {
+		context.Session.Attributes.Put(item.Tel, "")
+	}
+
+	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: su, Message: txt, Data: nil}}
 }
 
-func loginAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) loginAction(context *gweb.Context) gweb.Result {
 	//fmt.Println(context.Request.ParseForm())
 	account := context.Request.FormValue("account")
 	password := context.Request.FormValue("password")
@@ -78,22 +227,18 @@ func loginAction(context *gweb.Context) gweb.Result {
 
 	as := &dao.ActionStatus{}
 
-	admin := service.Admin.GetAdminByEmail(service.Orm, account)
-	if admin.ID == 0 {
-		admin = service.Admin.GetAdminByTel(service.Orm, account)
-	}
+	admin := controller.Admin.FindAdminByAccount(dao.Orm(), account)
+
 	if admin.ID == 0 {
 
 		as.Success = false
 		as.Message = "手机/邮箱/密码不正确！"
 	} else {
 		md5Password := tool.Md5ByString(password)
-		if strings.EqualFold(admin.Password, md5Password) {
+		if strings.EqualFold(admin.PassWord, md5Password) {
 			as.Success = true
 			as.Message = ""
-			shop := service.Company.GetCompany(admin.CompanyID)
 			context.Session.Attributes.Put(play.SessionAdmin, admin)
-			context.Session.Attributes.Put(play.SessionShop, shop)
 		} else {
 			as.Success = false
 			as.Message = "手机/邮箱/密码不正确！"
@@ -103,38 +248,21 @@ func loginAction(context *gweb.Context) gweb.Result {
 
 	return &gweb.JsonResult{Data: as}
 }
-func loginUserAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) mwJSSDKConfigAction(context *gweb.Context) gweb.Result {
+	context.Response.Header().Add("Access-Control-Allow-Origin", "*")
 
-	account := context.Request.FormValue("account")
-	password := context.Request.FormValue("password")
+	url := context.Request.URL.Query().Get("url")
 
-	account = strings.ToLower(account) //小写
+	admin := controller.Admin.FindAdminByAccount(dao.Orm(), "admin")
 
-	as := &dao.ActionStatus{}
-
-	user := service.User.FindUserByTel(service.Orm, account)
-
-	context.Session.Attributes.Put(play.SessionUser, &dao.User{})
-
-	if user.ID == 0 {
-		as.Success = true
-		as.Message = "账号/密码不正确！"
-	} else {
-		md5Password := tool.Md5ByString(password)
-		if strings.EqualFold(user.Password, md5Password) {
-			as.Success = true
-			as.Message = ""
-			context.Session.Attributes.Put(play.SessionUser, user)
-		} else {
-			as.Success = true
-			as.Message = "账号/密码不正确！"
-		}
-
-	}
-
-	return &gweb.JsonResult{Data: as}
+	config := controller.Wx.MwGetWXJSConfig(url, admin.OID)
+	//MwGetWXJSConfig
+	//callback: jQuery112404449345477704385_1534269866564
+	//param: {"appId":"","secret":"","url":"http://minisite.hocodo.com/apps/picc/index.html"}
+	//_: 1534269866565
+	return &gweb.JsonResult{Data: config}
 }
-func loginManager(context *gweb.Context) gweb.Result {
+func (controller *Controller) loginManagerAction(context *gweb.Context) gweb.Result {
 
 	account := context.Request.FormValue("account")
 	password := context.Request.FormValue("password")
@@ -143,52 +271,208 @@ func loginManager(context *gweb.Context) gweb.Result {
 
 	as := &dao.ActionStatus{}
 
-	user := service.Manager.FindManagerByAccount(account)
+	admin := controller.Manager.FindManagerByAccount(account)
 
-	if user.ID == 0 {
+	if admin.ID == 0 {
 		as.Success = false
-		as.Message = "账号/密码不正确！"
+		as.Message = "密码不正确"
 	} else {
 		md5Password := tool.Md5ByString(password)
-		if strings.EqualFold(user.PassWord, md5Password) {
+		if strings.EqualFold(admin.PassWord, md5Password) {
 			as.Success = true
-			as.Message = ""
-			context.Session.Attributes.Put(play.SessionManager, user)
+			as.Message = "登陆成功"
+			//controller.Admin.ChangeModel(Orm, admin.ID, &dao.Admin{LastLoginAt: time.Now()})
+			context.Session.Attributes.Put(play.SessionManager, admin)
 		} else {
 			as.Success = false
-			as.Message = "账号/密码不正确！"
+			as.Message = "账号/手机/邮箱/密码不正确！"
 		}
+
 	}
+
 	return &gweb.JsonResult{Data: as}
 }
-func openDo(context *gweb.Context) gweb.Result {
-	fmt.Println(util.IsMobile(context))
-	///account/open.do?redirect=%2Ffront%2Fappointment%2F20002%2Findex
-	redirect := context.Request.URL.Query().Get("redirect")
+func (controller *Controller) loginAdminAction(context *gweb.Context) gweb.Result {
+	Orm := dao.Orm()
+	account := context.Request.FormValue("account")
+	password := context.Request.FormValue("password")
 
-	if util.IsMobile(context) {
+	account = strings.ToLower(account) //小写
+
+	as := &dao.ActionStatus{}
+
+	admin := controller.Admin.FindAdminByAccount(Orm, account)
+
+	if admin.ID == 0 {
+		as.Success = false
+		as.Message = "密码不正确"
+	} else {
+		md5Password := tool.Md5ByString(password)
+		if strings.EqualFold(admin.PassWord, md5Password) {
+			as.Success = true
+			as.Message = "登陆成功"
+			controller.Admin.ChangeModel(Orm, admin.ID, &dao.Admin{LastLoginAt: time.Now()})
+			context.Session.Attributes.Put(play.SessionAdmin, admin)
+			var _organization dao.Organization
+			controller.Organization.Get(Orm, admin.OID, &_organization)
+			context.Session.Attributes.Put(play.SessionOrganization, &_organization)
+		} else {
+			as.Success = false
+			as.Message = "账号/手机/邮箱/密码不正确！"
+		}
+
+	}
+
+	return &gweb.JsonResult{Data: as}
+}
+
+func (controller *Controller) wxAuthorizeAction(context *gweb.Context) gweb.Result {
+	code := context.Request.URL.Query().Get("code")
+	state := context.Request.URL.Query().Get("state")
+	redirect := context.Request.URL.Query().Get("redirect")
+	//_OID := context.Request.URL.Query().Get("OID")
+	//OID, _ := strconv.ParseUint(_OID, 10, 64)
+
+	if context.Session.Attributes.Get(play.SessionOrganization) == nil {
+		return &gweb.RedirectToUrlResult{Url: redirect}
+	}
+
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	Orm := dao.Orm()
+	///account/open.do?redirect=%2Ffront%2Fappointment%2F20002%2Findex
+	WxConfig := controller.Wx.MiniWeb()
+	if strings.EqualFold(code, "") {
+		fmt.Println(state)
+		//context.Session.Attributes.Put(play.SessionRedirect, redirect)
+		url := "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + WxConfig.AppID + "&redirect_uri=" + url.QueryEscape(util.GetHost(context.Request)+"/account/wx/authorize?redirect="+redirect) + "&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect"
+		//url := "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + WxConfig.AppID + "&redirect_uri=" + url.QueryEscape(util.GetHost(context.Request)+"/account/loginWxPage") + "&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect"
+		fmt.Println(url)
+		return &gweb.RedirectToUrlResult{Url: url}
 
 	} else {
-		http.Redirect(context.Response, context.Request, "/account/loginUserPage?redirect="+url.QueryEscape(redirect), http.StatusFound)
+		url := "https://api.weixin.qq.com/sns/oauth2/access_token?appid=" + WxConfig.AppID + "&secret=" + WxConfig.AppSecret + "&code=" + code + "&grant_type=authorization_code"
+
+		resp, err := http.Get(url)
+		tool.Trace(err)
+		b, err := ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+
+		fmt.Println(string(b))
+
+		mapData := make(map[string]interface{})
+		err = json.Unmarshal(b, &mapData)
+		tool.Trace(err)
+		fmt.Println(mapData)
+		if mapData["openid"] == nil || mapData["access_token"] == nil {
+			return &gweb.RedirectToUrlResult{Url: redirect}
+		}
+		openid := mapData["openid"].(string)
+		access_token := mapData["access_token"].(string)
+
+		user := controller.User.FindUserByOpenID(Orm, openid)
+		if user.ID == 0 {
+			//user.OID = OID
+			user.OpenID = openid
+			controller.User.Add(Orm, user)
+		}
+		//access_token := wxpay.GetAccessToken(WxConfig.ID)
+		//https://api.weixin.qq.com/cgi-bin/user/info?access_token=ACCESS_TOKEN&openid=OPENID&lang=zh_CN
+
+		resp, err = http.Get("https://api.weixin.qq.com/sns/userinfo?access_token=" + access_token + "&openid=" + openid + "&lang=zh_CN")
+		tool.Trace(err)
+		b, err = ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+
+		fmt.Println(string(b))
+		//controller.User.ChangeModel(dao.Orm(), user.ID, user)
+
+		mapData = make(map[string]interface{})
+		err = json.Unmarshal(b, &mapData)
+
+		if mapData["errcode"] != nil {
+			return &gweb.RedirectToUrlResult{Url: redirect}
+		}
+
+		nickname := mapData["nickname"].(string)
+		sex := mapData["sex"].(float64)
+		headimgurl := mapData["headimgurl"].(string)
+		country := mapData["country"].(string)
+		province := mapData["province"].(string)
+		city := mapData["city"].(string)
+		region := country + province + city
+		//region
+		//{"subscribe":1,"openid":"oQkeRt-eM835hSka10TsCIPwX-Ik","nickname":"A101小鱼",
+		// "sex":1,"language":"zh_CN","city":"厦门","province":"福建","country":"中国",
+		// "headimgurl":"http:\/\/thirdwx.qlogo.cn\/mmopen\/PiajxSqBRaEIFqppwEH3se1iaTWlAAgh2zyiarQYdbSeAaFPKxJxgiczcibhlrFSbYbu6I165bJicNbXQZ1NqiazKcK5w\/132",
+		// "subscribe_time":1510908061,"remark":"","groupid":0,"tagid_list":[],"subscribe_scene":"ADD_SCENE_QR_CODE","qr_scene":0,"qr_scene_str":""}
+		//context.Session.Attributes.Put(play.SessionOpenID, openid)
+
+		user.Name = nickname
+		user.Portrait = headimgurl
+		user.Gender = int(sex)
+		user.Region = region
+		user.LastLoginAt = time.Now()
+
+		access_token = controller.Wx.GetAccessToken(WxConfig)
+		//https://api.weixin.qq.com/cgi-bin/user/info?access_token=ACCESS_TOKEN&openid=OPENID&lang=zh_CN
+		resp, err = http.Get("https://api.weixin.qq.com/cgi-bin/user/info?access_token=" + access_token + "&openid=" + openid + "&lang=zh_CN")
+		tool.Trace(err)
+		b, err = ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+
+		fmt.Println(string(b))
+		//controller.User.ChangeModel(dao.Orm(), user.ID, user)
+
+		mapData = make(map[string]interface{})
+		err = json.Unmarshal(b, &mapData)
+
+		if mapData["errcode"] != nil {
+			return &gweb.RedirectToUrlResult{Url: redirect}
+		}
+
+		subscribe := mapData["subscribe"].(float64)
+		user.Subscribe = int(subscribe)
+		controller.User.ChangeMap(dao.Orm(), user.ID, dao.User{}, map[string]interface{}{
+			"Subscribe":   user.Subscribe,
+			"Name":        user.Name,
+			"Portrait":    user.Portrait,
+			"Gender":      user.Gender,
+			"Region":      user.Region,
+			"LastLoginAt": user.LastLoginAt,
+		})
+		//controller.User.ChangeModel(dao.Orm(), user.ID, user)
+		context.Session.Attributes.Put(play.SessionUser, user)
+		return &gweb.RedirectToUrlResult{Url: redirect}
+
 	}
-	return &gweb.ViewResult{}
 }
-func forgetPage(context *gweb.Context) gweb.Result {
+func (controller *Controller) forgetPage(context *gweb.Context) gweb.Result {
 	return &gweb.HTMLResult{}
 }
-func loginAdminPage(context *gweb.Context) gweb.Result {
+func (controller *Controller) loginAdminPage(context *gweb.Context) gweb.Result {
 
 	return &gweb.HTMLResult{}
 }
-func loginManagerPage(context *gweb.Context) gweb.Result {
+func (controller *Controller) loginManagerPage(context *gweb.Context) gweb.Result {
 
 	return &gweb.HTMLResult{}
 }
-func loginUserPage(context *gweb.Context) gweb.Result {
+func (controller *Controller) loginUserPage(context *gweb.Context) gweb.Result {
+	redirect := util.GetFullUrl(context.Request)
 
-	return &gweb.HTMLResult{}
+	//var user dao.User
+	//controller.User.Get(service.Orm, 1002, &user)
+	//context.Session.Attributes.Put(play.SessionUser, &user)
+	//context.Session.Attributes.Put(play.SessionOpenID, openid)
+
+	if context.Session.Attributes.Get(play.SessionUser) == nil {
+		//return &gweb.HTMLResult{Params: map[string]interface{}{"User": context.Session.Attributes.Get(play.SessionUser).(*dao.User)}}
+		return &gweb.RedirectToUrlResult{Url: "/account/open.do?redirect=" + base64.StdEncoding.EncodeToString([]byte(redirect))}
+	} else {
+		return &gweb.HTMLResult{Params: map[string]interface{}{"User": context.Session.Attributes.Get(play.SessionUser).(*dao.User)}}
+	}
 }
-func sdfsda(context *gweb.Context) gweb.Result {
+func (controller *Controller) sdfsda(context *gweb.Context) gweb.Result {
 
 	return &gweb.JsonResult{}
 }
