@@ -1,0 +1,273 @@
+<style>
+
+    .mainTable .rowContent .top{
+
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        color:white;
+        text-transform: uppercase;
+    }
+    .mainTable .rowContent .top.post{
+        background: rgba(0, 128, 128,1);
+    }
+    .mainTable .rowContent .top.store{
+        background: rgba(0, 0, 0,1);
+    }
+    .mainTable thead{
+        background:rgba(0,0,0,0.05);
+        color:#666;
+    }
+    .mainTable thead tr th{
+        padding: 5px 0px;
+        font-weight: normal;
+    }
+    .mainTable{
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .mainTable .rowContent td.operation{
+        border-left: 1px solid #eee;
+        width: 250px;
+    }
+    .mainTable .rowContent td{
+        padding: 0px;
+        border-bottom: 1px solid #eee;
+        margin: 0px;
+        box-sizing: content-box;
+    }
+    .mainTable .rowContent tr{
+        padding: 0px;
+        margin: 0px;
+    }
+    .mainTable .rowContent tr.tip{
+        text-align: left;
+        background: #ffd97b;
+        color: #822200;
+    }
+    .mainTable .rowContent tr.tip td .content{
+        display: flex;
+        justify-content: space-between;
+        margin:2px;
+        align-items: center;
+    }
+    .mainTable .rowContent tr.tip td .content>div{
+        width: 100%;
+        text-align: center;
+    }
+    .mainTable .rowContent tr.tip td .content>div:first-child{
+         width: 100%;
+         text-align: left;
+     }
+    .mainTable .rowContent tr.tip td .content>div:last-child{
+        width: 100%;
+        text-align: right;
+    }
+    .mainTable .rowContent tr.tip td .content button{
+        min-height: 5px;
+    }
+    .mainTable .rowContent{
+        background: white;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+    }
+    .mainTable .rowContent table{
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        text-align: center;
+    }
+    .mainTable .rowContent .footer{
+        background:rgba(0,0,0,0.05);
+        display: flex;
+        justify-content:space-between;
+        padding: 5px;
+        color: #666;
+    }
+    .mainTable .rowContent .footer .info{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .mainTable .dataTables_empty{
+        text-align: center;
+        padding: 20px 0px;
+        color: #666;
+
+    }
+
+    .dataTables_wrapper>div.ui.stackable.grid>div:first-child{
+       display: none;
+    }
+
+</style>
+<div class="ui container">
+    <p>
+        <a class="ui red ribbon label">订单列表</a>
+    </p>
+
+
+    <div class="ui top attached tabular menu">
+        <a class="item" ng-click="selectTab($index)" ng-class="{true:'active',false:''}[tabIndex==$index]" ng-repeat="m in tabs">@{m.lable}@</a>
+    </div>
+    <div class="ui bottom attached tab segment active">
+        <div style="display: none;" class="ui mini menu">
+            <div class="menu">
+                <a class="item">
+                    <div class="ui red button">添加产品</div>
+                </a>
+            </div>
+            <div class="right menu">
+                <a class="item" href="#!/add_goods">
+                    <div class="ui red button">添加产品</div>
+                </a>
+            </div>
+        </div>
+        <table width="100%" id="table_local" class="mainTable">
+            <thead>
+            <tr>
+                <th style="width:500px;">商品信息</th>
+                <th>单价</th>
+                <th>数量</th>
+                <th>金额</th>
+                <th style="width: 250px;" >状态</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+</div>
+<div id="ChangePayMoney" class="ui mini modal">
+    <div class="header">修改支付金额</div>
+    <div class="content">
+        <form class="ui form" ng-submit="ChangePayMoney()">
+            <div class="field">
+                <label>当前支付金额</label>
+                <input type="text" disabled value="@{currentOrders.Orders.PayMoney/100}@">
+            </div>
+            <div class="field">
+                <label>支付金额</label>
+                <input required min="0" max="9999999" ng-model="PayMoney" placeholder="支付金额" step="0.01" type="number">
+            </div>
+            <div class="field actions">
+                <button class="ui blue button" type="submit">提交</button>
+                <button type="reset" class="ui cancel button">取消</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<div id="Deliver" class="ui mini modal">
+    <div class="header">修改支付金额</div>
+    <div class="content">
+        <form class="ui form" ng-submit="DeliverSubmit()">
+            <div class="field">
+                <label>快递名称</label>
+                <select ng-model="ShipName" required>
+                    <option></option>
+                    <option value="中国邮政">中国邮政</option>
+                    <option value="EMS">EMS</option>
+                    <option value="顺丰快递">顺丰快递</option>
+                    <option value="中通快递">中通快递</option>
+                    <option value="圆通快递">圆通快递</option>
+                    <option value="申通快递">申通快递</option>
+                    <option value="韵达快递">韵达快递</option>
+                    <option value="百世汇通">百世汇通</option>
+                    <option value="天天快递">天天快递</option>
+                    <option value="国通快递">国通快递</option>
+                    <option value="宅急送">宅急送</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>快递编号</label>
+                <input style="font-size: 20px;letter-spacing:5px;" required minlength="8" maxlength="18" ng-model="FirstShipNo" placeholder="快递编号" type="text">
+            </div>
+            <div class="field">
+                <label>确认快递编号</label>
+                <input style="font-size: 20px;letter-spacing:5px;" required minlength="8" maxlength="18" ng-model="ShipNo" placeholder="快递编号" type="text">
+            </div>
+            <div class="field actions">
+                <button class="ui blue button" ng-disabled="FirstShipNo!=ShipNo" type="submit">提交</button>
+                <button type="reset" class="ui cancel button">取消</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+<div id="CancelOk" class="ui mini modal">
+    <div class="header">处理用户取消订单</div>
+    <div class="content">
+        <form class="ui form" ng-submit="CancelOkSubmit()">
+            <div class="field">
+                <label style="color: red;text-align: center;"><h3>订单已经支付，金额：@{currentOrders.Orders.PayMoney/100|currency}@，确定取消后系统将支付金额原路退回用户</h3></label>
+            </div>
+            <div class="field">
+                <label style="color: red;text-align: center;">退款资金来源</label>
+                <div class="ui form">
+                    <div style="display:flex;justify-content: center;" class="fields">
+                        <div class="field">
+                            <div class="ui radio checkbox">
+                                <input id="frequency1" name="frequency" ng-model="RefundType" value="0" type="radio">
+                                <label for="frequency1">未结算资金退款</label>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="ui radio checkbox">
+                                <input id="frequency2" name="frequency" ng-model="RefundType" value="1" type="radio">
+                                <label for="frequency2">可用余额退款</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center;" class="field actions">
+                <button class="ui red large button" type="submit">确定取消订单</button>
+                <button class="ui cancel large button" type="button">取消</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+
+<div id="RefundComplete" class="ui mini modal">
+    <div class="header">买家退款处理</div>
+    <div class="content">
+        <form class="ui form" ng-submit="RefundCompleteSubmit()">
+            <div class="field">
+                <label style="color: red;text-align: center;">
+                    <h3>退款将该单品金额退回给用户，如有参加满减活动，则按比例扣除金额</h3>
+                </label>
+                <div style="text-align: center;border: 1px solid #666;padding: 10px;background: #eee;border-radius:5px;">
+                    <div>单品支付金额：@{currentOrdersGoods.SellPrice*currentOrdersGoods.Quantity/100|currency}@</div>
+                    <div>优惠金额：@{currentOrders.DiscountMoney/100|currency}@</div>
+                    <div style="font-weight: bold;">退款金额：@{(currentOrdersGoods.SellPrice*currentOrdersGoods.Quantity-((currentOrdersGoods.SellPrice*currentOrdersGoods.Quantity/currentOrders.PayMoney)*currentOrders.DiscountMoney))/100|currency}@</div>
+                </div>
+            </div>
+            <div class="field">
+                <label style="color: red;text-align: center;">退款资金来源</label>
+                <div class="ui form">
+                    <div style="display:flex;justify-content: center;" class="fields">
+                        <div class="field">
+                            <div class="ui radio checkbox">
+                                <input id="frequency1" name="frequency" ng-model="RefundType" value="0" type="radio">
+                                <label for="frequency1">未结算资金退款</label>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <div class="ui radio checkbox">
+                                <input id="frequency2" name="frequency" ng-model="RefundType" value="1" type="radio">
+                                <label for="frequency2">可用余额退款</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center;" class="field actions">
+                <button class="ui red large button" type="submit">确定取消</button>
+                <button class="ui cancel large button" type="button">取消</button>
+            </div>
+
+        </form>
+    </div>
+</div>

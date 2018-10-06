@@ -1,0 +1,23 @@
+<div class="ui container">
+    <p>
+        <a class="ui red ribbon label">海报图片</a>
+    </p>
+
+
+    <form class="ui form" ng-submit="savePoster()">
+        <div class="field card">
+            <label></label>
+            <div style="border:0px solid red;width: 100%;height: 500px;">
+                <img class="ui fluid image" style="width:100%;height:100%;object-fit: contain;border: 0px solid red;" ng-src="/file/load?path=@{poster}@">
+            </div>
+            <div class="ui bottom attached button" type="file" ngf-select="uploadPoster('progress-bar',$file,$invalidFiles)" accept="image/*" ngf-max-size="1MB"><i class="image icon"></i>上传图片</div>
+            <div class="content">
+                <div class="header"></div>
+                <div class="description"><font style="color:red;"><b>尺寸为：1080*1920</b></font>  最大1M</div>
+            </div>
+        </div>
+        <div class="actions">
+            <button type="submit" class="ui red fluid button">确定</button>
+        </div>
+    </form>
+</div>

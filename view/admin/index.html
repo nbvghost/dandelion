@@ -1,29 +1,29 @@
 <!DOCTYPE HTML>
-<html ng-app="main" ng-cloak>
+<html ng-app="managerApp" ng-cloak>
 <head>
-    <title>蒲公英营销助手</title>
+    <title>后台管理系统</title>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
     <meta content="width=device-width,user-scalable=no" name="viewport">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-    {{/*<script type="text/javascript" src="/resources/jquery/jquery-1.12.0.min.js"></script>
-    <script type="text/javascript" src="/resources/messenger/js/messenger.min.js" charset="UTF-8"></script>
-    <script type="text/javascript" src="/resources/messenger/js/messenger-theme-flat.js" charset="UTF-8"></script>*/}}
-
-    <link href="/resources/admin/css/default.css" type="text/css" rel="stylesheet" />
-    <link href="/resources/common/css/components.css" type="text/css" rel="stylesheet" />
-    <link href="/resources/admin/css/index.css" type="text/css" rel="stylesheet" />
-
     <link rel="stylesheet" type="text/css" href="/resources/semantic-ui/semantic.min.css">
 
-    <script type="text/javascript" src="/resources/jquery/3/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="/resources/jquery/jquery-3.3.1.min.js"></script>
+
+    <script type="text/javascript" src="/resources/datatables/datatables.min.js"></script>
     <script type="text/javascript" src="/resources/semantic-ui/semantic.min.js"></script>
 
-    {{/*<link rel="stylesheet" href="/resources/messenger/css/messenger.css">
-    <link rel="stylesheet" href="/resources/messenger/css/messenger-theme-flat.css">*/}}
-    {{/*<link rel="stylesheet" href="/resources/bootstrap/css/bootstrap.min.css">*/}}
-    {{/*<script type="text/javascript" src="/resources/bootstrap/js/bootstrap.min.js" charset="UTF-8"></script>*/}}
+    <link rel="stylesheet" type="text/css" href="/resources/datatables/dataTables.semanticui.css">
+    <script type="text/javascript" src="/resources/datatables/dataTables.semanticui.js"></script>
 
+
+    <link href="/resources/quill/katex.min.css" rel="stylesheet">
+    <link href="/resources/quill/monokai-sublime.min.css" rel="stylesheet">
+    <link href="/resources/quill/quill.snow.css" rel="stylesheet">
+
+    <script src="/resources/quill/katex.min.js"></script>
+    <script src="/resources/quill/highlight.min.js"></script>
+    <script src="/resources/quill/quill.min.js"></script>
 
 
     <script type="text/javascript" src="/resources/angular/angular.min.js"></script>
@@ -31,65 +31,112 @@
     <script type="text/javascript" src="/resources/angular/i18n/angular-locale_zh-cn.js"></script>
     <script type="text/javascript" src="/resources/angular/angular-route.min.js"></script>
     <script type="text/javascript" src="/resources/angular/angular-messages.min.js"></script>
+
+    <script type="text/javascript" src="//webapi.amap.com/maps?v=1.4.4&key=3af8da3934f4f285326ed9d2a71e5914&plugin=AMap.ToolBar"></script>
+    <script src="//webapi.amap.com/ui/1.0/main.js?v=1.0.11"></script>
+
     <script>
-        /*Messenger.options = {
-            extraClasses: 'messenger-fixed messenger-on-bottom',
-            theme: 'flat',
-            messageDefaults: {hideAfter: 3}
+        /*var GoodsTypes={{.params.GoodsTypes}};
+        var GoodsTypeChilds ={{.params.GoodsTypeChilds}};
+
+        for(var i=0;i<GoodsTypes.length;i++){
+
+        }
+        for(var i=0;i<GoodsTypeChilds.length;i++){
+
         }*/
-        var server_time = "{{.time}}";
-        var shopID = '{{.session.SESSION_SHOP.ID}}';
-        var adminID = '{{.session.SESSION_ADMIN.ID}}';
 
 
+
+        var LoginAccount = "{{.session.ADMIN.Account}}";
         $(document).ready(function () {
+
+            $.extend(true, $.fn.dataTable.defaults, {
+                "order":[[0,"desc"]],
+                paging: true,
+                //"dom": '<"toolbar">frtip',
+                "pagingType": "full_numbers",
+                searching: true,
+                "processing": true,
+                "serverSide": true,
+                "language":{
+                    sSearch:"搜索",
+                    "loadingRecords":"加载中...",
+                    "emptyTable":"暂无数据显示",
+                    "lengthMenu":"每页显示 _MENU_ 项目",
+                    "info":"显示 _START_ 到 _END_ (共_TOTAL_项目)",
+                    "infoEmpty":"显示 0 到 0 of 0 项目",
+                    "processing":"进行中...",
+                    "paginate": {
+                        "first":      "首页",
+                        "last":       "尾页",
+                        "next":       "下一页",
+                        "previous":   "上一页"
+                    },
+                }
+            });
+            //language
+
+
+            $.extend(true,$.fn.dataTable.ext.classes, {
+                sFilterInput:"search_box"
+            } );
+
             $('.ui.container').popup();
 
             $('.ui.container .menu .browse').popup({target: '.menu .header',position : 'right center',on:'click', popup: '.ui.flowing',inline:true,delay:{show:300,hide:800}});
-           // $('.button').popup({boundary: '.boundary.example .segment'});
+            //$('.ui.container .menu .browse').popup();
+
         });
 
 
 
     </script>
-    <script src="/resources/common/js/components.js" type="text/javascript"></script>
-    <script type="text/javascript" src="/resources/admin/js/admin.js"></script>
-    {{/*
 
-    <script type="text/javascript" src="/resources/clipboard/clipboard.min.js" charset="UTF-8"></script>*/}}
-    {{/*<script>
-        var clipboard = new Clipboard('.btn');
-        clipboard.on('success', function(e) {
-            Messenger().post("复制成功");
-            e.clearSelection();
-        });
-        clipboard.on('error', function(e) {
-            //Messenger().post(JSON.stringify(e));
-            var data=e.trigger.attributes.getNamedItem("data-clipboard-text").textContent;
-            try {
-                window.copy(data);
-                Messenger().post("复制成功");
-            }catch(e){
-                try {
-                    window.copyText(data);
-                    Messenger().post("复制成功");
-                }catch(e){
-                    try {
-                        window.clipboardData.setData("Text",data);
-                        Messenger().post("复制成功");
-                    }catch(e){
-                        Messenger().post("复制失败");
-                    }
-                }
-            }
-        });
-    </script>*/}}
+    <script type="text/javascript" src="/resources/admin/js/admin.js"></script>
+    <style>
+        .ui.modal{
+
+        }
+        .ui.fullscreen.modal{
+            /* position:absolute;
+            width: 100%!important;
+            margin: 1em 2.5%!important;
+           position:absolute;
+            margin: 1em 2.5%!important;*/
+        }
+        td.opera{
+            text-align: right!important;
+        }
+        .search_box{
+            height: 36px;
+            border: 1px solid rgba(34,36,38,.15);
+            border-radius: .28571429rem;
+        }
+        .search_box:hover{
+            border-color: rgba(34,36,38,.35);
+            box-shadow: none;
+        }
+    </style>
 </head>
 <body>
+
 {{IncludeHTML `admin/pub/header.html` .}}
-<div class="view" ng-view></div>
-<div class="ui container right">
-{{IncludeHTML `admin/pub/footer.html` .}}
+<p></p>
+<div class="ui container">
+    <div class="ui segments">
+
+        <div class="ui segment">
+            <div class="view" ng-view></div>
+        </div>
+        <div class="ui secondary segment">
+        {{IncludeHTML `admin/pub/footer.html` .}}
+        </div>
+    </div>
 </div>
+<div class="ui container right">
+
+</div>
+
 </body>
 </html>

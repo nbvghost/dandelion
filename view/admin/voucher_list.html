@@ -1,0 +1,56 @@
+<div id="score_goods_list" class="ui container">
+    <p>
+        <a class="ui red ribbon label">优惠券列表</a>
+    </p>
+    <div class="ui mini menu">
+        <div class="right menu">
+            <a class="item" ng-click="showModal({title:'添加优惠券',url:'voucher',method:'POST'})">
+                <div class="ui red button">添加卡券</div>
+            </a>
+        </div>
+    </div>
+
+    <table width="100%" id="table_local" class="ui teal table">
+        <thead>
+        <tr>
+            <th>#ID</th>
+            <th>名称</th>
+            <th>金额</th>
+            <th>有效期</th>
+            <th></th>
+        </tr>
+        </thead>
+    </table>
+
+</div>
+
+<div id="add_score_goods" class="ui mini modal">
+
+    <div class="header">@{TargetAction.title}@</div>
+
+    <div class="content">
+        <form class="ui actions form" ng-submit="add_score_goods()">
+            <div class="field">
+                <label>名称</label>
+                <input type="text" ng-model="Voucher.Name" required placeholder="名称">
+            </div>
+            <div class="field">
+                <label>金额(单位：分)</label>
+                <input type="number" min="1" ng-model="Voucher.Amount" required placeholder="金额">
+            </div>
+            <div class="field">
+                <label>使用期限</label>
+                <input type="number" min="1" ng-model="Voucher.UseDay" required placeholder="使用期限">
+            </div>
+            <div class="field">
+                <label>介绍</label>
+                <textarea ng-model="Voucher.Introduce" required maxlength="255" placeholder="介绍"></textarea>
+            </div>
+            <div class="field">
+                <button type="submit" class="ui red button">提交</button>
+                <div class="ui cancel button">取消</div>
+            </div>
+        </form>
+    </div>
+
+</div>

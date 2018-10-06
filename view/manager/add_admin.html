@@ -1,25 +1,17 @@
 ﻿<form ng-submit="addAdminUser()">
     <div class="form-group">
-        <label>姓名</label>
-        <input type="text" required minlength="2" ng-model="admin.Name" class="form-control" placeholder="姓名">
+        <label>账号</label>
+        <input type="text" required minlength="2" ng-model="admin.Account" class="form-control" placeholder="账号">
     </div>
     <div class="form-group">
-        <label>邮箱（做为登录帐号）</label>
-        <input type="email" required class="form-control" ng-model="admin.Email" placeholder="邮箱">
+        <label>三级域名</label>
+        <input type="text" required minlength="2" ng-model="admin.Domain" class="form-control" placeholder="三级域名">
     </div>
     <div class="form-group">
-        <label>手机</label>
-        <input type="tel" required maxlength="11" minlength="11" class="form-control" ng-model="admin.Tel" placeholder="手机">
+        <label>密码</label>
+        <input type="text" required maxlength="16" minlength="6" class="form-control" placeholder="密码" ng-model="admin.PassWord">
     </div>
     <div  class="form-group">
-        <label>过期时间</label>
-        <input  class="datepicker form-control" placeholder="会员体验（具体时间以系统为准）" disabled>
-    </div>
-    <div ng-if="!isEdit" class="form-group">
-        <label>密码</label>
-        <input type="text" required maxlength="16" minlength="6" class="form-control" placeholder="密码" ng-model="admin.Password">
-    </div>
-    <div ng-if="!isEdit" class="form-group">
         <label>确认密码</label>
         <input type="text" required maxlength="16" minlength="6" class="form-control" placeholder="确认密码" ng-model="admin.rePassword">
     </div>

@@ -1,6 +1,7 @@
 ﻿<!DOCTYPE html>
 <html ng-app="appModule">
 <head>
+    <title>用户登陆</title>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta content="width=device-width,user-scalable=no" name="viewport">
@@ -9,46 +10,37 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta content="black" name="apple-mobile-web-app-status-bar-style" />
 
-    <link href="/resources/admin/css/style.css" rel="stylesheet" type="text/css">
-    <link href="/resources/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
-    <title>用户登陆</title>
-    <script type="text/javascript" src="/resources/jquery/jquery-1.12.0.min.js"></script>
-    <script type="text/javascript" src="/resources/messenger/js/messenger.min.js" charset="UTF-8"></script>
-    <script type="text/javascript" src="/resources/messenger/js/messenger-theme-flat.js" charset="UTF-8"></script>
-    <link rel="stylesheet" href="/resources/messenger/css/messenger.css">
-    <link rel="stylesheet" href="/resources/messenger/css/messenger-theme-flat.css">
-    <script type="text/javascript" src="/resources/bootstrap/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/resources/semantic-ui/semantic.min.css">
+
+    <script type="text/javascript" src="/resources/jquery/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="/resources/semantic-ui/semantic.min.js"></script>
     <script type="text/javascript" src="/resources/angular/angular.min.js"></script>
-    <script type="text/javascript" src="/resources/angular/angular-messages.min.js"></script>
     <script type="text/javascript">
-        Messenger.options = {
-            extraClasses: 'messenger-fixed messenger-on-bottom',
-            theme: 'flat',
-            messageDefaults:{hideAfter:3}
-        }
-        var addModule = angular.module("appModule", ["ngMessages"]);
+
+
+        var addModule = angular.module("appModule", []);
         var redirect = "{{.query.redirect}}";
         addModule.controller("formController", function ($http, $scope) {
 
-            $scope.user = {account: "manager", password: "123456"};
+
+
+            $scope.admin = {account: "admin", password: "123456"};
 
             $scope.login = function () {
 
-
-                if($scope.user.account==undefined || $scope.user.password==undefined || $scope.user.account=="" || $scope.user.password==""){
-                    Messenger().post("帐号或密码不能为空！");
+                if($scope.admin.account==undefined || $scope.admin.password==undefined || $scope.admin.account=="" || $scope.admin.password==""){
+                    alert("帐号或密码不能为空！");
                     return
                 }
 
-                $('#progressBar').modal({keyboard:false,show:true,backdrop:"static"});
+
 
                 var form = new FormData();
-                form.append("account",$scope.user.account);
-                form.append("password",$scope.user.password);
+                form.append("account",$scope.admin.account);
+                form.append("password",$scope.admin.password);
 
                 $http.post("loginManager",form,{transformRequest: angular.identity,headers: {'Content-Type':undefined}}).then(function (response) {
 
-                    $('#progressBar').modal('hide');
                     var status = response.data;
                     if (status.Success) {
                         if(redirect==""){
@@ -57,8 +49,8 @@
                         }
                         window.location.replace(redirect);
                     } else {
-                        Messenger().post(status.Message);
-                        $scope.user.password ="";
+                        alert(status.Message);
+                        $scope.admin.password ="";
 
                     }
 
@@ -82,7 +74,9 @@
             width: 100%;
 
         }
-
+        .column {
+            max-width: 450px;
+        }
         #content {
 
             padding: 20px;
@@ -96,61 +90,48 @@
             left: 0px;
             right: 0px;
         }
+        body > .grid {
+            height: 80%;
+        }
     </style>
 </head>
 <body ng-controller="formController">
-<div style="border-radius: 0px;" class="panel panel-info">
-    <div class="panel-heading" style="text-align: center;">系统后台登陆</div>
-    <div class="panel-body">
-        <form style="border: none;" name="mainForm" novalidate ng-submit="login();" >
-            <div class="form-group">
-                <label>帐号</label>
-                <small></small>
-                <input type="tel"  required="" class="form-control" maxlength="32" minlength="6" placeholder="账号" name="user_account" ng-model="user.account">
-                <div ng-messages="mainForm.user_account.$error" style="color:maroon" role="alert">
-                    <div ng-message="required"></div>
-                    <div ng-message="minlength">最小长度必须6位</div>
-                    <div ng-message="maxlength">最大长度必须32位</div>
-                </div>
+
+<div class="ui middle aligned center aligned grid">
+    <div class="column">
+        <h2 class="ui teal header">
+            <div class="content">
+                管理用户登陆
             </div>
-            <div class="form-group">
-                <label>密码</label>
-                <small></small>
-                <input type="password"  required="" class="form-control" minlength="6" maxlength="32" ng-model="user.password" name="user_password" placeholder="请输入密码">
-                <div ng-messages="mainForm.user_password.$error" style="color:maroon" role="alert">
-                    <div ng-message="required"></div>
-                    <div ng-message="minlength">最小长度必须6位</div>
-                    <div ng-message="maxlength">最大长度必须32位</div>
-                </div>
-            </div>
-            <div class="form-group">
-                <input type="submit" class="btn btn-success btn-block" value="登 录">
-            </div>
-            <div class="form-group">
-                <small><a href="/account/forget"></a></small>
-            </div>
-            <div class="form-group">
-                <small><a href=""></a></small>
-            </div>
-        </form>
-    </div>
-    </div>
-<div class="modal fade" id="progressBar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="myModalLabel">正在登陆。。。</h4>
-            </div>
-            <div class="modal-body">
-                <div class="progress">
-                    <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
-                        <span class="sr-only">100% Complete</span>
+        </h2>
+        <form class="ui large form" ng-submit="login()">
+            <div class="ui stacked segment">
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="user icon"></i>
+                        <input type="text" required="" maxlength="32" minlength="5" placeholder="账号" ng-model="admin.account">
                     </div>
                 </div>
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="lock icon"></i>
+                        <input type="password" required="" class="form-control" minlength="6" maxlength="32" ng-model="admin.password" placeholder="请输入密码">
+                    </div>
+                </div>
+                <button type="submit" class="ui fluid large teal submit button">登陆</button>
             </div>
+
+            <div class="ui error message"></div>
+
+        </form>
+
+        <div class="ui message">
+            <small></small>
+            <small><a href=""></a></small>
+            <small><a href=""></a></small>
         </div>
     </div>
 </div>
+
 </body>
 </html>

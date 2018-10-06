@@ -8,56 +8,114 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta content="black" name="apple-mobile-web-app-status-bar-style" />
-
-    <link href="/resources/admin/css/style.css" rel="stylesheet" type="text/css">
-    <link href="/resources/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css">
-    <title>用户登陆</title>
-    <script type="text/javascript" src="/resources/jquery/jquery-1.12.0.min.js"></script>
-    <script type="text/javascript" src="/resources/messenger/js/messenger.min.js" charset="UTF-8"></script>
-    <script type="text/javascript" src="/resources/messenger/js/messenger-theme-flat.js" charset="UTF-8"></script>
-    <link rel="stylesheet" href="/resources/messenger/css/messenger.css">
-    <link rel="stylesheet" href="/resources/messenger/css/messenger-theme-flat.css">
-    <script type="text/javascript" src="/resources/bootstrap/js/bootstrap.min.js"></script>
+    <title>确认手机号</title>
+    <link rel="stylesheet" type="text/css" href="/resources/semantic-ui/semantic.min.css">
+    <script type="text/javascript" src="/resources/jquery/3/jquery-3.2.1.min.js"></script>
+    {{/*<script type="text/javascript" src="/resources/semantic-ui/semantic.min.js"></script>*/}}
     <script type="text/javascript" src="/resources/angular/angular.min.js"></script>
-    <script type="text/javascript" src="/resources/angular/angular-messages.min.js"></script>
     <script type="text/javascript">
-        Messenger.options = {
-            extraClasses: 'messenger-fixed messenger-on-bottom',
-            theme: 'flat',
-            messageDefaults:{hideAfter:3}
-        }
-        var addModule = angular.module("appModule", ["ngMessages"]);
+
+
+        var addModule = angular.module("appModule", []).config(['$interpolateProvider', function ($interpolateProvider) {
+            $interpolateProvider.startSymbol("@{").endSymbol("}@");
+        }]);
+
         var redirect = "{{.query.redirect}}";
-        addModule.controller("formController", function ($http, $scope) {
 
-            $scope.admin = {account: "123456@qq.com", password: "123456"};
 
-            $scope.login = function () {
 
-                if($scope.admin.account==undefined || $scope.admin.password==undefined || $scope.admin.account=="" || $scope.admin.password==""){
-                    Messenger().post("帐号或密码不能为空！");
+        addModule.controller("formController", function ($http, $scope,$interval) {
+
+
+
+            $scope.Tel = "13809549424";
+            $scope.Code = "12345";
+
+            $scope.timeWait = 60;
+            $scope.timer=0;
+            $scope.SendCode = function () {
+
+                if($scope.Tel==undefined||$scope.Tel==""){
+                    alert("手机号不能为空！");
+                    return
+                }
+                if($scope.timeWait!=60){
                     return
                 }
 
-                $('#progressBar').modal({keyboard:false,show:true,backdrop:"static"});
+               // $('#progressBar').modal({keyboard:false,show:true,backdrop:"static"});
 
-                var form = new FormData();
-                form.append("account",$scope.admin.account);
-                form.append("password",$scope.admin.password);
+                //var form = new FormData();
+                //form.append("Tel",$scope.Tel);
+                //form.append("password",$scope.admin.password);
 
-                $http.post("loginUser",form,{transformRequest: angular.identity,headers: {'Content-Type':undefined}}).then(function (response) {
+                $http.post("SMSCode",{Tel:$scope.Tel},{headers: {'Content-Type':undefined}}).then(function (response) {
 
-                    $('#progressBar').modal('hide');
+                    //$('#progressBar').modal('hide');
+
                     var status = response.data;
-                    if (status.Success) {
+                    if (status.Success==true) {
+
+                        $scope.timer = $interval(function () {
+
+                            $scope.timeWait--;
+
+                            if($scope.timeWait<=0){
+                                $interval.cancel($scope.timer);
+                                $scope.timeWait=60;
+                            }
+
+                        },1000)
+
+
+                    } else {
+                        $interval.cancel($scope.timer);
+                        $scope.timeWait=60;
+
+                        alert(status.Message);
+                        //$scope.admin.password ="";
+                    }
+
+                });
+            };
+            $scope.login = function () {
+
+                if($scope.Tel==undefined||$scope.Tel==""){
+                    alert("手机号不能为空！");
+                    return
+                }
+
+                //$('#progressBar').modal({keyboard:false,show:true,backdrop:"static"});
+
+                //var form = new FormData();
+                //form.append("Tel",$scope.Tel);
+                //form.append("password",$scope.admin.password);
+
+                $http.post("loginUser",{Tel:$scope.Tel,Code:$scope.Code},{headers: {'Content-Type':undefined}}).then(function (response) {
+
+                    //$('#progressBar').modal('hide');
+
+                    var status = response.data;
+
+                    if (status.Success==true) {
+
+                        if(status.Data.Doctor==null){
+                            alert("您未注册成医生或护士");
+                            return
+                        }else{
+                            if(status.Data.Doctor.Pass!=1){
+                                alert("你的资料还在审核中。。。");
+                                return
+                            }
+                        }
+
                         if(redirect==""){
-                            window.location.replace(redirect);
+                           window.location.replace("/doctor/Doctor");
                             return;
                         }
-                        window.location.replace("/account/openPage?redirect="+redirect);
+                        window.location.replace(redirect);
                     } else {
-                        Messenger().post(status.Message);
-                        $scope.admin.password ="";
+                       alert(status.Message);
 
                     }
 
@@ -68,88 +126,58 @@
         })
     </script>
     <style>
-        html, body {
-            padding: 0px;
-            margin: 0px;
+        body {
+            background-color: #DADADA;
         }
-
-        * {
-            font-family: "微软雅黑", "Helvetica Neue", Arial, Verdana, sans-serif;
+        body > .grid {
+            height: 100%;
         }
-
-        table {
-            width: 100%;
-
+        .image {
+            margin-top: -100px;
         }
-
-        #content {
-
-            padding: 20px;
-        }
-
-        #foot {
-            text-align: center;
-            margin-top: 100px;
-
-            bottom: 0px;
-            left: 0px;
-            right: 0px;
+        .column {
+            max-width: 450px;
         }
     </style>
 </head>
 <body ng-controller="formController">
-<div style="border-radius: 0px;" class="panel panel-primary">
-    <div class="panel-heading" style="text-align: center;">登陆</div>
-    <div class="panel-body">
-        <form style="border: none;" name="mainForm" novalidate ng-submit="login();" >
-            <div class="form-group">
-                <label>帐号</label>
-                <small></small>
-                <input type="tel"  required="" class="form-control" maxlength="32" minlength="6" placeholder="手机号/邮箱" name="user_account" ng-model="admin.account">
-                <div ng-messages="mainForm.user_account.$error" style="color:maroon" role="alert">
-                    <div ng-message="required"></div>
-                    <div ng-message="minlength">最小长度必须6位</div>
-                    <div ng-message="maxlength">最大长度必须32位</div>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>密码</label>
-                <small></small>
-                <input type="password"  required="" class="form-control" minlength="6" maxlength="32" ng-model="admin.password" name="user_password" placeholder="请输入密码">
-                <div ng-messages="mainForm.user_password.$error" style="color:maroon" role="alert">
-                    <div ng-message="required"></div>
-                    <div ng-message="minlength">最小长度必须6位</div>
-                    <div ng-message="maxlength">最大长度必须32位</div>
-                </div>
-            </div>
-            <div class="form-group">
-                <input type="submit" class="btn btn-success btn-block btn-lg" value="登 录">
-            </div>
-            <div class="form-group">
-                <small>请先通过邀请链接注册开通 &nbsp; <a href="/account/forget">忘记密码？</a></small>
-            </div>
-            <div class="form-group">
-                <small><a href="http://mp.weixin.qq.com/s?__biz=MzA3OTc1MTQ5MA==&mid=500466740&idx=1&sn=e835c41764ffd9d14e7614f6d0a7bdc1">蒲公英营销助手功能介绍</a></small>
-            </div>
-        </form>
-    </div>
-    </div>
-<div class="modal fade" id="progressBar" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="myModalLabel">正在登陆。。。</h4>
-            </div>
-            <div class="modal-body">
-                <div class="progress">
-                    <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
-                        <span class="sr-only">100% Complete</span>
+
+
+<div class="ui middle aligned center aligned grid">
+    <div class="column">
+        <h2 class="ui teal header">
+            <div class="content">确认手机号</div>
+        </h2>
+        <form class="ui large form" ng-submit="login();">
+            <div class="ui stacked segment">
+                <div class="field">
+                    <div class="ui left icon input">
+                        <i class="user icon"></i>
+                        <input type="tel"  required maxlength="11" minlength="11" placeholder="请输入手机号" ng-model="Tel">
                     </div>
                 </div>
+                <div class="field">
+
+                    <div class="ui action left icon input">
+                        <i class="lock icon"></i>
+                        <input type="text"  required minlength="5" maxlength="5" ng-model="Code" placeholder="请输入验证码">
+                        <button type="button" ng-show="timeWait==60" ng-click="SendCode()" class="ui teal button">获取验证码</button>
+                        <button type="button" ng-show="timeWait!=60" class="ui teal button">@{timeWait+'s'}@</button>
+                    </div>
+
+                </div>
+                <input type="submit" class="ui fluid large teal submit button" value="开始使用">
             </div>
+
+            <div class="ui error message"></div>
+
+        </form>
+
+        <div style="display: none;" class="ui message">
+            New to us? <a href="#">Sign Up</a>
         </div>
     </div>
 </div>
+
 </body>
 </html>

@@ -1,0 +1,49 @@
+<div id="score_goods_list" class="ui container">
+    <p>
+        <a class="ui red ribbon label">满减列表</a>
+    </p>
+    <div class="ui mini menu">
+        <div class="right menu">
+            <a class="item" ng-click="showModal({title:'添加满减',url:'fullcut/save',method:'POST'})">
+                <div class="ui red button">添加满减</div>
+            </a>
+        </div>
+    </div>
+
+    <table width="100%" id="table_local" class="ui teal table">
+        <thead>
+        <tr>
+            <th>#ID</th>
+            <th>名称</th>
+            <th>金额</th>
+            <th></th>
+        </tr>
+        </thead>
+    </table>
+
+</div>
+
+<div id="add_score_goods" class="ui mini modal">
+
+    <div class="header">@{TargetAction.title}@</div>
+
+    <div class="content">
+        <form class="ui actions form" ng-submit="add_score_goods()">
+
+            <div class="field">
+                <label>满足金额(单位：分)</label>
+                <input type="number" min="1" ng-model="FullCut.Amount" required placeholder="满足金额">
+            </div>
+            <div class="field">
+                <label>减免金额(单位：分)</label>
+                <input type="number" min="1" ng-model="FullCut.CutAmount" required placeholder="减免金额">
+            </div>
+
+            <div class="field">
+                <button type="submit" class="ui red button">提交</button>
+                <div class="ui cancel button">取消</div>
+            </div>
+        </form>
+    </div>
+
+</div>

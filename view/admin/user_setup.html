@@ -1,0 +1,131 @@
+<div id="score_goods_list" class="ui container">
+    <p>
+        <a class="ui red ribbon label">会员等级/佣金</a>
+    </p>
+
+    <div class="ui teal segment">
+        <p>
+            <a class="ui teal ribbon label">成长值</a>
+        </p>
+        <form ng-submit="saveConfiguration(1100,ConfigurationKey_ScoreConvertGrowValue.toString())" class="ui form">
+            <div class="field">
+                <label>会员自己消费兑换成长值(1个积分)：</label>
+                <input placeholder="对应成长值" required ng-model="ConfigurationKey_ScoreConvertGrowValue" min="1"
+                       type="number">
+            </div>
+            <button class="ui blue button" type="submit">修改</button>
+        </form>
+    </div>
+
+
+    <div class="ui teal segment">
+        <p>
+            <a class="ui teal ribbon label">佣金比例</a>
+        </p>
+        <p>
+            <label>默认有6级佣金比例，将某一级比例设置为：0，将不结算这级佣金；所有分配出来去的比例总和要等于100；<span style="color: red;font-weight: bold;">当前比例总和为：@{ConfigurationKey_BrokerageLeve1+ConfigurationKey_BrokerageLeve2+ConfigurationKey_BrokerageLeve3+ConfigurationKey_BrokerageLeve4+ConfigurationKey_BrokerageLeve5+ConfigurationKey_BrokerageLeve6}@</span></label>
+        </p>
+        <form ng-submit="saveLeveConfiguration()" class="ui form">
+            <div class="ui three column grid">
+                <div class="row">
+                    <div class="column">
+                        <div class="field">
+                            <label>1级佣金比例（%）：</label>
+                            <input placeholder="比例" max="100" required ng-model="ConfigurationKey_BrokerageLeve1"
+                                   min="0" type="number">
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="field">
+                            <label>2级佣金比例（%）：</label>
+                            <input placeholder="比例" max="100" required ng-model="ConfigurationKey_BrokerageLeve2"
+                                   min="0" type="number">
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="field">
+                            <label>3级佣金比例（%）：</label>
+                            <input placeholder="比例" max="100" required ng-model="ConfigurationKey_BrokerageLeve3"
+                                   min="0" type="number">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="column">
+                            <div class="field">
+                                <label>4级佣金比例（%）：</label>
+                                <input placeholder="比例" max="100" required ng-model="ConfigurationKey_BrokerageLeve4"
+                                       min="0" type="number">
+                            </div>
+                    </div>
+                    <div class="column">
+                            <div class="field">
+                                <label>5级佣金比例（%）：</label>
+                                <input placeholder="比例" max="100" required ng-model="ConfigurationKey_BrokerageLeve5"
+                                       min="0" type="number">
+                            </div>
+                    </div>
+                    <div class="column">
+                            <div class="field">
+                                <label>6级佣金比例（%）：</label>
+                                <input placeholder="比例" max="100" required ng-model="ConfigurationKey_BrokerageLeve6"
+                                       min="0" type="number">
+                            </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="ui column grid">
+                <div class="row">
+                    <div class="column">
+                        <div class="field">
+                            <label></label>
+                            <button class="ui fluid blue button" type="submit">修改</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+    </div>
+
+    <div class="ui teal segment">
+        <p>
+            <a class="ui teal ribbon label">用户等级</a>
+        </p>
+        <table width="100%" id="table_local" class="ui teal table">
+            <thead>
+            <tr>
+                <th>#ID</th>
+                <th>最大成长值</th>
+                <th>名称</th>
+                <th style="width: 250px;text-align: right;">
+                    <button ng-click="showAddRank()" class="ui red button">添加用户等级</button>
+                </th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+
+
+</div>
+
+
+<div id="add_rank" class="ui mini modal">
+    <div class="header">添加等级</div>
+    <div class="content">
+        <form class="ui form" ng-submit="saveRank()">
+            <div class="field">
+                <label>最大值成长值</label>
+                <input placeholder="最大值成长值" required ng-model="rank.GrowMaxValue" type="number">
+            </div>
+            <div class="field">
+                <label>等级名称</label>
+                <input placeholder="等级名称" required ng-model="rank.Title" type="text">
+            </div>
+            <div style="text-align: center;" class="field actions">
+                <button class="ui red button" type="submit">确定</button>
+            </div>
+        </form>
+    </div>
+</div>

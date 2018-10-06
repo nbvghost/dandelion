@@ -1,0 +1,169 @@
+<div id="menus">
+
+    <p>
+        <a class="ui large red ribbon label">菜单管理</a>
+    </p>
+
+    <div class="">
+        <form ng-submit="saveMenuInline()" class="ui form">
+            <div class="inline fields">
+                <div class="field">
+                    <label>菜单名称</label>
+                    <input type="text" ng-model="Menus.Name" required placeholder="菜单名称">
+                </div>
+                <div class="field">
+                    <label>类型</label>
+                    <select required ng-model="Menus.ContentTypeID" ng-options="m.ID as m.Label for m in MenuTypes">
+                        <option></option>
+                    </select>
+                </div>
+                <div class="field">
+                    <button class="ui blue button" type="submit">提交</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <table class="ui teal table">
+        <thead>
+        <tr>
+            <th>#ID</th>
+            <th>名称</th>
+            <th>排序</th>
+            <th>类型</th>
+            <th>显示</th>
+            <th class="center aligned">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+
+    <tr ng-repeat="m in MenusList">
+        <td>@{m.ID}@</td>
+        <td>@{m.Name}@</td>
+        <td>@{m.Sort}@</td>
+        <td>@{m.Type}@</td>
+        <td>
+            <div class="ui checkbox">
+                <input ng-model="m.Hide" ng-change="changeHide(m)" type="checkbox">
+                <label>隐藏</label>
+            </div>
+        </td>
+        <td class="right aligned">
+            <a ng-click="upIndex($index)" class="ui button"><i class="angle up icon"></i>上移</a>
+            <a ng-click="downIndex($index)" class="ui button"><i class="angle down icon"></i>下移</a>
+            <a ng-click="deleteMenus(m.ID)" class="ui red button"><i class="delete icon"></i>删除</a>
+            <a ng-click="editMenus(m)" class="ui blue button"><i class="edit icon"></i>编辑</a>
+            <a href="#!/@{m.Type}@?ContentID=@{m.ID}@&Type=@{m.Type}@" class="ui green button"> <i class="edit icon"></i>内容管理</a>
+        </td>
+    </tr>
+
+    </tbody>
+    </table>
+</div>
+<div id="editMenus" class="ui fullscreen modal">
+    <div class="header">sdfdsfds</div>
+    <div class="scrolling content">
+        <p>
+            <form ng-submit="saveMenu()" class="ui form">
+                <div class="inline fields">
+                    <div class="field">
+                        <label>修改菜单名称</label>
+                        <input type="text" ng-model="Menus.Name" required placeholder="菜单名称">
+                    </div>
+                    <div class="field">
+                        <button class="ui blue button" type="submit">提交</button>
+                    </div>
+                </div>
+            </form>
+        </p>
+        <p>分类管理</p>
+
+        <div class="ui grid">
+                <div class="eight wide column">
+
+                    <form ng-submit="saveClassify()" class="ui form">
+                        <div class="inline fields">
+
+                            <div class="field">
+                                <label>&nbsp;</label>
+                                <input type="text" ng-model="classify.Name" required placeholder="分类名称">
+                            </div>
+                            <div class="field">
+                                <button class="ui blue button" type="submit">@{ActionClassifyTarget.title}@</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <table class="ui mini teal table">
+                        <thead>
+                        <tr>
+                            <th>#ID</th>
+                            <th>名称</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        <tr ng-repeat="m in ClassifyList" ng-class="{true:'active',false:''}[selectClassify.ID==m.ID]">
+                            <td>@{m.ID}@</td>
+                            <td>@{m.Name}@</td>
+                            <td class="right aligned">
+                                <a ng-click="deleteClassify(m)" class="ui mini red button"><i class="delete icon"></i></a>
+                                <a ng-click="editClassify(m)" class="ui mini blue button"><i class="edit icon"></i></a>
+                                <a ng-click="selectClassifyFunc(m)" class="ui mini green button"><i class="edit icon"></i>选择</a>
+                            </td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+
+                </div>
+                <div ng-show="selectClassify!=null&&selectClassify.ID!=null" class="eight wide column">
+
+                    <form ng-submit="saveClassifyChild()" class="ui form">
+                        <div class="inline fields">
+                            <div class="field">
+                                <label>&nbsp;</label>
+                                <input type="text" ng-model="selectClassify.Name" readonly placeholder="父类">
+                            </div>
+                            <div class="field">
+                                <label>&nbsp;</label>
+                                <input type="text" ng-model="classifyChild.Name" required placeholder="子分类名称">
+                            </div>
+                            <div class="field">
+                                <button class="ui blue button" type="submit">@{ActionClassifyChildTarget.title}@</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <table class="ui mini teal table">
+                        <thead>
+                        <tr>
+                            <th>#ID</th>
+                            <th>名称</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        <tr ng-repeat="m in ClassifyChildList">
+                            <td>@{m.ID}@</td>
+                            <td>@{m.Name}@</td>
+                            <td class="right aligned">
+                                <a ng-click="deleteClassifyChild(m)" class="ui mini red button"><i class="delete icon"></i></a>
+                                <a ng-click="editClassifyChild(m)" class="ui mini blue button"><i class="edit icon"></i>编辑</a>
+                            </td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+
+                </div>
+        </div>
+    </div>
+    <div class="actions">
+        <div class="ui approve button">Approve</div>
+        <div class="ui button">Neutral</div>
+        <div class="ui cancel button">Cancel</div>
+    </div>
+</div>

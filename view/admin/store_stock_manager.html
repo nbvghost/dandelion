@@ -1,0 +1,114 @@
+<div class="ui container">
+    <p>
+        <a class="ui red ribbon label">门店库存管理</a>
+    </p>
+
+    <div class="ui mini menu">
+        <div class="menu">
+            <a class="item">
+                @{Store.Name}@
+            </a>
+        </div>
+        <div class="right menu">
+            <a class="item" ng-click="addGoods()" href="">
+                <div class="ui red button">添加产品</div>
+            </a>
+        </div>
+    </div>
+
+    <table width="100%" id="table_local_stock" class="ui teal table">
+        <thead>
+        <tr>
+            <th>#ID</th>
+            <th>门店ID</th>
+            <th>产品名称</th>
+            <th>规格数量</th>
+            <th>总库存</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+    </table>
+
+</div>
+
+<div id="list_goods" class="ui fullscreen modal">
+    <div class="header">门店库存管理</div>
+    <div class="content">
+
+        <table width="100%" id="table_local_goods" class="ui teal table">
+            <thead>
+            <tr>
+                <th>#ID</th>
+                <th>名称</th>
+                <th>库存</th>
+                <th>价格</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+        </table>
+
+    </div>
+    <div class="actions">
+        <div class="ui approve blue button">确定</div>
+        <div class="ui cancel button">取消</div>
+    </div>
+</div>
+<div id="add_store_stock" class="ui fullscreen modal">
+
+    <div class="header">单品库存管理</div>
+    <div class="content">
+
+
+        <div class="ui grid">
+            <div class="eight wide column">
+
+                <form class="ui inline form">
+                    <div class="field">
+                        <label>选择产品规格</label>
+                        <select ng-model="StoreStock.SpecificationID" class="ui dropdown" required ng-options="m.ID as (m.Label+'='+(m.Num*m.Weight/100)+'kg'+'/'+(m.MarketPrice/100)+'元') disable when SpecificationsDisable[m.ID] for m in Specifications">
+                            <option></option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>现有库存数量</label>
+                        <input disabled ng-value="StoreStock.Stock-StoreStock.UseStock">
+                    </div>
+                    <div class="field">
+                        <label>增加库存数量</label>
+                        <input type="number" required ng-model="AddStoreStockStock" placeholder="增加库存数量">
+                    </div>
+                    <div class="field">
+                        <label>&nbsp;</label>
+                        <div>
+                            <input type="submit" ng-click="saveStoreStock()" class="ui blue button" value="@{TargetAction.title}@" >
+                            <input type="reset" ng-click="cancelStoreStock()" class="ui button" value="取消" >
+                        </div>
+                    </div>
+
+
+                </form>
+
+            </div>
+            <div class="eight wide column">
+
+                <table width="100%" id="table_store_stock" class="ui teal table">
+                    <thead>
+                    <tr>
+                        <th>#ID</th>
+                        <th>产品名称</th>
+                        <th>规格</th>
+                        <th>现有库存</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                </table>
+
+
+            </div>
+        </div>
+    </div>
+    <div class="actions">
+        <div class="ui approve blue button">确定</div>
+        <div class="ui cancel button">取消</div>
+    </div>
+</div>

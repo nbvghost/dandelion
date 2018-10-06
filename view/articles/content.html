@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="app">
+<head>
+    <meta charset="UTF-8">
+    <title ng-cloak>{{.params.Content.Name}}</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <script type="text/javascript" src="/resources/jquery/jquery-3.3.1.js"></script>
+
+    <script type="text/javascript" src="/resources/iscroll/iscroll.js"></script>
+
+    <script type="text/javascript" src="/resources/angular/angular.min.js"></script>
+    <script type="text/javascript" src="/resources/angular/i18n/angular-locale_zh-cn.js"></script>
+
+    <script type="text/javascript" src="/resources/angular/angular-route.min.js"></script>
+{{/*<script type="text/javascript" src="/resources/angular/angular-sanitize.min.js"></script>*/}}
+
+    <style>
+        body{
+            padding: 0px;
+            margin: 0px;
+        }
+        #wrapper{
+            z-index: 1;
+            width: 100%;
+            margin: 0px auto;
+            position:relative;
+            max-width: 700px;
+        }
+        #wrapper ul{
+            padding: 0px 10px;
+            margin: 0px;
+            list-style: none;
+        }
+        #wrapper ul li{
+            padding: 0px;
+            margin: 15px 0px;
+            border-radius: 5px;
+            background:rgba(0,0,0,0.01);
+            border-top: 2px solid #0a6;
+        }
+        #wrapper ul li a{
+            display:block;
+            text-decoration:none;
+        }
+        #wrapper ul li .Title{
+            font-size: 18px;
+            font-weight: bold;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            padding-top: 10px;
+            padding-left: 10px;
+            padding-right: 10px;
+            color:#696969;
+        }
+        #wrapper ul li a .Content{
+            display: flex;
+            flex-flow: nowrap;
+            justify-content:space-between;
+
+            padding: 10px;
+        }
+        #wrapper ul li .left{
+            overflow: hidden;
+            width: 30%;
+        }
+        #wrapper ul li .right{
+            text-align: left;
+            color:#696969;
+            width: 70%;
+            display: flex;
+            flex-flow: wrap;
+            align-content: space-between;
+            align-items: stretch;
+            margin-left: 10px;
+        }
+        #wrapper ul li .left img{
+            width: 100%;
+            object-fit:contain;
+            object-position: top center;
+            padding: 0px;
+            line-height: 0;
+            border: 0px;
+            margin: 0px;
+            border-radius: 5px;
+        }
+
+        #wrapper ul li .right .top{
+            width: 100%;
+
+        }
+        #wrapper ul li .right .button{
+            width: 100%;
+            color: #ccc;
+            height: 30px;
+            flex-shrink: 0;
+        }
+        #wrapper ul li .right .button .info{
+            display: flex;
+            justify-content: space-between;
+            align-items:center;
+            font-size: 12px;
+            width: 100%;
+            height: 100%;
+        }
+
+        #wrapper ul li .top .Introduce{
+            width: 100%;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 5;
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        .testinfo{
+            position: fixed;
+            top: 0px;
+            z-index: 999;
+            display: none;
+        }
+        #wrapper ul li.loadmore{
+            text-align: center;
+            border: 1px solid #eee;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+            color: #0d71bb;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .title span{
+            font-weight: normal;
+            font-size: 14px;
+        }
+        .title{
+            background:#0a6;
+            color: white;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        #menusbar ul{
+            list-style: none;
+            padding: 0px;
+            margin: 0px;
+        }
+        #menusbar{
+            border-bottom: 1px solid #eee;
+            color: #696969;
+            font-size:14px;
+        }
+        #menusbar ul li{
+            width:16.6666666%;
+            vertical-align: center;
+            cursor:pointer;
+            padding: 10px 0px;
+        }
+        #menusbar ul li.on{
+            font-weight: bold;
+            color:#0a6;
+            border-bottom: 2px solid #0a6;
+        }
+        #menusbar ul.more{
+
+        }
+        #menusbar .menus{
+            text-align: center;
+            display: flex;
+            justify-content:flex-start;
+            overflow-x: auto;
+        }
+        #menusbar .more{
+            display: flex;
+            flex-flow: wrap;
+
+        }
+        #menusbar .more li{
+            border: 0px solid red;
+            width: 16.6666666%;
+            text-align: center;
+        }
+    </style>
+    <script>
+        var tabIndex ={{.query.tabIndex}};
+        //alert(tabIndex);
+        /*function isPassive() {
+            var supportsPassiveOption = false;
+            try {
+                addEventListener("test", null, Object.defineProperty({}, 'passive', {
+                    get: function () {
+                        supportsPassiveOption = true;
+                    }
+                }));
+            } catch(e) {}
+            return supportsPassiveOption;
+        }
+        document.addEventListener('touchmove', function (e) { e.preventDefault(); }, isPassive() ? {
+            capture: false,
+            passive: false
+        } : false);*/
+    </script>
+    <script type="text/javascript" src="/resources/articles/js/articles.js"></script>
+</head>
+<body ng-cloak ng-controller="new_list_controller">
+<div ng-click="hotTab()" class="title">{{.params.Content.Name}}<span>-热榜</span></div>
+<div id="menusbar">
+    <ul class="menus">
+        <li ng-click="newTab()" ng-class="{true:'on'}[tabIndex==-1]">最新</li>
+        {{range $index,$value:=.params.ContentSubTypes}}
+            {{if lt $index 4}}
+                <li ng-class="{true:'on'}[tabIndex=={{$index}}]" ng-click="selectTab({{$index}},{{$value.ID}})">{{$value.Name}}</li>
+            {{end}}
+        {{end}}
+        {{$cstlen := len .params.ContentSubTypes}}
+        {{if gt $cstlen 3}}
+            <li ng-click="showMoreFunc()">更多</li>
+        {{end}}
+    </ul>
+    <ul ng-show="showMore" class="more">
+        {{range $index,$value:=.params.ContentSubTypes}}
+            {{if gt $index 3}}
+                <li ng-class="{true:'on'}[tabIndex=={{$index}}]" ng-click="selectTab({{$index}},{{$value.ID}})">{{.Name}}</li>
+            {{end}}
+        {{end}}
+    </ul>
+</div>
+<div id="wrapper">
+    <ul>
+        <li ng-repeat="m in articles" repeat-finish="repeatDone();">
+            <a target="_blank" href="article/@{m.ID}@">
+                <div class="Title">@{m.Title}@</div>
+                <div class="Content">
+                    <div class="left">
+                        <img src="/file/load?path=@{m.Thumbnail}@">
+                    </div>
+                    <div class="right">
+                        <div class="top">
+                            <div class="Introduce">@{m.Introduce}@</div>
+                        </div>
+                        <div class="button">
+                            <div class="info">
+                                <div>浏览：@{m.Look}@</div>
+                                <div>@{m.CreatedAt|date:"MM-dd HH:mm"}@</div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </a>
+        </li>
+        <li ng-show="showLoadMoreBtn" ng-click="loadMore()" class="loadmore">查看更多内容</li>
+    </ul>
+</div>
+
+<div style="display: none;" class="testinfo">
+    <p>scrollTop:@{scrollTop}@</p>
+    <p>scrollHeight:@{scrollHeight}@</p>
+    <p>clientHeight:@{clientHeight}@</p>
+</div>
+</body>
+</html>

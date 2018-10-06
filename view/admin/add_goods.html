@@ -1,0 +1,270 @@
+<style>
+    .ng-empty{
+        border:1px solid red!important;
+    }
+</style>
+<div id="add_goods" class="ui container">
+    <p>
+        <a class="ui red ribbon label">@{Goods.ID==undefined?'添加产品':'编辑产品'}@</a>
+    </p>
+
+    <form class="ui form" ng-submit="saveGoods()">
+        <h4 class="ui dividing header">产品信息</h4>
+        <div class="field">
+            <label>产品名称</label>
+            <div class="two fields">
+                <div class="field">
+                    <input ng-model="Goods.Title" required type="text">
+                </div>
+            </div>
+        </div>
+        <div class="three fields">
+            <div class="field">
+                <label>系列</label>
+                <select ng-model="GoodsTypeID" required ng-options="m.ID as m.Name for m in GoodsTypeList" ng-change="changeGoodsType()" class="ui fluid dropdown">
+                    <option></option>
+                </select>
+            </div>
+            <div class="field">
+                <label>子系列</label>
+                <select ng-model="GoodsTypeChildID" required ng-options="m.ID as m.Name for m in GoodsTypeChildList" class="ui fluid dropdown">
+                    <option></option>
+                </select>
+            </div>
+        </div>
+
+        <div class="five fields">
+            <div class="field">
+                <label>快递模板</label>
+                <select required ng-model="Goods.ExpressTemplateID" ng-change="selectExpressTemplate()" ng-options="m.ID as m.Name for m in ExpressTemplateList">
+                    <option></option>
+                </select>
+            </div>
+            <div class="field">
+                <label>&nbsp;</label>
+                <a href="#!/express" class="ui teal fluid button">新建快递模板</a>
+            </div>
+            <div class="field">
+                <label>&nbsp;</label>
+                <a title="查看" href="#!/add_express?ID=@{Goods.ExpressTemplateID}@" target="_blank" style="color: red;font-weight: bold;" class="ui">@{expressTemplateInfo}@</a>
+            </div>
+        </div>
+        <div class="field">
+            <label>产品销售属性</label>
+            <small>规格：每件规格包含多少件单品</small>/
+            <small>重量：单品重量</small>
+                <table class="ui celled blue table">
+                    <thead>
+                    <tr>
+                        <th>标签名</th>
+                        <th>规格</th>
+                        <th>重量（Kg）</th>
+                        <th>库存</th>
+                        <th>成本价</th>
+                        <th>市场价</th>
+                        <th>佣金金额</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="m in Specifications">
+
+                            <td>
+                                <input ng-model="m.Label" >
+                            </td>
+
+                            <th>
+                                <input ng-model="m.Num" min="1" placeholder="件" type="number" >
+                            </th>
+                            <th>
+                                <input ng-model="m.Weight" step="0.001" min="0" placeholder="重量" type="number" >
+                            </th>
+                            <td>
+                                <input type="number" ng-change="changeStock()" ng-model="m.Stock" >
+                            </td>
+                            <td>
+                                <input type="number" step="0.01" ng-model="m.CostPrice" >
+                            </td>
+                            <td>
+                                <input type="number" step="0.01" ng-model="m.MarketPrice" >
+                            </td>
+                            <td>
+                                <input type="number" step="0.01" ng-model="m.Brokerage" >
+                            </td>
+                            <td>
+                                <input class="ui red button" value="删除" ng-click="deleteSpecification($index)" type="button" >
+                            </td>
+                        </tr>
+                    </tbody>
+
+                    <tfoot>
+                                <tr>
+                                    <th>
+                                        <input ng-model="Specification.Label" min="1" placeholder="标签名" type="text" >
+                                    </th>
+                                    <th>
+                                        <input ng-model="Specification.Num" min="1" placeholder="件" type="number" >
+                                    </th>
+                                    <th>
+                                        <input ng-model="Specification.Weight" step="0.001" min="0" placeholder="重量" type="number" >
+                                    </th>
+
+                                    <th>
+                                        <input ng-model="Specification.Stock" min="1" placeholder="库存数量" type="number" >
+                                    </th>
+                                    <th>
+                                        <input ng-model="Specification.CostPrice" step="0.01" min="0.01" placeholder="成本价(单位：元)" type="number"  >
+                                    </th>
+                                    <th>
+                                        <input ng-model="Specification.MarketPrice" step="0.01" min="0.01" placeholder="市场价(单位：元)" type="number" >
+                                    </th>
+                                    <th>
+                                        <input ng-model="Specification.Brokerage" step="0.01" min="0.01"  placeholder="佣金金额(单位：元)" type="number" >
+                                    </th>
+                                    <th>
+                                        <input class="ui mini blue button" type="button" ng-click="addSpecifications()" value="添加">
+                                    </th>
+                                </tr>
+
+
+                    </tfoot>
+                </table>
+
+        </div>
+
+        <div class="three fields">
+            <div class="field">
+                <label>总库存</label>
+                <input ng-model="Goods.Stock" readonly placeholder="总库存" type="number" required >
+            </div>
+        </div>
+
+        <div class="three fields">
+            <div class="field">
+                <label>价格</label>
+                <input ng-model="Goods.Price" step="0.01" placeholder="价格(单位：元)" type="number" required >
+            </div>
+        </div>
+
+        <div class="field">
+            <label>属性</label>
+            <div class="ui labels">
+                <div ng-repeat="m in Params" class="ui label">@{m.Name}@:@{m.Value}@<i ng-click="deleteArr(Params,$index)" class="delete icon"></i></div>
+
+                <div ng-click="showParamsModal()" style="cursor: pointer;user-select: none;" class="ui red label">添加属性<i class="add icon"></i></div>
+            </div>
+        </div>
+
+
+
+        <div class="field">
+            <label>商品视频</label>
+            <div class="ui fluid card">
+                <div class="ui images" >
+                    <div class="ui grid container">
+                        <div class="four wide center aligned column" ng-repeat="m in Videos">
+                            <video style="object-fit:contain;max-width: 100%;max-height:160px;width: 100%;height: 100%;" ng-src="/file/load?path=@{m}@" controls="controls">
+                                您的浏览器不支持 video 标签。
+                            </video>
+                            <div class="ui mini fluid buttons">
+                                <div ng-click="LeftMoveArr(Videos,$index)" class="ui mini blue  button">左移</div>
+                                <div ng-click="deleteArr(Videos,$index)" class="ui mini red button">删除</div>
+                                <div ng-click="RightMoveArr(Videos,$index)" class="ui mini blue button">右移</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content">
+                    <div class="header"><div id="progress-bar-videos"></div></div>
+                    <div class="description">最大100MB</div>
+                </div>
+                <div class="ui bottom attached button" multiple="multiple" type="file" ngf-select="uploadVideos('#progress-bar-videos',$files,$invalidFiles)" accept="video/*" ngf-max-size="100MB"><i class="image icon"></i>上传图片</div>
+
+            </div>
+        </div>
+
+
+        <div class="field">
+            <label>产品图片</label>
+            <div class="ui fluid card">
+                <div class="ui images" >
+                    <div class="ui grid container">
+                        <div class="four wide center aligned column" ng-repeat="m in Images">
+                            <img style="object-fit:contain;max-width: 100%;max-height:160px;width: 100%;height: 100%;"  ng-src="/file/load?path=@{m}@">
+                            <div class="ui mini fluid buttons">
+                                <div ng-click="LeftMoveArr(Images,$index)" class="ui mini blue  button">左移</div>
+                                <div ng-click="deleteArr(Images,$index)" class="ui mini red button">删除</div>
+                                <div ng-click="RightMoveArr(Images,$index)" class="ui mini blue button">右移</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content">
+                    <div class="header"></div>
+                    <div class="description">建议 512*512  最大1M</div>
+                </div>
+                <div class="ui bottom attached button" multiple="multiple" type="file" ngf-select="uploadImages('progress-bar',$files,$invalidFiles)" accept="image/*" ngf-max-size="3MB"><i class="image icon"></i>上传图片</div>
+
+            </div>
+        </div>
+
+        <div class="field">
+            <label>产品介绍</label>
+            <textarea ng-model="Goods.Introduce" placeholder="产品介绍" required ></textarea>
+        </div>
+
+
+
+
+        <div class="field">
+            <label>产品介绍图片</label>
+            <div class="ui fluid card">
+                <div class="ui images" >
+                    <div class="ui grid container">
+                        <div class="four wide center aligned column" ng-repeat="m in Pictures">
+                            <img style="object-fit:contain;max-width: 100%;max-height:160px;width: 100%;height: 100%;"  ng-src="/file/load?path=@{m}@">
+                            <div class="ui mini fluid buttons">
+                                <div ng-click="LeftMoveArr(Pictures,$index)" class="ui mini blue  button">左移</div>
+                                <div ng-click="deleteArr(Pictures,$index)" class="ui mini red button">删除</div>
+                                <div ng-click="RightMoveArr(Pictures,$index)" class="ui mini blue button">右移</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="content">
+                    <div class="header"></div>
+                    <div class="description">最大1M</div>
+                </div>
+
+                <div class="ui bottom attached button" multiple="multiple" type="file" ngf-select="uploadPictures('progress-bar',$files,$invalidFiles)" accept="image/*" ngf-max-size="3MB"><i class="image icon"></i>上传图片</div>
+
+            </div>
+        </div>
+
+        <button type="submit" class="ui red button" tabindex="0">提交</button>
+    </form>
+
+
+</div>
+<div id="params" class="ui modal">
+    <div class="header">添加属性</div>
+    <div class="content">
+        <form class="ui form" ng-submit="addParams()">
+            <div class="field">
+                <label>属性名</label>
+                <input type="text" ng-model="param.Name" required placeholder="属性名">
+            </div>
+            <div class="field">
+                <label>属性值</label>
+                <input type="text" ng-model="param.Value" required placeholder="属性值">
+            </div>
+
+            <button class="ui red button" type="submit">添加</button>
+
+        </form>
+    </div>
+    <div style="display: none;" class="actions">
+        <div class="ui approve red button">确定</div>
+        <div class="ui cancel button">取消</div>
+    </div>
+</div>
