@@ -1,13 +1,17 @@
 {
   "ViewDir": "view",
   "ResourcesDir": "resources",
+  "ResourcesDirName": "resources",
+  "UploadDir": "upload",
+  "UploadDirName": "upload",
   "DefaultPage": "index",
   "JsonDataPath": "data.json",
-  "HttpPort": ":8080",
+  "HttpPort": ":80",
   "HttpsPort": ":443",
+  "Domain":"nrp.nutsy.cc",
   "ViewSuffix": ".html",
   "ViewActionMapping": true,
-  "TLSCertFile": "cert/1_nutsy.cc_bundle.crt",
-  "TLSKeyFile": "cert/2_nutsy.cc.key",
-  "DBUrl": "root:123456@tcp(127.0.0.1:3306)/dandelion?charset=utf8&parseTime=True&loc=Local"
+  "TLSCertFile": "cert/tls/cert2.pem",
+  "TLSKeyFile": "cert/tls/privkey2.pem",
+  "DBUrl": "root:123456@tcp(127.0.0.1:3306)/dandelion?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
 }
