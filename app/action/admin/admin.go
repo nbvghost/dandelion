@@ -67,8 +67,10 @@ type Controller struct {
 func (controller *Controller) Apply() {
 	controller.Interceptors.Add(&InterceptorManager{})
 	//Index.RequestMapping = make(map[string]mvc.Function)
+
 	controller.AddHandler(gweb.ALLMethod("", controller.rootPage))
 	controller.AddHandler(gweb.ALLMethod("*", controller.defaultPage))
+
 	controller.AddHandler(gweb.ALLMethod("index", controller.indexPage))
 	controller.AddHandler(gweb.ALLMethod("goods", controller.Goods.Action))
 
@@ -411,4 +413,5 @@ func (controller *Controller) defaultPage(context *gweb.Context) gweb.Result {
 func (controller *Controller) rootPage(context *gweb.Context) gweb.Result {
 
 	return &gweb.RedirectToUrlResult{"index"}
+	//return &gweb.HTMLResult{Name: "admin/index.html"}
 }

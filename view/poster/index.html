@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>我的海报-长按保存</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+    <script type="text/javascript" src="/resources/jquery/jquery-3.3.1.min.js"></script>
+    <style>
+        html,body{
+            padding: 0px;
+            margin: 0px;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #posterImage{
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border:none;
+        }
+        #tipbox{
+            background: rgba(255,255,255,0.75);
+            position: fixed;
+            width: 100%;
+            text-align: center;
+            bottom: 0px;
+            padding: 10px 0px;
+        }
+    </style>
+    <script>
+
+        function drawImage(posterImage,headImage,qrcodeImage) {
+
+            poster.fillStyle = 'red';
+            poster.drawImage(posterImage,0,0,1080,1920);
+            poster.drawImage(headImage,(1080-240)/2,240, 240, 240);
+
+            poster.drawImage(qrcodeImage,(1080-400)/2,800, 400, 400);
+
+            //poster.drawImage(posterImage,0,0,1080,1920);
+
+            /*poster.save();
+            //poster.drawImage(headImage, 500, 500, 120, 120);
+            poster.globalCompositeOperation="source-in";
+            poster.arc(500, 500, 120,0,2*Math.PI);
+            poster.fillStyle="red";
+            poster.fill();
+            poster.restore();*/
+
+
+            poster.save();
+            poster.shadowColor = '#fff';
+            // 将阴影向右移动15px，向上移动10px
+            poster.shadowOffsetX = 0;
+            poster.shadowOffsetY = 0;
+            // 轻微模糊阴影
+            poster.shadowBlur = 5;
+
+            poster.font = '70px bold';//字体大小也会影响的哦。bold italic
+            poster.lineWidth = 8;
+            poster.strokeStyle = "#fff";
+
+
+            var text = "{{.params.User.Name}}";
+            var textWidth = poster.measureText(text).width;
+
+            var textX =(1080-textWidth)/2;
+            var textY = 600;
+
+            poster.strokeText(text, textX, textY);
+            poster.fillStyle ="#333";
+            poster.fillText(text, textX, textY);
+
+
+            poster.restore();
+
+
+            $("#posterImage").attr("src", canvas.toDataURL("image/png"));
+
+        }
+
+        function onload(qrcodeUrl,posterImageUrl) {
+
+            var posterImage = new Image();
+            posterImage.setAttribute('crossOrigin', 'anonymous');
+            posterImage.onload = function() {
+
+                var headImage = new Image();
+                headImage.setAttribute('crossOrigin', 'anonymous');
+                headImage.onload=function () {
+
+                    var qrcodeImage = new Image();
+                    qrcodeImage.setAttribute('crossOrigin', 'anonymous');
+                    qrcodeImage.onload=function () {
+                        drawImage(posterImage,headImage,qrcodeImage);
+                    }
+                    qrcodeImage.src=qrcodeUrl;
+                }
+                headImage.src=unescape("{{.params.User.Portrait}}");
+                //console.log(headImage.src)
+
+            };
+            posterImage.src=posterImageUrl;
+        }
+
+        var canvas;
+        var poster;
+
+        $(document).ready(function () {
+
+            canvas = document.getElementById("canvas");
+            poster = canvas.getContext("2d");
+
+            $.getJSON("/images/miniprogram/qrcode?Page={{.query.Page}}&ID={{.query.ID}}",function(result){
+                //console.log("/file/temp/load?path="+result.Data);
+                $.post("/configuration/list",JSON.stringify([1002]),function(configurationResult){
+                    onload("/file/temp/load?path="+result.Data,configurationResult.Data[1002]);
+                },"json");
+            });
+
+        });
+
+    </script>
+</head>
+<body>
+<script type="text/javascript" src="//z1-pcok6.kuaishangkf.com/bs/ks.j?cI=398160&fI=126467" charset="utf-8"></script>
+<canvas style="display: none;visibility: hidden;border:none;" width="1080" height="1920" id="canvas"></canvas>
+<img id="posterImage">
+<div id="tipbox">长按图片保存到手机，分享给好友</div>
+</body>
+</html>

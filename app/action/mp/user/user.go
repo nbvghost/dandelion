@@ -6,12 +6,11 @@ import (
 	"dandelion/app/service/dao"
 	"dandelion/app/util"
 	"fmt"
-	"github.com/pkg/errors"
-	"io/ioutil"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/tool"
@@ -37,54 +36,11 @@ func (controller *UserController) Apply() {
 	controller.AddHandler(gweb.GETMethod("/growth/list/:Order", controller.userGrowthListAction))
 	controller.AddHandler(gweb.GETMethod("/info/:UserID", controller.userInfoByUserIDAction))
 	controller.AddHandler(gweb.POSMethod("/info/sharekey", controller.userShareKeyAction))
-	controller.AddHandler(gweb.GETMethod("/poster/qrcode", controller.posterqrcodeAction))
+
 	controller.AddHandler(gweb.POSMethod("/transfers", controller.transfersAction))
 
 }
-func (controller *UserController) posterqrcodeAction(context *gweb.Context) gweb.Result {
-	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
-	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
-	//context.Request.ParseForm()
-	//Page := context.Request.FormValue("Page")
-	Page := context.Request.URL.Query().Get("Page")
 
-	MyShareKey := util.EncodeShareKey(user.ID)
-
-	wxconfig := controller.Wx.MiniProgram()
-
-	access_token := controller.Wx.GetAccessToken(wxconfig)
-
-	postData := make(map[string]interface{})
-	//results := make(map[string]interface{})
-
-	postData["scene"] = MyShareKey
-	postData["page"] = Page
-	postData["width"] = 430
-	postData["auto_color"] = true
-
-	body := strings.NewReader(util.StructToJSON(postData))
-	//postData := url.Values{}
-	//postData.Add("scene","sdfsd")
-	resp, err := http.Post("https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token="+access_token, "application/json", body)
-	if err != nil {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}}
-	}
-
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}}
-	}
-	//fmt.Println(string(b))
-	defer resp.Body.Close()
-
-	path := tool.WriteTempFile(b, "image/png")
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: path}}
-	//return &gweb.ImageBytesResult{Data:b,ContentType:"image/png"}
-	//imageString := "data:image/png;base64," + base64.StdEncoding.EncodeToString(b)
-	//results["QRCodeBase64"] = imageString
-	//return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: results}}
-
-}
 func (controller *UserController) userShareKeyAction(context *gweb.Context) gweb.Result {
 
 	context.Request.ParseForm()
@@ -132,7 +88,7 @@ func (controller *UserController) userInfoByUserIDAction(context *gweb.Context) 
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", user)}
 }
 func (controller *UserController) userGrowthListAction(context *gweb.Context) gweb.Result {
-	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	Order := context.PathParams["Order"]
 	if strings.EqualFold(Order, "asc") {
 		Order = "Growth asc"
@@ -142,7 +98,7 @@ func (controller *UserController) userGrowthListAction(context *gweb.Context) gw
 		Order = "Growth asc"
 	}
 	var users []dao.User
-	err := controller.User.FindOrderWhereLength(dao.Orm(), Order, &users, 20, "OID=?", company.ID)
+	err := controller.User.FindOrderWhereLength(dao.Orm(), Order, &users, 20)
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", users)}
 }
 func (controller *UserController) userInfoDaySignAction(context *gweb.Context) gweb.Result {

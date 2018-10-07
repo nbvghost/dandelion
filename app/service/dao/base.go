@@ -70,9 +70,9 @@ func (b BaseDao) FindOrderWhere(DB *gorm.DB, Order interface{}, target interface
 
 	return DB.Model(target).Where(where, args...).Order(Order).Find(target).Error
 }
-func (b BaseDao) FindOrderWhereLength(DB *gorm.DB, Order interface{}, target interface{}, Length int, where interface{}, args ...interface{}) error {
+func (b BaseDao) FindOrderWhereLength(DB *gorm.DB, Order interface{}, target interface{}, Length int) error {
 
-	return DB.Model(target).Where(where, args...).Order(Order).Limit(Length).Find(target).Error
+	return DB.Model(target).Order(Order).Limit(Length).Find(target).Error
 }
 func (b BaseDao) FindWherePaging(DB *gorm.DB, Order interface{}, target interface{}, Index int, where interface{}, args ...interface{}) error {
 

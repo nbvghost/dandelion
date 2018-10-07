@@ -1,17 +1,17 @@
 package index
 
 import (
+	"fmt"
+	"io/ioutil"
+	"strconv"
+	"strings"
+	"time"
+
 	"dandelion/app/action/index/articles"
 	"dandelion/app/play"
 	"dandelion/app/service"
 	"dandelion/app/service/dao"
 	"dandelion/app/util"
-	"fmt"
-	"io/ioutil"
-
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/tool"
@@ -51,6 +51,7 @@ type Controller struct {
 	Content       service.ContentService
 	Article       service.ArticleService
 	Configuration service.ConfigurationService
+	User          service.UserService
 }
 
 func (controller *Controller) Apply() {
@@ -64,15 +65,17 @@ func (controller *Controller) Apply() {
 	controller.AddHandler(gweb.POSMethod("/configuration/list", controller.configurationListAction))
 	//https://dandelion.nutsy.cc/2000/content/2000/new/article/webhook
 
+	controller.AddHandler(gweb.GETMethod("poster/index", controller.posterIndexPage))
+
 	articles := &articles.Controller{}
 	articles.Interceptors = controller.Interceptors
 	controller.AddSubController("/articles/", articles)
 }
 func (controller *Controller) configurationListAction(context *gweb.Context) gweb.Result {
-	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	var ks []uint64
 	util.RequestBodyToJSON(context.Request.Body, &ks)
-	list := controller.Configuration.GetConfigurations(company.ID, ks)
+	list := controller.Configuration.GetConfigurations(0, ks)
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", list)}
 }
 func (controller *Controller) newArticlePostAction(context *gweb.Context) gweb.Result {
@@ -198,6 +201,7 @@ func (controller *Controller) newArticleWebhookAction(context *gweb.Context) gwe
 }
 
 func (controller *Controller) defaultPage(context *gweb.Context) gweb.Result {
+
 	return &gweb.RedirectToUrlResult{Url: "index"}
 }
 
@@ -205,4 +209,11 @@ func (controller *Controller) defaultPage(context *gweb.Context) gweb.Result {
 func (controller *Controller) indexPage(context *gweb.Context) gweb.Result {
 
 	return &gweb.HTMLResult{}
+}
+func (controller *Controller) posterIndexPage(context *gweb.Context) gweb.Result {
+	//fmt.Println(context.Request.URL.Query().Get("ID"))
+	UserID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+	var user dao.User
+	controller.User.Get(dao.Orm(), UserID, &user)
+	return &gweb.HTMLResult{Params: map[string]interface{}{"User": user}}
 }

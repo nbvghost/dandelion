@@ -3,7 +3,6 @@ var main = angular.module("managerApp", ['ngRoute',"ngMessages","ngFileUpload"])
 
 main.config(function($routeProvider, $locationProvider,$provide,$httpProvider,$httpParamSerializerJQLikeProvider,$interpolateProvider) {
     $interpolateProvider.startSymbol("@{").endSymbol("}@");
-    //console.dir($httpProvider.defaults.transformRequest);
     $httpProvider.defaults.transformRequest.unshift($httpParamSerializerJQLikeProvider.$get());
     $httpProvider.defaults.headers.post={'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'};
 
@@ -33,6 +32,8 @@ main.config(function($routeProvider, $locationProvider,$provide,$httpProvider,$h
 
     $httpProvider.interceptors.push("httpInterceptor");*/
 
+
+
     $routeProvider.when("/", {
         templateUrl: "main",
         controller: "main_controller"
@@ -59,8 +60,6 @@ main.config(function($routeProvider, $locationProvider,$provide,$httpProvider,$h
         templateUrl: "goods_type_child_list",
         controller: "goods_type_child_list_controller"
     });
-
-
     $routeProvider.when("/score_goods_list", {
         templateUrl: "score_goods_list",
         controller: "score_goods_list_controller"
@@ -133,12 +132,10 @@ main.config(function($routeProvider, $locationProvider,$provide,$httpProvider,$h
         templateUrl: "poster",
         controller: "poster_controller"
     });
-
     $routeProvider.when("/content_list", {
         templateUrl: "content_templets/content_list_templet",
         controller: "content_list_controller"
     });
-
     $routeProvider.when("/add_articles", {
         templateUrl: "content_templets/add_articles_templet",
         controller: "content_add_articles_controller"
@@ -147,6 +144,9 @@ main.config(function($routeProvider, $locationProvider,$provide,$httpProvider,$h
         templateUrl: "content_templets/articles_templet",
         controller: "content_articles_controller"
     });
+
+
+    //$locationProvider.html5Mode(true)//.hashPrefix('#!');
     
 });
 main.controller("content_articles_controller", function ($http, $scope, $routeParams, $rootScope,$timeout,$location,Upload) {
@@ -421,9 +421,9 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
     var quill;
     $timeout(function () {
 
-        let Inline = Quill.import('blots/inline');
-        let Block = Quill.import('blots/block');
-        let BlockEmbed = Quill.import('blots/block/embed');
+        var Inline = Quill.import('blots/inline');
+        var Block = Quill.import('blots/block');
+        var BlockEmbed = Quill.import('blots/block/embed');
 
         class BoldBlot extends Inline { }
         BoldBlot.blotName = 'bold';
@@ -435,7 +435,7 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
 
         class LinkBlot extends Inline {
             static create(url) {
-                let node = super.create();
+                var node = super.create();
                 node.setAttribute('href', url);
                 node.setAttribute('target', '_blank');
                 return node;
@@ -466,7 +466,7 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
 
         class ImageBlot extends BlockEmbed {
             static create(value) {
-                let node = super.create();
+                var node = super.create();
                 node.setAttribute('alt', value.alt);
                 node.setAttribute('src', value.url);
                 return node;
@@ -482,12 +482,9 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
         ImageBlot.blotName = 'image';
         ImageBlot.tagName = 'img';
 
-
-
-
         class VideoBlot extends BlockEmbed {
             static create(url) {
-                let node = super.create();
+                var node = super.create();
                 node.setAttribute('src', url);
                 node.setAttribute('frameborder', '0');
                 node.setAttribute('allowfullscreen', true);
@@ -495,7 +492,7 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
             }
 
             static formats(node) {
-                let format = {};
+                var format = {};
                 if (node.hasAttribute('height')) {
                     format.height = node.getAttribute('height');
                 }
