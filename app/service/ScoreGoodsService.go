@@ -106,10 +106,10 @@ func (service ScoreGoodsService) Exchange(UserID, ScoreGoodsID uint64) error {
 	}
 
 }
-func (service ScoreGoodsService) ListScoreGoods(OID uint64) []dao.ScoreGoods {
+func (service ScoreGoodsService) ListScoreGoods() []dao.ScoreGoods {
 	Orm := dao.Orm()
 	var list []dao.ScoreGoods
-	service.FindAllByOID(Orm, &list, OID)
+	service.FindAll(Orm, &list)
 	return list
 }
 

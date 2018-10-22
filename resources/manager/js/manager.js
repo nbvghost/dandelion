@@ -1,4 +1,4 @@
-var main = angular.module("manager", ['ngRoute']).config(['$interpolateProvider', function ($interpolateProvider) {
+var main = angular.module("manager", ['ngRoute',"ngMessages","ngFileUpload"]).config(['$interpolateProvider', function ($interpolateProvider) {
     $interpolateProvider.startSymbol("@{").endSymbol("}@");
 }]);
 
@@ -6,6 +6,14 @@ main.config(function ($routeProvider, $locationProvider) {
     $routeProvider.when("/", {
         templateUrl: "list",
         controller: "mainCtrl"
+    });
+    $routeProvider.when("/users", {
+        templateUrl: "users",
+        controller: "users_controller"
+    });
+    $routeProvider.when("/user_setup", {
+        templateUrl: "user_setup",
+        controller: "user_setup_controller"
     });
     $routeProvider.when("/make_card", {
         templateUrl: "makeCard",
@@ -39,10 +47,920 @@ main.config(function ($routeProvider, $locationProvider) {
         templateUrl: "wx_menus",
         controller: "wx_menusCtrl"
     });
+    $routeProvider.when("/poster", {
+        templateUrl: "poster",
+        controller: "poster_controller"
+    });
+    $routeProvider.when("/give_voucher", {
+        templateUrl: "give_voucher",
+        controller: "give_voucher_controller"
+    });
+    $routeProvider.when("/goods_type_list", {
+        templateUrl: "goods_type_list",
+        controller: "goods_type_list_controller"
+    });
+    $routeProvider.when("/goods_type_child_list", {
+        templateUrl: "goods_type_child_list",
+        controller: "goods_type_child_list_controller"
+    });
+});
+main.controller("goods_type_child_list_controller",function ($http, $scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
 
+    var ID = $routeParams.ID;
+
+    if(ID==undefined||ID==""||ID==0){
+        alert("数据出错，无法添加");
+        window.history.back();
+        return
+    }
+
+
+    $scope.GoodsTypeChild={Image:""};
+
+    $scope.GoodsTypeChildModalObj={Title:"添加子系列",Action:"add_goods_type_child"};
+    $scope.ShowGoodsTypeChildModal = function () {
+
+        $('#goods_type_child_modal').modal({
+            onApprove : function() {
+
+            }
+        }).modal('show');
+
+    }
+    $scope.loadList =function(){
+
+        $http.get("goods?action=list_goods_type_child_id&ID="+ID,{}, {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+            $scope.GoodsTypeChildList = data.data.Data;
+        });
+
+    }
+    $scope.loadList();
+
+    $scope.deleteGoodsTypeChild = function(m){
+
+        if(confirm("确定删除："+m.Name+"?")){
+            $http.get("goods?action=del_goods_type_child&ID="+m.ID,{}, {
+                transformRequest: angular.identity,
+                headers: {"Content-Type": "application/json"}
+            }).then(function (data, status, headers, config) {
+
+                alert(data.data.Message);
+                $scope.loadList();
+
+            });
+        }
+    }
+    $scope.editGoodsTypeChild = function(m){
+
+        $scope.GoodsTypeChild=m;
+
+        $scope.GoodsTypeChildModalObj={Title:"修改子系列",Action:"change_goods_type_child"};
+
+        $('#goods_type_child_modal').modal('show');
+
+
+    }
+    $scope.saveGoodsTypeChild = function () {
+
+        if($scope.GoodsTypeChild.Image==""){
+
+            alert("请上传图片");
+            return
+        }
+
+        $scope.GoodsTypeChild.GoodsTypeID=parseInt(ID);
+        $http.post("goods?action="+$scope.GoodsTypeChildModalObj.Action,JSON.stringify($scope.GoodsTypeChild), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            $scope.GoodsTypeChild={Image:""};
+            alert(data.data.Message);
+            $('#goods_type_child_modal').modal("hide");
+
+            $scope.loadList();
+
+        });
+
+    }
+
+    $scope.uploadImages = function (progressID,file, errFiles) {
+
+        if (file) {
+            var thumbnail =Upload.upload({
+                url: '/file/up',
+                data: {file: file},
+            });
+            thumbnail.then(function (response) {
+                $timeout(function () {
+                    var url =response.data.Data;
+
+                    $scope.GoodsTypeChild.Image = url;
+
+                });
+            }, function (response) {
+                if (response.status > 0){
+                    $scope.errorMsg = response.status + ': ' + response.data;
+                }
+            }, function (evt) {
+                // Math.min is to fix IE which reports 200% sometimes
+                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                //$("."+progressID).text(progress+"%");
+                //$("."+progressID).css("width",progress+"%");
+            });
+        }else{
+            UpImageError(errFiles);
+        }
+    }
+
+});
+main.controller("goods_type_list_controller",function ($http, $scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    $scope.GoodsType={Name:""};
+
+    $scope.ModalType =[{Title:"添加系列",action:"add_goods_type"},{Title:"修改系列",action:"change_goods_type"}];
+
+    var table;
+    $scope.GoodsTypeModalObj =$scope.ModalType.add;
+    $scope.showGoodsTypeModal =function (index) {
+        $scope.GoodsTypeModalObj = $scope.ModalType[index];
+
+        $('#add_goods_type').modal({
+            onApprove : function() {
+
+            }
+        }).modal('show');
+    }
+    $scope.addGoodsType = function () {
+
+        $http.post("goods?action="+$scope.GoodsTypeModalObj.action,JSON.stringify($scope.GoodsType), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            $scope.GoodsType={Name:""};
+            alert(data.data.Message);
+            $('#add_goods_type').modal("hide");
+
+            table.ajax.reload();
+        });
+
+    }
+
+    $timeout(function () {
+        table = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Name"},
+                {data:null,className:"opera",orderable:false,render:function () {
+                        return '<button class="ui edit blue mini button">编辑</button>' +'<button class="ui child blue mini button">子类管理</button>' +
+                            '  <button class="ui delete red mini button">删除</button>';
+
+                    }}
+            ],
+            "createdRow": function ( row, data, index ) {
+                //console.log(row,data,index);
+            },
+            columnDefs:[
+
+            ],
+            "initComplete":function (d) {
+
+            },
+            paging: true,
+            //"dom": '<"toolbar">frtip',
+            "pagingType": "full_numbers",
+            searching: false,
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "goods?action=list_goods_type",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+        $('#table_local').on('click','td.opera .edit', function () {
+
+
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
+            console.log(row.data());
+
+            $timeout(function () {
+                $scope.GoodsType={Name:row.data().Name,ID:row.data().ID};
+                $scope.showGoodsTypeModal(1);
+            });
+
+        });
+        $('#table_local').on('click','td.opera .child', function () {
+
+
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
+            console.log(row.data());
+
+
+            window.location.href="#!/goods_type_child_list?ID="+row.data().ID;
+
+            $timeout(function () {
+                //$scope.GoodsType={Name:row.data().Name,ID:row.data().ID};
+                //$scope.showGoodsTypeModal(1);
+            });
+
+        });
+        $('#table_local').on('click','td.opera .delete', function () {
+
+
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
+
+            console.log(row.data());
+
+            /*$timeout(function () {
+                var data = row.data();
+                data.PassWord="";
+                $scope.onShowBox(data,1);
+            });*/
+
+            if(confirm("确定删除？")){
+                $http.get("goods?action=del_goods_type",{params:{ID:row.data().ID}}).then(function (data) {
+
+                    alert(data.data.Message);
+
+                    table.ajax.reload();
+
+                })
+            }
+
+
+
+        });
+    });
+
+});
+main.controller("give_voucher_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+    //showAddGiveVoucher
+
+
+    $scope.GiveVoucher=null;
+
+    $scope.showAddGiveVoucher = function(){
+
+        $scope.GiveVoucher=null;
+        //add_rank
+        $("#add_give_voucher").modal("show");
+
+        table_vouchers.ajax.reload();
+
+    }
+    $scope.saveGiveVoucher = function(){
+
+        if(!$scope.GiveVoucher.ScoreMaxValue){
+
+            return
+        }
+        if(!$scope.GiveVoucher.VoucherID){
+            alert("请选择卡卷");
+            return
+        }
+
+
+
+        $http.post("give_voucher/save",JSON.stringify($scope.GiveVoucher), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            alert(data.data.Message);
+            if(data.data.Success){
+                table_local.ajax.reload();
+                $("#add_give_voucher").modal("hide");
+                $scope.GiveVoucher=null;
+            }
+
+
+        });
+
+
+    }
+
+
+    var table_vouchers;
+    var table_local;
+    $timeout(function () {
+
+
+        table_local = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"ScoreMaxValue"},
+                {data:"VoucherID"},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+                        return '<button  class="ui edit blue mini button">编辑</button><button  class="ui delete red mini button">删除</button>';
+
+                    }}
+            ],
+            "initComplete":function (d) {
+
+            },
+            "ajax": {
+                "url": "give_voucher/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+        $('#table_local').on('click','td.opera .edit', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local.row(tr);
+            //console.log(row.data());
+            $scope.$apply(function () {
+                $scope.GiveVoucher=row.data();
+            });
+
+            $("#add_give_voucher").modal("show");
+            table_vouchers.ajax.reload();
+            //$("tr[id="+row.data().ID+"]").addClass("select");
+        });
+
+        $('#table_local').on('click','td.opera .delete', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local.row(tr);
+            //console.log(row.data());
+            if(confirm("确定删除？")){
+                $http.delete("give_voucher/"+row.data().ID,{}).then(function (data) {
+                    alert(data.data.Message);
+                    table_local.ajax.reload();
+
+                })
+            }
+        });
+
+        table_vouchers = $('#table_vouchers').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Name"},
+                {data:"Amount",render:function (data) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"UseDay",render:function (data) {
+                        return data+"天";
+                    }},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+                        return '<button type="button" class="ui select blue mini button">选择</button>';
+
+                    }}
+            ],
+            createdRow:function (row, data, index){
+                $(row).attr("id",data.ID);
+            },
+            "initComplete":function (d) {
+
+            },
+            "ajax": {
+                "url": "voucher/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+        $('#table_vouchers').on('click','td.opera .select', function () {
+            var tr = $(this).closest('tr');
+            var row = table_vouchers.row(tr);
+            //console.log(row.data());
+
+            $scope.$apply(function () {
+                if(!$scope.GiveVoucher){
+                    $scope.GiveVoucher={};
+                }
+                $scope.GiveVoucher.VoucherID=row.data().ID;
+            });
+
+
+        });
+
+    });
+
+});
+main.controller("poster_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+    $scope.poster=null;
+    $http.post("configuration/list",JSON.stringify([1002]), {
+        transformRequest: angular.identity,
+        headers: {"Content-Type": "application/json"}
+    }).then(function (data, status, headers, config) {
+        var obj =data.data.Data;
+        $scope.poster =obj[1002];
+    });
+
+
+
+    $scope.savePoster = function(){
+        if($scope.poster==null){
+            alert("请上传海报图片");
+            return
+        }
+
+        $http.post("configuration/change",JSON.stringify({K:1002,V:$scope.poster}), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            alert(data.data.Message);
+
+        });
+
+    }
+
+    $scope.uploadPoster = function (progressID,file, errFiles) {
+
+        if (file) {
+            var thumbnail =Upload.upload({
+                url: '/file/up',
+                data: {file: file},
+            });
+            thumbnail.then(function (response) {
+                $timeout(function () {
+                    $scope.poster =response.data.Data;
+                });
+            }, function (response) {
+                if (response.status > 0){
+                    $scope.errorMsg = response.status + ': ' + response.data;
+                }
+            }, function (evt) {
+                // Math.min is to fix IE which reports 200% sometimes
+                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                //$("."+progressID).text(progress+"%");
+                //$("."+progressID).css("width",progress+"%");
+            });
+        }else{
+            UpImageError(errFiles);
+        }
+    }
+
+
+
+})
+main.controller("user_setup_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    $scope.rank =null;
+    $scope.ConfigurationKey_ScoreConvertGrowValue =1;
+
+
+    $scope.showAddRank = function(){
+        //add_rank
+        $("#add_rank").modal("show");
+
+    }
+
+    $scope.saveLeveConfiguration = function(){
+
+
+        var total = $scope.ConfigurationKey_BrokerageLeve1+$scope.ConfigurationKey_BrokerageLeve2+$scope.ConfigurationKey_BrokerageLeve3+$scope.ConfigurationKey_BrokerageLeve4+$scope.ConfigurationKey_BrokerageLeve5+$scope.ConfigurationKey_BrokerageLeve6;
+        if(total!=100){
+            if(total!=0){
+                alert("分佣比例不正确，比例总和为100或0");
+                return
+            }
+        }
+
+
+        $http.post("configuration/change",JSON.stringify({K:1201,V:$scope.ConfigurationKey_BrokerageLeve1.toString()}), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            //alert(data.data.Message);
+
+            $http.post("configuration/change",JSON.stringify({K:1202,V:$scope.ConfigurationKey_BrokerageLeve2.toString()}), {
+                transformRequest: angular.identity,
+                headers: {"Content-Type": "application/json"}
+            }).then(function (data, status, headers, config) {
+
+                //alert(data.data.Message);
+
+                $http.post("configuration/change",JSON.stringify({K:1203,V:$scope.ConfigurationKey_BrokerageLeve3.toString()}), {
+                    transformRequest: angular.identity,
+                    headers: {"Content-Type": "application/json"}
+                }).then(function (data, status, headers, config) {
+
+                    //alert(data.data.Message);
+
+                    $http.post("configuration/change",JSON.stringify({K:1204,V:$scope.ConfigurationKey_BrokerageLeve4.toString()}), {
+                        transformRequest: angular.identity,
+                        headers: {"Content-Type": "application/json"}
+                    }).then(function (data, status, headers, config) {
+
+                        //alert(data.data.Message);
+
+                        $http.post("configuration/change",JSON.stringify({K:1205,V:$scope.ConfigurationKey_BrokerageLeve5.toString()}), {
+                            transformRequest: angular.identity,
+                            headers: {"Content-Type": "application/json"}
+                        }).then(function (data, status, headers, config) {
+
+                            //alert(data.data.Message);
+
+                            $http.post("configuration/change",JSON.stringify({K:1206,V:$scope.ConfigurationKey_BrokerageLeve6.toString()}), {
+                                transformRequest: angular.identity,
+                                headers: {"Content-Type": "application/json"}
+                            }).then(function (data, status, headers, config) {
+
+                                alert(data.data.Message);
+
+                            });
+
+                        });
+
+                    });
+
+                });
+
+            });
+
+        });
+
+
+    }
+
+    $scope.saveConfiguration = function(k,v){
+
+        $http.post("configuration/change",JSON.stringify({K:k,V:v}), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+            alert(data.data.Message);
+        });
+    }
+    $scope.saveRank = function(){
+
+        $http.post("rank/add",JSON.stringify($scope.rank), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            alert(data.data.Message);
+            $("#add_rank").modal("hide");
+
+            table_local.ajax.reload();
+            $scope.rank =null;
+
+
+        });
+
+        //configuration/list
+
+    }
+    $scope.configurations={}
+    $http.post("configuration/list",JSON.stringify([1100,1201,1202,1203,1204,1205,1206]), {
+        transformRequest: angular.identity,
+        headers: {"Content-Type": "application/json"}
+    }).then(function (data, status, headers, config) {
+
+        var obj =data.data.Data;
+        $scope.configurations=obj;
+        // console.log(data.data.Data);
+        $scope.ConfigurationKey_ScoreConvertGrowValue =parseInt(obj[1100]);
+
+        $scope.ConfigurationKey_BrokerageLeve1=parseInt(obj[1201]);
+        $scope.ConfigurationKey_BrokerageLeve2=parseInt(obj[1202]);
+        $scope.ConfigurationKey_BrokerageLeve3=parseInt(obj[1203]);
+        $scope.ConfigurationKey_BrokerageLeve4=parseInt(obj[1204]);
+        $scope.ConfigurationKey_BrokerageLeve5=parseInt(obj[1205]);
+        $scope.ConfigurationKey_BrokerageLeve6=parseInt(obj[1206]);
+    });
+    var table_local;
+    $timeout(function () {
+
+
+        table_local = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"GrowMaxValue"},
+                {data:"Title"},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+
+                        return '<button class="ui delete red mini button">删除</button>';
+
+                    }}
+            ],
+            "initComplete":function (d) {
+
+            },
+            "ajax": {
+                "url": "rank/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+        $('#table_local').on('click','td.opera .delete', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local.row(tr);
+            //console.log(row.data());
+            if(confirm("确定删除？")){
+                $http.delete("rank/"+row.data().ID,{}).then(function (data) {
+                    alert(data.data.Message);
+                    table_local.ajax.reload();
+
+                })
+            }
+        });
+
+    });
 
 });
 
+main.controller("users_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    var table_local;
+    var table_locala;
+    var table_localb;
+    var table_localc;
+
+
+    var UserID = -1;
+    var UseraID = -1;
+    var UserbID = -1;
+    var UsercID = -1;
+
+    $timeout(function () {
+
+
+        $('#table_local').on('click','td.opera .select', function () {
+            var tr = $(this).closest('tr');
+            var row = table_local.row(tr);
+            console.log(row.data());
+            UserID = row.data().ID;
+
+            UseraID=-1;
+            UserbID=-1;
+            UsercID=-1;
+
+            table_locala.ajax.reload();
+            table_localb.ajax.reload();
+            table_localc.ajax.reload();
+
+
+        });
+
+        $('#table_locala').on('click','td.opera .select', function () {
+            var tr = $(this).closest('tr');
+            var row = table_locala.row(tr);
+            console.log(row.data());
+
+            UseraID = row.data().ID;
+
+
+            UserbID=-1;
+            UsercID=-1;
+
+            table_localb.ajax.reload();
+
+
+            table_localc.ajax.reload();
+
+        });
+
+        $('#table_localb').on('click','td.opera .select', function () {
+            var tr = $(this).closest('tr');
+            var row = table_localb.row(tr);
+            console.log(row.data());
+            UserbID = row.data().ID;
+
+            UsercID=-1;
+
+            table_localc.ajax.reload();
+
+
+
+        });
+        $('#table_localc').on('click','td.opera .select', function () {
+            var tr = $(this).closest('tr');
+            var row = table_localc.row(tr);
+            console.log(row.data());
+
+
+            UsercID = row.data().ID;
+            //table_locald.ajax.reload();
+
+        });
+
+        table_local = $('#table_local').DataTable({
+            "columns": [
+                {data:"SuperiorID",visible:true},
+                {data:"ID"},
+                {data:"Name"},
+                {data:"Tel"},
+                {data:"Amount",searchable:false,render:function (data,type,row) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"Growth",searchable:false},
+                {data:"Portrait",searchable:false,render:function (data, type, row) {
+
+                        return '<img height="32" src="'+data+'">'
+                    }},
+                {data:"Gender",searchable:false,render:function (data,type,row) {
+                        return data==1?'男':'女';
+                    }},
+                {data:"LastLoginAt",searchable:false,render:function (data,type,row) {
+                        return $filter("date")(data,"medium");
+                    }},
+                {data:"Score",searchable:false},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+
+                        return '<button class="ui select red mini button">选择</button>';
+
+                    }}
+            ],
+            "initComplete":function (d) {
+                /*var info = table_local.page.info();
+                var dataRows = info.recordsTotal;
+                if(dataRows>0){
+                    $("#add_express_btn").hide();
+                }else{
+                    $("#add_express_btn").show();
+                }*/
+            },
+            "ajax": {
+                "url": "user/all/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+
+
+
+
+        table_locala = $('#table_locala').DataTable({
+            "columns": [
+                {data:"SuperiorID",visible:true},
+                {data:"ID"},
+                {data:"Name"},
+                {data:"Tel"},
+                {data:"Amount",searchable:false,render:function (data,type,row) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"Growth",searchable:false},
+                {data:"Portrait",searchable:false,render:function (data, type, row) {
+
+                        return '<img height="32" src="'+data+'">'
+                    }},
+                {data:"Gender",searchable:false,render:function (data,type,row) {
+                        return data==1?'男':'女';
+                    }},
+                {data:"LastLoginAt",searchable:false,render:function (data,type,row) {
+                        return $filter("date")(data,"medium");
+                    }},
+                {data:"Score",searchable:false},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+
+                        return '<button class="ui select blue mini button">选择</button>';
+
+                    }}
+            ],
+            "initComplete":function (d) {
+                /*var info = table_local.page.info();
+                var dataRows = info.recordsTotal;
+                if(dataRows>0){
+                    $("#add_express_btn").hide();
+                }else{
+                    $("#add_express_btn").show();
+                }*/
+            },
+            "ajax": {
+                "url": "user/all/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    d.columns[0].search.value=parseInt(UserID).toString();
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+
+
+
+
+        table_localb = $('#table_localb').DataTable({
+            "columns": [
+                {data:"SuperiorID",visible:true},
+                {data:"ID"},
+                {data:"Name"},
+                {data:"Tel"},
+                {data:"Amount",searchable:false,render:function (data,type,row) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"Growth",searchable:false},
+                {data:"Portrait",searchable:false,render:function (data, type, row) {
+
+                        return '<img height="32" src="'+data+'">'
+                    }},
+                {data:"Gender",searchable:false,render:function (data,type,row) {
+                        return data==1?'男':'女';
+                    }},
+                {data:"LastLoginAt",searchable:false,render:function (data,type,row) {
+                        return $filter("date")(data,"medium");
+                    }},
+                {data:"Score",searchable:false},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+
+                        return '<button class="ui select green mini button">选择</button>';
+
+                    }}
+            ],
+            "initComplete":function (d) {
+                /*var info = table_local.page.info();
+                var dataRows = info.recordsTotal;
+                if(dataRows>0){
+                    $("#add_express_btn").hide();
+                }else{
+                    $("#add_express_btn").show();
+                }*/
+            },
+            "ajax": {
+                "url": "user/all/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    d.columns[0].search.value=parseInt(UseraID).toString();
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+
+
+
+        table_localc = $('#table_localc').DataTable({
+            "columns": [
+                {data:"SuperiorID",visible:true},
+                {data:"ID"},
+                {data:"Name"},
+                {data:"Tel"},
+                {data:"Amount",searchable:false,render:function (data,type,row) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"Growth",searchable:false},
+                {data:"Portrait",searchable:false,render:function (data, type, row) {
+
+                        return '<img height="32" src="'+data+'">'
+                    }},
+                {data:"Gender",searchable:false,render:function (data,type,row) {
+                        return data==1?'男':'女';
+                    }},
+                {data:"LastLoginAt",searchable:false,render:function (data,type,row) {
+                        return $filter("date")(data,"medium");
+                    }},
+                {data:"Score",searchable:false},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+
+                        return '<button class="ui select grey mini button">选择</button>';
+
+                    }}
+            ],
+            "initComplete":function (d) {
+                /*var info = table_local.page.info();
+                var dataRows = info.recordsTotal;
+                if(dataRows>0){
+                    $("#add_express_btn").hide();
+                }else{
+                    $("#add_express_btn").show();
+                }*/
+            },
+            "ajax": {
+                "url": "user/all/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    //return JSON.stringify(d);
+                    d.columns[0].search.value=parseInt(UserbID).toString();
+                    return JSON.stringify(d);
+                }
+            }
+        });
+    });
+});
 main.directive("fmFileUploader", function () {
     return {
         restrict: 'E',

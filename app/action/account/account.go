@@ -98,21 +98,35 @@ func (controller *Controller) miniProgramLoginAction(context *gweb.Context) gweb
 
 		if user.SuperiorID == 0 {
 			if !strings.EqualFold(loginInfo.ShareKey, "") {
-				SuperiorID := util.DecodeShareKey(loginInfo.ShareKey)
-				if user.ID != uint64(SuperiorID) {
-					var hasUser dao.User
-					controller.User.Get(dao.Orm(), SuperiorID, &hasUser)
-					if hasUser.ID != 0 {
-						user.SuperiorID = uint64(SuperiorID)
+				SuperiorID, _ := util.DecodeShareKey(loginInfo.ShareKey)
 
-						if InviteUser, have := context.Data["InviteUser"]; have {
-							err := controller.Journal.AddScoreJournal(dao.Orm(),
-								user.ID,
-								"邀请新朋友获取积分", "邀请新朋友获取积分",
-								play.ScoreJournal_Type_InviteUser, int64(InviteUser.(float64)), dao.KV{Key: "SuperiorID", Value: SuperiorID})
-							tool.CheckError(err)
+				if user.ID != uint64(SuperiorID) {
+
+					//如果往上6级有包含新用户的ID，则不能绑定级别关系
+					if !strings.Contains(controller.User.LeveAll6(SuperiorID), strconv.Itoa(int(user.ID))) {
+						var hasUser dao.User
+						controller.User.Get(dao.Orm(), SuperiorID, &hasUser)
+						if hasUser.ID != 0 {
+							user.SuperiorID = uint64(SuperiorID)
+
+							if InviteUser, have := context.Data["InviteUser"]; have {
+								err := controller.Journal.AddScoreJournal(dao.Orm(),
+									hasUser.ID,
+									"邀请新朋友获取积分", "邀请新朋友获取积分",
+									play.ScoreJournal_Type_InviteUser, int64(InviteUser.(float64)), dao.KV{Key: "SuperiorID", Value: SuperiorID})
+								tool.CheckError(err)
+
+								err = controller.Journal.AddUserJournal(dao.Orm(),
+									hasUser.ID,
+									"邀请新朋友获得现金", "邀请新朋友获得现金",
+									play.UserJournal_Type_USER_LEVE, int64(30), dao.KV{Key: "UserID", Value: user.ID}, user.ID)
+								tool.CheckError(err)
+
+								controller.Wx.INComeNotify(hasUser, "邀请新朋友获得现金", "0小时", "收入：0.3元")
+							}
 						}
 					}
+
 				}
 			}
 		}
@@ -127,7 +141,7 @@ func (controller *Controller) miniProgramLoginAction(context *gweb.Context) gweb
 
 		results := make(map[string]interface{})
 		results["User"] = user
-		results["MyShareKey"] = util.EncodeShareKey(user.ID) //tool.Hashids{}.Encode(user.ID)
+		results["MyShareKey"] = util.EncodeShareKey(user.ID, 0) //tool.Hashids{}.Encode(user.ID)
 
 		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "登陆成功", Data: results}}
 	} else {

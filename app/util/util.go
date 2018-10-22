@@ -2,21 +2,22 @@ package util
 
 import (
 	"bytes"
+	"crypto/sha1"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
+	"net/url"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/nbvghost/captcha"
 	"github.com/nbvghost/gweb"
-
-	"crypto/sha1"
-	"net/http"
-	"net/url"
-	"strconv"
 
 	"github.com/nbvghost/gweb/tool"
 )
@@ -174,11 +175,74 @@ func Rounding45(rounding float64, prec int) float64 {
 	//strconv.ParseFloat(strconv.FormatFloat(float64(45454)/float64(100),'f',5,64),64)
 	//return math.Floor(rounding+0.5)
 }
-func EncodeShareKey(UserID uint64) string {
-	return "UserID:" + strconv.Itoa(int(UserID))
+func EncodeShareKey(UserID, ProductID uint64) string {
+
+	buffer := bytes.NewBuffer(make([]byte, 0))
+	binary.Write(buffer, binary.LittleEndian, &UserID)
+	binary.Write(buffer, binary.LittleEndian, &ProductID)
+
+	da := hex.EncodeToString(buffer.Bytes())
+	//0123456789abcdef
+	var hashkey = "10a29f38b45e7c6d"
+	var hashData = ""
+	for _, value := range da {
+		switch string(value) {
+		case "a":
+			hashData += string(hashkey[10])
+		case "b":
+			hashData += string(hashkey[11])
+		case "c":
+			hashData += string(hashkey[12])
+		case "d":
+			hashData += string(hashkey[13])
+		case "e":
+			hashData += string(hashkey[14])
+		case "f":
+			hashData += string(hashkey[15])
+		default:
+			index, _ := strconv.Atoi(string(value))
+			hashData += string(hashkey[index])
+
+		}
+	}
+	fmt.Println(hashData)
+
+	//base32.NewEncoding("")
+	return hashData
 }
-func DecodeShareKey(ShareKey string) uint64 {
-	_ShareKey, _ := url.QueryUnescape(ShareKey)
-	SuperiorID, _ := strconv.ParseUint(strings.Split(_ShareKey, ":")[1], 10, 64)
-	return SuperiorID
+func DecodeShareKey(ShareKey string) (UserID, ProductID uint64) {
+
+	var hashkey = "10a29f38b45e7c6d"
+	var baseStr = "0123456789abcdef"
+
+	//65c3421a11111111aa391b1911111111
+
+	var readyData = ""
+	for _, value := range ShareKey {
+
+		for index, hashkeyValue := range hashkey {
+
+			if strings.EqualFold(string(value), string(hashkeyValue)) {
+
+				readyData += string(baseStr[index])
+
+				break
+			}
+
+		}
+
+	}
+
+	b, err := hex.DecodeString(readyData)
+	tool.CheckError(err)
+
+	buffer := bytes.NewBuffer(b)
+	binary.Read(buffer, binary.LittleEndian, &UserID)
+	binary.Read(buffer, binary.LittleEndian, &ProductID)
+
+	//_ShareKey, _ := url.QueryUnescape(ShareKey)
+	//arrs := strings.Split(_ShareKey, ",")
+	//UserID, _ = strconv.ParseUint(arrs[0], 10, 64)
+	//ProductID, _ = strconv.ParseUint(arrs[1], 10, 64)
+	return
 }

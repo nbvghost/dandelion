@@ -4,6 +4,7 @@ import (
 	"dandelion/app/service/dao"
 	"dandelion/app/util"
 	"errors"
+	"strings"
 
 	"dandelion/app/play"
 	"math"
@@ -20,7 +21,8 @@ type UserService struct {
 	Configuration ConfigurationService
 	GiveVoucher   GiveVoucherService
 	CardItem      CardItemService
-	Organization OrganizationService
+	Organization  OrganizationService
+	Wx            WxService
 }
 
 func (service UserService) Situation(StartTime, EndTime int64) interface{} {
@@ -44,23 +46,28 @@ func (service UserService) Situation(StartTime, EndTime int64) interface{} {
 	result.OnlineCount = len(gweb.Sessions.Data)
 	return result
 }
-func (service UserService) AddUserBlockAmount(Orm *gorm.DB,UserID uint64,Menoy int64) error  {
+func (service UserService) ListFromIDs(UserID uint64) dao.UserFormIds {
+	var result dao.UserFormIds
+	dao.Orm().Table("UserFormIds").Where("UserID=?", UserID).Order("CreatedAt asc").First(&result)
+	return result
+}
+func (service UserService) AddUserBlockAmount(Orm *gorm.DB, UserID uint64, Menoy int64) error {
 
 	var user dao.User
-	err:=service.Get(Orm,UserID, &user)
+	err := service.Get(Orm, UserID, &user)
 	if err != nil {
 		return err
 	}
 
-	tm:=int64(user.BlockAmount)+Menoy
-	if tm<0{
+	tm := int64(user.BlockAmount) + Menoy
+	if tm < 0 {
 		return errors.New("冻结金额不足，无法扣款")
 	}
 
 	err = service.ChangeMap(Orm, UserID, &dao.User{}, map[string]interface{}{"BlockAmount": tm})
 	return err
 }
-func (service UserService) FirstSettlementUserBrokerage(Orm *gorm.DB, Brokerage uint64, orders dao.Orders) error {
+func (service UserService) FirstSettlementUserBrokerage(tx *gorm.DB, Brokerage uint64, orders dao.Orders) error {
 	var err error
 	//用户自己。下单者
 	//Orm:=dao.Orm()
@@ -69,8 +76,7 @@ func (service UserService) FirstSettlementUserBrokerage(Orm *gorm.DB, Brokerage 
 	//service.Get(Orm, OrderID, &orders)
 
 	var user dao.User
-	service.Get(Orm, orders.UserID, &user)
-
+	service.Get(tx, orders.UserID, &user)
 
 	leve1, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve1).V, 10, 64)
 	leve2, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve2).V, 10, 64)
@@ -79,29 +85,32 @@ func (service UserService) FirstSettlementUserBrokerage(Orm *gorm.DB, Brokerage 
 	leve5, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve5).V, 10, 64)
 	leve6, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve6).V, 10, 64)
 
-	leves:=[]uint64{leve1,leve2,leve3,leve4,leve5,leve6}
+	leves := []uint64{leve1, leve2, leve3, leve4, leve5, leve6}
 
-	var OutBrokerageMoney int64=0
-	for _,value:=range leves{
-		if value<=0{
+	//var OutBrokerageMoney int64 = 0
+	for index, value := range leves {
+		if value <= 0 {
 			break
 		}
 		var _user dao.User
-		service.Get(Orm, user.SuperiorID, &_user)
+		service.Get(tx, user.SuperiorID, &_user)
 		if _user.ID <= 0 {
 			return nil
 		}
 		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
-		err = service.AddUserBlockAmount(Orm,_user.ID,  leveMenoy)
+		err = service.AddUserBlockAmount(tx, _user.ID, leveMenoy)
 		if err != nil {
 			return err
 		}
-		OutBrokerageMoney=OutBrokerageMoney+leveMenoy
-		user=_user
+		//OutBrokerageMoney = OutBrokerageMoney + leveMenoy
+		workTime := time.Now().Unix() - orders.CreatedAt.Unix()
+
+		service.Wx.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，预计现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "预计收入："+strconv.FormatFloat(float64(leveMenoy/100), 'f', 2, 64)+"元")
+
+		user = _user
 	}
 
 	//err=service.Organization.AddOrganizationBlockAmount(Orm,orders.OID,OutBrokerageMoney)
-
 
 	/*if leve1 > 0 {
 
@@ -217,17 +226,17 @@ func (service UserService) SettlementUser(Orm *gorm.DB, Brokerage uint64, orders
 	leve5, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve5).V, 10, 64)
 	leve6, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve6).V, 10, 64)
 
-	leves:=[]uint64{leve1,leve2,leve3,leve4,leve5,leve6}
+	leves := []uint64{leve1, leve2, leve3, leve4, leve5, leve6}
 
 	GrowValue, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_ScoreConvertGrowValue).V, 10, 64)
 
-	user.Score = user.Score + uint64(math.Floor(float64(orders.PayMoney)/100+0.5))
+	user.Score = user.Score + orders.PayMoney
 	user.Growth = user.Growth + uint64(uint64(math.Floor(float64(orders.PayMoney)/100+0.5))*GrowValue)
 	err = service.ChangeModel(Orm, user.ID, &dao.User{Growth: user.Growth})
 	if err != nil {
 		return err
 	}
-	err = Journal.AddScoreJournal(Orm, user.ID, "积分", "购买商品", play.ScoreJournal_Type_GM, int64(math.Floor(float64(orders.PayMoney)/100+0.5)), dao.KV{Key: "OrdersID", Value: orders.ID})
+	err = Journal.AddScoreJournal(Orm, user.ID, "积分", "购买商品", play.ScoreJournal_Type_GM, int64(user.Score), dao.KV{Key: "OrdersID", Value: orders.ID})
 	if err != nil {
 		return err
 	}
@@ -245,13 +254,13 @@ func (service UserService) SettlementUser(Orm *gorm.DB, Brokerage uint64, orders
 		}
 	}
 
-	err=Journal.AddOrganizationJournal(Orm,orders.OID,"商品交易","商品交易",play.OrganizationJournal_Goods,int64(orders.PayMoney),dao.KV{Key: "OrdersID", Value: orders.ID})
+	err = Journal.AddOrganizationJournal(Orm, orders.OID, "商品交易", "商品交易", play.OrganizationJournal_Goods, int64(orders.PayMoney), dao.KV{Key: "OrdersID", Value: orders.ID})
 
 	if err != nil {
 		return err
 	}
-	for _,value:=range leves{
-		if value<=0{
+	for index, value := range leves {
+		if value <= 0 {
 			break
 		}
 		var _user dao.User
@@ -260,29 +269,32 @@ func (service UserService) SettlementUser(Orm *gorm.DB, Brokerage uint64, orders
 			return nil
 		}
 
-
 		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
-		err = Journal.AddUserJournal(Orm, _user.ID, "佣金", "一级用户", play.UserJournal_Type_LEVE, leveMenoy, dao.KV{Key: "OrdersID", Value: orders.ID}, user.ID)
+		err = Journal.AddUserJournal(Orm, _user.ID, "佣金", strconv.Itoa(index+1)+"级用户", play.UserJournal_Type_LEVE, leveMenoy, dao.KV{Key: "OrdersID", Value: orders.ID}, user.ID)
 		if err != nil {
 			return err
 		}
 
-		err = service.AddUserBlockAmount(Orm,_user.ID,  -leveMenoy)
+		err = service.AddUserBlockAmount(Orm, _user.ID, -leveMenoy)
 		if err != nil {
 			return err
 		}
 
-		err=Journal.AddOrganizationJournal(Orm,orders.OID,"商品交易","推广佣金"+_user.Name,play.OrganizationJournal_Brokerage,-leveMenoy,dao.KV{Key: "OrdersID", Value: orders.ID})
+		err = Journal.AddOrganizationJournal(Orm, orders.OID, "商品交易", "推广佣金"+_user.Name, play.OrganizationJournal_Brokerage, -leveMenoy, dao.KV{Key: "OrdersID", Value: orders.ID})
 		if err != nil {
 			return err
 		}
 
-		err = Journal.AddScoreJournal(Orm, _user.ID, "积分", "佣金积分", play.ScoreJournal_Type_LEVE, int64(math.Floor(float64(leveMenoy)/100+0.5)), dao.KV{Key: "OrdersID", Value: orders.ID})
+		err = Journal.AddScoreJournal(Orm, _user.ID, "积分", "佣金积分", play.ScoreJournal_Type_LEVE, int64(leveMenoy), dao.KV{Key: "OrdersID", Value: orders.ID})
 		if err != nil {
 			return err
 		}
 
-		user=_user
+		workTime := time.Now().Unix() - orders.CreatedAt.Unix()
+
+		service.Wx.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "收入："+strconv.FormatFloat(float64(leveMenoy/100), 'f', 2, 64)+"元")
+
+		user = _user
 	}
 
 	/*if leve1 > 0 {
@@ -400,6 +412,42 @@ func (service UserService) SettlementUser(Orm *gorm.DB, Brokerage uint64, orders
 
 	return nil
 }
+func (service UserService) FindUserByIDs(IDs []uint64) []dao.User {
+	var users []dao.User
+	err := dao.Orm().Where(IDs).Find(&users).Error //SelectOne(user, "select * from User where Tel=?", Tel)
+	tool.CheckError(err)
+	return users
+}
+func (service UserService) LeveAll6(OneSuperiorID uint64) string {
+	Orm := dao.Orm()
+	var leveIDs []string
+
+	var user1 dao.User
+	Orm.Model(&dao.User{}).Where("ID=?", OneSuperiorID).First(&user1)
+	leveIDs = append(leveIDs, strconv.Itoa(int(user1.ID)))
+
+	var user2 dao.User
+	Orm.Model(&dao.User{}).Where("ID=?", user1.SuperiorID).First(&user2)
+	leveIDs = append(leveIDs, strconv.Itoa(int(user2.ID)))
+
+	var user3 dao.User
+	Orm.Model(&dao.User{}).Where("ID=?", user2.SuperiorID).First(&user3)
+	leveIDs = append(leveIDs, strconv.Itoa(int(user3.ID)))
+
+	var user4 dao.User
+	Orm.Model(&dao.User{}).Where("ID=?", user3.SuperiorID).First(&user4)
+	leveIDs = append(leveIDs, strconv.Itoa(int(user4.ID)))
+
+	var user5 dao.User
+	Orm.Model(&dao.User{}).Where("ID=?", user4.SuperiorID).First(&user5)
+	leveIDs = append(leveIDs, strconv.Itoa(int(user5.ID)))
+
+	var user6 dao.User
+	Orm.Model(&dao.User{}).Where("ID=?", user5.SuperiorID).First(&user6)
+	leveIDs = append(leveIDs, strconv.Itoa(int(user6.ID)))
+
+	return strings.Join(leveIDs, ",")
+}
 func (service UserService) Leve1(UserID uint64) []uint64 {
 	Orm := dao.Orm()
 	var levea []uint64
@@ -465,14 +513,7 @@ func (service UserService) GetUserInfo(UserID uint64) dao.UserInfo {
 	}
 	return userInfo
 }
-func (service UserService) ListAllTableDatas(context *gweb.Context) gweb.Result {
-	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
-	Orm := dao.Orm()
-	dts := &dao.Datatables{}
-	util.RequestBodyToJSON(context.Request.Body, dts)
-	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(Orm, dts, &[]dao.User{}, company.ID)
-	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
-}
+
 func (service UserService) UserAction(context *gweb.Context) gweb.Result {
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	Orm := dao.Orm()

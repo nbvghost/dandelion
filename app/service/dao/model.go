@@ -144,6 +144,16 @@ func (UserInfo) TableName() string {
 	return "UserInfo"
 }
 
+type UserFormIds struct {
+	BaseModel
+	UserID uint64 `gorm:"column:UserID"` //
+	FormId string `gorm:"column:FormId"` //formId 用于发送
+}
+
+func (UserFormIds) TableName() string {
+	return "UserFormIds"
+}
+
 //优惠商品
 type Favoured struct {
 	Name     string
@@ -201,24 +211,11 @@ func (GiveVoucher) TableName() string {
 //等级
 type Rank struct {
 	BaseModel
-	OID          uint64 `gorm:"column:OID"`
 	GrowMaxValue uint64 `gorm:"column:GrowMaxValue"`
 	Title        string `gorm:"column:Title"`
 	//VoucherID     uint64 `gorm:"column:VoucherID"`
 }
 
-func (u *Rank) BeforeCreate(scope *gorm.Scope) (err error) {
-	if u.OID == 0 {
-		defer func() {
-			if err := recover(); err != nil {
-				debug.PrintStack()
-			}
-		}()
-		panic(errors.New(u.TableName() + ":OID不能为空"))
-		return nil
-	}
-	return nil
-}
 func (Rank) TableName() string {
 	return "Rank"
 }
@@ -558,11 +555,11 @@ func (ScoreGoods) TableName() string {
 
 type GoodsType struct {
 	BaseModel
-	OID  uint64 `gorm:"column:OID"`
+	//OID  uint64 `gorm:"column:OID"`
 	Name string `gorm:"column:Name"`
 }
 
-func (u *GoodsType) BeforeCreate(scope *gorm.Scope) (err error) {
+/*func (u *GoodsType) BeforeCreate(scope *gorm.Scope) (err error) {
 	if u.OID == 0 {
 		defer func() {
 			if err := recover(); err != nil {
@@ -573,28 +570,28 @@ func (u *GoodsType) BeforeCreate(scope *gorm.Scope) (err error) {
 		return nil
 	}
 	return nil
-}
-func (u *GoodsType) BeforeSave(scope *gorm.Scope) (err error) {
+}*/
+/*func (u *GoodsType) BeforeSave(scope *gorm.Scope) (err error) {
 	var gt GoodsType
 	scope.DB().Model(u).Where("OID=?", u.OID).Where("Name=?", u.Name).Find(&gt)
 	if gt.ID != 0 {
 		err = errors.New("名字重复")
 	}
 	return
-}
+}*/
 func (GoodsType) TableName() string {
 	return "GoodsType"
 }
 
 type GoodsTypeChild struct {
 	BaseModel
-	OID         uint64 `gorm:"column:OID"`
+	//OID         uint64 `gorm:"column:OID"`
 	Name        string `gorm:"column:Name"`
 	Image       string `gorm:"column:Image"`
 	GoodsTypeID uint64 `gorm:"column:GoodsTypeID"`
 }
 
-func (u *GoodsTypeChild) BeforeCreate(scope *gorm.Scope) (err error) {
+/*func (u *GoodsTypeChild) BeforeCreate(scope *gorm.Scope) (err error) {
 	if u.OID == 0 {
 		defer func() {
 			if err := recover(); err != nil {
@@ -605,7 +602,7 @@ func (u *GoodsTypeChild) BeforeCreate(scope *gorm.Scope) (err error) {
 		return nil
 	}
 	return nil
-}
+}*/
 func (GoodsTypeChild) TableName() string {
 	return "GoodsTypeChild"
 }
@@ -932,14 +929,14 @@ func (Logger) TableName() string {
 //账目明细
 type UserJournal struct {
 	BaseModel
-	UserID     uint64 `gorm:"column:UserID"`              //受益者
-	Name       string `gorm:"column:Name;not null"`       //
-	Detail     string `gorm:"column:Detail;not null"`     //
-	Type       int    `gorm:"column:Type;default:'0'"`    //ddddd
-	Amount     int64  `gorm:"column:Amount;default:'0'"`  //
-	Balance    uint64 `gorm:"column:Balance;default:'0'"` //
-	FromUserID uint64 `gorm:"column:FromUserID"`          //来源
-	DataKV     string `gorm:"column:DataKV;type:LONGTEXT"`              //{Key:"",Value:""}
+	UserID     uint64 `gorm:"column:UserID"`               //受益者
+	Name       string `gorm:"column:Name;not null"`        //
+	Detail     string `gorm:"column:Detail;not null"`      //
+	Type       int    `gorm:"column:Type;default:'0'"`     //ddddd
+	Amount     int64  `gorm:"column:Amount;default:'0'"`   //
+	Balance    uint64 `gorm:"column:Balance;default:'0'"`  //
+	FromUserID uint64 `gorm:"column:FromUserID"`           //来源
+	DataKV     string `gorm:"column:DataKV;type:LONGTEXT"` //{Key:"",Value:""}
 }
 
 func (UserJournal) TableName() string {
@@ -950,13 +947,13 @@ func (UserJournal) TableName() string {
 //商店账目明细
 type OrganizationJournal struct {
 	BaseModel
-	OID      uint64 `gorm:"column:OID"`                 //OID
-	Name     string `gorm:"column:Name;not null"`       //
-	Detail   string `gorm:"column:Detail;not null"`     //
-	Type     int    `gorm:"column:Type;default:'0'"`    //ddddd
-	Amount   int64  `gorm:"column:Amount;default:'0'"`  //
-	Balance  uint64 `gorm:"column:Balance;default:'0'"` //
-	DataKV     string `gorm:"column:DataKV;type:LONGTEXT"`              //{Key:"",Value:""}
+	OID     uint64 `gorm:"column:OID"`                  //OID
+	Name    string `gorm:"column:Name;not null"`        //
+	Detail  string `gorm:"column:Detail;not null"`      //
+	Type    int    `gorm:"column:Type;default:'0'"`     //ddddd
+	Amount  int64  `gorm:"column:Amount;default:'0'"`   //
+	Balance uint64 `gorm:"column:Balance;default:'0'"`  //
+	DataKV  string `gorm:"column:DataKV;type:LONGTEXT"` //{Key:"",Value:""}
 }
 
 func (OrganizationJournal) TableName() string {
@@ -999,13 +996,13 @@ func (Transfers) TableName() string {
 //Score明细
 type ScoreJournal struct {
 	BaseModel
-	Name    string `gorm:"column:Name;not null"`       //
-	Detail  string `gorm:"column:Detail;not null"`     //
-	UserID  uint64 `gorm:"column:UserID"`              //
-	Score   int64  `gorm:"column:Score;default:'0'"`   //变动金额
-	Type    int    `gorm:"column:Type;default:'0'"`    //
-	Balance uint64 `gorm:"column:Balance;default:'0'"` //变动后的余额
-	DataKV  string `gorm:"column:DataKV;type:LONGTEXT"`              //{Key:"",Value:""}
+	Name    string `gorm:"column:Name;not null"`        //
+	Detail  string `gorm:"column:Detail;not null"`      //
+	UserID  uint64 `gorm:"column:UserID"`               //
+	Score   int64  `gorm:"column:Score;default:'0'"`    //变动金额
+	Type    int    `gorm:"column:Type;default:'0'"`     //
+	Balance uint64 `gorm:"column:Balance;default:'0'"`  //变动后的余额
+	DataKV  string `gorm:"column:DataKV;type:LONGTEXT"` //{Key:"",Value:""}
 }
 
 func (ScoreJournal) TableName() string {
@@ -1013,8 +1010,8 @@ func (ScoreJournal) TableName() string {
 }
 
 type KV struct {
-	Key   string        //
-	Value interface{}  //
+	Key   string      //
+	Value interface{} //
 }
 
 //Content   ContentType  ContentSubType

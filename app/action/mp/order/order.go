@@ -35,11 +35,71 @@ func (controller *OrderController) Apply() {
 	controller.AddHandler(gweb.POSMethod("/cart/change", controller.ordersCartChangeAction))
 	controller.AddHandler(gweb.POSMethod("/confirm/list", controller.ordersConfirmListAction))
 	controller.AddHandler(gweb.POSMethod("/createOrders", controller.createOrdersAction))
-	controller.AddHandler(gweb.GETMethod("/wxpay", controller.ordersWxpayAction))
+	controller.AddHandler(gweb.GETMethod("/wxpay/package", controller.ordersWxpayPackageAction))
+	controller.AddHandler(gweb.GETMethod("/wxpay/alone", controller.ordersWxpayAloneAction))
 	controller.AddHandler(gweb.GETMethod("/list", controller.ordersListAction))
 	controller.AddHandler(gweb.GETMethod("/:ID/get", controller.ordersGetListAction))
 	controller.AddHandler(gweb.PUTMethod("/change", controller.orderChangeAction))
 	controller.AddHandler(gweb.PUTMethod("/express/info", controller.expressInfoAction))
+}
+func (controller *OrderController) ordersWxpayPackageAction(context *gweb.Context) gweb.Result {
+	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
+	OrderNo := context.Request.URL.Query().Get("OrderNo")
+	//OrderType := context.Request.URL.Query().Get("OrderType")
+
+	WxConfig := controller.Wx.MiniProgram()
+	ip := util.GetIP(context)
+
+	//package
+	orders := controller.Orders.GetOrdersPackageByOrderNo(OrderNo)
+	if strings.EqualFold(orders.PrepayID, "") == false {
+
+		outData := controller.Wx.GetWXAConfig(orders.PrepayID, WxConfig)
+		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: outData}}
+
+	}
+
+	Success, Message, result := controller.Wx.MPOrder(orders.OrderNo, "购物", "商品消费", []dao.OrdersGoods{}, user.OpenID, ip, orders.TotalPayMoney, play.OrdersType_GoodsPackage)
+	if Success == false {
+		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: Success, Message: Message, Data: result}}
+	}
+
+	outData := controller.Wx.GetWXAConfig(result.Prepay_id, WxConfig)
+
+	err := controller.Orders.ChangeMap(dao.Orm(), orders.ID, &dao.OrdersPackage{}, map[string]interface{}{"PrepayID": result.Prepay_id})
+	tool.CheckError(err)
+	//outData["OrdersID"] = strconv.Itoa(int(orders.ID))
+	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: outData}}
+
+}
+func (controller *OrderController) ordersWxpayAloneAction(context *gweb.Context) gweb.Result {
+	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
+	OrderNo := context.Request.URL.Query().Get("OrderNo")
+	//OrderType := context.Request.URL.Query().Get("OrderType")
+
+	WxConfig := controller.Wx.MiniProgram()
+	ip := util.GetIP(context)
+
+	//package
+	orders := controller.Orders.GetOrdersByOrderNo(OrderNo)
+	if strings.EqualFold(orders.PrepayID, "") == false {
+
+		outData := controller.Wx.GetWXAConfig(orders.PrepayID, WxConfig)
+		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: outData}}
+
+	}
+
+	Success, Message, result := controller.Wx.MPOrder(orders.OrderNo, "购物", "商品消费", []dao.OrdersGoods{}, user.OpenID, ip, orders.PayMoney, play.OrdersType_Goods)
+	if Success == false {
+		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: Success, Message: Message, Data: result}}
+	}
+
+	outData := controller.Wx.GetWXAConfig(result.Prepay_id, WxConfig)
+
+	err := controller.Orders.ChangeMap(dao.Orm(), orders.ID, &dao.Orders{}, map[string]interface{}{"PrepayID": result.Prepay_id})
+	tool.CheckError(err)
+	//outData["OrdersID"] = strconv.Itoa(int(orders.ID))
+	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: outData}}
 
 }
 func (controller *OrderController) expressInfoAction(context *gweb.Context) gweb.Result {
@@ -134,85 +194,104 @@ func (controller *OrderController) createOrdersAction(context *gweb.Context) gwe
 
 	if _TotalPrice == TotalPrice && Error == nil {
 		//controller.Orders.AddOrdersPackage(tool.UUID(),)
-		orderList := make([]dao.Orders, 0)
 
-		err, op := controller.Orders.AddOrdersPackage(TotalPrice, user.ID)
-		if err != nil {
-			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
-		}
-		for _, value := range results {
+		if len(results) > 1 {
+			orderList := make([]dao.Orders, 0)
 
-			oggs := value["OrdersGoodsInfos"].([]dao.OrdersGoodsInfo)
-			//result["OrdersGoodsInfos"]=oggs
-			FavouredPrice := value["FavouredPrice"].(uint64)
-			FullCutAll := value["FullCutAll"].(uint64)
-			GoodsPrice := value["GoodsPrice"].(uint64)
-			ExpressPrice := value["ExpressPrice"].(uint64)
-
-			organization := value["Organization"].(dao.Organization)
-
-			PayMoney := GoodsPrice - FullCutAll + ExpressPrice //支付价格已经包含了 满减，限时抢购的扣去的部分  - _FullCutPrice-FavouredPrice
-
-			orders := dao.Orders{}
-			orders.OrderNo = tool.UUID()
-			orders.UserID = user.ID
-			orders.OID = organization.ID
-			orders.OrdersPackageNo = op.OrderNo
-			//PayMoney = 100
-
-			orders.PayMoney = PayMoney
-			orders.PostType = int(PostType)
-			orders.Status = play.OS_Order
-			orders.Address = util.StructToJSON(address)
-			orders.DiscountMoney = uint(FullCutAll + FavouredPrice)
-			orders.GoodsMoney = uint(GoodsPrice)
-			orders.ExpressMoney = uint(ExpressPrice)
-
-			err := controller.Orders.AddOrders(&orders, oggs)
+			err, op := controller.Orders.AddOrdersPackage(TotalPrice, user.ID)
 			if err != nil {
 				return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
 			}
-			orderList = append(orderList, orders)
-		}
+			for _, value := range results {
 
-		OutResult := make(map[string]interface{})
-		OutResult["OrdersPackage"] = op
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", OutResult)}
+				oggs := value["OrdersGoodsInfos"].([]dao.OrdersGoodsInfo)
+				//result["OrdersGoodsInfos"]=oggs
+				FavouredPrice := value["FavouredPrice"].(uint64)
+				FullCutAll := value["FullCutAll"].(uint64)
+				GoodsPrice := value["GoodsPrice"].(uint64)
+				ExpressPrice := value["ExpressPrice"].(uint64)
+
+				organization := value["Organization"].(dao.Organization)
+
+				PayMoney := GoodsPrice - FullCutAll + ExpressPrice //支付价格已经包含了 满减，限时抢购的扣去的部分  - _FullCutPrice-FavouredPrice
+
+				orders := dao.Orders{}
+				orders.OrderNo = tool.UUID()
+				orders.UserID = user.ID
+				orders.OID = organization.ID
+				orders.OrdersPackageNo = op.OrderNo
+				//PayMoney = 100
+
+				orders.PayMoney = PayMoney
+				orders.PostType = int(PostType)
+				orders.Status = play.OS_Order
+				orders.Address = util.StructToJSON(address)
+				orders.DiscountMoney = uint(FullCutAll + FavouredPrice)
+				orders.GoodsMoney = uint(GoodsPrice)
+				orders.ExpressMoney = uint(ExpressPrice)
+
+				err := controller.Orders.AddOrders(&orders, oggs)
+				if err != nil {
+					return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
+				}
+				orderList = append(orderList, orders)
+			}
+
+			OutResult := make(map[string]interface{})
+			OutResult["OrderNo"] = op.OrderNo
+			OutResult["OrderCount"] = len(orderList)
+			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", OutResult)}
+		} else {
+
+			orderList := make([]dao.Orders, 0)
+
+			for _, value := range results {
+
+				oggs := value["OrdersGoodsInfos"].([]dao.OrdersGoodsInfo)
+				//result["OrdersGoodsInfos"]=oggs
+				FavouredPrice := value["FavouredPrice"].(uint64)
+				FullCutAll := value["FullCutAll"].(uint64)
+				GoodsPrice := value["GoodsPrice"].(uint64)
+				ExpressPrice := value["ExpressPrice"].(uint64)
+
+				organization := value["Organization"].(dao.Organization)
+
+				PayMoney := GoodsPrice - FullCutAll + ExpressPrice //支付价格已经包含了 满减，限时抢购的扣去的部分  - _FullCutPrice-FavouredPrice
+
+				orders := dao.Orders{}
+				orders.OrderNo = tool.UUID()
+				orders.UserID = user.ID
+				orders.OID = organization.ID
+				//orders.OrdersPackageNo = op.OrderNo
+				//PayMoney = 100
+
+				orders.PayMoney = PayMoney
+				orders.PostType = int(PostType)
+				orders.Status = play.OS_Order
+				orders.Address = util.StructToJSON(address)
+				orders.DiscountMoney = uint(FullCutAll + FavouredPrice)
+				orders.GoodsMoney = uint(GoodsPrice)
+				orders.ExpressMoney = uint(ExpressPrice)
+
+				err := controller.Orders.AddOrders(&orders, oggs)
+				if err != nil {
+					return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
+				}
+				orderList = append(orderList, orders)
+			}
+
+			OutResult := make(map[string]interface{})
+			OutResult["OrderNo"] = orderList[0].OrderNo
+			OutResult["OrderCount"] = len(orderList)
+			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", OutResult)}
+
+		}
 
 	} else {
 		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: Error.Error(), Data: nil}}
 	}
 }
-func (controller *OrderController) ordersWxpayAction(context *gweb.Context) gweb.Result {
-	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
-	OrderNo := context.Request.URL.Query().Get("OrderNo")
-	//OrderType := context.Request.URL.Query().Get("OrderType")
 
-	WxConfig := controller.Wx.MiniProgram()
-	ip := util.GetIP(context)
-
-	//package
-	orders := controller.Orders.GetOrdersPackageByOrderNo(OrderNo)
-	if strings.EqualFold(orders.PrepayID, "") == false {
-
-		outData := controller.Wx.GetWXAConfig(orders.PrepayID, WxConfig)
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: outData}}
-
-	}
-
-	Success, Message, result := controller.Wx.MPOrder(orders.OrderNo, "购物", "商品消费", []dao.OrdersGoods{}, user.OpenID, ip, orders.TotalPayMoney, play.OrdersType_GoodsPackage)
-	if Success == false {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: Success, Message: Message, Data: result}}
-	}
-
-	outData := controller.Wx.GetWXAConfig(result.Prepay_id, WxConfig)
-
-	err := controller.Orders.ChangeMap(dao.Orm(), orders.ID, &dao.OrdersPackage{}, map[string]interface{}{"PrepayID": result.Prepay_id})
-	tool.CheckError(err)
-	//outData["OrdersID"] = strconv.Itoa(int(orders.ID))
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: outData}}
-
-}
 func (controller *OrderController) ordersConfirmListAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
 

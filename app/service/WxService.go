@@ -33,6 +33,7 @@ import (
 type WxService struct {
 	dao.BaseDao
 	//Admin service.AdminService
+	OrdersGoods OrdersGoodsService
 }
 
 type TokenXML struct {
@@ -206,9 +207,274 @@ func (entity WxService) MiniProgramInfo(Code, AppID, AppSecret string) (err erro
 	}
 
 }
-func (entity WxService) SendWXMessage(sendData map[string]interface{}, WxConfig dao.WxConfig) *dao.ActionStatus {
+
+//新用户加入，绑定上下级关系
+func (entity WxService) NewUserJoinNotify(NewUser dao.User) *dao.ActionStatus {
+	if NewUser.SuperiorID == 0 {
+		return &dao.ActionStatus{Success: false, Message: "用户不存在", Data: nil}
+	}
+
+	userService := UserService{}
+
+	var notifyUser dao.User
+	userService.Get(dao.Orm(), NewUser.SuperiorID, &notifyUser)
+
+	var as *dao.ActionStatus
+
+	userFormID := userService.ListFromIDs(notifyUser.ID)
+	if userFormID.ID == 0 {
+		as.Success = false
+		as.Message = "没有找到，用户的formid"
+
+	} else {
+
+		for {
+
+			if time.Now().Unix()-userFormID.CreatedAt.Unix() > 7*24*60*60 {
+				userService.Delete(dao.Orm(), &dao.UserFormIds{}, userFormID.ID)
+				userFormID = userService.ListFromIDs(notifyUser.ID)
+			} else {
+				break
+			}
+
+		}
+
+		sendData := make(map[string]interface{})
+		sendData["touser"] = notifyUser.OpenID
+
+		weapp_template_msg_data := make(map[string]interface{})
+		weapp_template_msg_data["page"] = "pages/user/user"
+		weapp_template_msg_data["template_id"] = "YfEY2Xbju5-fm3Naww3EbVYQPUPIjorESo-KV-KXZvs"
+		weapp_template_msg_data["form_id"] = userFormID.FormId
+
+		data_data := make(map[string]interface{})
+		data_data["keyword1"] = map[string]interface{}{"value": strconv.Itoa(int(NewUser.ID)), "color": "#173177"}
+		if NewUser.Gender == 1 {
+			data_data["keyword2"] = map[string]interface{}{"value": "男", "color": "#173177"}
+		} else if NewUser.Gender == 2 {
+			data_data["keyword2"] = map[string]interface{}{"value": "女", "color": "#173177"}
+		} else {
+			data_data["keyword2"] = map[string]interface{}{"value": "未知", "color": "#173177"}
+		}
+
+		data_data["keyword3"] = map[string]interface{}{"value": NewUser.CreatedAt.Format("2006-01-02 15:04:05"), "color": "#173177"}
+		data_data["keyword4"] = map[string]interface{}{"value": NewUser.Name, "color": "#173177"}
+		data_data["keyword5"] = map[string]interface{}{"value": NewUser.Name + "已经成为您的好友，他（她）下单您会获得奖励喔！", "color": "#173177"}
+
+		weapp_template_msg_data["data"] = data_data
+
+		sendData["weapp_template_msg"] = weapp_template_msg_data
+
+		var errcode int
+		as, errcode = entity.SendUniformMessage(sendData)
+		if as.Success || errcode == 41028 {
+			userService.Delete(dao.Orm(), &dao.UserFormIds{}, userFormID.ID)
+		}
+
+	}
+
+	return as
+}
+
+//确认收货
+func (entity WxService) OrderDeliveryNotify(Order dao.Orders) *dao.ActionStatus {
+
+	if Order.ID == 0 {
+		return &dao.ActionStatus{Success: false, Message: "找不到订单", Data: nil}
+	}
+
+	userService := UserService{}
+
+	var notifyUser dao.User
+	userService.Get(dao.Orm(), Order.UserID, &notifyUser)
+
+	var as *dao.ActionStatus
+
+	weapp_template_msg_data := make(map[string]interface{})
+	weapp_template_msg_data["page"] = "pages/user/user"
+	weapp_template_msg_data["template_id"] = "MHiJR_3T2W4LJVhwOVctO6Lr7fxC9rSCO924dwSoYrY"
+	weapp_template_msg_data["form_id"] = Order.PrepayID
+	weapp_template_msg_data["touser"] = notifyUser.OpenID
+
+	data_data := make(map[string]interface{})
+	data_data["keyword1"] = map[string]interface{}{"value": Order.ShipName, "color": "#173177"}
+	data_data["keyword2"] = map[string]interface{}{"value": Order.ShipNo, "color": "#173177"}
+
+	ogs, err := entity.OrdersGoods.FindByOrdersID(dao.Orm(), Order.ID)
+	tool.CheckError(err)
+	var Titles = ""
+	for _, value := range ogs {
+		var goods dao.Goods
+		json.Unmarshal([]byte(value.Goods), &goods)
+		Titles += goods.Title
+	}
+	if len(Titles) > 12 {
+		Titles = Titles[:12] + "等"
+	}
+
+	data_data["keyword3"] = map[string]interface{}{"value": Titles, "color": "#173177"}
+	data_data["keyword4"] = map[string]interface{}{"value": Order.DeliverTime.Format("2006-01-02 15:04:05"), "color": "#173177"}
+
+	weapp_template_msg_data["data"] = data_data
+
+	as = entity.SendWXMessage(weapp_template_msg_data)
+
+	return as
+}
+
+//收入提醒
+/*
+@slUser 收入的用户
+*/
+func (entity WxService) INComeNotify(slUser dao.User, itemName string, timeText string, typeText string) *dao.ActionStatus {
+	//
+
+	if slUser.ID == 0 {
+		return &dao.ActionStatus{Success: false, Message: "用户不存在", Data: nil}
+	}
+	userService := UserService{}
+	//var notifyUser dao.User
+	//entity.User.Get(dao.Orm(), slUser.SuperiorID, &notifyUser)
+
+	var as *dao.ActionStatus
+
+	userFormID := userService.ListFromIDs(slUser.ID)
+	if userFormID.ID == 0 {
+		as.Success = false
+		as.Message = "没有找到，用户的formid"
+
+	} else {
+
+		for {
+
+			if time.Now().Unix()-userFormID.CreatedAt.Unix() > 7*24*60*60 {
+				userService.Delete(dao.Orm(), &dao.UserFormIds{}, userFormID.ID)
+				userFormID = userService.ListFromIDs(slUser.ID)
+			} else {
+				break
+			}
+
+		}
+
+		sendData := make(map[string]interface{})
+		sendData["touser"] = slUser.OpenID
+
+		weapp_template_msg_data := make(map[string]interface{})
+		weapp_template_msg_data["page"] = "pages/user/user"
+		weapp_template_msg_data["template_id"] = "xV23xWZgdNViUiD1fk-1edKNY7QNJnv4SD6tY7pu8w4"
+		weapp_template_msg_data["form_id"] = userFormID.FormId
+
+		data_data := make(map[string]interface{})
+		data_data["keyword1"] = map[string]interface{}{"value": itemName, "color": "#173177"}
+		data_data["keyword2"] = map[string]interface{}{"value": timeText, "color": "#173177"}
+		data_data["keyword3"] = map[string]interface{}{"value": typeText, "color": "#ff0000"}
+
+		weapp_template_msg_data["data"] = data_data
+
+		sendData["weapp_template_msg"] = weapp_template_msg_data
+
+		var errcode int
+		as, errcode = entity.SendUniformMessage(sendData)
+		if as.Success || errcode == 41028 {
+			userService.Delete(dao.Orm(), &dao.UserFormIds{}, userFormID.ID)
+		}
+
+	}
+
+	return as
+}
+
+//新订单
+func (entity WxService) NewOrderNotify(Order dao.Orders) *dao.ActionStatus {
+
+	if Order.ID == 0 {
+		return &dao.ActionStatus{Success: false, Message: "找不到订单", Data: nil}
+	}
+	userService := UserService{}
+	var notifyUser dao.User
+	userService.Get(dao.Orm(), Order.UserID, &notifyUser)
+
+	var as *dao.ActionStatus
+
+	weapp_template_msg_data := make(map[string]interface{})
+	weapp_template_msg_data["page"] = "pages/user/user"
+	weapp_template_msg_data["template_id"] = "bah5ch6kSTi4dvbYzlZ80m7usPIe7PWZEW7Csk_HOy0"
+	weapp_template_msg_data["form_id"] = Order.PrepayID
+	weapp_template_msg_data["touser"] = notifyUser.OpenID
+
+	data_data := make(map[string]interface{})
+	data_data["keyword1"] = map[string]interface{}{"value": notifyUser.Name, "color": "#173177"}
+	data_data["keyword2"] = map[string]interface{}{"value": Order.OrderNo, "color": "#173177"}
+
+	var address dao.Address
+	json.Unmarshal([]byte(Order.Address), &address)
+	addressText := address.Name + "/" + address.ProvinceName + address.CityName + address.CountyName + address.Detail + address.PostalCode + "/" + address.Tel
+
+	data_data["keyword3"] = map[string]interface{}{"value": addressText, "color": "#173177"}
+
+	data_data["keyword4"] = map[string]interface{}{"value": Order.PayTime.Format("2006-01-02 15:04:05"), "color": "#173177"}
+
+	var org dao.Organization
+	OrganizationService{}.Get(dao.Orm(), Order.OID, &org)
+	data_data["keyword5"] = map[string]interface{}{"value": org.Name, "color": "#173177"}
+
+	data_data["keyword6"] = map[string]interface{}{"value": strconv.Itoa(int(Order.PayMoney/100)) + "元", "color": "#173177"}
+
+	ogs, err := entity.OrdersGoods.FindByOrdersID(dao.Orm(), Order.ID)
+	tool.CheckError(err)
+	var Titles = ""
+	for _, value := range ogs {
+		var goods dao.Goods
+		json.Unmarshal([]byte(value.Goods), &goods)
+		Titles += goods.Title
+	}
+	if len(Titles) > 12 {
+		Titles = Titles[:12] + "等"
+	}
+	data_data["keyword7"] = map[string]interface{}{"value": Titles, "color": "#173177"}
+	data_data["keyword8"] = map[string]interface{}{"value": "如有疑问，请联系客服", "color": "#173177"}
+
+	weapp_template_msg_data["data"] = data_data
+
+	as = entity.SendWXMessage(weapp_template_msg_data)
+
+	return as
+}
+func (entity WxService) SendUniformMessage(sendData map[string]interface{}) (*dao.ActionStatus, int) {
+
+	//gzh := entity.MiniWeb()
+	xcx := entity.MiniProgram()
+
 	b, err := json.Marshal(sendData)
 	tool.CheckError(err)
+
+	access_token := entity.GetAccessToken(xcx)
+	strReader := strings.NewReader(string(b))
+	respones, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/uniform_send?access_token="+access_token, "application/json", strReader)
+	tool.CheckError(err)
+	if err != nil {
+		return &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}, -1
+	}
+	defer respones.Body.Close()
+	body, err := ioutil.ReadAll(respones.Body)
+	tool.CheckError(err)
+	mapData := make(map[string]interface{})
+	fmt.Println(string(body))
+	err = json.Unmarshal(body, &mapData)
+	tool.CheckError(err)
+	if mapData["errcode"] != nil {
+		if mapData["errcode"].(float64) == 0 {
+			return &dao.ActionStatus{Success: true, Message: "发送成功", Data: nil}, 0
+		}
+	}
+	return &dao.ActionStatus{Success: false, Message: mapData["errmsg"].(string), Data: nil}, int(mapData["errcode"].(float64))
+
+}
+func (entity WxService) SendWXMessage(sendData map[string]interface{}) *dao.ActionStatus {
+	b, err := json.Marshal(sendData)
+	tool.CheckError(err)
+
+	WxConfig := entity.MiniProgram()
 
 	access_token := entity.GetAccessToken(WxConfig)
 	strReader := strings.NewReader(string(b))
@@ -227,6 +493,9 @@ func (entity WxService) SendWXMessage(sendData map[string]interface{}, WxConfig 
 	if mapData["errcode"] != nil {
 		if mapData["errcode"].(float64) == 0 {
 			return &dao.ActionStatus{Success: true, Message: "发送成功", Data: nil}
+		} else {
+			//mapData["errcode"].(float64)
+			return &dao.ActionStatus{Success: false, Message: mapData["errmsg"].(string), Data: nil}
 		}
 	}
 	return &dao.ActionStatus{Success: false, Message: mapData["errmsg"].(string), Data: nil}
@@ -543,20 +812,21 @@ func (entity WxService) GetTransfersInfo(transfers dao.Transfers) (Success bool)
 	cert, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")
 	if err != nil {
 		log.Fatal(err)
+		return false
 	}
 
 	// Load CA cert
-	caCert, err := ioutil.ReadFile("cert/wxpay/rootca.pem")
+	/*caCert, err := ioutil.ReadFile("cert/wxpay/rootca.pem")
 	if err != nil {
 		log.Fatal(err)
-	}
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert)
+	}*/
+	//caCertPool := x509.NewCertPool()
+	//caCertPool.AppendCertsFromPEM(caCert)
 
 	// Setup HTTPS client
 	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{cert},
-		RootCAs:      caCertPool,
+		//RootCAs:      caCertPool,
 	}
 	tlsConfig.BuildNameToCertificate()
 	transport := &http.Transport{TLSClientConfig: tlsConfig}
@@ -565,15 +835,24 @@ func (entity WxService) GetTransfersInfo(transfers dao.Transfers) (Success bool)
 	reader := strings.NewReader(string(b))
 	response, err := client.Post("https://api.mch.weixin.qq.com/mmpaymkttransfers/gettransferinfo", "text/xml", reader)
 	tool.Trace(err)
+	if err != nil {
+		return false
+	}
 
 	b, err = ioutil.ReadAll(response.Body)
 	tool.Trace(err)
+	if err != nil {
+		return false
+	}
 
 	//fmt.Println(string(b))
 
 	var inData = make(util.Map)
 	err = xml.Unmarshal(b, &inData)
 	tool.Trace(err)
+	if err != nil {
+		return false
+	}
 
 	//fmt.Println(inData)
 
@@ -636,17 +915,17 @@ func (entity WxService) Transfers(transfers dao.Transfers) (Success bool, Messag
 	}
 
 	// Load CA cert
-	caCert, err := ioutil.ReadFile("cert/wxpay/rootca.pem")
+	/*caCert, err := ioutil.ReadFile("cert/wxpay/rootca.pem")
 	if err != nil {
 		log.Fatal(err)
-	}
-	caCertPool := x509.NewCertPool()
-	caCertPool.AppendCertsFromPEM(caCert)
+	}*/
+	//caCertPool := x509.NewCertPool()
+	//caCertPool.AppendCertsFromPEM(caCert)
 
 	// Setup HTTPS client
 	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{cert},
-		RootCAs:      caCertPool,
+		//RootCAs:      caCertPool,
 	}
 	tlsConfig.BuildNameToCertificate()
 	transport := &http.Transport{TLSClientConfig: tlsConfig}
@@ -753,20 +1032,30 @@ func (entity WxService) CloseOrder(OrderNo string, OID uint64) (Success bool, Me
 func (entity WxService) Refund(order dao.Orders, PayMoney, RefundMoney uint64, Desc string, Type uint64) (Success bool, Message string) {
 	WxConfig := entity.MiniProgram()
 
-	Orders:=OrdersService{}
-
-	op:=Orders.GetOrdersPackageByOrderNo(order.OrdersPackageNo)
+	//Orders := OrdersService{}
+	//op := Orders.GetOrdersPackageByOrderNo(order.OrdersPackageNo)
+	//op := Orders.GetOrdersByOrderNo(order.OrdersPackageNo)
 
 	outMap := make(util.Map)
 	outMap["appid"] = WxConfig.AppID
 	outMap["mch_id"] = WxConfig.MchID
 	outMap["nonce_str"] = tool.UUID()
 
-	outMap["out_refund_no"] = order.OrderNo
-	outMap["out_trade_no"] = order.OrdersPackageNo
+	if strings.EqualFold(order.OrdersPackageNo, "") {
+		outMap["out_refund_no"] = order.OrderNo
+		outMap["out_trade_no"] = order.OrderNo
+		outMap["refund_fee"] = strconv.Itoa(int(order.PayMoney))
+		outMap["total_fee"] = strconv.Itoa(int(order.PayMoney))
+	} else {
+		Orders := OrdersService{}
+		op := Orders.GetOrdersPackageByOrderNo(order.OrdersPackageNo)
+		//op := Orders.GetOrdersByOrderNo(order.OrdersPackageNo)
+		outMap["out_refund_no"] = order.OrderNo
+		outMap["out_trade_no"] = order.OrdersPackageNo
+		outMap["refund_fee"] = strconv.Itoa(int(order.PayMoney))
+		outMap["total_fee"] = strconv.Itoa(int(op.TotalPayMoney))
+	}
 
-	outMap["refund_fee"] = strconv.Itoa(int(order.PayMoney))
-	outMap["total_fee"] = strconv.Itoa(int(op.TotalPayMoney))
 	outMap["refund_desc"] = Desc
 
 	if Type == 0 {

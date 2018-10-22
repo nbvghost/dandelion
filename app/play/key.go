@@ -36,12 +36,13 @@ const (
 	ConfigurationKey_component_verify_ticket uint64 = 1001
 	ConfigurationKey_Poster                  uint64 = 1002
 	ConfigurationKey_ScoreConvertGrowValue   uint64 = 1100
-	ConfigurationKey_BrokerageLeve1          uint64 = 1201
-	ConfigurationKey_BrokerageLeve2          uint64 = 1202
-	ConfigurationKey_BrokerageLeve3          uint64 = 1203
-	ConfigurationKey_BrokerageLeve4          uint64 = 1204
-	ConfigurationKey_BrokerageLeve5          uint64 = 1205
-	ConfigurationKey_BrokerageLeve6          uint64 = 1206
+
+	ConfigurationKey_BrokerageLeve1 uint64 = 1201
+	ConfigurationKey_BrokerageLeve2 uint64 = 1202
+	ConfigurationKey_BrokerageLeve3 uint64 = 1203
+	ConfigurationKey_BrokerageLeve4 uint64 = 1204
+	ConfigurationKey_BrokerageLeve5 uint64 = 1205
+	ConfigurationKey_BrokerageLeve6 uint64 = 1206
 )
 const (
 	OS_Order    = "Order"    // order=下单成功，待付款
@@ -89,13 +90,14 @@ const (
 	StoreJournal_Type_TX   = 6 //店员提现
 )
 const (
-	UserJournal_Type_HX   = 1 //核销
-	UserJournal_Type_LEVE = 2 //上下级结算佣金
-	UserJournal_Type_TX   = 3 //提现
+	UserJournal_Type_HX        = 1 //核销
+	UserJournal_Type_LEVE      = 2 //下单，上下级结算佣金
+	UserJournal_Type_TX        = 3 //提现
+	UserJournal_Type_USER_LEVE = 4 //成为上下级，结算佣金
 )
 const (
-	OrganizationJournal_Goods =1//商品销售
-	OrganizationJournal_Brokerage =2//商品销售用户的佣金
+	OrganizationJournal_Goods     = 1 //商品销售
+	OrganizationJournal_Brokerage = 2 //商品销售用户的佣金
 )
 const (
 	ScoreJournal_Type_GM           = 1 //购买商品

@@ -88,6 +88,7 @@ func (controller *Controller) Apply() {
 	controller.AddHandler(gweb.GETMethod("verification/get/:VerificationNo", controller.verificationGetByVerificationNoAction))
 
 	controller.AddHandler(gweb.POSMethod("configuration/list", controller.configurationListAction))
+	controller.AddHandler(gweb.GETMethod("read/share/key", controller.readShareKeyAction))
 
 	OrderController := &order.OrderController{}
 	OrderController.Interceptors = controller.Interceptors
@@ -110,11 +111,21 @@ func (controller *Controller) Apply() {
 	controller.AddSubController("/user/", UserController)
 
 }
+func (controller *Controller) readShareKeyAction(context *gweb.Context) gweb.Result {
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	ShareKey := context.Request.URL.Query().Get("ShareKey")
+	UserID, ProductID := util.DecodeShareKey(ShareKey)
+
+	result := make(map[string]interface{})
+	result["UserID"] = UserID
+	result["ProductID"] = ProductID
+	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: result}}
+}
 func (controller *Controller) configurationListAction(context *gweb.Context) gweb.Result {
-	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	var ks []uint64
 	util.RequestBodyToJSON(context.Request.Body, &ks)
-	list := controller.Configuration.GetConfigurations(company.ID, ks)
+	list := controller.Configuration.GetConfigurations(0, ks)
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", list)}
 }
 func (controller *Controller) indexPage(context *gweb.Context) gweb.Result {
@@ -236,8 +247,8 @@ func (controller *Controller) scoreGoodsExchangeAction(context *gweb.Context) gw
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "兑换成功", nil)}
 }
 func (controller *Controller) scoreGoodsListAction(context *gweb.Context) gweb.Result {
-	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
-	list := controller.ScoreGoods.ListScoreGoods(company.ID)
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	list := controller.ScoreGoods.ListScoreGoods()
 	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: list}}
 }
 
@@ -312,9 +323,12 @@ func (controller *Controller) getLoginUserAction(context *gweb.Context) gweb.Res
 	} else {
 
 		user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
+
+		controller.User.Get(dao.Orm(), user.ID, &user)
+
 		results := make(map[string]interface{})
 		results["User"] = user
-		results["MyShareKey"] = util.EncodeShareKey(user.ID) //tool.Hashids{}.Encode(user.ID) //tool.CipherEncrypterData(strconv.Itoa(int(user.ID)))
+		results["MyShareKey"] = util.EncodeShareKey(user.ID, 0) //tool.Hashids{}.Encode(user.ID) //tool.CipherEncrypterData(strconv.Itoa(int(user.ID)))
 		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: results}}
 	}
 }

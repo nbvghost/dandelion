@@ -3,6 +3,7 @@ package service
 import (
 	"dandelion/app/play"
 	"dandelion/app/service/dao"
+
 	"github.com/jinzhu/gorm"
 
 	"dandelion/app/util"
@@ -98,7 +99,7 @@ func (service OrdersService) RefundComplete(OrdersGoodsID, RefundType uint64) (e
 		return err, ""
 	}
 
-	Success, Message := service.Wx.Refund(orders,orders.PayMoney, RefundInfo.RefundPrice, "用户申请退款", RefundType)
+	Success, Message := service.Wx.Refund(orders, orders.PayMoney, RefundInfo.RefundPrice, "用户申请退款", RefundType)
 	if !Success {
 		tx.Rollback()
 		return errors.New(Message), ""
@@ -185,6 +186,7 @@ func (service OrdersService) AskRefund(OrdersGoodsID uint64, RefundInfo dao.Refu
 	}
 	return errors.New("不允许申请退款"), ""
 }
+
 /*func (service OrdersService) AddOrderBrokerageTemp(UserID uint64, OrderNo string, Amount int64) error {
 	var orderbrokerage dao.OrderBrokerageTemp
 	orderbrokerage.OrderNo = OrderNo
@@ -284,6 +286,8 @@ func (service OrdersService) TakeDeliver(OrdersID uint64) (error, string) {
 	}
 	return errors.New("不允许收货"), ""
 }
+
+//检查订单状态
 func (service OrdersService) AnalysisOrdersStatus(OrdersID uint64) {
 
 	Orm := dao.Orm()
@@ -297,7 +301,7 @@ func (service OrdersService) AnalysisOrdersStatus(OrdersID uint64) {
 	if strings.EqualFold(orders.Status, play.OS_Order) {
 
 		if time.Now().Unix() >= orders.CreatedAt.Add(3*time.Hour*24).Unix() {
-			//一直处于下单状态超过3天，自动关闭订单，并加回库存
+			//一直处于下单状态超过3天，没有付款，自动关闭订单，并加回库存
 			service.ChangeMap(Orm, orders.ID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_Closed})
 			//管理商品库存
 			service.Goods.OrdersStockManager(orders, false)
@@ -306,9 +310,10 @@ func (service OrdersService) AnalysisOrdersStatus(OrdersID uint64) {
 	} else if strings.EqualFold(orders.Status, play.OS_Deliver) {
 		if time.Now().Unix() >= orders.DeliverTime.Add(15*time.Hour*24).Unix() {
 			//等待收货时间超过15天，自动订单完成
-			service.ChangeMap(Orm, orders.ID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_OrderOk, "ReceiptTime": time.Now()})
+			//service.ChangeMap(Orm, orders.ID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_OrderOk, "ReceiptTime": time.Now()})
 			//管理商品库存
 			//service.Goods.OrdersStockManager(orders, false)
+			service.TakeDeliver(OrdersID)
 		}
 
 	}
@@ -388,20 +393,27 @@ func (service OrdersService) Cancel(OrdersID uint64) (error, string) {
 			Success, Message1 := service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", 0)
 			if Success {
 
+				//管理商品库存
+				service.Goods.OrdersStockManager(orders, false)
+				err := service.ChangeMap(Orm, OrdersID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_CancelOk})
+				return err, "取消成功"
+
 			} else {
-				Success, Message2 := service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", 1)
+
+				//管理商品库存
+				service.Goods.OrdersStockManager(orders, false)
+				err := service.ChangeMap(Orm, OrdersID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_CancelOk})
+				return err, Message1 + "，取消成功"
+
+				//return errors.New(Message1), ""
+				/*Success, Message2 := service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", 1)
 				if Success {
 
 				} else {
-					return errors.New(Message1 + Message2), ""
-				}
+
+				}*/
 			}
 
-			//管理商品库存
-			service.Goods.OrdersStockManager(orders, false)
-
-			err := service.ChangeMap(Orm, OrdersID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_CancelOk})
-			return err, "取消成功"
 		}
 
 	} else if strings.EqualFold(orders.Status, play.OS_Pay) {
@@ -428,7 +440,13 @@ func (service OrdersService) Deliver(ShipName, ShipNo string, OrdersID uint64) e
 	}
 
 	err := service.ChangeMap(Orm, OrdersID, &dao.Orders{}, map[string]interface{}{"ShipName": ShipName, "ShipNo": ShipNo, "DeliverTime": time.Now(), "Status": play.OS_Deliver})
-
+	if err != nil {
+		return err
+	}
+	as := service.Wx.OrderDeliveryNotify(orders)
+	if as.Success == false {
+		err = errors.New(as.Message)
+	}
 	return err
 }
 func (service OrdersService) GetOrdersPackageByOrderNo(OrderNo string) dao.OrdersPackage {
@@ -591,7 +609,7 @@ func (service OrdersService) OrderNotify(total_fee uint64, out_trade_no, pay_tim
 				return false, err.Error()
 			}
 
-			OrderList:=service.GetOrdersByOrdersPackageNo(ordersPackage.OrderNo)
+			OrderList := service.GetOrdersByOrdersPackageNo(ordersPackage.OrderNo)
 
 			for index, _ := range OrderList {
 				//orders := service.GetOrdersByOrderNo(value)
@@ -774,8 +792,8 @@ func (service OrdersService) createOrdersGoods(shoppingCart dao.ShoppingCart) da
 	ordersGoods.Specification = util.StructToJSON(specification)
 	ordersGoods.Goods = util.StructToJSON(goods)
 	ordersGoods.OID = goods.OID
-	//ordersGoods.GoodsID = goods.ID
-	//ordersGoods.SpecificationID = specification.ID
+	ordersGoods.GoodsID = goods.ID
+	ordersGoods.SpecificationID = specification.ID
 	ordersGoods.Quantity = shoppingCart.Quantity
 	ordersGoods.CostPrice = specification.MarketPrice
 	ordersGoods.SellPrice = specification.MarketPrice

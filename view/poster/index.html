@@ -16,7 +16,7 @@
         #posterImage{
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             border:none;
         }
         #tipbox{
@@ -32,11 +32,14 @@
 
         function drawImage(posterImage,headImage,qrcodeImage) {
 
-            poster.fillStyle = 'red';
-            poster.drawImage(posterImage,0,0,1080,1920);
-            poster.drawImage(headImage,(1080-240)/2,240, 240, 240);
+            var gw =750;
+            var gh =1334;
 
-            poster.drawImage(qrcodeImage,(1080-400)/2,800, 400, 400);
+            poster.fillStyle = 'red';
+            poster.drawImage(posterImage,0,0,gw,gh);
+            poster.drawImage(headImage,20,20, 60, 60);
+
+            poster.drawImage(qrcodeImage,(gw-250)/2,700, 250, 250);
 
             //poster.drawImage(posterImage,0,0,1080,1920);
 
@@ -57,7 +60,7 @@
             // 轻微模糊阴影
             poster.shadowBlur = 5;
 
-            poster.font = '70px bold';//字体大小也会影响的哦。bold italic
+            poster.font = '30px bold';//字体大小也会影响的哦。bold italic
             poster.lineWidth = 8;
             poster.strokeStyle = "#fff";
 
@@ -65,8 +68,8 @@
             var text = "{{.params.User.Name}}";
             var textWidth = poster.measureText(text).width;
 
-            var textX =(1080-textWidth)/2;
-            var textY = 600;
+            var textX =100;
+            var textY =(60+22)/2+20;
 
             poster.strokeText(text, textX, textY);
             poster.fillStyle ="#333";
@@ -78,10 +81,13 @@
 
             $("#posterImage").attr("src", canvas.toDataURL("image/png"));
 
+            $("#tipbox").text("长按图片保存到手机，分享给好友");
+
         }
 
         function onload(qrcodeUrl,posterImageUrl) {
-
+            //alert(qrcodeUrl)
+            //alert(posterImageUrl)
             var posterImage = new Image();
             posterImage.setAttribute('crossOrigin', 'anonymous');
             posterImage.onload = function() {
@@ -93,14 +99,23 @@
                     var qrcodeImage = new Image();
                     qrcodeImage.setAttribute('crossOrigin', 'anonymous');
                     qrcodeImage.onload=function () {
+
                         drawImage(posterImage,headImage,qrcodeImage);
+                    }
+                    qrcodeImage.onerror=function (ev) {
+                        alert("抱歉，获取二维码图片失败。");
                     }
                     qrcodeImage.src=qrcodeUrl;
                 }
-                headImage.src=unescape("{{.params.User.Portrait}}");
+                headImage.onerror=function (ev) {
+                    alert("抱歉，获取头像图片失败。");
+                }
+                headImage.src="/file/net/load?url="+unescape("{{.params.User.Portrait}}");
                 //console.log(headImage.src)
-
             };
+            posterImage.onerror=function (ev) {
+                alert("抱歉，获取海报图片失败。");
+            }
             posterImage.src=posterImageUrl;
         }
 
@@ -112,7 +127,7 @@
             canvas = document.getElementById("canvas");
             poster = canvas.getContext("2d");
 
-            $.getJSON("/images/miniprogram/qrcode?Page={{.query.Page}}&ID={{.query.ID}}",function(result){
+            $.getJSON("/images/miniprogram/qrcode?Page={{.query.Page}}&UserID={{.query.UserID}}",function(result){
                 //console.log("/file/temp/load?path="+result.Data);
                 $.post("/configuration/list",JSON.stringify([1002]),function(configurationResult){
                     onload("/file/temp/load?path="+result.Data,configurationResult.Data[1002]);
@@ -124,9 +139,8 @@
     </script>
 </head>
 <body>
-<script type="text/javascript" src="//z1-pcok6.kuaishangkf.com/bs/ks.j?cI=398160&fI=126467" charset="utf-8"></script>
-<canvas style="display: none;visibility: hidden;border:none;" width="1080" height="1920" id="canvas"></canvas>
+<canvas style="display: none;visibility: hidden;border:none;" width="750" height="1334" id="canvas"></canvas>
 <img id="posterImage">
-<div id="tipbox">长按图片保存到手机，分享给好友</div>
+<div id="tipbox">图片生成中，请稍候</div>
 </body>
 </html>

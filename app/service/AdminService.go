@@ -192,14 +192,7 @@ func (self AdminService) AddAdmin(Name, Password, Domain string) *dao.ActionStat
 	as.Message = "添加成功"
 
 	var _Configuration dao.Configuration
-	self.Organization.FindWhere(Orm, &_Configuration, "K=? and OID=?", play.ConfigurationKey_ScoreConvertGrowValue, shop.ID)
-	if _Configuration.ID == 0 {
-		a := dao.Configuration{K: play.ConfigurationKey_ScoreConvertGrowValue, V: "1"}
-		a.OID = shop.ID
-		self.Organization.Add(Orm, &a)
-	}
 
-	_Configuration = dao.Configuration{}
 	self.Organization.FindWhere(Orm, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve1, shop.ID)
 	if _Configuration.ID == 0 {
 		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve1, V: "0"}

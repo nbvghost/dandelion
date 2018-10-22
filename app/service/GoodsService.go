@@ -6,8 +6,6 @@ import (
 	"log"
 	"strconv"
 
-	"dandelion/app/play"
-
 	"github.com/jinzhu/gorm"
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/tool"
@@ -257,7 +255,7 @@ func (service GoodsService) DeleteGoodsType(ID uint64) *dao.ActionStatus {
 	Orm := dao.Orm()
 	tx := Orm.Begin()
 	var gtcs []dao.GoodsTypeChild
-	tx.Model(&dao.GoodsTypeChild{GoodsTypeID: ID}).Find(&gtcs) //Updates(map[string]interface{}{"GoodsTypeID": 0})
+	tx.Where(&dao.GoodsTypeChild{GoodsTypeID: ID}).Find(&gtcs) //Updates(map[string]interface{}{"GoodsTypeID": 0})
 
 	var err error
 	if len(gtcs) <= 0 {
@@ -304,123 +302,7 @@ func (service GoodsService) FindByTimeSellID(TimeSellID uint64) []dao.Goods {
 	tool.CheckError(err)
 	return list
 }
-func (service GoodsService) Action(context *gweb.Context) gweb.Result {
-	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
-	action := context.Request.URL.Query().Get("action")
-	Orm := dao.Orm()
-	switch action {
-	case "del_goods":
-		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
-		return &gweb.JsonResult{Data: service.DeleteGoods(ID)}
-	case "list_specification":
-		GoodsID, _ := strconv.ParseUint(context.Request.URL.Query().Get("GoodsID"), 10, 64)
-		var gts []dao.Specification
-		err := service.FindWhere(Orm, &gts, company.ID, dao.Specification{GoodsID: GoodsID})
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", gts)}
-	case "delete_specification":
-		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
-		err := service.DeleteSpecification(ID)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)}
-	case "get_goods":
-		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
-		goodsInfo := service.GetGoods(Orm, ID)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", goodsInfo)}
-	case "change_goods":
-		context.Request.ParseForm()
-		goods_str := context.Request.FormValue("goods")
-		specifications_str := context.Request.FormValue("specifications")
 
-		var specifications []dao.Specification
-		var item dao.Goods
-		err := util.JSONToStruct(goods_str, &item)
-		tool.Trace(err)
-		err = util.JSONToStruct(specifications_str, &specifications)
-		tool.Trace(err)
-
-		err = service.SaveGoods(item, specifications)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
-	case "add_goods":
-		context.Request.ParseForm()
-		goods_str := context.Request.FormValue("goods")
-		specifications_str := context.Request.FormValue("specifications")
-
-		var specifications []dao.Specification
-		var item dao.Goods
-		err := util.JSONToStruct(goods_str, &item)
-		tool.Trace(err)
-		err = util.JSONToStruct(specifications_str, &specifications)
-		tool.Trace(err)
-
-		item.OID = company.ID
-		err = service.SaveGoods(item, specifications)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
-
-	case "list_goods":
-		dts := &dao.Datatables{}
-		util.RequestBodyToJSON(context.Request.Body, dts)
-		draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(Orm, dts, &[]dao.Goods{}, company.ID)
-		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
-	case "del_goods_type":
-		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
-		return &gweb.JsonResult{Data: service.DeleteGoodsType(ID)}
-	case "add_goods_type":
-		item := &dao.GoodsType{}
-		item.OID = company.ID
-		err := util.RequestBodyToJSON(context.Request.Body, item)
-		tool.Trace(err)
-		//fmt.Println(item)
-		err = service.Add(Orm, item)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
-	case "change_goods_type":
-		item := &dao.GoodsType{}
-		err := util.RequestBodyToJSON(context.Request.Body, item)
-		tool.Trace(err)
-		err = service.ChangeModel(Orm, item.ID, &dao.GoodsType{Name: item.Name})
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
-
-	case "get_goods_type_child":
-		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
-		var goods dao.GoodsTypeChild
-		service.Get(Orm, ID, &goods)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", goods)}
-	case "del_goods_type_child":
-		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
-		return &gweb.JsonResult{Data: service.DeleteGoodsTypeChild(ID)}
-	case "add_goods_type_child":
-		item := &dao.GoodsTypeChild{}
-		err := util.RequestBodyToJSON(context.Request.Body, item)
-		tool.Trace(err)
-		//fmt.Println(item)
-		err = service.Add(Orm, item)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
-	case "change_goods_type_child":
-		item := &dao.GoodsTypeChild{}
-		err := util.RequestBodyToJSON(context.Request.Body, item)
-		tool.Trace(err)
-		err = service.ChangeModel(Orm, item.ID, &dao.GoodsTypeChild{Name: item.Name, Image: item.Image})
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
-	case "list_goods_type_child":
-		var gts []dao.GoodsTypeChild
-		service.FindAllByOID(Orm, &gts, company.ID)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
-	case "list_goods_type_child_id":
-		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
-		gts := service.ListGoodsTypeChild(ID)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
-
-	case "list_goods_type_all":
-		gts := service.ListGoodsType()
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
-	case "list_goods_type":
-		dts := &dao.Datatables{}
-		util.RequestBodyToJSON(context.Request.Body, dts)
-		draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(Orm, dts, &[]dao.GoodsType{}, company.ID)
-		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
-
-	}
-
-	return &gweb.JsonResult{}
-}
 func (service GoodsService) AllList() []dao.Goods {
 
 	Orm := dao.Orm()

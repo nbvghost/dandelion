@@ -116,8 +116,6 @@ func (service ArticleService) GetArticle(ID uint64) *dao.Article {
 }
 func (service ArticleService) GetArticleAndAddLook(context *gweb.Context, ArticleID uint64) *dao.Article {
 
-	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
-
 	article := &dao.Article{}
 	err := service.Get(dao.Orm(), ArticleID, article) //SelectOne(user, "select * from User where Email=?", Email)
 	tool.CheckError(err)
@@ -127,11 +125,15 @@ func (service ArticleService) GetArticleAndAddLook(context *gweb.Context, Articl
 		service.ChangeMap(dao.Orm(), ArticleID, &dao.Article{}, map[string]interface{}{"Look": article.Look + 1})
 
 		if LookArticle, have := context.Data["LookArticle"]; have {
-			err := service.Journal.AddScoreJournal(dao.Orm(),
-				user.ID,
-				"看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)),
-				play.ScoreJournal_Type_Look_Article, int64(LookArticle.(float64)), dao.KV{Key: "ArticleID", Value: article.ID})
-			tool.CheckError(err)
+
+			if context.Session.Attributes.Get(play.SessionUser) != nil {
+				user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
+				err := service.Journal.AddScoreJournal(dao.Orm(),
+					user.ID,
+					"看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)),
+					play.ScoreJournal_Type_Look_Article, int64(LookArticle.(float64)), dao.KV{Key: "ArticleID", Value: article.ID})
+				tool.CheckError(err)
+			}
 		}
 
 	}

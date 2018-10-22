@@ -47,6 +47,7 @@ func (self TimeTaskService) QueryOrdersTask() {
 	for _, value := range ordersList {
 
 		if value.IsPay == 0 {
+
 			//当前状态为没有支付，去检测一下，订单状态。
 			su, result := self.Wx.OrderQuery(value.OrderNo, value.OID)
 			if su {
@@ -55,10 +56,10 @@ func (self TimeTaskService) QueryOrdersTask() {
 				//TimeEnd := result["time_end"]
 				//attach := result["attach"]
 				self.Orders.OrderNotify(TotalFee, result["out_trade_no"], result["time_end"], result["attach"])
+				continue
 			}
-		} else {
-			self.Orders.AnalysisOrdersStatus(value.ID)
 		}
+		self.Orders.AnalysisOrdersStatus(value.ID)
 	}
 }
 func (self TimeTaskService) QuerySupplyOrdersTask() {

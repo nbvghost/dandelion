@@ -52,6 +52,7 @@ type Controller struct {
 	Article       service.ArticleService
 	Configuration service.ConfigurationService
 	User          service.UserService
+	Goods         service.GoodsService
 }
 
 func (controller *Controller) Apply() {
@@ -66,6 +67,7 @@ func (controller *Controller) Apply() {
 	//https://dandelion.nutsy.cc/2000/content/2000/new/article/webhook
 
 	controller.AddHandler(gweb.GETMethod("poster/index", controller.posterIndexPage))
+	controller.AddHandler(gweb.GETMethod("poster/product", controller.posterProductPage))
 
 	articles := &articles.Controller{}
 	articles.Interceptors = controller.Interceptors
@@ -212,8 +214,18 @@ func (controller *Controller) indexPage(context *gweb.Context) gweb.Result {
 }
 func (controller *Controller) posterIndexPage(context *gweb.Context) gweb.Result {
 	//fmt.Println(context.Request.URL.Query().Get("ID"))
-	UserID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+	UserID, _ := strconv.ParseUint(context.Request.URL.Query().Get("UserID"), 10, 64)
 	var user dao.User
 	controller.User.Get(dao.Orm(), UserID, &user)
 	return &gweb.HTMLResult{Params: map[string]interface{}{"User": user}}
+}
+func (controller *Controller) posterProductPage(context *gweb.Context) gweb.Result {
+	//fmt.Println(context.Request.URL.Query().Get("ID"))
+	UserID, _ := strconv.ParseUint(context.Request.URL.Query().Get("UserID"), 10, 64)
+	ProductID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ProductID"), 10, 64)
+	var user dao.User
+	controller.User.Get(dao.Orm(), UserID, &user)
+	//var user dao.User
+	GoodsInfo := controller.Goods.GetGoods(dao.Orm(), ProductID)
+	return &gweb.HTMLResult{Params: map[string]interface{}{"User": user, "GoodsInfo": GoodsInfo}}
 }

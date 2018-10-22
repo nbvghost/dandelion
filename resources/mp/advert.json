@@ -1,0 +1,7 @@
+{
+  "home":[
+    {"img":"/resources/mp/images/advert/home/lb1.jpg","page":"/pages/pro_details/pro_details?ID=2001"},
+    {"img":"/resources/mp/images/advert/home/lb2.jpg","page":"/pages/pro_details/pro_details?ID=2001"}
+  ],
+  "pop":{"img":"/resources/mp/images/advert/home/pop.png","page":"/pages/pro_details/pro_details?ID=2001"}
+}

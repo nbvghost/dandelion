@@ -3,6 +3,8 @@ package manager
 import (
 	"net/url"
 
+	"dandelion/app/util"
+
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/tool"
 
@@ -42,24 +44,170 @@ func (this InterceptorManager) Execute(context *gweb.Context) (bool, gweb.Result
 
 type Controller struct {
 	gweb.BaseController
-	Article service.ArticleService
-	Admin   service.AdminService
+	Article       service.ArticleService
+	Admin         service.AdminService
+	User          service.UserService
+	Rank          service.RankService
+	Configuration service.ConfigurationService
+	GiveVoucher   service.GiveVoucherService
+	Voucher       service.VoucherService
+	Goods         service.GoodsService
 }
 
-func (this *Controller) Apply() {
+func (controller *Controller) Apply() {
 	//Index.RequestMapping = make(map[string]mvc.Function)
-	this.Interceptors.Add(&InterceptorManager{})
-	this.AddHandler(gweb.ALLMethod("", this.rootPage))
-	this.AddHandler(gweb.ALLMethod("*", this.defaultPage))
-	this.AddHandler(gweb.ALLMethod("index", this.indexPage))
-	this.AddHandler(gweb.ALLMethod("articlePage", this.articlePage))
-	this.AddHandler(gweb.ALLMethod("article", this.articleAction))
-	this.AddHandler(gweb.ALLMethod("admin", this.adminAction))
-	this.AddHandler(gweb.ALLMethod("add_article", this.addArticlePage))
+	controller.Interceptors.Add(&InterceptorManager{})
+	controller.AddHandler(gweb.ALLMethod("", controller.rootPage))
+	controller.AddHandler(gweb.ALLMethod("*", controller.defaultPage))
+	controller.AddHandler(gweb.ALLMethod("index", controller.indexPage))
+	controller.AddHandler(gweb.ALLMethod("articlePage", controller.articlePage))
+	controller.AddHandler(gweb.ALLMethod("article", controller.articleAction))
+	controller.AddHandler(gweb.ALLMethod("admin", controller.adminAction))
+	controller.AddHandler(gweb.ALLMethod("add_article", controller.addArticlePage))
+
+	controller.AddHandler(gweb.POSMethod("rank/add", controller.rankAddAction))
+	controller.AddHandler(gweb.POSMethod("rank/list", controller.rankListAction))
+	controller.AddHandler(gweb.DELMethod("rank/:RankID", controller.rankDeleteAction))
+
+	controller.AddHandler(gweb.POSMethod("user/all/list", controller.ListAllTableDatas))
+
+	controller.AddHandler(gweb.POSMethod("configuration/list", controller.configurationListAction))
+	controller.AddHandler(gweb.POSMethod("configuration/change", controller.configurationChangeAction))
 	//this.AddHandler(gweb.ALLMethod("categoryAction", this.categoryAction))
+	controller.AddHandler(gweb.POSMethod("give_voucher/save", controller.giveVoucherSaveAction))
+	controller.AddHandler(gweb.POSMethod("give_voucher/list", controller.giveVoucherListAction))
+
+	controller.AddHandler(gweb.ALLMethod("goods", controller.GoodsAction))
 
 }
-func (this *Controller) addArticlePage(context *gweb.Context) gweb.Result {
+func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	action := context.Request.URL.Query().Get("action")
+	Orm := dao.Orm()
+	switch action {
+
+	case "del_goods_type":
+		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+		return &gweb.JsonResult{Data: controller.Goods.DeleteGoodsType(ID)}
+	case "add_goods_type":
+		item := &dao.GoodsType{}
+		//item.OID = company.ID
+		err := util.RequestBodyToJSON(context.Request.Body, item)
+		tool.Trace(err)
+		//fmt.Println(item)
+		err = controller.Goods.Add(Orm, item)
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
+	case "change_goods_type":
+		item := &dao.GoodsType{}
+		err := util.RequestBodyToJSON(context.Request.Body, item)
+		tool.Trace(err)
+		err = controller.Goods.ChangeModel(Orm, item.ID, &dao.GoodsType{Name: item.Name})
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+
+	case "get_goods_type_child":
+		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+		var goods dao.GoodsTypeChild
+		controller.Goods.Get(Orm, ID, &goods)
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", goods)}
+	case "del_goods_type_child":
+		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+		return &gweb.JsonResult{Data: controller.Goods.DeleteGoodsTypeChild(ID)}
+	case "add_goods_type_child":
+		item := &dao.GoodsTypeChild{}
+		err := util.RequestBodyToJSON(context.Request.Body, item)
+		tool.Trace(err)
+		//fmt.Println(item)
+		err = controller.Goods.Add(Orm, item)
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
+	case "change_goods_type_child":
+		item := &dao.GoodsTypeChild{}
+		err := util.RequestBodyToJSON(context.Request.Body, item)
+		tool.Trace(err)
+		err = controller.Goods.ChangeModel(Orm, item.ID, &dao.GoodsTypeChild{Name: item.Name, Image: item.Image})
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+	case "list_goods_type_child":
+		var gts []dao.GoodsTypeChild
+		controller.Goods.FindAll(Orm, &gts)
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
+	case "list_goods_type_child_id":
+		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+		gts := controller.Goods.ListGoodsTypeChild(ID)
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
+
+	case "list_goods_type_all":
+		gts := controller.Goods.ListGoodsType()
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
+	case "list_goods_type":
+		dts := &dao.Datatables{}
+		util.RequestBodyToJSON(context.Request.Body, dts)
+		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.GoodsType{}, 0)
+		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
+
+	}
+
+	return &gweb.JsonResult{}
+}
+func (controller *Controller) giveVoucherSaveAction(context *gweb.Context) gweb.Result {
+
+	item := dao.GiveVoucher{}
+	util.RequestBodyToJSON(context.Request.Body, &item)
+	err := controller.GiveVoucher.SaveItem(item)
+	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
+}
+func (controller *Controller) giveVoucherListAction(context *gweb.Context) gweb.Result {
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	Orm := dao.Orm()
+	dts := &dao.Datatables{}
+	util.RequestBodyToJSON(context.Request.Body, dts)
+	draw, recordsTotal, recordsFiltered, list := controller.GiveVoucher.DatatablesListOrder(Orm, dts, &[]dao.GiveVoucher{}, 0)
+	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
+}
+func (controller *Controller) configurationChangeAction(context *gweb.Context) gweb.Result {
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	item := dao.Configuration{}
+	util.RequestBodyToJSON(context.Request.Body, &item)
+	err := controller.Configuration.ChangeConfiguration(0, item.K, item.V)
+	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+}
+func (controller *Controller) configurationListAction(context *gweb.Context) gweb.Result {
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	var ks []uint64
+	util.RequestBodyToJSON(context.Request.Body, &ks)
+	list := controller.Configuration.GetConfigurations(0, ks)
+	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", list)}
+}
+func (controller *Controller) rankAddAction(context *gweb.Context) gweb.Result {
+
+	rank := dao.Rank{}
+	util.RequestBodyToJSON(context.Request.Body, &rank)
+	err := controller.Rank.AddRank(rank)
+	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
+}
+func (controller *Controller) rankListAction(context *gweb.Context) gweb.Result {
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	Orm := dao.Orm()
+	dts := &dao.Datatables{}
+	util.RequestBodyToJSON(context.Request.Body, dts)
+	draw, recordsTotal, recordsFiltered, list := controller.Rank.DatatablesListOrder(Orm, dts, &[]dao.Rank{}, 0)
+	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
+}
+func (controller *Controller) rankDeleteAction(context *gweb.Context) gweb.Result {
+
+	RankID, _ := strconv.ParseUint(context.PathParams["RankID"], 10, 64)
+
+	err := controller.Rank.Delete(dao.Orm(), &dao.Rank{}, RankID)
+
+	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)}
+}
+func (controller *Controller) ListAllTableDatas(context *gweb.Context) gweb.Result {
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	Orm := dao.Orm()
+	dts := &dao.Datatables{}
+	util.RequestBodyToJSON(context.Request.Body, dts)
+	draw, recordsTotal, recordsFiltered, list := controller.User.DatatablesListOrder(Orm, dts, &[]dao.User{}, 0)
+	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
+}
+func (controller *Controller) addArticlePage(context *gweb.Context) gweb.Result {
 
 	return &gweb.HTMLResult{Params: nil}
 }
@@ -85,19 +233,19 @@ func (this *Controller) addArticlePage(context *gweb.Context) gweb.Result {
 	return result
 }*/
 
-func (this *Controller) adminAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) adminAction(context *gweb.Context) gweb.Result {
 	action := context.Request.URL.Query().Get("action")
 	result := &gweb.JsonResult{}
 	switch action {
 	//list del
 	case play.ActionKey_list:
-		result.Data = &dao.ActionStatus{true, "ok", this.Admin.FindAdmin()}
+		result.Data = &dao.ActionStatus{true, "ok", controller.Admin.FindAdmin()}
 	case play.ActionKey_del:
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("id"), 10, 64)
-		result.Data = this.Admin.DelAdmin(ID)
+		result.Data = controller.Admin.DelAdmin(ID)
 	case play.ActionKey_get:
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("id"), 10, 64)
-		admin := this.Admin.GetAdmin(ID)
+		admin := controller.Admin.GetAdmin(ID)
 		result.Data = &dao.ActionStatus{true, "ok", admin}
 	case play.ActionKey_change:
 		context.Request.ParseForm()
@@ -107,7 +255,7 @@ func (this *Controller) adminAction(context *gweb.Context) gweb.Result {
 		//Tel := context.Request.Form.Get("Tel")
 		ID, _ := strconv.ParseUint(context.Request.Form.Get("ID"), 10, 64)
 
-		if err := this.Admin.ChangeAdmin(Name, Password, ID); err != nil {
+		if err := controller.Admin.ChangeAdmin(Name, Password, ID); err != nil {
 			result.Data = &dao.ActionStatus{false, "修改失败", nil}
 		} else {
 			result.Data = &dao.ActionStatus{true, "修改成功", nil}
@@ -120,18 +268,18 @@ func (this *Controller) adminAction(context *gweb.Context) gweb.Result {
 		Domain := context.Request.Form.Get("Domain")
 		//Email := context.Request.Form.Get("Email")
 		//Tel := context.Request.Form.Get("Tel")
-		result.Data = this.Admin.AddAdmin(Name, Password, Domain)
+		result.Data = controller.Admin.AddAdmin(Name, Password, Domain)
 	}
 	return result
 }
-func (this *Controller) articleAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) articleAction(context *gweb.Context) gweb.Result {
 
 	action := context.Request.URL.Query().Get("action")
 	result := &gweb.JsonResult{}
 	switch action {
 	case "listByCategory":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("id"), 10, 64)
-		d := this.Article.FindArticleByContentSubTypeID(ID)
+		d := controller.Article.FindArticleByContentSubTypeID(ID)
 		result.Data = &dao.ActionStatus{Success: true, Message: "SUCCESS", Data: d}
 	case "add":
 		context.Request.ParseForm()
@@ -139,43 +287,43 @@ func (this *Controller) articleAction(context *gweb.Context) gweb.Result {
 		article := &dao.Article{}
 		err := json.Unmarshal([]byte(jsonText), article)
 		tool.CheckError(err)
-		result.Data = this.Article.AddArticle(article)
+		result.Data = controller.Article.AddArticle(article)
 	case "change":
 		context.Request.ParseForm()
 		jsonText := context.Request.Form.Get("json")
 		article := &dao.Article{}
 		err := json.Unmarshal([]byte(jsonText), article)
 		tool.CheckError(err)
-		this.Article.ChangeArticle(article)
+		controller.Article.ChangeArticle(article)
 		result.Data = &dao.ActionStatus{true, "SUCCESS", article}
 	case "one":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("id"), 10, 64)
-		article := this.Article.GetArticle(ID)
+		article := controller.Article.GetArticle(ID)
 		result.Data = &dao.ActionStatus{true, "SUCCESS", article}
 	case "del":
 		context.Request.ParseForm()
 		id, _ := strconv.ParseUint(context.Request.Form.Get("id"), 10, 64)
-		this.Article.DelArticle(id)
+		controller.Article.DelArticle(id)
 		result.Data = &dao.ActionStatus{true, "删除成功", nil}
 	}
 
 	return result
 }
-func (this *Controller) articlePage(context *gweb.Context) gweb.Result {
+func (controller *Controller) articlePage(context *gweb.Context) gweb.Result {
 
 	return &gweb.HTMLResult{}
 }
 
-func (this *Controller) indexPage(context *gweb.Context) gweb.Result {
+func (controller *Controller) indexPage(context *gweb.Context) gweb.Result {
 
 	return &gweb.HTMLResult{}
 }
 
-func (this *Controller) defaultPage(context *gweb.Context) gweb.Result {
+func (controller *Controller) defaultPage(context *gweb.Context) gweb.Result {
 
 	return &gweb.HTMLResult{}
 }
-func (this *Controller) rootPage(context *gweb.Context) gweb.Result {
+func (controller *Controller) rootPage(context *gweb.Context) gweb.Result {
 
 	return &gweb.RedirectToUrlResult{"index"}
 }

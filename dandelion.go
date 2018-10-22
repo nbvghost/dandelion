@@ -1,6 +1,9 @@
 package main
 
 import (
+	"log"
+	"net/http"
+
 	"dandelion/app/action/account"
 	"dandelion/app/action/admin"
 	"dandelion/app/action/images"
@@ -8,14 +11,14 @@ import (
 	"dandelion/app/action/manager"
 	"dandelion/app/action/mp"
 	"dandelion/app/action/payment"
-	"log"
-	"net/http"
 
 	"github.com/nbvghost/gweb/conf"
 	"github.com/nbvghost/gweb/tool"
 )
 
 func main() {
+
+	//service.WxService{}.SendUniformMessage(service.WxService{}.MiniWeb(), service.WxService{}.MiniProgram())
 
 	//sms:=service.SMSService{}
 	//sms.SendAliyunSms(map[string]interface{}{"name":1,"usename":454,"sum":45,"time":45,"ordernum":544,"productname":5454},"SMS_137687089","15959898368","LTAIqUS1pQEIx6Gr","Oekyziw358oTQPVlbrL1IMzlDFV4ce")

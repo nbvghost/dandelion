@@ -2,14 +2,14 @@ package service
 
 import (
 	"bytes"
-	"dandelion/app/service/dao"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"dandelion/app/service/dao"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/nbvghost/gweb/tool"
@@ -63,8 +63,8 @@ func (spider SpiderService) StartSpider() {
 	go spider.WeixinSogou(urls, "八卦精")
 
 	//科技咖=pc_5
-	//urls=[]string{"pc_5/pc_5.html","pc_5/1.html","pc_5/2.html","pc_5/3.html","pc_5/4.html","pc_5/5.html","pc_5/6.html","pc_5/7.html","pc_5/8.html","pc_5/9.html","pc_5/10.html","pc_5/11.html","pc_5/12.html","pc_5/13.html","pc_5/14.html"}
-	//go spider.WeixinSogou(urls,"科技咖")
+	urls = []string{"pc_5/pc_5.html", "pc_5/1.html", "pc_5/2.html", "pc_5/3.html", "pc_5/4.html", "pc_5/5.html", "pc_5/6.html", "pc_5/7.html", "pc_5/8.html", "pc_5/9.html", "pc_5/10.html", "pc_5/11.html", "pc_5/12.html", "pc_5/13.html", "pc_5/14.html"}
+	go spider.WeixinSogou(urls, "科技咖")
 
 	//财经迷=pc_6
 	//urls=[]string{"pc_6/pc_6.html","pc_6/1.html","pc_6/2.html","pc_6/3.html","pc_6/4.html","pc_6/5.html","pc_6/6.html","pc_6/7.html","pc_6/8.html","pc_6/9.html","pc_6/10.html","pc_6/11.html","pc_6/12.html","pc_6/13.html","pc_6/14.html"}
@@ -163,7 +163,7 @@ func (spider SpiderService) WeixinQuerySogou(urls [][]string) {
 			time.Sleep(1 * time.Minute)
 		}
 
-		time.Sleep(30 * time.Minute)
+		time.Sleep(60 * time.Minute)
 	}
 
 }
@@ -409,6 +409,6 @@ func (spider SpiderService) ReadWeiXinArticle(url string) string {
 
 	_html, err := content.Html()
 	tool.CheckError(err)
-	fmt.Println(strings.TrimSpace(_html))
+	//fmt.Println(strings.TrimSpace(_html))
 	return strings.TrimSpace(_html)
 }

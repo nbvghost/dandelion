@@ -29,7 +29,7 @@ type UserController struct {
 }
 
 func (controller *UserController) Apply() {
-
+	controller.AddHandler(gweb.GETMethod("/level/:UserID", controller.levelAction))
 	controller.AddHandler(gweb.GETMethod("/info", controller.userInfoAction))
 	controller.AddHandler(gweb.POSMethod("/update", controller.updateAction))
 	controller.AddHandler(gweb.GETMethod("/info/DaySign", controller.userInfoDaySignAction))
@@ -37,10 +37,29 @@ func (controller *UserController) Apply() {
 	controller.AddHandler(gweb.GETMethod("/info/:UserID", controller.userInfoByUserIDAction))
 	controller.AddHandler(gweb.POSMethod("/info/sharekey", controller.userShareKeyAction))
 
+	controller.AddHandler(gweb.POSMethod("/info/add/formId", controller.addUserFormIdAction))
+
 	controller.AddHandler(gweb.POSMethod("/transfers", controller.transfersAction))
 
 }
+func (controller *UserController) levelAction(context *gweb.Context) gweb.Result {
 
+	UserID, _ := strconv.ParseUint(context.PathParams["UserID"], 10, 64)
+	leve1UserIDs := controller.User.Leve1(UserID)
+
+	users := controller.User.FindUserByIDs(leve1UserIDs)
+
+	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: users}}
+}
+func (controller *UserController) addUserFormIdAction(context *gweb.Context) gweb.Result {
+	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
+
+	context.Request.ParseForm()
+	formId := context.Request.FormValue("formId")
+	controller.User.Add(dao.Orm(), &dao.UserFormIds{UserID: user.ID, FormId: formId})
+
+	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: nil}}
+}
 func (controller *UserController) userShareKeyAction(context *gweb.Context) gweb.Result {
 
 	context.Request.ParseForm()

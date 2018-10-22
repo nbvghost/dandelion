@@ -37,9 +37,13 @@ func (controller *Controller) miniprogramQRcodeAction(context *gweb.Context) gwe
 	//context.Request.ParseForm()
 	//Page := context.Request.FormValue("Page")
 	Page := context.Request.URL.Query().Get("Page")
-	UserID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+	UserID, _ := strconv.ParseUint(context.Request.URL.Query().Get("UserID"), 10, 64)
+	MyShareKey := util.EncodeShareKey(UserID, 0)
 
-	MyShareKey := util.EncodeShareKey(UserID)
+	ProductID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ProductID"), 10, 64)
+	if ProductID != 0 {
+		MyShareKey = util.EncodeShareKey(UserID, ProductID)
+	}
 
 	wxconfig := controller.Wx.MiniProgram()
 
