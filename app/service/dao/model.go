@@ -417,7 +417,7 @@ type OrdersGoods struct {
 	Goods         string `gorm:"column:Goods;type:LONGTEXT"`         //josn
 	Specification string `gorm:"column:Specification;type:LONGTEXT"` //json
 	Favoured      string `gorm:"column:Favoured;type:LONGTEXT"`
-	CollageNo     string `gorm:"column:CollageNo"` //拼团码
+	CollageNo     string `gorm:"column:CollageNo"` //拼团码，每个订单都是唯一
 	//TimeSellID     uint64 `gorm:"column:TimeSellID"`             //限时抢购ID
 	//TimeSell       string `gorm:"column:TimeSell;type:LONGTEXT"` //json
 	Quantity       uint   `gorm:"column:Quantity"`       //数量

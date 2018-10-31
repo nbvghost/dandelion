@@ -5,37 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ea2d37ad-998d-4f4a-8258-013be54c7705" name="Default" comment="我的海报">
-      <change afterPath="$PROJECT_DIR$/app/service/CollageService.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/view/poster/introduce.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/action/account/account.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/account/account.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/action/admin/admin.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/admin/admin.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/action/mp/mp.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/mp/mp.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/action/mp/user/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/mp/user/user.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/ExpressTemplateService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/ExpressTemplateService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/FullCutService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/FullCutService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/GoodsService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/GoodsService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/InitService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/InitService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/OrdersService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/OrdersService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/TimeSellService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/TimeSellService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/TimeTaskService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/TimeTaskService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/TransfersService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/TransfersService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/UserService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/UserService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/WxService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/WxService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/dao/base.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/dao/base.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/dao/dao.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/dao/dao.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/dao/model.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/dao/model.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/util/util.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/util/util.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dandelion" beforeDir="false" afterPath="$PROJECT_DIR$/dandelion" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gweb.json" beforeDir="false" afterPath="$PROJECT_DIR$/gweb.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/admin/js/admin.js" beforeDir="false" afterPath="$PROJECT_DIR$/resources/admin/js/admin.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/poster/images/luckbuy_logo.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/resources/poster/images/luckbuy_logo.jpg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/poster/images/luckbuy_logo.psd" beforeDir="false" afterPath="$PROJECT_DIR$/resources/poster/images/luckbuy_logo.psd" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/view/admin/add_express.html" beforeDir="false" afterPath="$PROJECT_DIR$/view/admin/add_express.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/view/admin/add_timesell.html" beforeDir="false" afterPath="$PROJECT_DIR$/view/admin/add_timesell.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/view/admin/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/view/admin/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/view/admin/pub/header.html" beforeDir="false" afterPath="$PROJECT_DIR$/view/admin/pub/header.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/view/admin/timesell_list.html" beforeDir="false" afterPath="$PROJECT_DIR$/view/admin/timesell_list.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/dao/Model.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/dao/Model.go" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -87,7 +57,7 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="go" value="9318" />
+          <entry key="go" value="9327" />
           <entry key="html" value="2520" />
           <entry key="js" value="529" />
           <entry key="json" value="123" />
@@ -96,7 +66,7 @@
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Go" value="9318" />
+          <entry key="Go" value="9327" />
           <entry key="HTML" value="2520" />
           <entry key="JSON" value="123" />
           <entry key="JavaScript" value="529" />
@@ -152,7 +122,7 @@
         <entry file="file://$PROJECT_DIR$/app/service/dao/Model.go">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="230">
-              <caret line="419" column="56" lean-forward="true" selection-start-line="419" selection-start-column="56" selection-end-line="419" selection-end-column="56" />
+              <caret line="419" column="65" selection-start-line="419" selection-start-column="65" selection-end-line="419" selection-end-column="65" />
             </state>
           </provider>
         </entry>
@@ -1125,7 +1095,7 @@
     <entry file="file://$PROJECT_DIR$/app/service/dao/Model.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="230">
-          <caret line="419" column="56" lean-forward="true" selection-start-line="419" selection-start-column="56" selection-end-line="419" selection-end-column="56" />
+          <caret line="419" column="65" selection-start-line="419" selection-start-column="65" selection-end-line="419" selection-end-column="65" />
         </state>
       </provider>
     </entry>
