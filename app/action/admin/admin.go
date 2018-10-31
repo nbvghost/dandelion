@@ -62,6 +62,7 @@ type Controller struct {
 	CardItem      service.CardItemService
 	Content       service.ContentService
 	Article       service.ArticleService
+	Collage       service.CollageService
 }
 
 func (controller *Controller) Apply() {
@@ -87,11 +88,22 @@ func (controller *Controller) Apply() {
 	controller.AddHandler(gweb.DELMethod("fullcut/:ID", controller.FullCut.DeleteItem))
 
 	controller.AddHandler(gweb.POSMethod("timesell/save", controller.TimeSell.SaveItem))
-	controller.AddHandler(gweb.GETMethod("timesell/:ID", controller.TimeSell.GetItem))
+	controller.AddHandler(gweb.POSMethod("timesell/change", controller.TimeSell.SaveItem))
+	controller.AddHandler(gweb.GETMethod("timesell/:Hash", controller.TimeSell.GetItem))
 	controller.AddHandler(gweb.POSMethod("timesell/datatables/list", controller.TimeSell.DataTablesItem))
-	controller.AddHandler(gweb.GETMethod("timesell/goods/:TimeSellID/list", controller.ListTimeSellGoods))
-	controller.AddHandler(gweb.DELMethod("timesell/goods/:GoodsID", controller.DeleteTimeSellGoods))
+	controller.AddHandler(gweb.GETMethod("timesell/goods/:Hash/list", controller.TimeSell.ListTimeSellGoods))
+	controller.AddHandler(gweb.DELMethod("timesell/goods/:GoodsID", controller.TimeSell.DeleteTimeSellGoods))
 	controller.AddHandler(gweb.DELMethod("timesell/:ID", controller.TimeSell.DeleteItem))
+
+	controller.AddHandler(gweb.POSMethod("collage/save", controller.Collage.SaveItem))
+	controller.AddHandler(gweb.POSMethod("collage/change", controller.Collage.SaveItem))
+	controller.AddHandler(gweb.GETMethod("collage/:Hash", controller.Collage.GetItem))
+	controller.AddHandler(gweb.POSMethod("collage/datatables/list", controller.Collage.DataTablesItem))
+	controller.AddHandler(gweb.GETMethod("collage/goods/:Hash/list", controller.Collage.ListGoods))
+	controller.AddHandler(gweb.DELMethod("collage/goods/:GoodsID", controller.Collage.DeleteGoods))
+	controller.AddHandler(gweb.DELMethod("collage/:ID", controller.Collage.DeleteItem))
+
+	//controller.AddHandler(gweb.POSMethod("timesell/add", controller.TimeSell.AddTimeSellAction))
 
 	controller.AddHandler(gweb.POSMethod("store", controller.Store.AddItem))
 	controller.AddHandler(gweb.GETMethod("store/:ID", controller.Store.GetItem))
@@ -198,6 +210,28 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		var item dao.Goods
 		err := util.JSONToStruct(goods_str, &item)
 		tool.Trace(err)
+
+		var gps []dao.GoodsParams
+		err = util.JSONToStruct(item.Params, &gps)
+		tool.Trace(err)
+
+		item.Params = util.StructToJSON(&gps)
+
+		var videos []string
+		err = util.JSONToStruct(item.Videos, &videos)
+		tool.Trace(err)
+		item.Videos = util.StructToJSON(&videos)
+
+		var pictures []string
+		err = util.JSONToStruct(item.Pictures, &pictures)
+		tool.Trace(err)
+		item.Pictures = util.StructToJSON(&pictures)
+
+		var images []string
+		err = util.JSONToStruct(item.Images, &images)
+		tool.Trace(err)
+		item.Images = util.StructToJSON(&images)
+
 		err = util.JSONToStruct(specifications_str, &specifications)
 		tool.Trace(err)
 
@@ -213,13 +247,50 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		var item dao.Goods
 		err := util.JSONToStruct(goods_str, &item)
 		tool.Trace(err)
+
+		var gps []dao.GoodsParams
+		err = util.JSONToStruct(item.Params, &gps)
+		tool.Trace(err)
+
+		item.Params = util.StructToJSON(&gps)
+
+		var videos []string
+		err = util.JSONToStruct(item.Videos, &videos)
+		tool.Trace(err)
+		item.Videos = util.StructToJSON(&videos)
+
+		var pictures []string
+		err = util.JSONToStruct(item.Pictures, &pictures)
+		tool.Trace(err)
+		item.Pictures = util.StructToJSON(&pictures)
+
+		var images []string
+		err = util.JSONToStruct(item.Images, &images)
+		tool.Trace(err)
+		item.Images = util.StructToJSON(&images)
+
 		err = util.JSONToStruct(specifications_str, &specifications)
 		tool.Trace(err)
 
 		item.OID = company.ID
 		err = controller.Goods.SaveGoods(item, specifications)
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
-
+	case "timesell_goods":
+		dts := &dao.Datatables{}
+		util.RequestBodyToJSON(context.Request.Body, dts)
+		var GoodsIDs []uint64
+		Orm.Model(&dao.TimeSell{}).Pluck("GoodsID", &GoodsIDs)
+		dts.NotIDs = GoodsIDs
+		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.Goods{}, company.ID)
+		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
+	case "collage_goods":
+		dts := &dao.Datatables{}
+		util.RequestBodyToJSON(context.Request.Body, dts)
+		var GoodsIDs []uint64
+		Orm.Model(&dao.Collage{}).Pluck("GoodsID", &GoodsIDs)
+		dts.NotIDs = GoodsIDs
+		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.Goods{}, company.ID)
+		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 	case "list_goods":
 		dts := &dao.Datatables{}
 		util.RequestBodyToJSON(context.Request.Body, dts)
@@ -376,25 +447,7 @@ func (controller *Controller) listOrderAction(context *gweb.Context) gweb.Result
 	list, recordsTotal := controller.Orders.ListOrders(UserID, company.ID, int(PostType), StatusList, dts.Length, dts.Start)
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": dts.Draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsTotal}}
 }
-func (controller *Controller) DeleteTimeSellGoods(context *gweb.Context) gweb.Result {
-	Orm := dao.Orm()
-	ID, _ := strconv.ParseUint(context.PathParams["GoodsID"], 10, 64)
 
-	list := controller.Goods.DeleteTimeSellGoods(Orm, ID)
-
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "删除成功", list)}
-
-}
-func (controller *Controller) ListTimeSellGoods(context *gweb.Context) gweb.Result {
-
-	ID, _ := strconv.ParseUint(context.PathParams["TimeSellID"], 10, 64)
-
-	list := controller.Goods.FindByTimeSellID(ID)
-	//var item dao.ExpressTemplate
-	//err := controller.ExpressTemplate.Get(service.Orm, ID, &item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "", list)}
-	//2002
-}
 func (controller *Controller) getExpressTemplate(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)

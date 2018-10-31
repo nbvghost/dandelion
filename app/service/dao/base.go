@@ -38,8 +38,8 @@ func (b BaseDao) Save(DB *gorm.DB, target interface{}) error {
 	return DB.Save(target).Error
 }
 func (b BaseDao) ChangeModel(DB *gorm.DB, ID uint64, target interface{}) error {
-
-	return DB.Model(target).Where("ID=?", ID).Updates(target).Error
+	err := DB.Model(target).Where("ID=?", ID).Updates(target).Error
+	return err
 }
 func (b BaseDao) ChangeMap(DB *gorm.DB, ID uint64, model interface{}, params map[string]interface{}) error {
 
@@ -112,15 +112,18 @@ type Custom struct {
 	Name  string `json:"Name"`
 	Value string `json:"Value"`
 }
+
 type Datatables struct {
 	//Columns []map[string]interface{} `schema:"columns"`
-	Columns []Columns `json:"columns"`
-	Customs []Custom  `json:"Customs"`
-	Order   []Order   `json:"order"`
-	Start   int       `json:"start"`
-	Length  int       `json:"length"`
-	Search  Search    `json:"search"`
-	Draw    int       `json:"draw"`
+	Columns  []Columns `json:"columns"`
+	Customs  []Custom  `json:"Customs"`
+	Order    []Order   `json:"order"`
+	Start    int       `json:"start"`
+	Length   int       `json:"length"`
+	Search   Search    `json:"search"`
+	Draw     int       `json:"draw"`
+	Groupbys []string
+	NotIDs   []uint64
 }
 
 /*`{"draw":1,"columns":[
@@ -182,6 +185,13 @@ func (b BaseDao) DatatablesListOrder(Orm *gorm.DB, params *Datatables, target in
 			db = db.Where(value.Name + value.Value)
 		}
 
+	}
+	if params.Groupbys != nil && len(params.Groupbys) > 0 {
+		groupbyText := strings.Join(params.Groupbys, ",")
+		db = db.Group(groupbyText)
+	}
+	if params.NotIDs != nil && len(params.NotIDs) > 0 {
+		db = db.Not(params.NotIDs)
 	}
 
 	db.Limit(params.Length).Offset(params.Start).Find(target).Offset(0).Count(&recordsTotal)

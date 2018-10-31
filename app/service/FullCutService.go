@@ -15,24 +15,25 @@ type FullCutService struct {
 	dao.BaseDao
 }
 
-func (service FullCutService) FindOrderByAmountDesc(DB *gorm.DB) []dao.FullCut {
+func (service FullCutService) FindOrderByAmountDesc(DB *gorm.DB, OID uint64) []dao.FullCut {
 	var list []dao.FullCut
-	DB.Model(&dao.FullCut{}).Order("Amount desc").Find(&list)
+	DB.Model(&dao.FullCut{}).Where("OID=?", OID).Order("Amount desc").Find(&list)
 	return list
 }
-func (service FullCutService) FindOrderByAmountASC(DB *gorm.DB) []dao.FullCut {
+func (service FullCutService) FindOrderByAmountASC(DB *gorm.DB, OID uint64) []dao.FullCut {
 	var list []dao.FullCut
-	DB.Model(&dao.FullCut{}).Order("Amount asc").Find(&list)
+	DB.Model(&dao.FullCut{}).Where("OID=?", OID).Order("Amount asc").Find(&list)
 	return list
 }
 func (service FullCutService) SaveItem(context *gweb.Context) gweb.Result {
+	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	Orm := dao.Orm()
 	item := &dao.FullCut{}
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
 	}
-
+	item.OID = company.ID
 	if Orm.NewRecord(item) {
 		err = service.Add(Orm, item)
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}

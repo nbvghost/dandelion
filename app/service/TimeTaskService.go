@@ -49,7 +49,7 @@ func (self TimeTaskService) QueryOrdersTask() {
 		if value.IsPay == 0 {
 
 			//当前状态为没有支付，去检测一下，订单状态。
-			su, result := self.Wx.OrderQuery(value.OrderNo, value.OID)
+			su, result := self.Wx.OrderQuery(value.OrderNo)
 			if su {
 				TotalFee, _ := strconv.ParseUint(result["total_fee"], 10, 64)
 				//OrderNo := result["out_trade_no"]
@@ -68,7 +68,7 @@ func (self TimeTaskService) QuerySupplyOrdersTask() {
 	self.Orders.FindWhere(Orm, &supplyOrdersList, "IsPay=?", 0)
 	for _, value := range supplyOrdersList {
 
-		su, result := self.Wx.OrderQuery(value.OrderNo, value.OID)
+		su, result := self.Wx.OrderQuery(value.OrderNo)
 		if su {
 
 			TotalFee, _ := strconv.ParseUint(result["total_fee"], 10, 64)

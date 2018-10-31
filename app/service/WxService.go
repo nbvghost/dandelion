@@ -209,15 +209,9 @@ func (entity WxService) MiniProgramInfo(Code, AppID, AppSecret string) (err erro
 }
 
 //新用户加入，绑定上下级关系
-func (entity WxService) NewUserJoinNotify(NewUser dao.User) *dao.ActionStatus {
-	if NewUser.SuperiorID == 0 {
-		return &dao.ActionStatus{Success: false, Message: "用户不存在", Data: nil}
-	}
+func (entity WxService) NewUserJoinNotify(NewUser dao.User, notifyUser dao.User) *dao.ActionStatus {
 
 	userService := UserService{}
-
-	var notifyUser dao.User
-	userService.Get(dao.Orm(), NewUser.SuperiorID, &notifyUser)
 
 	var as *dao.ActionStatus
 
@@ -225,7 +219,6 @@ func (entity WxService) NewUserJoinNotify(NewUser dao.User) *dao.ActionStatus {
 	if userFormID.ID == 0 {
 		as.Success = false
 		as.Message = "没有找到，用户的formid"
-
 	} else {
 
 		for {
@@ -276,7 +269,7 @@ func (entity WxService) NewUserJoinNotify(NewUser dao.User) *dao.ActionStatus {
 	return as
 }
 
-//确认收货
+//发货通知
 func (entity WxService) OrderDeliveryNotify(Order dao.Orders) *dao.ActionStatus {
 
 	if Order.ID == 0 {
@@ -308,8 +301,8 @@ func (entity WxService) OrderDeliveryNotify(Order dao.Orders) *dao.ActionStatus 
 		json.Unmarshal([]byte(value.Goods), &goods)
 		Titles += goods.Title
 	}
-	if len(Titles) > 12 {
-		Titles = Titles[:12] + "等"
+	if len(Titles) > 48 {
+		Titles = Titles[:48] + "等"
 	}
 
 	data_data["keyword3"] = map[string]interface{}{"value": Titles, "color": "#173177"}
@@ -336,7 +329,7 @@ func (entity WxService) INComeNotify(slUser dao.User, itemName string, timeText 
 	//var notifyUser dao.User
 	//entity.User.Get(dao.Orm(), slUser.SuperiorID, &notifyUser)
 
-	var as *dao.ActionStatus
+	var as = &dao.ActionStatus{Success: false}
 
 	userFormID := userService.ListFromIDs(slUser.ID)
 	if userFormID.ID == 0 {
@@ -428,8 +421,8 @@ func (entity WxService) NewOrderNotify(Order dao.Orders) *dao.ActionStatus {
 		json.Unmarshal([]byte(value.Goods), &goods)
 		Titles += goods.Title
 	}
-	if len(Titles) > 12 {
-		Titles = Titles[:12] + "等"
+	if len(Titles) > 48 {
+		Titles = Titles[:48] + "等"
 	}
 	data_data["keyword7"] = map[string]interface{}{"value": Titles, "color": "#173177"}
 	data_data["keyword8"] = map[string]interface{}{"value": "如有疑问，请联系客服", "color": "#173177"}
@@ -719,7 +712,7 @@ func (entity WxService) MiniWeb() dao.WxConfig {
 }
 
 //订单查询
-func (entity WxService) OrderQuery(OrderNo string, OID uint64) (Success bool, Result util.Map) {
+func (entity WxService) OrderQuery(OrderNo string) (Success bool, Result util.Map) {
 	var inData = make(util.Map)
 	WxConfig := entity.MiniProgram()
 

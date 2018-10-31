@@ -7,6 +7,7 @@
   "DefaultPage": "index",
   "JsonDataPath": "data.json",
   "HttpPort": ":80",
+  "Debug":false,
   "HttpsPort": ":443",
   "Domain":"nrp.nutsy.cc",
   "ViewSuffix": ".html",

@@ -7,7 +7,15 @@ import (
 	"github.com/nbvghost/gweb/tool"
 )
 
+//var GlobalGoodsService = GoodsService{}
+var GlobalService GlobalServiceStruct
+
+type GlobalServiceStruct struct {
+	Goods GoodsService
+}
+
 func init() {
+
 	//var err error
 	//_db, err := sql.Open("mysql", "tcp:localhost:3306*dandelion/root/123456")
 	//_db, err := sql.Open("mysql", "root:123456@tcp(localhost:3306)/dandelion?charset=utf8mb4&parseTime=True")
@@ -228,10 +236,27 @@ func init() {
 	}
 	_database.AutoMigrate(Manager)
 
+	Collage := &dao.Collage{}
+	if _database.HasTable(Collage) == false {
+		_database.Set("gorm:table_options", "AUTO_INCREMENT=2000").CreateTable(Collage)
+	}
+	_database.AutoMigrate(Collage)
+
 	/*WxConfig := &dao.WxConfig{}
 	if _database.HasTable(WxConfig) == false {
 		_database.Set("gorm:table_options", "AUTO_INCREMENT=2000").CreateTable(WxConfig)
 	}*/
+
+	/*tx := _database.Begin()
+	for i := 0; i < 700000; i++ {
+		user := dao.User{}
+		user.Tel = "98321748327492"
+		user.Name = tool.CipherEncrypterData("dsfsdfsafsd")
+		user.OpenID = tool.CipherEncrypterData("ZxcXZc")
+		user.Portrait = tool.CipherEncrypterData("Zxc324324XZc")
+		tx.Create(&user)
+	}
+	tx.Commit()*/
 
 	Article := &dao.Article{}
 	if _database.HasTable(Article) == false {

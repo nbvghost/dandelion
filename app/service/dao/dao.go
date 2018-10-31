@@ -1,8 +1,9 @@
 package dao
 
 import (
-	"dandelion/app/play"
 	"time"
+
+	"dandelion/app/play"
 
 	_ "github.com/go-sql-driver/mysql"
 	//"github.com/go-gorp/gorp"
@@ -20,6 +21,13 @@ func Orm() *gorm.DB {
 	//return _database.New()
 	return _database
 }
+
+type Profiling struct {
+	Query_ID int     `gorm:"column:Query_ID"`
+	Duration float64 `gorm:"column:Duration"`
+	Query    string  `gorm:"column:Query"`
+}
+
 func init() {
 	var err error
 	//open:=make(chan bool,1)
@@ -33,6 +41,19 @@ func init() {
 	_database.Exec("SET GLOBAL GROUP_CONCAT_MAX_LEN=1844674407370954752")
 	_database.Exec("SET SESSION GROUP_CONCAT_MAX_LEN=1844674407370954752")
 	_database.Exec("SET GLOBAL max_allowed_packet=1844674407370954752")
+	err = _database.Exec("set profiling = 1").Error
+	tool.CheckError(err)
+	go func() {
+
+		/*for {
+			// Show PROFILES;
+			var profilings []Profiling
+			_database.Raw("Show PROFILES").Scan(&profilings)
+			fmt.Println(profilings[len(profilings)-1])
+			time.Sleep(3 * time.Second)
+		}*/
+
+	}()
 
 }
 

@@ -25,7 +25,11 @@ func (service TransfersService) UserTransfers(UserID uint64, ReUserName, IP stri
 	}
 	if user.Amount <= 0 {
 		Orm.Rollback()
-		return errors.New("金额不足，无法提现")
+		return errors.New("余额不足，无法提现")
+	}
+	if user.Amount < 1000 {
+		Orm.Rollback()
+		return errors.New("余额不足10元，暂时没法提现，请继续加油")
 	}
 
 	transfers := dao.Transfers{}

@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -205,7 +204,7 @@ func EncodeShareKey(UserID, ProductID uint64) string {
 
 		}
 	}
-	fmt.Println(hashData)
+	//fmt.Println(hashData)
 
 	//base32.NewEncoding("")
 	return hashData

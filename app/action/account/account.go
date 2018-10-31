@@ -86,43 +86,48 @@ func (controller *Controller) miniProgramLoginAction(context *gweb.Context) gweb
 	//fmt.Println(err, OpenID, SessionKey)
 
 	if err == nil {
-		user := controller.User.AddUserByOpenID(OpenID)
-		user.OpenID = OpenID
-		user.Name = userInfo["nickName"].(string)
-		user.Portrait = userInfo["avatarUrl"].(string)
+		tx := dao.Orm().Begin()
+		newUser := controller.User.AddUserByOpenID(tx, OpenID)
+		newUser.OpenID = OpenID
+		newUser.Name = userInfo["nickName"].(string)
+		newUser.Portrait = userInfo["avatarUrl"].(string)
 		gender, _ := strconv.ParseInt(strconv.FormatFloat(userInfo["gender"].(float64), 'f', 0, 64), 10, 64)
 
-		user.Gender = int(gender)
-		//user.OID = company.ID
-		user.LastLoginAt = time.Now()
+		newUser.Gender = int(gender)
+		//newUser.OID = company.ID
+		newUser.LastLoginAt = time.Now()
 
-		if user.SuperiorID == 0 {
+		if newUser.SuperiorID == 0 {
 			if !strings.EqualFold(loginInfo.ShareKey, "") {
 				SuperiorID, _ := util.DecodeShareKey(loginInfo.ShareKey)
 
-				if user.ID != uint64(SuperiorID) {
+				if newUser.ID != uint64(SuperiorID) {
 
 					//如果往上6级有包含新用户的ID，则不能绑定级别关系
-					if !strings.Contains(controller.User.LeveAll6(SuperiorID), strconv.Itoa(int(user.ID))) {
-						var hasUser dao.User
-						controller.User.Get(dao.Orm(), SuperiorID, &hasUser)
-						if hasUser.ID != 0 {
-							user.SuperiorID = uint64(SuperiorID)
+					if !strings.Contains(controller.User.LeveAll6(tx, SuperiorID), strconv.Itoa(int(newUser.ID))) {
+						var superiorUser dao.User
+						controller.User.Get(tx, SuperiorID, &superiorUser)
+						if superiorUser.ID != 0 {
+							newUser.SuperiorID = uint64(SuperiorID)
 
 							if InviteUser, have := context.Data["InviteUser"]; have {
-								err := controller.Journal.AddScoreJournal(dao.Orm(),
-									hasUser.ID,
+								err := controller.Journal.AddScoreJournal(tx,
+									superiorUser.ID,
 									"邀请新朋友获取积分", "邀请新朋友获取积分",
 									play.ScoreJournal_Type_InviteUser, int64(InviteUser.(float64)), dao.KV{Key: "SuperiorID", Value: SuperiorID})
 								tool.CheckError(err)
 
-								err = controller.Journal.AddUserJournal(dao.Orm(),
-									hasUser.ID,
+								err = controller.Journal.AddUserJournal(tx,
+									superiorUser.ID,
 									"邀请新朋友获得现金", "邀请新朋友获得现金",
-									play.UserJournal_Type_USER_LEVE, int64(30), dao.KV{Key: "UserID", Value: user.ID}, user.ID)
+									play.UserJournal_Type_USER_LEVE, int64(30), dao.KV{Key: "UserID", Value: newUser.ID}, newUser.ID)
 								tool.CheckError(err)
 
-								controller.Wx.INComeNotify(hasUser, "邀请新朋友获得现金", "0小时", "收入：0.3元")
+								go func(superiorUser dao.User, newUser dao.User) {
+									controller.Wx.NewUserJoinNotify(newUser, superiorUser)
+									time.Sleep(3 * time.Second)
+									controller.Wx.INComeNotify(superiorUser, "邀请新朋友获得现金", "0小时", "收入：0.3元")
+								}(superiorUser, *newUser)
 							}
 						}
 					}
@@ -131,8 +136,10 @@ func (controller *Controller) miniProgramLoginAction(context *gweb.Context) gweb
 			}
 		}
 
-		controller.User.ChangeModel(dao.Orm(), user.ID, user)
-		context.Session.Attributes.Put(play.SessionUser, user)
+		controller.User.ChangeModel(tx, newUser.ID, newUser)
+		tx.Commit()
+
+		context.Session.Attributes.Put(play.SessionUser, newUser)
 		context.Session.Attributes.Put(play.SessionOpenID, OpenID)
 		context.Session.Attributes.Put(play.SessionMiniProgramKey, SessionKey)
 		//context.Session.Attributes.Put(play.SessionOrganization, company)
@@ -140,8 +147,8 @@ func (controller *Controller) miniProgramLoginAction(context *gweb.Context) gweb
 		//tool.CipherDecrypterData()
 
 		results := make(map[string]interface{})
-		results["User"] = user
-		results["MyShareKey"] = util.EncodeShareKey(user.ID, 0) //tool.Hashids{}.Encode(user.ID)
+		results["User"] = newUser
+		results["MyShareKey"] = util.EncodeShareKey(newUser.ID, 0) //tool.Hashids{}.Encode(newUser.ID)
 
 		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "登陆成功", Data: results}}
 	} else {

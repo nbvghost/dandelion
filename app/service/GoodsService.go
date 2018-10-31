@@ -11,9 +11,14 @@ import (
 	"github.com/nbvghost/gweb/tool"
 )
 
+type TimeSell = TimeSellService
+type Collage = CollageService
+
 type GoodsService struct {
 	dao.BaseDao
 	OrdersGoods OrdersGoodsService
+	TimeSell    TimeSell
+	Collage     Collage
 }
 
 func (service GoodsService) GetSpecification(ID uint64, target *dao.Specification) error {
@@ -39,9 +44,11 @@ func (service GoodsService) OrdersStockManager(orders dao.Orders, isMinus bool) 
 		list, _ := service.OrdersGoods.FindByOrdersID(Orm, orders.ID)
 		for _, value := range list {
 			var specification dao.Specification
-			service.Get(Orm, value.SpecificationID, &specification)
+			//service.Get(Orm, value.SpecificationID, &specification)
+			util.JSONToStruct(value.Specification, &specification)
 			var goods dao.Goods
-			service.Get(Orm, value.GoodsID, &goods)
+			//service.Get(Orm, value.GoodsID, &goods)
+			util.JSONToStruct(value.Goods, &goods)
 
 			if isMinus {
 				//减
@@ -49,13 +56,13 @@ func (service GoodsService) OrdersStockManager(orders dao.Orders, isMinus bool) 
 				if Stock < 0 {
 					Stock = 0
 				}
-				err := service.ChangeMap(Orm, value.SpecificationID, &dao.Specification{}, map[string]interface{}{"Stock": uint(Stock)})
+				err := service.ChangeMap(Orm, specification.ID, &dao.Specification{}, map[string]interface{}{"Stock": uint(Stock)})
 				tool.CheckError(err)
 				Stock = int64(goods.Stock - value.Quantity)
 				if Stock < 0 {
 					Stock = 0
 				}
-				err = service.ChangeMap(Orm, value.GoodsID, &dao.Goods{}, map[string]interface{}{"Stock": uint(Stock)})
+				err = service.ChangeMap(Orm, goods.ID, &dao.Goods{}, map[string]interface{}{"Stock": uint(Stock)})
 				tool.CheckError(err)
 			} else {
 				//添加
@@ -63,13 +70,13 @@ func (service GoodsService) OrdersStockManager(orders dao.Orders, isMinus bool) 
 				if Stock < 0 {
 					Stock = 0
 				}
-				err := service.ChangeMap(Orm, value.SpecificationID, &dao.Specification{}, map[string]interface{}{"Stock": uint(Stock)})
+				err := service.ChangeMap(Orm, specification.ID, &dao.Specification{}, map[string]interface{}{"Stock": uint(Stock)})
 				tool.CheckError(err)
 				Stock = int64(goods.Stock + value.Quantity)
 				if Stock < 0 {
 					Stock = 0
 				}
-				err = service.ChangeMap(Orm, value.GoodsID, &dao.Goods{}, map[string]interface{}{"Stock": uint(Stock)})
+				err = service.ChangeMap(Orm, goods.ID, &dao.Goods{}, map[string]interface{}{"Stock": uint(Stock)})
 				tool.CheckError(err)
 			}
 
@@ -167,7 +174,7 @@ func (service GoodsService) SaveGoods(goods dao.Goods, specifications []dao.Spec
 	return err
 }
 func (service GoodsService) GetGoodsInfo(goods dao.Goods) dao.GoodsInfo {
-	Orm := dao.Orm()
+	//Orm := dao.Orm()
 
 	//user := dao.User{}
 	//service.User.Get(Orm, UserID, &user)
@@ -175,15 +182,20 @@ func (service GoodsService) GetGoodsInfo(goods dao.Goods) dao.GoodsInfo {
 	//brokerageProvisoConfV, _ := strconv.ParseUint(brokerageProvisoConf.V, 10, 64)
 	//vipdiscountConf := service.Configuration.GetConfiguration(play.ConfigurationKey_VIPDiscount)
 	//VIPDiscount, _ := strconv.ParseUint(vipdiscountConf.V, 10, 64)
-	timeSell := dao.TimeSell{}
-	TimeSellService{}.Get(Orm, goods.TimeSellID, &timeSell)
+	timeSell := service.TimeSell.GetTimeSellByGoodsID(goods.ID)
 	goodsInfo := dao.GoodsInfo{}
 	goodsInfo.Goods = goods
-	goodsInfo.Favoureds = make([]dao.Favoured, 0)
+	goodsInfo.Favoured = dao.Favoured{}
 
 	if timeSell.IsEnable() {
 		//Favoured:=uint64(util.Rounding45(float64(goods.Price)*(float64(timeSell.Discount)/float64(100)), 2))
-		goodsInfo.Favoureds = append(goodsInfo.Favoureds, dao.Favoured{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint64(timeSell.Discount)})
+		goodsInfo.Favoured = dao.Favoured{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint64(timeSell.Discount)}
+	} else {
+		collage := service.Collage.GetCollageByGoodsID(goods.ID)
+		if collage.ID != 0 && collage.TotalNum > 0 {
+			goodsInfo.Favoured = dao.Favoured{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)}
+		}
+
 	}
 	return goodsInfo
 }
@@ -291,14 +303,48 @@ func (service GoodsService) DeleteGoodsTypeChild(GoodsTypeChildID uint64) *dao.A
 	return (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)
 }
 func (service GoodsService) DeleteTimeSellGoods(DB *gorm.DB, GoodsID uint64) error {
-	err := service.ChangeMap(DB, GoodsID, &dao.Goods{}, map[string]interface{}{"TimeSellID": 0})
+	timesell := service.TimeSell.GetTimeSellByGoodsID(GoodsID)
+	err := service.Delete(DB, &dao.TimeSell{}, timesell.ID)
 	tool.CheckError(err)
 	return err
 }
-func (service GoodsService) FindByTimeSellID(TimeSellID uint64) []dao.Goods {
+func (service GoodsService) DeleteCollageGoods(DB *gorm.DB, GoodsID uint64) error {
+	timesell := service.Collage.GetCollageByGoodsID(GoodsID)
+	err := service.Delete(DB, &dao.Collage{}, timesell.ID)
+	tool.CheckError(err)
+	return err
+}
+func (service GoodsService) FindGoodsByTimeSellID(TimeSellID uint64) []dao.Goods {
 	Orm := dao.Orm()
+
+	var timesell dao.TimeSell
+	err := service.Get(Orm, TimeSellID, &timesell)
+	tool.CheckError(err)
+
 	var list []dao.Goods
-	err := service.FindWhere(Orm, &list, &dao.Goods{TimeSellID: TimeSellID})
+	err = service.FindWhere(Orm, &list, "ID=?", timesell.GoodsID)
+	tool.CheckError(err)
+	return list
+}
+func (service GoodsService) FindGoodsByTimeSellHash(Hash string) []dao.Goods {
+	Orm := dao.Orm()
+
+	var GoodsIDs []uint64
+	Orm.Model(&dao.TimeSell{}).Where("Hash=?", Hash).Pluck("GoodsID", &GoodsIDs)
+
+	var list []dao.Goods
+	err := service.FindWhere(Orm, &list, "ID in (?)", GoodsIDs)
+	tool.CheckError(err)
+	return list
+}
+func (service GoodsService) FindGoodsByCollageHash(Hash string) []dao.Goods {
+	Orm := dao.Orm()
+
+	var GoodsIDs []uint64
+	Orm.Model(&dao.Collage{}).Where("Hash=?", Hash).Pluck("GoodsID", &GoodsIDs)
+
+	var list []dao.Goods
+	err := service.FindWhere(Orm, &list, "ID in (?)", GoodsIDs)
 	tool.CheckError(err)
 	return list
 }
@@ -317,19 +363,23 @@ func (service GoodsService) AllList() []dao.Goods {
 
 }
 func (service GoodsService) GetGoodsInfoList(UserID uint64, goodsList []dao.Goods) []dao.GoodsInfo {
-	Orm := dao.Orm()
 
 	var results = make([]dao.GoodsInfo, 0)
 
 	for _, value := range goodsList {
-		timeSell := dao.TimeSell{}
-		TimeSellService{}.Get(Orm, value.TimeSellID, &timeSell)
+		timeSell := service.TimeSell.GetTimeSellByGoodsID(value.ID)
 		goodsInfo := dao.GoodsInfo{}
 		goodsInfo.Goods = value
-		goodsInfo.Favoureds = make([]dao.Favoured, 0)
+		goodsInfo.Favoured = dao.Favoured{}
 		if timeSell.IsEnable() {
 			//Favoured:=uint64(util.Rounding45(float64(value.Price)*(float64(timeSell.Discount)/float64(100)), 2))
-			goodsInfo.Favoureds = append(goodsInfo.Favoureds, dao.Favoured{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint64(timeSell.Discount)})
+			goodsInfo.Favoured = dao.Favoured{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint64(timeSell.Discount)}
+		} else {
+			collage := service.Collage.GetCollageByGoodsID(value.ID)
+			if collage.ID != 0 && collage.TotalNum > 0 {
+				goodsInfo.Favoured = dao.Favoured{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)}
+			}
+
 		}
 		results = append(results, goodsInfo)
 	}

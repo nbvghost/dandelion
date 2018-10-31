@@ -4,8 +4,6 @@ import (
 	"dandelion/app/play"
 	"dandelion/app/service/dao"
 
-	"github.com/jinzhu/gorm"
-
 	"dandelion/app/util"
 
 	"errors"
@@ -19,6 +17,7 @@ import (
 
 	"math"
 
+	"github.com/jinzhu/gorm"
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/tool"
 )
@@ -28,6 +27,7 @@ type OrdersService struct {
 	Goods           GoodsService
 	ShoppingCart    ShoppingCartService
 	TimeSell        TimeSellService
+	Collage         CollageService
 	ExpressTemplate ExpressTemplateService
 	FullCut         FullCutService
 	OrdersGoods     OrdersGoodsService
@@ -270,16 +270,17 @@ func (service OrdersService) TakeDeliver(OrdersID uint64) (error, string) {
 		} else {
 
 			tx.Commit()
-			go func() {
+			go func(ogs []dao.OrdersGoods) {
 				for _, value := range ogs {
 					var _goods dao.Goods
-					service.Goods.Get(Orm, value.GoodsID, &_goods)
+					//service.Goods.Get(dao.Orm(), value.GoodsID, &_goods)
+					util.JSONToStruct(value.Goods, &_goods)
 					if _goods.ID != 0 {
-						service.Goods.ChangeModel(Orm, _goods.ID, &dao.Goods{CountSale: _goods.CountSale + uint64(value.Quantity)})
+						service.Goods.ChangeModel(dao.Orm(), _goods.ID, &dao.Goods{CountSale: _goods.CountSale + uint64(value.Quantity)})
 					}
 				}
 
-			}()
+			}(ogs)
 			return nil, "确认收货成功"
 		}
 
@@ -316,6 +317,15 @@ func (service OrdersService) AnalysisOrdersStatus(OrdersID uint64) {
 			service.TakeDeliver(OrdersID)
 		}
 
+	} else if strings.EqualFold(orders.Status, play.OS_Cancel) {
+		if time.Now().Unix() >= orders.UpdatedAt.Add(5*time.Hour*24).Unix() {
+			//订单已经支付，用户申请了取消订单，超过5天，自动取消
+			err, _ := service.CancelOk(OrdersID, 0)
+			if err != nil {
+				service.CancelOk(OrdersID, 1)
+			}
+		}
+
 	}
 
 }
@@ -332,12 +342,14 @@ func (service OrdersService) CancelOk(OrdersID, Type uint64) (error, string) {
 	if strings.EqualFold(orders.Status, play.OS_Cancel) {
 		if orders.IsPay == 1 {
 
+			//邮寄
 			if orders.PostType == 1 {
 				Success, Message := service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", Type)
 				if Success {
 					err := service.ChangeMap(Orm, orders.ID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_CancelOk})
 					//管理商品库存
 					service.Goods.OrdersStockManager(orders, false)
+					service.User.MinusSettlementUserBrokerage(Orm, orders)
 					return err, Message
 				} else {
 					return errors.New(Message), ""
@@ -390,28 +402,38 @@ func (service OrdersService) Cancel(OrdersID uint64) (error, string) {
 			err := service.ChangeMap(Orm, OrdersID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_Cancel})
 			return err, "申请取消，等待客服确认"
 		} else {
-			Success, Message1 := service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", 0)
+			Success, _ := service.Wx.OrderQuery(orders.OrderNo)
 			if Success {
-
-				//管理商品库存
-				service.Goods.OrdersStockManager(orders, false)
-				err := service.ChangeMap(Orm, OrdersID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_CancelOk})
-				return err, "取消成功"
-
+				//如果查询订单已经支付，由客服确认
+				err := service.ChangeMap(Orm, OrdersID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_Cancel})
+				return err, "申请取消，等待客服确认"
 			} else {
+				//没支付的订单
+				Success, Message1 := service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", 0)
+				if Success == false {
+					Success, Message1 = service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", 1)
+				}
 
-				//管理商品库存
-				service.Goods.OrdersStockManager(orders, false)
-				err := service.ChangeMap(Orm, OrdersID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_CancelOk})
-				return err, Message1 + "，取消成功"
-
-				//return errors.New(Message1), ""
-				/*Success, Message2 := service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", 1)
 				if Success {
-
+					//管理商品库存
+					service.Goods.OrdersStockManager(orders, false)
+					err := service.ChangeMap(Orm, OrdersID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_CancelOk})
+					return err, "取消成功"
 				} else {
 
-				}*/
+					//管理商品库存
+					service.Goods.OrdersStockManager(orders, false)
+					err := service.ChangeMap(Orm, OrdersID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_CancelOk})
+					return err, Message1 + "，取消成功"
+
+					//return errors.New(Message1), ""
+					/*Success, Message2 := service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", 1)
+					if Success {
+
+					} else {
+
+					}*/
+				}
 			}
 
 		}
@@ -427,26 +449,35 @@ func (service OrdersService) Cancel(OrdersID uint64) (error, string) {
 
 //发货
 func (service OrdersService) Deliver(ShipName, ShipNo string, OrdersID uint64) error {
-	Orm := dao.Orm()
+	Orm := dao.Orm().Begin()
 
 	var orders dao.Orders
 	service.Get(Orm, OrdersID, &orders)
 	if orders.ID == 0 {
-
+		Orm.Rollback()
 		return errors.New("订单不存在")
 	}
 	if orders.IsPay != 1 {
+		Orm.Rollback()
 		return errors.New("订单没有支付")
 	}
 
-	err := service.ChangeMap(Orm, OrdersID, &dao.Orders{}, map[string]interface{}{"ShipName": ShipName, "ShipNo": ShipNo, "DeliverTime": time.Now(), "Status": play.OS_Deliver})
+	err := service.ChangeModel(Orm, OrdersID, &dao.Orders{ShipName: ShipName, ShipNo: ShipNo, DeliverTime: time.Now(), Status: play.OS_Deliver})
 	if err != nil {
+		Orm.Rollback()
 		return err
 	}
+	orders.ShipName = ShipName
+	orders.ShipNo = ShipNo
+	orders.DeliverTime = time.Now()
+	orders.Status = play.OS_Deliver
+
 	as := service.Wx.OrderDeliveryNotify(orders)
 	if as.Success == false {
+
 		err = errors.New(as.Message)
 	}
+	Orm.Commit()
 	return err
 }
 func (service OrdersService) GetOrdersPackageByOrderNo(OrderNo string) dao.OrdersPackage {
@@ -560,7 +591,7 @@ func (service OrdersService) ListOrders(UserID, OID uint64, PostType int, Status
 //func (service OrdersService) OrderNotify(result util.Map) (Success bool, Message string) {
 func (service OrdersService) OrderNotify(total_fee uint64, out_trade_no, pay_time, attach string) (Success bool, Message string) {
 
-	Orm := dao.Orm()
+	//Orm := dao.Orm()
 
 	//TotalFee, _ := strconv.ParseUint(result["total_fee"], 10, 64)
 	//OrderNo := result["out_trade_no"]
@@ -571,7 +602,7 @@ func (service OrdersService) OrderNotify(total_fee uint64, out_trade_no, pay_tim
 		//充值的，目前只涉及到门店自主核销的时候，才需要用到充值
 		orders := service.GetSupplyOrdersByOrderNo(out_trade_no)
 		if orders.IsPay == 0 {
-			tx := Orm.Begin()
+			tx := dao.Orm().Begin()
 			t, _ := time.ParseInLocation("20060102150405", pay_time, time.Local)
 			err := service.ChangeModel(tx, orders.ID, &dao.SupplyOrders{PayTime: t, IsPay: 1, PayMoney: total_fee})
 			if err != nil {
@@ -599,13 +630,15 @@ func (service OrdersService) OrderNotify(total_fee uint64, out_trade_no, pay_tim
 		}
 
 	} else if strings.EqualFold(attach, play.OrdersType_GoodsPackage) { //合并商品订单
+		tx := dao.Orm().Begin()
 		ordersPackage := service.GetOrdersPackageByOrderNo(out_trade_no)
 		if ordersPackage.TotalPayMoney == total_fee {
 			//var OrderNoList []string
 			//util.JSONToStruct(ordersPackage.OrderList, &OrderNoList)
 
-			err := service.ChangeModel(Orm, ordersPackage.ID, &dao.OrdersPackage{IsPay: 1})
+			err := service.ChangeModel(tx, ordersPackage.ID, &dao.OrdersPackage{IsPay: 1})
 			if err != nil {
+				tx.Rollback()
 				return false, err.Error()
 			}
 
@@ -613,22 +646,33 @@ func (service OrdersService) OrderNotify(total_fee uint64, out_trade_no, pay_tim
 
 			for index, _ := range OrderList {
 				//orders := service.GetOrdersByOrderNo(value)
-				df, msg := service.ProcessingOrders(Orm, OrderList[index], pay_time)
+				df, msg := service.ProcessingOrders(tx, OrderList[index], pay_time)
 				if df == false {
+					tx.Rollback()
 					return df, msg
 				}
 			}
+			tx.Commit()
 			return true, "已经支付成功"
 		} else {
+			tx.Commit()
 			return false, "金额不正确或订单不允许"
 		}
 
 	} else if strings.EqualFold(attach, play.OrdersType_Goods) { //商品订单
 		//orders.PayMoney == total_fee.
+		tx := dao.Orm().Begin()
 		orders := service.GetOrdersByOrderNo(out_trade_no)
 		if orders.PayMoney == total_fee {
-			return service.ProcessingOrders(Orm, orders, pay_time)
+			su, msg := service.ProcessingOrders(tx, orders, pay_time)
+			if su == false {
+				tx.Rollback()
+				return su, msg
+			}
+			tx.Commit()
+			return su, msg
 		} else {
+			tx.Commit()
 			return false, "金额不正确或订单不允许"
 		}
 
@@ -638,25 +682,25 @@ func (service OrdersService) OrderNotify(total_fee uint64, out_trade_no, pay_tim
 
 }
 
-func (service OrdersService) ProcessingOrders(Orm *gorm.DB, orders dao.Orders, pay_time string) (Success bool, Message string) {
+func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders dao.Orders, pay_time string) (Success bool, Message string) {
 
 	//orders := service.GetOrdersByOrderNo(out_trade_no)
 	if orders.IsPay == 0 {
 		if strings.EqualFold(orders.Status, play.OS_Order) {
-			tx := Orm.Begin()
+
 			t, _ := time.ParseInLocation("20060102150405", pay_time, time.Local)
-			var TotalBrokerage uint64
+			//var TotalBrokerage uint64
 			var err error
 			if orders.PostType == 1 {
 				//邮寄
 				err = service.ChangeModel(tx, orders.ID, &dao.Orders{PayTime: t, IsPay: 1, Status: play.OS_Pay})
 				if err != nil {
-					tx.Rollback()
+
 					return false, err.Error()
 				}
-				ogs, err := service.OrdersGoods.FindByOrdersID(tx, orders.ID)
+				/*ogs, err := service.OrdersGoods.FindByOrdersID(tx, orders.ID)
 				if err != nil {
-					tx.Rollback()
+
 					return false, err.Error()
 				}
 
@@ -664,19 +708,19 @@ func (service OrdersService) ProcessingOrders(Orm *gorm.DB, orders dao.Orders, p
 					//var specification dao.Specification
 					//util.JSONToStruct(value.Specification, &specification)
 					TotalBrokerage = TotalBrokerage + value.TotalBrokerage
-				}
+				}*/
 
 			} else {
 				//线下使用
 				err = service.ChangeModel(tx, orders.ID, &dao.Orders{PayTime: t, IsPay: 1, Status: play.OS_Pay})
 				if err != nil {
-					tx.Rollback()
+
 					return false, err.Error()
 				}
 
-				ogs, err := service.OrdersGoods.FindByOrdersID(tx, orders.ID)
+				/*ogs, err := service.OrdersGoods.FindByOrdersID(tx, orders.ID)
 				if err != nil {
-					tx.Rollback()
+
 					return false, err.Error()
 				}
 
@@ -688,25 +732,22 @@ func (service OrdersService) ProcessingOrders(Orm *gorm.DB, orders dao.Orders, p
 
 				err = service.CardItem.AddOrdersGoodsCardItem(tx, orders, ogs)
 				if err != nil {
-					tx.Rollback()
+
 					return false, err.Error()
-				}
+				}*/
 			}
 
 			if err != nil {
 
-				tx.Rollback()
 				return false, err.Error()
 
 			} else {
 
-				err := service.User.FirstSettlementUserBrokerage(tx, TotalBrokerage, orders)
+				err := service.User.FirstSettlementUserBrokerage(tx, orders)
 				if err != nil {
-					tx.Rollback()
+
 					return false, err.Error()
 				}
-
-				tx.Commit()
 
 				return true, "已经支付成功"
 			}
@@ -715,6 +756,7 @@ func (service OrdersService) ProcessingOrders(Orm *gorm.DB, orders dao.Orders, p
 			return false, "金额不正确或订单不允许"
 		}
 	} else {
+
 		return false, "订单已经处理或过期"
 	}
 
@@ -792,8 +834,8 @@ func (service OrdersService) createOrdersGoods(shoppingCart dao.ShoppingCart) da
 	ordersGoods.Specification = util.StructToJSON(specification)
 	ordersGoods.Goods = util.StructToJSON(goods)
 	ordersGoods.OID = goods.OID
-	ordersGoods.GoodsID = goods.ID
-	ordersGoods.SpecificationID = specification.ID
+	//ordersGoods.GoodsID = goods.ID
+	//ordersGoods.SpecificationID = specification.ID
 	ordersGoods.Quantity = shoppingCart.Quantity
 	ordersGoods.CostPrice = specification.MarketPrice
 	ordersGoods.SellPrice = specification.MarketPrice
@@ -852,7 +894,7 @@ func (service OrdersService) AddOrders(orders *dao.Orders, list []dao.OrdersGood
 	}()
 	for _, value := range list {
 		(&value).OrdersGoods.OrdersID = orders.ID
-		(&value).OrdersGoods.Favoureds = util.StructToJSON((&value).Favoureds)
+		(&value).OrdersGoods.Favoured = util.StructToJSON((&value).Favoured)
 		err = service.Add(tx, &((&value).OrdersGoods))
 		if err != nil {
 			return err
@@ -916,7 +958,12 @@ func (service OrdersService) AnalyseOrdersGoodsList(UserID uint64, addressee dao
 
 	for key, _ := range oslist {
 		result := make(map[string]interface{})
-		Error, oggs, FavouredPrice, FullCutAll, GoodsPrice, ExpressPrice := service.analyseOne(UserID, addressee, PostType, oslist[key])
+
+		var org dao.Organization
+		service.Organization.Get(dao.Orm(), key, &org)
+		result["Organization"] = org
+
+		Error, fullcut, oggs, FavouredPrice, FullCutAll, GoodsPrice, ExpressPrice := service.analyseOne(UserID, org.ID, addressee, PostType, oslist[key])
 		if Error != nil {
 			golErr = Error
 		}
@@ -926,10 +973,7 @@ func (service OrdersService) AnalyseOrdersGoodsList(UserID uint64, addressee dao
 		result["FullCutAll"] = FullCutAll
 		result["GoodsPrice"] = GoodsPrice
 		result["ExpressPrice"] = ExpressPrice
-
-		var org dao.Organization
-		service.Organization.Get(dao.Orm(), key, &org)
-		result["Organization"] = org
+		result["FullCut"] = fullcut
 
 		TotalPrice = TotalPrice + (GoodsPrice - FullCutAll + ExpressPrice)
 		out_result = append(out_result, result)
@@ -939,9 +983,10 @@ func (service OrdersService) AnalyseOrdersGoodsList(UserID uint64, addressee dao
 }
 
 //订单分析，
-func (service OrdersService) analyseOne(UserID uint64, addressee dao.Address, PostType int, list []dao.OrdersGoods) (Error error, oggs []dao.OrdersGoodsInfo, FavouredPrice, FullCutAll uint64, GoodsPrice uint64, ExpressPrice uint64) {
+func (service OrdersService) analyseOne(UserID, OID uint64, addressee dao.Address, PostType int, list []dao.OrdersGoods) (Error error, fullcut dao.FullCut, oggs []dao.OrdersGoodsInfo, FavouredPrice, FullCutAll uint64, GoodsPrice uint64, ExpressPrice uint64) {
 	Orm := dao.Orm()
-	fullcuts := service.FullCut.FindOrderByAmountDesc(Orm)
+
+	fullcuts := service.FullCut.FindOrderByAmountDesc(Orm, OID)
 
 	//可以使用满减的金额
 	FullCutPrice := uint64(0)
@@ -979,29 +1024,42 @@ func (service OrdersService) analyseOne(UserID uint64, addressee dao.Address, Po
 		//value.TotalBrokerage =
 
 		ogs := dao.OrdersGoodsInfo{}
-		ogs.Favoureds = make([]dao.Favoured, 0)
+		ogs.Favoured = dao.Favoured{}
 		//ogss
 
-		var timesell dao.TimeSell
-		service.TimeSell.Get(Orm, goods.TimeSellID, &timesell)
+		timesell := service.TimeSell.GetTimeSellByGoodsID(goods.ID)
 		//计算价格以及优惠
-		if goods.TimeSellID == 0 || timesell.IsEnable() == false {
+		if timesell.IsEnable() {
+
+			Price = uint64(util.Rounding45(float64(Price)-(float64(Price)*(float64(timesell.Discount)/float64(100))), 2))
 			GoodsPrice = GoodsPrice + Price
-			FullCutPrice = FullCutPrice + Price
+
+			Favoured := uint64(util.Rounding45(float64(value.SellPrice)*(float64(timesell.Discount)/float64(100)), 2))
+			FavouredPrice = FavouredPrice + (Favoured * uint64(value.Quantity))
+
+			ogs.Favoured = dao.Favoured{Name: "限时抢购", Target: util.StructToJSON(timesell), TypeName: "TimeSell", Discount: uint64(timesell.Discount)}
+
+			value.SellPrice = value.SellPrice - Favoured
+
 		} else {
 
-			//500-(500*Item.Discount/100)
-			if timesell.IsEnable() {
-				Price = uint64(util.Rounding45(float64(Price)-(float64(Price)*(float64(timesell.Discount)/float64(100))), 2))
+			collage := service.Collage.GetCollageByGoodsID(goods.ID)
+			if collage.ID != 0 && collage.TotalNum > 0 {
+
+				Price = uint64(util.Rounding45(float64(Price)-(float64(Price)*(float64(collage.Discount)/float64(100))), 2))
 				GoodsPrice = GoodsPrice + Price
 
-				Favoured := uint64(util.Rounding45(float64(value.SellPrice)*(float64(timesell.Discount)/float64(100)), 2))
+				Favoured := uint64(util.Rounding45(float64(value.SellPrice)*(float64(collage.Discount)/float64(100)), 2))
 				FavouredPrice = FavouredPrice + (Favoured * uint64(value.Quantity))
 
-				ogs.Favoureds = append(ogs.Favoureds, dao.Favoured{Name: "限时抢购", Target: util.StructToJSON(timesell), TypeName: "TimeSell", Discount: uint64(timesell.Discount)})
+				ogs.Favoured = dao.Favoured{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)}
 
 				value.SellPrice = value.SellPrice - Favoured
 
+				//goodsInfo.Favoureds = append(goodsInfo.Favoureds, dao.Favoured{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)})
+			} else {
+				GoodsPrice = GoodsPrice + Price
+				FullCutPrice = FullCutPrice + Price
 			}
 
 		}
@@ -1009,41 +1067,45 @@ func (service OrdersService) analyseOne(UserID uint64, addressee dao.Address, Po
 		oggs = append(oggs, ogs)
 		//ogss=append(ogss,ogs)
 
-		//计算快递费
-		weight := specification.Num * specification.Weight
+		//计算快递费，重量要加上数量,先计算规格的重，再计算购买的重量
+		weight := (specification.Num * specification.Weight) * uint64(value.Quantity)
 
 		if goods.ExpressTemplateID == 0 {
 			Error = errors.New("找不到快递模板")
 			value.AddError(Error.Error())
 			return
 		} else {
-
-			if v, o := expresstemplateMap[goods.ExpressTemplateID]; o == false {
+			//为每个订单设置三种计价方式
+			if _, o := expresstemplateMap[goods.ExpressTemplateID]; o == false {
 				nmw := dao.ExpressTemplateNMW{}
 				nmw.N = nmw.N + int(value.Quantity)
-				nmw.M = nmw.M + int(Price)
+				nmw.M = nmw.M + int(Price) //市场价X数量
 				nmw.W = nmw.W + int(weight)
 				expresstemplateMap[goods.ExpressTemplateID] = nmw
 			} else {
-				v.N = v.N + int(value.Quantity)
-				v.M = v.M + int(Price)
-				v.W = v.W + int(weight)
+				nmw := expresstemplateMap[goods.ExpressTemplateID]
+				nmw.N = nmw.N + int(value.Quantity)
+				nmw.M = nmw.M + int(Price) //市场价X数量
+				nmw.W = nmw.W + int(weight)
+				expresstemplateMap[goods.ExpressTemplateID] = nmw
 			}
 
 		}
 
 	}
 	//计算快满减
-	for _, value := range fullcuts {
+	for index, value := range fullcuts {
 
 		if FullCutPrice >= value.Amount {
 			FullCutAll = value.CutAmount
+			//返回满减的值
+			fullcut = fullcuts[index]
 			break
 		}
 	}
 
 	//计算快递费
-	if PostType != 2 {
+	if PostType == 1 && addressee.IsEmpty() == false {
 
 		for ID, value := range expresstemplateMap {
 			var expresstemplate dao.ExpressTemplate
@@ -1055,6 +1117,7 @@ func (service OrdersService) analyseOne(UserID uint64, addressee dao.Address, Po
 			var expressTemplateFreeItem *dao.ExpressTemplateFreeItem
 
 		al:
+			//从包邮列表中，找出一个计费方式
 			for _, exp_f_value := range etFree {
 
 				for _, exp_f_a_value := range exp_f_value.Areas {
@@ -1068,7 +1131,6 @@ func (service OrdersService) analyseOne(UserID uint64, addressee dao.Address, Po
 
 			if expressTemplateFreeItem != nil && expressTemplateFreeItem.IsFree(expresstemplate, value) {
 				//有包邮项目
-
 				ExpressPrice = 0
 
 			} else {
@@ -1132,30 +1194,35 @@ func (service OrdersService) AddCartOrdersByShoppingCartIDs(Session *gweb.Sessio
 
 }
 func (service OrdersService) AddCartOrders(UserID uint64, GoodsID, SpecificationID uint64, Quantity uint) error {
-	Orm := dao.Orm()
+	//Orm := dao.Orm()
 	shoppingCarts := service.ShoppingCart.FindShoppingCartByUserID(UserID)
 
-	tx := Orm.Begin()
+	tx := dao.Orm().Begin()
 
 	var goods dao.Goods
 	err := service.Goods.Get(tx, GoodsID, &goods)
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
 	var specification dao.Specification
-	err = service.Goods.Get(Orm, SpecificationID, &specification)
+	err = service.Goods.Get(tx, SpecificationID, &specification)
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
 
 	if specification.GoodsID != GoodsID {
+		tx.Rollback()
 		return errors.New("产品规格不匹配")
 	}
 	if specification.ID == 0 {
+		tx.Rollback()
 		return errors.New("找不到规格")
 	}
 	if specification.Stock-Quantity < 0 {
+		tx.Rollback()
 		return errors.New(specification.Label + "库存不足")
 	}
 
@@ -1175,6 +1242,7 @@ func (service OrdersService) AddCartOrders(UserID uint64, GoodsID, Specification
 			}
 			err := service.ChangeModel(tx, value.ID, value)
 			if err != nil {
+				tx.Rollback()
 				return err
 			}
 			have = true
@@ -1193,18 +1261,12 @@ func (service OrdersService) AddCartOrders(UserID uint64, GoodsID, Specification
 		sc.GSID = strconv.Itoa(int(goods.ID)) + strconv.Itoa(int(specification.ID))
 		err := service.Add(tx, &sc)
 		if err != nil {
+			tx.Rollback()
 			return err
 		}
 	}
 
-	defer func() {
-
-		if err != nil {
-			tx.Rollback()
-		} else {
-			tx.Commit()
-		}
-	}()
+	tx.Commit()
 
 	return nil
 

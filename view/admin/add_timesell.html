@@ -61,14 +61,14 @@
         </div>
 
         <div class="field">
-            <label>选择产品</label>
-            <table width="100%" class="ui teal table">
+            <label>选择产品<input ng-click="showGoodsList()" type="button" class="ui mini blue button" value="添加产品"></label>
+            <table width="100%" class="ui small inverted teal table">
                 <thead>
                 <tr>
                     <th>#ID</th>
                     <th>名称</th>
                     <th style="text-align: right;">
-                        <input ng-click="showGoods()" type="button" class="ui blue button" value="添加产品">
+
                     </th>
                 </tr>
                 </thead>
@@ -105,7 +105,7 @@
 <div id="goods_list" class="ui fullscreen modal">
     <div class="header">选择产品</div>
     <div class="content">
-        <table width="100%" id="table_local" class="ui teal table">
+        <table width="100%" id="goods_list_table" class="ui teal table">
             <thead>
             <tr>
                 <th>#ID</th>

@@ -53,10 +53,12 @@ func (controller *UserController) levelAction(context *gweb.Context) gweb.Result
 }
 func (controller *UserController) addUserFormIdAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
-
 	context.Request.ParseForm()
-	formId := context.Request.FormValue("formId")
-	controller.User.Add(dao.Orm(), &dao.UserFormIds{UserID: user.ID, FormId: formId})
+	formId, _ := strconv.Atoi(context.Request.FormValue("formId"))
+	if formId == 0 {
+		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "无效的formId", Data: nil}}
+	}
+	controller.User.Add(dao.Orm(), &dao.UserFormIds{UserID: user.ID, FormId: strconv.Itoa(formId)})
 
 	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: nil}}
 }
@@ -80,7 +82,7 @@ func (controller *UserController) transfersAction(context *gweb.Context) gweb.Re
 	IP := util.GetIP(context)
 	err := controller.Transfers.UserTransfers(user.ID, ReUserName, IP)
 
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "提现申请成功，请查看到账通知结果", nil)}
+	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "提现成功，请查看到账通知结果", nil)}
 }
 func (controller *UserController) updateAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)

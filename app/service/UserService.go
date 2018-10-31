@@ -4,6 +4,7 @@ import (
 	"dandelion/app/service/dao"
 	"dandelion/app/util"
 	"errors"
+	"fmt"
 	"strings"
 
 	"dandelion/app/play"
@@ -23,6 +24,7 @@ type UserService struct {
 	CardItem      CardItemService
 	Organization  OrganizationService
 	Wx            WxService
+	OrdersGoods   OrdersGoodsService
 }
 
 func (service UserService) Situation(StartTime, EndTime int64) interface{} {
@@ -67,13 +69,73 @@ func (service UserService) AddUserBlockAmount(Orm *gorm.DB, UserID uint64, Menoy
 	err = service.ChangeMap(Orm, UserID, &dao.User{}, map[string]interface{}{"BlockAmount": tm})
 	return err
 }
-func (service UserService) FirstSettlementUserBrokerage(tx *gorm.DB, Brokerage uint64, orders dao.Orders) error {
+func (service UserService) MinusSettlementUserBrokerage(tx *gorm.DB, orders dao.Orders) error {
+	var err error
+	//用户自己。下单者
+	//Orm:=dao.Orm()
+
+	ogs, err := service.OrdersGoods.FindByOrdersID(tx, orders.ID)
+	var Brokerage uint64
+	for _, value := range ogs {
+		//var specification dao.Specification
+		//util.JSONToStruct(value.Specification, &specification)
+		Brokerage = Brokerage + value.TotalBrokerage
+	}
+
+	//var orders dao.Orders
+	//service.Get(Orm, OrderID, &orders)
+
+	var user dao.User
+	service.Get(tx, orders.UserID, &user)
+
+	leve1, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve1).V, 10, 64)
+	leve2, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve2).V, 10, 64)
+	leve3, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve3).V, 10, 64)
+	leve4, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve4).V, 10, 64)
+	leve5, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve5).V, 10, 64)
+	leve6, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve6).V, 10, 64)
+
+	leves := []uint64{leve1, leve2, leve3, leve4, leve5, leve6}
+
+	//var OutBrokerageMoney int64 = 0
+	for _, value := range leves {
+		if value <= 0 {
+			break
+		}
+		var _user dao.User
+		service.Get(tx, user.SuperiorID, &_user)
+		if _user.ID <= 0 {
+			return nil
+		}
+		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
+		err = service.AddUserBlockAmount(tx, _user.ID, -leveMenoy)
+		if err != nil {
+			return err
+		}
+		//OutBrokerageMoney = OutBrokerageMoney + leveMenoy
+		//workTime := time.Now().Unix() - orders.CreatedAt.Unix()
+		//service.Wx.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，预计现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "预计收入："+strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64)+"元")
+		//fmt.Println("预计收入：" + strconv.FormatFloat(float64(-leveMenoy)/float64(100), 'f', 2, 64) + "元")
+		user = _user
+	}
+
+	return err
+}
+func (service UserService) FirstSettlementUserBrokerage(tx *gorm.DB, orders dao.Orders) error {
 	var err error
 	//用户自己。下单者
 	//Orm:=dao.Orm()
 
 	//var orders dao.Orders
 	//service.Get(Orm, OrderID, &orders)
+
+	ogs, err := service.OrdersGoods.FindByOrdersID(tx, orders.ID)
+	var Brokerage uint64
+	for _, value := range ogs {
+		//var specification dao.Specification
+		//util.JSONToStruct(value.Specification, &specification)
+		Brokerage = Brokerage + value.TotalBrokerage
+	}
 
 	var user dao.User
 	service.Get(tx, orders.UserID, &user)
@@ -105,102 +167,10 @@ func (service UserService) FirstSettlementUserBrokerage(tx *gorm.DB, Brokerage u
 		//OutBrokerageMoney = OutBrokerageMoney + leveMenoy
 		workTime := time.Now().Unix() - orders.CreatedAt.Unix()
 
-		service.Wx.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，预计现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "预计收入："+strconv.FormatFloat(float64(leveMenoy/100), 'f', 2, 64)+"元")
-
+		service.Wx.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，预计现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "预计收入："+strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64)+"元")
+		fmt.Println("预计收入：" + strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64) + "元")
 		user = _user
 	}
-
-	//err=service.Organization.AddOrganizationBlockAmount(Orm,orders.OID,OutBrokerageMoney)
-
-	/*if leve1 > 0 {
-
-		var usera dao.User
-		service.Get(Orm, user.SuperiorID, &usera)
-		if usera.ID <= 0 {
-			return nil
-		}
-		leve1Menoy := int64(math.Floor(float64(leve1)/float64(100)*float64(Brokerage) + 0.5))
-		err = service.AddUserBlockAmount(Orm,usera.ID,  leve1Menoy)
-		if err != nil {
-			return err
-		}
-
-		if leve2 > 0 {
-
-			var userb dao.User
-			service.Get(Orm, usera.SuperiorID, &userb)
-			if userb.ID <= 0 {
-				return nil
-			}
-			leve2Menoy := int64(math.Floor(float64(leve2)/float64(100)*float64(Brokerage) + 0.5))
-			err = service.AddUserBlockAmount(Orm,userb.ID,  leve2Menoy)
-			if err != nil {
-				return err
-			}
-
-			if leve3 > 0 {
-
-				var userc dao.User
-				service.Get(Orm, userb.SuperiorID, &userc)
-				if userc.ID <= 0 {
-					return nil
-				}
-				leve3Menoy := int64(math.Floor(float64(leve3)/float64(100)*float64(Brokerage) + 0.5))
-				err = service.AddUserBlockAmount(Orm,userc.ID, leve3Menoy)
-				if err != nil {
-					return err
-				}
-
-				if leve4 > 0 {
-
-					var userd dao.User
-					service.Get(Orm, userc.SuperiorID, &userd)
-					if userd.ID <= 0 {
-						return nil
-					}
-					leve4Menoy := int64(math.Floor(float64(leve4)/float64(100)*float64(Brokerage) + 0.5))
-					err = service.AddUserBlockAmount(Orm,userd.ID,leve4Menoy)
-					if err != nil {
-						return err
-					}
-
-					if leve5 > 0 {
-
-						var usere dao.User
-						service.Get(Orm, userd.SuperiorID, &usere)
-						if usere.ID <= 0 {
-							return nil
-						}
-						leve5Menoy := int64(math.Floor(float64(leve4)/float64(100)*float64(Brokerage) + 0.5))
-						err = service.AddUserBlockAmount(Orm,usere.ID, leve5Menoy)
-						if err != nil {
-							return err
-						}
-
-						if leve6 > 0 {
-
-							var userf dao.User
-							service.Get(Orm, usere.SuperiorID, &userf)
-							if userf.ID <= 0 {
-								return nil
-							}
-							leve6Menoy := int64(math.Floor(float64(leve4)/float64(100)*float64(Brokerage) + 0.5))
-							err = service.AddUserBlockAmount(Orm,userf.ID, leve6Menoy)
-							if err != nil {
-								return err
-							}
-
-						}
-
-					}
-
-				}
-
-			}
-
-		}
-
-	}*/
 
 	return err
 }
@@ -297,119 +267,6 @@ func (service UserService) SettlementUser(Orm *gorm.DB, Brokerage uint64, orders
 		user = _user
 	}
 
-	/*if leve1 > 0 {
-
-		var usera dao.User
-		service.Get(Orm, user.SuperiorID, &usera)
-		if usera.ID <= 0 {
-			return nil
-		}
-		leve1Menoy := int64(math.Floor(float64(leve1)/float64(100)*float64(Brokerage) + 0.5))
-		err = Journal.AddUserJournal(Orm, usera.ID, "佣金", "一级用户", play.UserJournal_Type_LEVE, leve1Menoy, dao.KV{Key: "OrdersID", Value: orders.ID}, user.ID)
-		if err != nil {
-			return err
-		}
-		err = Journal.AddScoreJournal(Orm, usera.ID, "积分", "佣金积分", play.ScoreJournal_Type_LEVE, int64(math.Floor(float64(leve1Menoy)/100+0.5)), dao.KV{Key: "OrdersID", Value: orders.ID})
-		if err != nil {
-			return err
-		}
-
-		if leve2 > 0 {
-
-			var userb dao.User
-			service.Get(Orm, usera.SuperiorID, &userb)
-			if userb.ID <= 0 {
-				return nil
-			}
-			leve2Menoy := int64(math.Floor(float64(leve2)/float64(100)*float64(Brokerage) + 0.5))
-			err = Journal.AddUserJournal(Orm, userb.ID, "佣金", "二级用户", play.UserJournal_Type_LEVE, leve2Menoy, dao.KV{Key: "OrdersID", Value: orders.ID}, user.ID)
-			if err != nil {
-				return err
-			}
-			err = Journal.AddScoreJournal(Orm, userb.ID, "积分", "佣金积分", play.ScoreJournal_Type_LEVE, int64(math.Floor(float64(leve2Menoy)/100+0.5)), dao.KV{Key: "OrdersID", Value: orders.ID})
-			if err != nil {
-				return err
-			}
-
-			if leve3 > 0 {
-
-				var userc dao.User
-				service.Get(Orm, userb.SuperiorID, &userc)
-				if userc.ID <= 0 {
-					return nil
-				}
-				leve3Menoy := int64(math.Floor(float64(leve3)/float64(100)*float64(Brokerage) + 0.5))
-				err = Journal.AddUserJournal(Orm, userc.ID, "佣金", "三级用户", play.UserJournal_Type_LEVE, leve3Menoy, dao.KV{Key: "OrdersID", Value: orders.ID}, user.ID)
-				if err != nil {
-					return err
-				}
-				err = Journal.AddScoreJournal(Orm, userc.ID, "积分", "佣金积分", play.ScoreJournal_Type_LEVE, int64(math.Floor(float64(leve3Menoy)/100+0.5)), dao.KV{Key: "OrdersID", Value: orders.ID})
-				if err != nil {
-					return err
-				}
-				if leve4 > 0 {
-
-					var userd dao.User
-					service.Get(Orm, userc.SuperiorID, &userd)
-					if userd.ID <= 0 {
-						return nil
-					}
-					leve4Menoy := int64(math.Floor(float64(leve4)/float64(100)*float64(Brokerage) + 0.5))
-					err = Journal.AddUserJournal(Orm, userd.ID, "佣金", "四级用户", play.UserJournal_Type_LEVE, leve4Menoy, dao.KV{Key: "OrdersID", Value: orders.ID}, user.ID)
-					if err != nil {
-						return err
-					}
-					err = Journal.AddScoreJournal(Orm, userd.ID, "积分", "佣金积分", play.ScoreJournal_Type_LEVE, int64(math.Floor(float64(leve4Menoy)/100+0.5)), dao.KV{Key: "OrdersID", Value: orders.ID})
-					if err != nil {
-						return err
-					}
-
-					if leve5 > 0 {
-
-						var usere dao.User
-						service.Get(Orm, userd.SuperiorID, &usere)
-						if usere.ID <= 0 {
-							return nil
-						}
-						leve5Menoy := int64(math.Floor(float64(leve4)/float64(100)*float64(Brokerage) + 0.5))
-						err = Journal.AddUserJournal(Orm, usere.ID, "佣金", "五级用户", play.UserJournal_Type_LEVE, leve5Menoy, dao.KV{Key: "OrdersID", Value: orders.ID}, user.ID)
-						if err != nil {
-							return err
-						}
-						err = Journal.AddScoreJournal(Orm, usere.ID, "积分", "佣金积分", play.ScoreJournal_Type_LEVE, int64(math.Floor(float64(leve5Menoy)/100+0.5)), dao.KV{Key: "OrdersID", Value: orders.ID})
-						if err != nil {
-							return err
-						}
-
-						if leve6 > 0 {
-
-							var userf dao.User
-							service.Get(Orm, usere.SuperiorID, &userf)
-							if userf.ID <= 0 {
-								return nil
-							}
-							leve6Menoy := int64(math.Floor(float64(leve4)/float64(100)*float64(Brokerage) + 0.5))
-							err = Journal.AddUserJournal(Orm, userf.ID, "佣金", "六级用户", play.UserJournal_Type_LEVE, leve6Menoy, dao.KV{Key: "OrdersID", Value: orders.ID}, user.ID)
-							if err != nil {
-								return err
-							}
-							err = Journal.AddScoreJournal(Orm, userf.ID, "积分", "佣金积分", play.ScoreJournal_Type_LEVE, int64(math.Floor(float64(leve6Menoy)/100+0.5)), dao.KV{Key: "OrdersID", Value: orders.ID})
-							if err != nil {
-								return err
-							}
-
-						}
-
-					}
-
-				}
-
-			}
-
-		}
-
-	}*/
-
 	return nil
 }
 func (service UserService) FindUserByIDs(IDs []uint64) []dao.User {
@@ -418,8 +275,8 @@ func (service UserService) FindUserByIDs(IDs []uint64) []dao.User {
 	tool.CheckError(err)
 	return users
 }
-func (service UserService) LeveAll6(OneSuperiorID uint64) string {
-	Orm := dao.Orm()
+func (service UserService) LeveAll6(Orm *gorm.DB, OneSuperiorID uint64) string {
+	//Orm := dao.Orm()
 	var leveIDs []string
 
 	var user1 dao.User
@@ -543,8 +400,8 @@ func (service UserService) FindUserByOpenID(Orm *gorm.DB, OpenID string) *dao.Us
 	tool.CheckError(err)
 	return user
 }
-func (service UserService) AddUserByOpenID(OpenID string) *dao.User {
-	Orm := dao.Orm()
+func (service UserService) AddUserByOpenID(Orm *gorm.DB, OpenID string) *dao.User {
+	//Orm := dao.Orm()
 	user := &dao.User{}
 	user = service.FindUserByOpenID(Orm, OpenID)
 	if user.ID == 0 {

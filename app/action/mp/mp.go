@@ -79,7 +79,7 @@ func (controller *Controller) Apply() {
 
 	controller.AddHandler(gweb.GETMethod("score_goods/list", controller.scoreGoodsListAction))
 	controller.AddHandler(gweb.GETMethod("score_goods/exchange/:ScoreGoodsID", controller.scoreGoodsExchangeAction))
-	controller.AddHandler(gweb.GETMethod("fullcut/list", controller.fullcutListAction))
+	//controller.AddHandler(gweb.GETMethod("fullcut/list", controller.fullcutListAction))
 
 	controller.AddHandler(gweb.GETMethod("share/score", controller.shareScoreAction))
 
@@ -252,11 +252,11 @@ func (controller *Controller) scoreGoodsListAction(context *gweb.Context) gweb.R
 	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: list}}
 }
 
-func (controller *Controller) fullcutListAction(context *gweb.Context) gweb.Result {
+/*func (controller *Controller) fullcutListAction(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	fullcuts := controller.FullCut.FindOrderByAmountASC(Orm)
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "", fullcuts)}
-}
+}*/
 
 func (controller *Controller) goodsHotListAction(context *gweb.Context) gweb.Result {
 	index, _ := strconv.Atoi(context.Request.URL.Query().Get("index"))

@@ -61,6 +61,11 @@ func (b ExpressTemplateService) GetExpressInfo(OrdersID uint64, LogisticCode, Sh
 	bsdfsd, errs := ioutil.ReadAll(resp.Body)
 	tool.CheckError(errs)
 	json.Unmarshal(bsdfsd, &result)
+
+	result["ShipperName"] = ShipperName
+	result["ShipperCode"] = ShipperNameCode
+	result["ShipperNo"] = LogisticCode
+
 	//fmt.Println(errs)
 	//fmt.Println(result)
 	return result

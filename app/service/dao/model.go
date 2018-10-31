@@ -2,16 +2,13 @@ package dao
 
 import (
 	"errors"
+	"math"
+	"runtime/debug"
+	"strconv"
+	"strings"
 	"time"
 
-	"strings"
-
-	"math"
-
 	"dandelion/app/util"
-	"strconv"
-
-	"runtime/debug"
 
 	"github.com/jinzhu/gorm"
 )
@@ -102,12 +99,12 @@ func (Admin) TableName() string {
 
 type OrdersGoodsInfo struct {
 	OrdersGoods OrdersGoods
-	Favoureds   []Favoured
+	Favoured    Favoured
 }
 type GoodsInfo struct {
 	Goods          Goods
 	Specifications []Specification
-	Favoureds      []Favoured
+	Favoured       Favoured
 }
 
 type Configuration struct {
@@ -243,6 +240,12 @@ type Address struct {
 	PostalCode   string
 	Tel          string
 }
+
+func (addr Address) IsEmpty() bool {
+
+	return strings.EqualFold(addr.Name, "") || strings.EqualFold(addr.Tel, "") || strings.EqualFold(addr.Detail, "")
+}
+
 type ExpressTemplateItem struct {
 	Areas []string
 	N     int
@@ -263,7 +266,7 @@ func (etfi ExpressTemplateItem) CalculateExpressPrice(et ExpressTemplate, nmw Ex
 			if nmw.W <= etfi.N {
 				return uint64(etfi.M * 100)
 			} else {
-				wp := math.Ceil(float64(nmw.W-etfi.N)/float64(etfi.AN)) * float64(etfi.ANM*100)
+				wp := float64(nmw.W-etfi.N) / float64(etfi.AN) * float64(etfi.ANM*float64(100))
 				return uint64(etfi.M*100) + uint64(math.Floor(wp+0.5))
 			}
 
@@ -272,7 +275,7 @@ func (etfi ExpressTemplateItem) CalculateExpressPrice(et ExpressTemplate, nmw Ex
 			if nmw.N <= etfi.N {
 				return uint64(etfi.M * 100)
 			} else {
-				wp := math.Ceil(float64(nmw.N-etfi.N)/float64(etfi.AN)) * float64(etfi.ANM*100)
+				wp := float64(nmw.N-etfi.N) / float64(etfi.AN) * float64(etfi.ANM*100)
 				return uint64(etfi.M*100) + uint64(math.Floor(wp+0.5))
 			}
 
@@ -291,6 +294,8 @@ type ExpressTemplateFreeItem struct {
 	M     float64 //元
 }
 
+//et 快递模板
+//nmw 包邮方式
 func (etfi ExpressTemplateFreeItem) IsFree(et ExpressTemplate, nmw ExpressTemplateNMW) bool {
 	//ITEM  KG
 	if strings.EqualFold(et.Drawee, "BUSINESS") {
@@ -309,7 +314,7 @@ func (etfi ExpressTemplateFreeItem) IsFree(et ExpressTemplate, nmw ExpressTempla
 
 			case "M":
 
-				if nmw.M > int(math.Floor(etfi.M*100+0.5)) {
+				if nmw.M >= int(math.Floor(etfi.M*100+0.5)) {
 					return true
 				} else {
 					return false
@@ -334,7 +339,7 @@ func (etfi ExpressTemplateFreeItem) IsFree(et ExpressTemplate, nmw ExpressTempla
 
 			case "M":
 
-				if nmw.M > int(math.Floor(etfi.M*100+0.5)) {
+				if nmw.M >= int(math.Floor(etfi.M*100+0.5)) {
 					return true
 				} else {
 					return false
@@ -396,25 +401,30 @@ type RefundInfo struct {
 	Reason      string //原因
 	RefundPrice uint64 //返回金额
 }
+type GoodsParams struct {
+	Name  string
+	Value string
+}
 type OrdersGoods struct {
 	BaseModel
-	OID             uint64 `gorm:"column:OID"`
-	OrdersGoodsNo   string `gorm:"column:OrdersGoodsNo;unique"`        //
-	Status          string `gorm:"column:Status"`                      //OGAskRefund，OGRefundNo，OGRefundOk，OGRefundInfo，OGRefundComplete
-	RefundInfo      string `gorm:"column:RefundInfo;type:LONGTEXT"`    //RefundInfo json 退款退货信息
-	OrdersID        uint64 `gorm:"column:OrdersID"`                    //
-	GoodsID         uint64 `gorm:"column:GoodsID"`                     //
-	SpecificationID uint64 `gorm:"column:SpecificationID"`             //
-	Goods           string `gorm:"column:Goods;type:LONGTEXT"`         //josn
-	Specification   string `gorm:"column:Specification;type:LONGTEXT"` //json
-	Favoureds       string `gorm:"column:Favoureds;type:LONGTEXT"`
-	TimeSellID      uint64 `gorm:"column:TimeSellID"`             //限时抢购ID
-	TimeSell        string `gorm:"column:TimeSell;type:LONGTEXT"` //json
-	Quantity        uint   `gorm:"column:Quantity"`               //数量
-	CostPrice       uint64 `gorm:"column:CostPrice"`              //单价-原价
-	SellPrice       uint64 `gorm:"column:SellPrice"`              //单价-销售价
-	TotalBrokerage  uint64 `gorm:"column:TotalBrokerage"`         //总佣金
-	Error           string `gorm:"column:Error"`                  //
+	OID           uint64 `gorm:"column:OID"`
+	OrdersGoodsNo string `gorm:"column:OrdersGoodsNo;unique"`     //
+	Status        string `gorm:"column:Status"`                   //OGAskRefund，OGRefundNo，OGRefundOk，OGRefundInfo，OGRefundComplete
+	RefundInfo    string `gorm:"column:RefundInfo;type:LONGTEXT"` //RefundInfo json 退款退货信息
+	OrdersID      uint64 `gorm:"column:OrdersID"`                 //
+	//GoodsID         uint64 `gorm:"column:GoodsID"`                     //
+	//SpecificationID uint64 `gorm:"column:SpecificationID"`             //
+	Goods         string `gorm:"column:Goods;type:LONGTEXT"`         //josn
+	Specification string `gorm:"column:Specification;type:LONGTEXT"` //json
+	Favoured      string `gorm:"column:Favoured;type:LONGTEXT"`
+	CollageNo     string `gorm:"column:CollageNo"` //拼团码
+	//TimeSellID     uint64 `gorm:"column:TimeSellID"`             //限时抢购ID
+	//TimeSell       string `gorm:"column:TimeSell;type:LONGTEXT"` //json
+	Quantity       uint   `gorm:"column:Quantity"`       //数量
+	CostPrice      uint64 `gorm:"column:CostPrice"`      //单价-原价
+	SellPrice      uint64 `gorm:"column:SellPrice"`      //单价-销售价
+	TotalBrokerage uint64 `gorm:"column:TotalBrokerage"` //总佣金
+	Error          string `gorm:"column:Error"`          //
 }
 
 func (og OrdersGoods) AddError(err string) {
@@ -627,21 +637,21 @@ func (Specification) TableName() string {
 //商品
 type Goods struct {
 	BaseModel
-	OID               uint64 `gorm:"column:OID"`
-	Title             string `gorm:"column:Title"`
-	GoodsTypeID       uint64 `gorm:"column:GoodsTypeID"`
-	GoodsTypeChildID  uint64 `gorm:"column:GoodsTypeChildID"`
-	Price             uint64 `gorm:"column:Price"`
-	Stock             uint   `gorm:"column:Stock"`
-	Hide              uint   `gorm:"column:Hide"`
-	Images            string `gorm:"column:Images;type:LONGTEXT;default:'[]'"` //json array
-	Videos            string `gorm:"column:Videos;type:LONGTEXT;default:'[]'"` //json array
-	Introduce         string `gorm:"column:Introduce;type:LONGTEXT"`
-	Pictures          string `gorm:"column:Pictures;type:LONGTEXT;default:'[]'"` //json array
-	Params            string `gorm:"column:Params;type:LONGTEXT;default:'[]'"`   //json array
-	TimeSellID        uint64 `gorm:"column:TimeSellID"`                          //
-	ExpressTemplateID uint64 `gorm:"column:ExpressTemplateID"`                   //
-	CountSale         uint64 `gorm:"column:CountSale"`                           //销售量
+	OID              uint64 `gorm:"column:OID"`
+	Title            string `gorm:"column:Title"`
+	GoodsTypeID      uint64 `gorm:"column:GoodsTypeID"`
+	GoodsTypeChildID uint64 `gorm:"column:GoodsTypeChildID"`
+	Price            uint64 `gorm:"column:Price"`
+	Stock            uint   `gorm:"column:Stock"`
+	Hide             uint   `gorm:"column:Hide"`
+	Images           string `gorm:"column:Images;type:LONGTEXT;default:'[]'"` //json array
+	Videos           string `gorm:"column:Videos;type:LONGTEXT;default:'[]'"` //json array
+	Introduce        string `gorm:"column:Introduce;type:LONGTEXT"`
+	Pictures         string `gorm:"column:Pictures;type:LONGTEXT;default:'[]'"` //json array
+	Params           string `gorm:"column:Params;type:LONGTEXT;default:'[]'"`   //json array
+	//TimeSellID        uint64 `gorm:"column:TimeSellID"`                          //
+	ExpressTemplateID uint64 `gorm:"column:ExpressTemplateID"` //
+	CountSale         uint64 `gorm:"column:CountSale"`         //销售量
 }
 
 func (u *Goods) BeforeCreate(scope *gorm.Scope) (err error) {
@@ -719,6 +729,7 @@ func (Store) TableName() string {
 type TimeSell struct {
 	BaseModel
 	OID       uint64    `gorm:"column:OID"`
+	Hash      string    `gorm:"column:Hash"` //同一个Hash表示同一个活动
 	BuyNum    int       `gorm:"column:BuyNum"`
 	Enable    bool      `gorm:"column:Enable"`
 	DayNum    int       `gorm:"column:DayNum"`
@@ -729,6 +740,7 @@ type TimeSell struct {
 	StartM    int       `gorm:"column:StartM"`
 	EndH      int       `gorm:"column:EndH"`
 	EndM      int       `gorm:"column:EndM"`
+	GoodsID   uint64    `gorm:"column:GoodsID"`
 }
 
 func (u *TimeSell) BeforeCreate(scope *gorm.Scope) (err error) {
@@ -746,6 +758,10 @@ func (u *TimeSell) BeforeCreate(scope *gorm.Scope) (err error) {
 
 //是满足所有的限时抢购的条件
 func (ts TimeSell) IsEnable() bool {
+
+	if ts.GoodsID == 0 {
+		return false
+	}
 	if ts.ID == 0 {
 		return false
 	}
@@ -774,6 +790,33 @@ func (ts TimeSell) IsEnable() bool {
 }
 func (TimeSell) TableName() string {
 	return "TimeSell"
+}
+
+//限时抢购
+type Collage struct {
+	BaseModel
+	OID      uint64 `gorm:"column:OID"`
+	Hash     string `gorm:"column:Hash"`     //同一个Hash表示同一个活动
+	Num      int    `gorm:"column:Num"`      //拼团人数
+	Discount int    `gorm:"column:Discount"` // 折扣
+	TotalNum int    `gorm:"column:TotalNum"` //总拼团产品数量
+	GoodsID  uint64 `gorm:"column:GoodsID"`
+}
+
+func (u *Collage) BeforeCreate(scope *gorm.Scope) (err error) {
+	if u.OID == 0 {
+		defer func() {
+			if err := recover(); err != nil {
+				debug.PrintStack()
+			}
+		}()
+		panic(errors.New(u.TableName() + ":OID不能为空"))
+		return nil
+	}
+	return nil
+}
+func (Collage) TableName() string {
+	return "Collage"
 }
 
 //优惠券
