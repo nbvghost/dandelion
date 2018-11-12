@@ -11,14 +11,10 @@ import (
 	"github.com/nbvghost/gweb/tool"
 )
 
-type TimeSell = TimeSellService
-type Collage = CollageService
-
 type GoodsService struct {
 	dao.BaseDao
-	OrdersGoods OrdersGoodsService
-	TimeSell    TimeSell
-	Collage     Collage
+	TimeSell TimeSellService
+	Collage  CollageService
 }
 
 func (service GoodsService) GetSpecification(ID uint64, target *dao.Specification) error {
@@ -41,7 +37,7 @@ func (service GoodsService) OrdersStockManager(orders dao.Orders, isMinus bool) 
 		Orm := dao.Orm()
 		//list []dao.OrdersGoods
 
-		list, _ := service.OrdersGoods.FindByOrdersID(Orm, orders.ID)
+		list, _ := GlobalService.Orders.FindOrdersGoodsByOrdersID(Orm, orders.ID)
 		for _, value := range list {
 			var specification dao.Specification
 			//service.Get(Orm, value.SpecificationID, &specification)
@@ -302,6 +298,7 @@ func (service GoodsService) DeleteGoodsTypeChild(GoodsTypeChildID uint64) *dao.A
 
 	return (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)
 }
+
 func (service GoodsService) DeleteTimeSellGoods(DB *gorm.DB, GoodsID uint64) error {
 	timesell := service.TimeSell.GetTimeSellByGoodsID(GoodsID)
 	err := service.Delete(DB, &dao.TimeSell{}, timesell.ID)

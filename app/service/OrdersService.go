@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+
 	"dandelion/app/play"
 	"dandelion/app/service/dao"
 
@@ -15,8 +17,6 @@ import (
 
 	"time"
 
-	"math"
-
 	"github.com/jinzhu/gorm"
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/tool"
@@ -30,7 +30,6 @@ type OrdersService struct {
 	Collage         CollageService
 	ExpressTemplate ExpressTemplateService
 	FullCut         FullCutService
-	OrdersGoods     OrdersGoodsService
 	User            UserService
 	Wx              WxService
 	Journal         JournalService
@@ -85,13 +84,14 @@ func (service OrdersService) RefundComplete(OrdersGoodsID, RefundType uint64) (e
 	var orders dao.Orders
 	service.Get(tx, ordersGoods.OrdersID, &orders)
 
-	RefundPrice := int64(ordersGoods.SellPrice) - int64(math.Floor(((float64(ordersGoods.SellPrice)*float64(ordersGoods.Quantity))/float64(orders.GoodsMoney)*float64(orders.DiscountMoney))+0.5))
+	//RefundPrice := int64(ordersGoods.SellPrice) - int64(math.Floor(((float64(ordersGoods.SellPrice)*float64(ordersGoods.Quantity))/float64(orders.GoodsMoney)*float64(orders.DiscountMoney))+0.5))
+	RefundPrice := ordersGoods.SellPrice * uint64(ordersGoods.Quantity)
 	if RefundPrice < 0 {
 		RefundPrice = 0
 	}
 	var RefundInfo dao.RefundInfo
 	util.JSONToStruct(ordersGoods.RefundInfo, &RefundInfo)
-	RefundInfo.RefundPrice = uint64(RefundPrice)
+	RefundInfo.RefundPrice = RefundPrice
 
 	err := service.ChangeMap(tx, OrdersGoodsID, &dao.OrdersGoods{}, map[string]interface{}{"RefundInfo": util.StructToJSON(&RefundInfo), "Status": play.OS_OGRefundComplete})
 	if err != nil {
@@ -105,13 +105,15 @@ func (service OrdersService) RefundComplete(OrdersGoodsID, RefundType uint64) (e
 		return errors.New(Message), ""
 	}
 
-	ogs, err := service.OrdersGoods.FindByOrdersID(tx, ordersGoods.OrdersID)
+	ogs, err := service.FindOrdersGoodsByOrdersID(tx, ordersGoods.OrdersID)
 	if err != nil {
 		tx.Rollback()
 		return err, ""
 	}
 	haveRefunc := false
+	//totalBrokerage := uint64(0)
 	for _, value := range ogs {
+		//totalBrokerage = totalBrokerage + (value.TotalBrokerage * uint64(value.Quantity))
 		if !strings.EqualFold(value.Status, play.OS_OGRefundComplete) && !strings.EqualFold(value.Status, "") {
 			haveRefunc = true
 			break
@@ -120,12 +122,19 @@ func (service OrdersService) RefundComplete(OrdersGoodsID, RefundType uint64) (e
 
 	if haveRefunc == false {
 		//orders 所有的子单品订单，已经全部退款成功。改orders为完成
-		err := service.ChangeMap(tx, orders.ID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_OrderOk})
+
+		//err := service.ChangeMap(tx, orders.ID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_OrderOk})
+		err := service.ChangeMap(tx, orders.ID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_RefundOk})
 		if err != nil {
 			tx.Rollback()
 			return err, ""
 		}
-
+		//扣除佣金
+		err = service.User.AfterSettlementUserBrokerage(tx, orders)
+		if err != nil {
+			tx.Rollback()
+			return err, ""
+		}
 	}
 
 	tx.Commit()
@@ -241,7 +250,7 @@ func (service OrdersService) TakeDeliver(OrdersID uint64) (error, string) {
 			return err, ""
 		}
 
-		ogs, err := service.OrdersGoods.FindByOrdersID(tx, orders.ID)
+		ogs, err := service.FindOrdersGoodsByOrdersID(tx, orders.ID)
 		if err != nil {
 			tx.Rollback()
 			return err, ""
@@ -534,6 +543,53 @@ func (service OrdersService) ListOrdersStatusCount(UserID uint64, Status []strin
 	db.Find(&orders).Count(&TotalRecords)
 	return
 }
+func (service OrdersService) ListCollageRecord(UserID uint64, Index int) (List interface{}) {
+	Orm := dao.Orm()
+
+	db := Orm.Raw(`
+SELECT
+o.ID AS OrdersID,cr.No,cr.UserID,cr.Collager,og.Favoured,og.Goods,og.Specification,o.IsPay AS IsPay,og.Quantity as Quantity,
+(SELECT mcr.CreatedAt FROM CollageRecord mcr WHERE mcr.NO=cr.NO AND mcr.Collager>0) AS CreatedAt,
+(SELECT COUNT(mo.IsPay) FROM CollageRecord mcr,Orders mo WHERE mcr.NO=cr.NO AND mo.OrderNo=mcr.OrderNo) AS COUNT,
+(SELECT SUM(mo.IsPay) FROM CollageRecord mcr,Orders mo WHERE mcr.NO=cr.NO AND mo.OrderNo=mcr.OrderNo) AS IsPaySUM
+FROM
+User u,Orders o,CollageRecord cr,OrdersGoods og
+WHERE
+cr.UserID=? AND u.ID=cr.UserID AND o.OrderNo=cr.OrderNo AND og.OrdersGoodsNo=cr.OrdersGoodsNo
+GROUP BY cr.No
+`, UserID)
+	//db := Orm.Raw("SELECT o.ID AS OrdersID,cr.No,cr.UserID,cr.Collager,cr.IsPay,sdf.*,og.Favoured,og.Goods,cr.CreatedAt as CreatedAt from User u,Orders o,CollageRecord cr,OrdersGoods og,(SELECT COUNT(cr.NO) AS COUNT,SUM(cr.IsPay) AS SUM FROM CollageRecord cr GROUP BY cr.NO) AS sdf WHERE cr.UserID=? AND u.ID=cr.UserID AND o.OrderNo=cr.OrderNo AND og.OrdersGoodsNo=cr.OrdersGoodsNo GROUP BY cr.No", UserID)
+
+	packs := []struct {
+		OrdersID      uint64    `gorm:"column:OrdersID"`
+		No            string    `gorm:"column:No"`
+		UserID        uint64    `gorm:"column:UserID"`
+		Collager      uint64    `gorm:"column:Collager"`
+		Favoured      string    `gorm:"column:Favoured"`
+		Goods         string    `gorm:"column:Goods"`
+		Specification string    `gorm:"column:Specification"`
+		IsPay         uint64    `gorm:"column:IsPay"`
+		Quantity      uint64    `gorm:"column:Quantity"`
+		CreatedAt     time.Time `gorm:"column:CreatedAt"`
+		COUNT         uint64    `gorm:"column:COUNT"`
+		IsPaySUM      uint64    `gorm:"column:SUM"`
+		//OrdersGoods dao.OrdersGoods
+	}{}
+	db = db.Limit(play.Paging).Offset(play.Paging * Index).Order("CreatedAt desc")
+	db.Scan(&packs)
+
+	fmt.Println(packs)
+	//var recordsTotal = 0
+	if Index >= 0 {
+		//db = db.Limit(play.Paging).Offset(play.Paging * Index).Order("CreatedAt desc").Offset(0).Count(&recordsTotal)
+		//db = db.Limit(play.Paging).Offset(play.Paging * Index).Order("CreatedAt desc")
+	} else {
+		//db = db.Order("CreatedAt desc").Count(&recordsTotal)
+		//db = db.Order("CreatedAt desc")
+	}
+
+	return packs
+}
 func (service OrdersService) ListOrders(UserID, OID uint64, PostType int, Status []string, Limit int, Offset int) (List []interface{}, TotalRecords int) {
 	Orm := dao.Orm()
 	var orders []dao.Orders
@@ -575,14 +631,18 @@ func (service OrdersService) ListOrders(UserID, OID uint64, PostType int, Status
 			Orders          dao.Orders
 			User            dao.User
 			OrdersGoodsList []dao.OrdersGoods
+			CollageUsers    []dao.User
 		}{}
 
 		pack.Orders = value
 
 		service.User.Get(Orm, value.UserID, &pack.User)
 
-		ogs, _ := service.OrdersGoods.FindByOrdersID(Orm, value.ID)
+		ogs, _ := service.FindOrdersGoodsByOrdersID(Orm, value.ID)
 		pack.OrdersGoodsList = ogs
+		//:todo 拼单
+		//og := ogs[0]
+		//pack.CollageUsers = service.FindOrdersGoodsByCollageUser(og.CollageNo)
 		results = append(results, pack)
 	}
 	return results, recordsTotal
@@ -762,6 +822,48 @@ func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders dao.Orders, pa
 
 }
 
+//拼单购买
+func (service OrdersService) BuyCollageOrders(Session *gweb.Session, UserID, GoodsID, SpecificationID uint64, Quantity uint) error {
+	Orm := dao.Orm()
+	var goods dao.Goods
+	var specification dao.Specification
+	//var expresstemplate dao.ExpressTemplate
+
+	err := service.Goods.Get(Orm, GoodsID, &goods)
+	if err != nil {
+		return err
+	}
+	err = service.Goods.Get(Orm, SpecificationID, &specification)
+	if err != nil {
+		return err
+	}
+	if specification.GoodsID != goods.ID {
+		return errors.New("产品与规格不匹配")
+	}
+
+	shoppingCart := dao.ShoppingCart{}
+	shoppingCart.Quantity = Quantity
+	shoppingCart.Specification = util.StructToJSON(specification)
+	shoppingCart.Goods = util.StructToJSON(goods)
+	shoppingCart.UserID = UserID
+
+	ordersGoods := service.createOrdersGoods(shoppingCart)
+
+	//ordersGoods.CollageNo = tool.UUID()
+	collage := service.Collage.GetCollageByGoodsID(goods.ID)
+	if collage.ID != 0 && collage.TotalNum > 0 {
+
+		favoured := dao.Favoured{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)}
+		ordersGoods.Favoured = util.StructToJSON(favoured)
+	}
+
+	ogs := make([]dao.OrdersGoods, 0)
+	ogs = append(ogs, ordersGoods)
+	Session.Attributes.Put(play.SessionConfirmOrders, &ogs)
+	return nil
+
+}
+
 //从商品外直接购买，生成OrdersGoods，添加到 play.SessionConfirmOrders
 func (service OrdersService) BuyOrders(Session *gweb.Session, UserID, GoodsID, SpecificationID uint64, Quantity uint) error {
 	Orm := dao.Orm()
@@ -797,6 +899,28 @@ func (service OrdersService) BuyOrders(Session *gweb.Session, UserID, GoodsID, S
 
 }
 
+//从购买车提交的订单，通过 ShoppingCart ID,生成  OrdersGoods 列表,添加到 play.SessionConfirmOrders
+func (service OrdersService) AddCartOrdersByShoppingCartIDs(Session *gweb.Session, UserID uint64, IDs []uint64) error {
+	//Orm := Orm()
+	//var scs []dao.ShoppingCart
+	scs := service.ShoppingCart.GetGSIDs(UserID, IDs)
+	/*err := Orm.Where(IDs).Find(&scs).Error
+	if err != nil {
+		return err
+	}*/
+	ogs := make([]dao.OrdersGoods, 0)
+	for _, value := range scs {
+
+		ordersGoods := service.createOrdersGoods(value)
+
+		ogs = append(ogs, ordersGoods)
+	}
+
+	Session.Attributes.Put(play.SessionConfirmOrders, &ogs)
+
+	return nil
+
+}
 func (service OrdersService) createOrdersGoods(shoppingCart dao.ShoppingCart) dao.OrdersGoods {
 	//Orm := Orm()
 
@@ -840,37 +964,29 @@ func (service OrdersService) createOrdersGoods(shoppingCart dao.ShoppingCart) da
 	ordersGoods.CostPrice = specification.MarketPrice
 	ordersGoods.SellPrice = specification.MarketPrice
 	ordersGoods.OrdersGoodsNo = tool.UUID()
-	ordersGoods.TotalBrokerage = uint64(ordersGoods.Quantity) * specification.Brokerage
 
-	/*ogi:=dao.OrdersGoodsInfo{}
-	ogi.OrdersGoods = ordersGoods
-	ogi.Favoureds = make([]dao.Favoured,0)
+	/*//限时抢购
+	timesell := service.TimeSell.GetTimeSellByGoodsID(goods.ID)
+	if timesell.IsEnable() {
+		favoured := dao.Favoured{Name: "限时抢购", Target: util.StructToJSON(timesell), TypeName: "TimeSell", Discount: uint64(timesell.Discount)}
+		ordersGoods.Favoured = util.StructToJSON(favoured)
+	}*/
 
+	/*if strings.EqualFold("Collage", Type) {
+		//拼单
+		ordersGoods.CollageNo = tool.UUID()
+		collage := service.Collage.GetCollageByGoodsID(goods.ID)
+		if collage.ID != 0 && collage.TotalNum > 0 {
 
-	service.TimeSell.Get(Orm, goods.TimeSellID, &timesell)
-	//抢购活动可用
-	tsEnable := timesell.IsEnable()
-	if tsEnable {
-
-		//ordersGoods.TimeSellID = timesell.ID
-		//ordersGoods.TimeSell = util.StructToJSON(timesell)
-		//ordersGoods.SellPrice = ordersGoods.SellPrice - (ordersGoods.SellPrice * (uint64(timesell.Discount) / 100)) //抢购销售价
-		ogi.Favoureds=append(ogi.Favoureds,dao.Favoured{Name:"限时抢购",TypeName:"TimeSell",TargetID:timesell.ID,DiscountPrice:ordersGoods.SellPrice * (uint64(timesell.Discount) / 100)})
-	}else{
-		//ordersGoods.TimeSellID = 0
-		//ordersGoods.TimeSell = util.StructToJSON(dao.TimeSell{})
-		//ogi.Favoureds=append(ogi.Favoureds,dao.Favoured{Name:"限时抢购",TypeName:"TimeSell",TargetID:timesell.ID,DiscountPrice:ordersGoods.SellPrice * (uint64(timesell.Discount) / 100)})
-
-		brokerageProvisoConf:=service.Configuration.GetConfiguration(play.ConfigurationKey_BrokerageProviso)
-		brokerageProvisoConfV,_:=strconv.ParseUint(brokerageProvisoConf.V,10,64)
-		if user.Growth>=brokerageProvisoConfV{
-			vipdiscountConf:=service.Configuration.GetConfiguration(play.ConfigurationKey_VIPDiscount)
-			vipres:=make(map[string]interface{})
-			vipres["VIPDiscount"],_=strconv.ParseUint(vipdiscountConf.V,10,64)
-			item["VIP"] = vipres
+			favoured := dao.Favoured{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)}
+			ordersGoods.Favoured = util.StructToJSON(favoured)
 		}
+	} else {
 
 	}*/
+
+	ordersGoods.OrdersGoodsNo = tool.UUID()
+	ordersGoods.TotalBrokerage = uint64(ordersGoods.Quantity) * specification.Brokerage
 
 	return ordersGoods
 }
@@ -1014,8 +1130,8 @@ func (service OrdersService) analyseOne(UserID, OID uint64, addressee dao.Addres
 			}
 		}
 
-		value.Goods = util.StructToJSON(goods)
-		value.Specification = util.StructToJSON(specification)
+		//value.Goods = util.StructToJSON(goods)
+		//value.Specification = util.StructToJSON(specification)
 
 		Price := specification.MarketPrice * uint64(value.Quantity)
 
@@ -1027,8 +1143,24 @@ func (service OrdersService) analyseOne(UserID, OID uint64, addressee dao.Addres
 		ogs.Favoured = dao.Favoured{}
 		//ogss
 
-		timesell := service.TimeSell.GetTimeSellByGoodsID(goods.ID)
+		var favoured dao.Favoured
+		if strings.EqualFold(value.Favoured, "") == false {
+			util.JSONToStruct(value.Favoured, &favoured)
+		}
 		//计算价格以及优惠
+		if favoured.Discount > 0 {
+			Price = uint64(util.Rounding45(float64(Price)-(float64(Price)*(float64(favoured.Discount)/float64(100))), 2))
+			GoodsPrice = GoodsPrice + Price
+			Favoured := uint64(util.Rounding45(float64(value.SellPrice)*(float64(favoured.Discount)/float64(100)), 2))
+			FavouredPrice = FavouredPrice + (Favoured * uint64(value.Quantity))
+			ogs.Favoured = favoured
+			value.SellPrice = value.SellPrice - Favoured
+		} else {
+			GoodsPrice = GoodsPrice + Price
+			FullCutPrice = FullCutPrice + Price
+		}
+
+		/*timesell := service.TimeSell.GetTimeSellByGoodsID(goods.ID)
 		if timesell.IsEnable() {
 
 			Price = uint64(util.Rounding45(float64(Price)-(float64(Price)*(float64(timesell.Discount)/float64(100))), 2))
@@ -1062,7 +1194,7 @@ func (service OrdersService) analyseOne(UserID, OID uint64, addressee dao.Addres
 				FullCutPrice = FullCutPrice + Price
 			}
 
-		}
+		}*/
 		ogs.OrdersGoods = *value
 		oggs = append(oggs, ogs)
 		//ogss=append(ogss,ogs)
@@ -1171,28 +1303,6 @@ func (service OrdersService) analyseOne(UserID, OID uint64, addressee dao.Addres
 
 }
 
-//从购买车提交的订单，通过 ShoppingCart ID,生成  OrdersGoods 列表,添加到 play.SessionConfirmOrders
-func (service OrdersService) AddCartOrdersByShoppingCartIDs(Session *gweb.Session, UserID uint64, IDs []uint64) error {
-	//Orm := Orm()
-	//var scs []dao.ShoppingCart
-	scs := service.ShoppingCart.GetGSIDs(UserID, IDs)
-	/*err := Orm.Where(IDs).Find(&scs).Error
-	if err != nil {
-		return err
-	}*/
-	ogs := make([]dao.OrdersGoods, 0)
-	for _, value := range scs {
-
-		ordersGoods := service.createOrdersGoods(value)
-
-		ogs = append(ogs, ordersGoods)
-	}
-
-	Session.Attributes.Put(play.SessionConfirmOrders, &ogs)
-
-	return nil
-
-}
 func (service OrdersService) AddCartOrders(UserID uint64, GoodsID, SpecificationID uint64, Quantity uint) error {
 	//Orm := dao.Orm()
 	shoppingCarts := service.ShoppingCart.FindShoppingCartByUserID(UserID)
@@ -1270,4 +1380,17 @@ func (service OrdersService) AddCartOrders(UserID uint64, GoodsID, Specification
 
 	return nil
 
+}
+func (service OrdersService) FindOrdersGoodsByOrdersID(DB *gorm.DB, OrdersID uint64) ([]dao.OrdersGoods, error) {
+	var ogs []dao.OrdersGoods
+	err := service.FindWhere(DB, &ogs, &dao.OrdersGoods{OrdersID: OrdersID})
+	return ogs, err
+}
+func (service OrdersService) FindOrdersGoodsByCollageUser(CollageNo string) []dao.User {
+	orm := dao.Orm()
+	var user []dao.User
+
+	orm.Raw("SELECT u.* FROM Orders o,OrdersGoods og,USER u WHERE og.CollageNo=? AND o.IsPay=1 and o.ID=og.OrdersID AND u.ID=o.UserID", CollageNo).Scan(&user)
+	//orm.Exec("SELECT u.* FROM Orders o,OrdersGoods og,USER u WHERE og.CollageNo=? AND o.ID=og.OrdersID AND u.ID=o.UserID", CollageNo).Find(&user)
+	return user
 }

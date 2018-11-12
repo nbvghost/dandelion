@@ -33,7 +33,7 @@ import (
 type WxService struct {
 	dao.BaseDao
 	//Admin service.AdminService
-	OrdersGoods OrdersGoodsService
+	Goods GoodsService
 }
 
 type TokenXML struct {
@@ -213,24 +213,13 @@ func (entity WxService) NewUserJoinNotify(NewUser dao.User, notifyUser dao.User)
 
 	userService := UserService{}
 
-	var as *dao.ActionStatus
+	as := &dao.ActionStatus{}
 
-	userFormID := userService.ListFromIDs(notifyUser.ID)
+	userFormID := userService.GetFromIDs(notifyUser.ID)
 	if userFormID.ID == 0 {
 		as.Success = false
 		as.Message = "没有找到，用户的formid"
 	} else {
-
-		for {
-
-			if time.Now().Unix()-userFormID.CreatedAt.Unix() > 7*24*60*60 {
-				userService.Delete(dao.Orm(), &dao.UserFormIds{}, userFormID.ID)
-				userFormID = userService.ListFromIDs(notifyUser.ID)
-			} else {
-				break
-			}
-
-		}
 
 		sendData := make(map[string]interface{})
 		sendData["touser"] = notifyUser.OpenID
@@ -293,7 +282,7 @@ func (entity WxService) OrderDeliveryNotify(Order dao.Orders) *dao.ActionStatus 
 	data_data["keyword1"] = map[string]interface{}{"value": Order.ShipName, "color": "#173177"}
 	data_data["keyword2"] = map[string]interface{}{"value": Order.ShipNo, "color": "#173177"}
 
-	ogs, err := entity.OrdersGoods.FindByOrdersID(dao.Orm(), Order.ID)
+	ogs, err := GlobalService.Orders.FindOrdersGoodsByOrdersID(dao.Orm(), Order.ID)
 	tool.CheckError(err)
 	var Titles = ""
 	for _, value := range ogs {
@@ -331,23 +320,12 @@ func (entity WxService) INComeNotify(slUser dao.User, itemName string, timeText 
 
 	var as = &dao.ActionStatus{Success: false}
 
-	userFormID := userService.ListFromIDs(slUser.ID)
+	userFormID := userService.GetFromIDs(slUser.ID)
 	if userFormID.ID == 0 {
 		as.Success = false
 		as.Message = "没有找到，用户的formid"
 
 	} else {
-
-		for {
-
-			if time.Now().Unix()-userFormID.CreatedAt.Unix() > 7*24*60*60 {
-				userService.Delete(dao.Orm(), &dao.UserFormIds{}, userFormID.ID)
-				userFormID = userService.ListFromIDs(slUser.ID)
-			} else {
-				break
-			}
-
-		}
 
 		sendData := make(map[string]interface{})
 		sendData["touser"] = slUser.OpenID
@@ -413,7 +391,7 @@ func (entity WxService) NewOrderNotify(Order dao.Orders) *dao.ActionStatus {
 
 	data_data["keyword6"] = map[string]interface{}{"value": strconv.Itoa(int(Order.PayMoney/100)) + "元", "color": "#173177"}
 
-	ogs, err := entity.OrdersGoods.FindByOrdersID(dao.Orm(), Order.ID)
+	ogs, err := GlobalService.Orders.FindOrdersGoodsByOrdersID(dao.Orm(), Order.ID)
 	tool.CheckError(err)
 	var Titles = ""
 	for _, value := range ogs {

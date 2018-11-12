@@ -18,15 +18,14 @@ import (
 
 type VerificationService struct {
 	dao.BaseDao
-	CardItem    CardItemService
-	Journal     JournalService
-	OrdersGoods OrdersGoodsService
-	Orders      OrdersService
-	ScoreGoods  ScoreGoodsService
-	Voucher     VoucherService
-	User        UserService
-	StoreStock  StoreStockService
-	Goods       GoodsService
+	CardItem   CardItemService
+	Journal    JournalService
+	Orders     OrdersService
+	ScoreGoods ScoreGoodsService
+	Voucher    VoucherService
+	User       UserService
+	StoreStock StoreStockService
+	Goods      GoodsService
 }
 
 //核销卡卷
@@ -70,7 +69,7 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 	if strings.EqualFold(cardItem.Type, play.CardItem_Type_OrdersGoods) {
 		//如果是商品订单结算门店佣金/结算用户上下级佣金
 		var ordersGoods dao.OrdersGoods
-		err = service.OrdersGoods.Get(DB, cardItem.OrdersGoodsID, &ordersGoods)
+		err = service.Goods.Get(DB, cardItem.OrdersGoodsID, &ordersGoods)
 		//err := util.StringToJSON(cardItem.Data, &ordersGoods)
 		if err != nil {
 			return err
@@ -137,7 +136,7 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 					return err
 				}
 
-				ogs, err := service.OrdersGoods.FindByOrdersID(DB, orders.ID)
+				ogs, err := service.Orders.FindOrdersGoodsByOrdersID(DB, orders.ID)
 				if err != nil {
 					return err
 				}

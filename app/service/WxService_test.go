@@ -6,37 +6,6 @@ import (
 	"testing"
 )
 
-func TestWxService_NewUserJoinNotify(t *testing.T) {
-	type fields struct {
-		BaseDao dao.BaseDao
-		User    UserService
-	}
-	type args struct {
-		NewUser dao.User
-	}
-	UserService := UserService{}
-
-	mUser := dao.User{}
-	UserService.Get(dao.Orm(), 1007, &mUser)
-
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *dao.ActionStatus
-	}{
-		{name: "fdsfdsf", fields: fields{BaseDao: dao.BaseDao{}, User: UserService}, args: args{NewUser: mUser}},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			entity := WxService{}
-			if got := entity.NewUserJoinNotify(tt.args.NewUser); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("WxService.NewUserJoinNotify() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestWxService_OrderDeliveryNotify(t *testing.T) {
 
 	Order := OrdersService{}.GetOrdersByID(2003)

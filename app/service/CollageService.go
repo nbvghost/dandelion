@@ -10,6 +10,7 @@ import (
 
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/tool"
+	"github.com/pkg/errors"
 )
 
 type CollageService struct {
@@ -80,6 +81,32 @@ func (service CollageService) GetCollageByGoodsID(GoodsID uint64) dao.Collage {
 	err := dao.Orm().Model(&dao.Collage{}).Where("GoodsID=?", GoodsID).First(&timesell).Error
 	tool.CheckError(err)
 	return timesell
+}
+func (service CollageService) AddCollageRecord(OrderNo, OrdersGoodsNo, No string, UserID uint64) error {
+	cr := &dao.CollageRecord{}
+	cr.No = No
+	cr.OrderNo = OrderNo
+	cr.UserID = UserID
+	cr.OrdersGoodsNo = OrdersGoodsNo
+	if strings.EqualFold(No, "") {
+		cr.No = tool.UUID()
+		cr.Collager = UserID
+	} else {
+		cr.No = No
+		cr.Collager = 0
+		_cr := service.FindCollageRecordByUserIDAndNo(UserID, No)
+		if _cr.ID != 0 {
+			return errors.New("您已经参加了这个活动，看看其它活动吧！")
+		}
+	}
+	return service.Add(dao.Orm(), cr)
+}
+func (service CollageService) FindCollageRecordByUserIDAndNo(UserID uint64, No string) dao.CollageRecord {
+	Orm := dao.Orm()
+	var cr dao.CollageRecord
+	Orm.Model(&dao.CollageRecord{}).Where("UserID=? and No=?").First(&cr)
+	return cr
+
 }
 func (service CollageService) SaveItem(context *gweb.Context) gweb.Result {
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)

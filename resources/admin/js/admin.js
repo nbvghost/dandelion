@@ -1309,6 +1309,7 @@ main.controller("order_list_controller",function ($http,$filter,$scope, $rootSco
         {lable:"待发货",status:"Pay"},
         {lable:"待收货",status:"Deliver"},
         {lable:"申请退货退款",status:"Refund"},
+        {lable:"已完成退货",status:"RefundOk"},
         {lable:"订单完成",status:"OrderOk"},
         {lable:"申请订单取消",status:"Cancel"},
         {lable:"已取消",status:"CancelOk"}

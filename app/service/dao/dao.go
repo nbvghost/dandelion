@@ -1,6 +1,8 @@
 package dao
 
 import (
+	"fmt"
+	"sort"
 	"time"
 
 	"dandelion/app/play"
@@ -34,8 +36,10 @@ func init() {
 	_database, err = gorm.Open("mysql", conf.Config.DBUrl)
 	tool.CheckError(err)
 
-	_database.Debug()
-	_database.LogMode(true)
+	if conf.Config.Debug {
+		_database.Debug()
+		_database.LogMode(true)
+	}
 
 	_database.Exec("SET NAMES utf8mb4")
 	_database.Exec("SET GLOBAL GROUP_CONCAT_MAX_LEN=1844674407370954752")
@@ -45,13 +49,33 @@ func init() {
 	tool.CheckError(err)
 	go func() {
 
-		/*for {
+		for {
 			// Show PROFILES;
 			var profilings []Profiling
 			_database.Raw("Show PROFILES").Scan(&profilings)
-			fmt.Println(profilings[len(profilings)-1])
+			if len(profilings) > 1 {
+
+				list := &tool.List{}
+				for k := range profilings {
+					list.Append(profilings[k])
+				}
+				list.SortFunc = func(i, j int) bool {
+					a := list.Collection[i].(Profiling)
+					b := list.Collection[j].(Profiling)
+
+					if a.Duration > b.Duration {
+						return true
+					} else {
+						return false
+					}
+
+				}
+				sort.Sort(list)
+				fmt.Println(list.Collection[0])
+
+			}
 			time.Sleep(3 * time.Second)
-		}*/
+		}
 
 	}()
 
@@ -110,6 +134,9 @@ func (as *ActionStatus) SmartData(success bool, s string, f string, data interfa
 	return as
 }
 
+type BaseModelInterface interface {
+	TableName() string
+}
 type BaseModel struct {
 	ID        uint64     `gorm:"column:ID;primary_key;unique"` //条目ID
 	CreatedAt time.Time  `gorm:"column:CreatedAt"`             //登陆日期

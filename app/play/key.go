@@ -49,6 +49,7 @@ const (
 	OS_Pay      = "Pay"      // pay=支付成功，待发货
 	OS_Deliver  = "Deliver"  // deliver=发货成功，待收货
 	OS_Refund   = "Refund"   // Refund=订单退款退货中->所有子商品状态为空或OGRefundOK->返回Deliver状态
+	OS_RefundOk = "RefundOk" // Orders 下的所有ordergoods 全部退款，orders 改为 RefundOk
 	OS_OrderOk  = "OrderOk"  // order_ok=订单确认完成
 	OS_Cancel   = "Cancel"   //订单等待取消
 	OS_CancelOk = "CancelOk" //订单已经取消

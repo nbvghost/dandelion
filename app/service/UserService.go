@@ -1,16 +1,16 @@
 package service
 
 import (
-	"dandelion/app/service/dao"
-	"dandelion/app/util"
 	"errors"
-	"fmt"
-	"strings"
-
-	"dandelion/app/play"
 	"math"
 	"strconv"
+	"strings"
 	"time"
+
+	"dandelion/app/service/dao"
+	"dandelion/app/util"
+
+	"dandelion/app/play"
 
 	"github.com/jinzhu/gorm"
 	"github.com/nbvghost/gweb"
@@ -24,7 +24,7 @@ type UserService struct {
 	CardItem      CardItemService
 	Organization  OrganizationService
 	Wx            WxService
-	OrdersGoods   OrdersGoodsService
+	Goods         GoodsService
 }
 
 func (service UserService) Situation(StartTime, EndTime int64) interface{} {
@@ -48,9 +48,20 @@ func (service UserService) Situation(StartTime, EndTime int64) interface{} {
 	result.OnlineCount = len(gweb.Sessions.Data)
 	return result
 }
-func (service UserService) ListFromIDs(UserID uint64) dao.UserFormIds {
+func (service UserService) GetFromIDs(UserID uint64) dao.UserFormIds {
 	var result dao.UserFormIds
-	dao.Orm().Table("UserFormIds").Where("UserID=?", UserID).Order("CreatedAt asc").First(&result)
+	for {
+		dao.Orm().Table("UserFormIds").Where("UserID=?", UserID).Order("CreatedAt asc").First(&result)
+		if result.ID == 0 {
+			break
+		}
+		if result.CreatedAt.Add(7*24*time.Hour).Unix() < time.Now().Unix() {
+			service.Delete(dao.Orm(), &dao.UserFormIds{}, result.ID)
+		} else {
+			break
+		}
+	}
+
 	return result
 }
 func (service UserService) AddUserBlockAmount(Orm *gorm.DB, UserID uint64, Menoy int64) error {
@@ -74,7 +85,7 @@ func (service UserService) MinusSettlementUserBrokerage(tx *gorm.DB, orders dao.
 	//用户自己。下单者
 	//Orm:=dao.Orm()
 
-	ogs, err := service.OrdersGoods.FindByOrdersID(tx, orders.ID)
+	ogs, err := GlobalService.Orders.FindOrdersGoodsByOrdersID(tx, orders.ID)
 	var Brokerage uint64
 	for _, value := range ogs {
 		//var specification dao.Specification
@@ -121,6 +132,62 @@ func (service UserService) MinusSettlementUserBrokerage(tx *gorm.DB, orders dao.
 
 	return err
 }
+
+//如果订单未完成，或是退款，扣除相应的冻结金额，不用结算，佣金
+func (service UserService) AfterSettlementUserBrokerage(tx *gorm.DB, orders dao.Orders) error {
+	var err error
+	//用户自己。下单者
+	//Orm:=dao.Orm()
+
+	//var orders dao.Orders
+	//service.Get(Orm, OrderID, &orders)
+
+	ogs, err := GlobalService.Orders.FindOrdersGoodsByOrdersID(tx, orders.ID)
+	var Brokerage uint64
+	for _, value := range ogs {
+		//var specification dao.Specification
+		//util.JSONToStruct(value.Specification, &specification)
+		Brokerage = Brokerage + value.TotalBrokerage
+	}
+
+	var user dao.User
+	service.Get(tx, orders.UserID, &user)
+
+	leve1, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve1).V, 10, 64)
+	leve2, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve2).V, 10, 64)
+	leve3, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve3).V, 10, 64)
+	leve4, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve4).V, 10, 64)
+	leve5, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve5).V, 10, 64)
+	leve6, _ := strconv.ParseUint(service.Configuration.GetConfiguration(orders.OID, play.ConfigurationKey_BrokerageLeve6).V, 10, 64)
+
+	leves := []uint64{leve1, leve2, leve3, leve4, leve5, leve6}
+
+	//var OutBrokerageMoney int64 = 0
+	for _, value := range leves {
+		if value <= 0 {
+			break
+		}
+		var _user dao.User
+		service.Get(tx, user.SuperiorID, &_user)
+		if _user.ID <= 0 {
+			return nil
+		}
+		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
+		err = service.AddUserBlockAmount(tx, _user.ID, -leveMenoy)
+		if err != nil {
+			tool.CheckError(err)
+			continue
+		}
+		//OutBrokerageMoney = OutBrokerageMoney + leveMenoy
+		//workTime := time.Now().Unix() - orders.CreatedAt.Unix()
+
+		//service.Wx.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，预计现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "预计收入："+strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64)+"元")
+		//fmt.Println("预计收入：" + strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64) + "元")
+		user = _user
+	}
+
+	return err
+}
 func (service UserService) FirstSettlementUserBrokerage(tx *gorm.DB, orders dao.Orders) error {
 	var err error
 	//用户自己。下单者
@@ -129,7 +196,7 @@ func (service UserService) FirstSettlementUserBrokerage(tx *gorm.DB, orders dao.
 	//var orders dao.Orders
 	//service.Get(Orm, OrderID, &orders)
 
-	ogs, err := service.OrdersGoods.FindByOrdersID(tx, orders.ID)
+	ogs, err := GlobalService.Orders.FindOrdersGoodsByOrdersID(tx, orders.ID)
 	var Brokerage uint64
 	for _, value := range ogs {
 		//var specification dao.Specification
@@ -162,13 +229,14 @@ func (service UserService) FirstSettlementUserBrokerage(tx *gorm.DB, orders dao.
 		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
 		err = service.AddUserBlockAmount(tx, _user.ID, leveMenoy)
 		if err != nil {
-			return err
+			tool.CheckError(err)
+			continue
 		}
 		//OutBrokerageMoney = OutBrokerageMoney + leveMenoy
 		workTime := time.Now().Unix() - orders.CreatedAt.Unix()
 
 		service.Wx.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，预计现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "预计收入："+strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64)+"元")
-		fmt.Println("预计收入：" + strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64) + "元")
+		//fmt.Println("预计收入：" + strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64) + "元")
 		user = _user
 	}
 
@@ -242,27 +310,31 @@ func (service UserService) SettlementUser(Orm *gorm.DB, Brokerage uint64, orders
 		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
 		err = Journal.AddUserJournal(Orm, _user.ID, "佣金", strconv.Itoa(index+1)+"级用户", play.UserJournal_Type_LEVE, leveMenoy, dao.KV{Key: "OrdersID", Value: orders.ID}, user.ID)
 		if err != nil {
-			return err
+			tool.CheckError(err)
+			continue
 		}
 
 		err = service.AddUserBlockAmount(Orm, _user.ID, -leveMenoy)
 		if err != nil {
-			return err
+			tool.CheckError(err)
+			continue
 		}
 
 		err = Journal.AddOrganizationJournal(Orm, orders.OID, "商品交易", "推广佣金"+_user.Name, play.OrganizationJournal_Brokerage, -leveMenoy, dao.KV{Key: "OrdersID", Value: orders.ID})
 		if err != nil {
-			return err
+			tool.CheckError(err)
+			continue
 		}
 
 		err = Journal.AddScoreJournal(Orm, _user.ID, "积分", "佣金积分", play.ScoreJournal_Type_LEVE, int64(leveMenoy), dao.KV{Key: "OrdersID", Value: orders.ID})
 		if err != nil {
-			return err
+			tool.CheckError(err)
+			continue
 		}
 
 		workTime := time.Now().Unix() - orders.CreatedAt.Unix()
 
-		service.Wx.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "收入："+strconv.FormatFloat(float64(leveMenoy/100), 'f', 2, 64)+"元")
+		service.Wx.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "收入："+strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64)+"元")
 
 		user = _user
 	}

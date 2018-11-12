@@ -142,15 +142,23 @@ func IsMobile(context *gweb.Context) bool {
 	}
 }
 func GetIP(context *gweb.Context) string {
-	IP := context.Request.Header.Get("X-Forwarded-For")
+	//fmt.Println(context.Request)
+	//fmt.Println(context.Request.Header.Get("X-Forwarded-For"))
+	//fmt.Println(context.Request.RemoteAddr)
+	//Ali-Cdn-Real-Ip
+	IP := context.Request.Header.Get("Ali-Cdn-Real-Ip")
 	if strings.EqualFold(IP, "") {
-		text := context.Request.RemoteAddr
-		if strings.Contains(text, "::") {
-			IP = "0.0.0.0"
-		} else {
-			IP = strings.Split(text, ":")[0]
-		}
+		//_IP := context.Request.Header.Get("X-Forwarded-For")
 
+		IP = strings.Split(context.Request.Header.Get("X-Forwarded-For"), ",")[0]
+		if strings.EqualFold(IP, "") {
+			text := context.Request.RemoteAddr
+			if strings.Contains(text, "::") {
+				IP = "0.0.0.0"
+			} else {
+				IP = strings.Split(text, ":")[0]
+			}
+		}
 	}
 	return IP
 }

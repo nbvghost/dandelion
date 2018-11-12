@@ -50,7 +50,6 @@ type Controller struct {
 	FullCut       service.FullCutService
 	ShoppingCart  service.ShoppingCartService
 	ScoreGoods    service.ScoreGoodsService
-	OrdersGoods   service.OrdersGoodsService
 	Rank          service.RankService
 	CardItem      service.CardItemService
 	Wx            service.WxService

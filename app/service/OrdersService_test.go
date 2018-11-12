@@ -1,8 +1,10 @@
 package service
 
 import (
+	"dandelion/app/service/dao"
 	"fmt"
 	"math"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -65,4 +67,55 @@ func TestOrdersService_AnalyseOrdersGoodsList(t *testing.T) {
 
 	fmt.Println(oos.AnalyseOrdersGoodsList(address, list))*/
 
+}
+
+func TestOrdersService_FindOrdersGoodsByCollageUser(t *testing.T) {
+
+	type args struct {
+		CollageNo string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []dao.User
+	}{
+		{name: "test", args: struct{ CollageNo string }{CollageNo: "9d262ef3926bc83f41258410239ce5ba"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			service := OrdersService{}
+			if got := service.FindOrdersGoodsByCollageUser(tt.args.CollageNo); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("OrdersService.FindOrdersGoodsByCollageUser() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestOrdersService_ListCollageRecord(t *testing.T) {
+
+	type args struct {
+		UserID int
+		Index  int
+	}
+	tests := []struct {
+		name             string
+		args             args
+		wantList         interface{}
+		wantTotalRecords int
+	}{
+		{name: "dsfsd", args: struct {
+			UserID int
+			Index  int
+		}{UserID: 1000, Index: 0}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			service := OrdersService{}
+			gotList := service.ListCollageRecord(tt.args.UserID, tt.args.Index)
+			if !reflect.DeepEqual(gotList, tt.wantList) {
+				t.Errorf("OrdersService.ListCollageRecord() gotList = %v, want %v", gotList, tt.wantList)
+			}
+
+		})
+	}
 }

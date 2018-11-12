@@ -417,7 +417,7 @@ type OrdersGoods struct {
 	Goods         string `gorm:"column:Goods;type:LONGTEXT"`         //josn
 	Specification string `gorm:"column:Specification;type:LONGTEXT"` //json
 	Favoured      string `gorm:"column:Favoured;type:LONGTEXT"`
-	CollageNo     string `gorm:"column:CollageNo"` //拼团码，每个订单都是唯一
+	//CollageNo     string `gorm:"column:CollageNo"` //拼团码，每个订单都是唯一
 	//TimeSellID     uint64 `gorm:"column:TimeSellID"`             //限时抢购ID
 	//TimeSell       string `gorm:"column:TimeSell;type:LONGTEXT"` //json
 	Quantity       uint   `gorm:"column:Quantity"`       //数量
@@ -792,7 +792,22 @@ func (TimeSell) TableName() string {
 	return "TimeSell"
 }
 
-//限时抢购
+//拼团记录
+type CollageRecord struct {
+	BaseModel
+	OrderNo       string `gorm:"column:OrderNo"`
+	OrdersGoodsNo string `gorm:"column:OrdersGoodsNo"`
+	No            string `gorm:"column:No"`
+	UserID        uint64 `gorm:"column:UserID"`
+	Collager      uint64 `gorm:"column:Collager"`
+	//IsPay         uint64 `gorm:"column:IsPay"` //是否支付成功：0=未支付，1=支付成功
+}
+
+func (CollageRecord) TableName() string {
+	return "CollageRecord"
+}
+
+//拼团
 type Collage struct {
 	BaseModel
 	OID      uint64 `gorm:"column:OID"`

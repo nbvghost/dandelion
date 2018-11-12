@@ -3,6 +3,7 @@ package order
 import (
 	"dandelion/app/play"
 	"dandelion/app/service/dao"
+	"math"
 	"strconv"
 
 	"errors"
@@ -20,16 +21,18 @@ type OrderController struct {
 	gweb.BaseController
 	ShoppingCart    service.ShoppingCartService
 	Orders          service.OrdersService
-	OrdersGoods     service.OrdersGoodsService
 	Wx              service.WxService
 	ExpressTemplate service.ExpressTemplateService
 	Organization    service.OrganizationService
+	Goods           service.GoodsService
+	Collage         service.CollageService
 }
 
 func (controller *OrderController) Apply() {
 
 	controller.AddHandler(gweb.POSMethod("/add", controller.ordersAddAction))
 	controller.AddHandler(gweb.POSMethod("/buy", controller.ordersBuyAction))
+	controller.AddHandler(gweb.POSMethod("/buy/collage", controller.ordersBuyCollageAction))
 	controller.AddHandler(gweb.GETMethod("/cart/list", controller.ordersCartListAction))
 	controller.AddHandler(gweb.POSMethod("/cart/delete", controller.ordersCartDeleteAction))
 	controller.AddHandler(gweb.POSMethod("/cart/change", controller.ordersCartChangeAction))
@@ -40,6 +43,7 @@ func (controller *OrderController) Apply() {
 	controller.AddHandler(gweb.GETMethod("/list", controller.ordersListAction))
 	controller.AddHandler(gweb.GETMethod("/:ID/get", controller.ordersGetListAction))
 	controller.AddHandler(gweb.PUTMethod("/change", controller.orderChangeAction))
+	controller.AddHandler(gweb.GETMethod("/collage/record", controller.collageRecordAction))
 	controller.AddHandler(gweb.PUTMethod("/express/info", controller.expressInfoAction))
 }
 func (controller *OrderController) ordersWxpayPackageAction(context *gweb.Context) gweb.Result {
@@ -150,13 +154,14 @@ func (controller *OrderController) ordersListAction(context *gweb.Context) gweb.
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	Status := context.Request.URL.Query().Get("Status")
+	Index, _ := strconv.Atoi(context.Request.URL.Query().Get("Index"))
 
 	var StatusList []string
 	if !strings.EqualFold(Status, "") {
 		StatusList = strings.Split(Status, ",")
 	}
 
-	list, _ := controller.Orders.ListOrders(user.ID, 0, 0, StatusList, 0, 0)
+	list, _ := controller.Orders.ListOrders(user.ID, 0, 0, StatusList, 10, 10*Index)
 	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: list}}
 	//fullcuts := controller.FullCut.FindOrderByAmountASC(service.Orm)
 	//return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "", fullcuts)}
@@ -168,12 +173,20 @@ func (controller *OrderController) ordersGetListAction(context *gweb.Context) gw
 	pack := struct {
 		Orders          dao.Orders
 		OrdersGoodsList []dao.OrdersGoods
+		CollageUsers    []dao.User
 	}{}
 	pack.Orders = controller.Orders.GetOrdersByID(ID)
-	pack.OrdersGoodsList, _ = controller.OrdersGoods.FindByOrdersID(dao.Orm(), pack.Orders.ID)
+
+	pack.OrdersGoodsList, _ = controller.Orders.FindOrdersGoodsByOrdersID(dao.Orm(), pack.Orders.ID)
+
+	//:todo ----
+	//og := pack.OrdersGoodsList[0]
+	//pack.CollageUsers = controller.Orders.FindOrdersGoodsByCollageUser(og.CollageNo)
+	//SELECT u.* FROM Orders o,OrdersGoods og,USER u WHERE og.CollageNo='9d262ef3926bc83f41258410239ce5ba' AND o.ID=og.OrdersID AND u.ID=o.UserID;
 
 	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: pack}}
 }
+
 func (controller *OrderController) createOrdersAction(context *gweb.Context) gweb.Result {
 
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
@@ -182,11 +195,13 @@ func (controller *OrderController) createOrdersAction(context *gweb.Context) gwe
 	context.Request.ParseForm()
 
 	_TotalPrice, _ := strconv.ParseUint(context.Request.FormValue("TotalPrice"), 10, 64)
-	//_FullCutPrice, _ := strconv.ParseUint(context.Request.FormValue("FullCutPrice"), 10, 64)
-	//_GoodsPrice, _ := strconv.ParseUint(context.Request.FormValue("GoodsPrice"), 10, 64)
-	//_ExpressPrice, _ := strconv.ParseUint(context.Request.FormValue("ExpressPrice"), 10, 64)
 	PostType, _ := strconv.ParseInt(context.Request.FormValue("PostType"), 10, 64)
 	AddressTxt := context.Request.FormValue("Address")
+
+	Type := context.Request.FormValue("Type") //Buy，Collage，Add
+	No := context.Request.FormValue("No")
+	//fmt.Println(Type, No)
+
 	address := dao.Address{}
 	util.JSONToStruct(AddressTxt, &address)
 
@@ -194,9 +209,11 @@ func (controller *OrderController) createOrdersAction(context *gweb.Context) gwe
 
 	if _TotalPrice == TotalPrice && Error == nil {
 		//controller.Orders.AddOrdersPackage(tool.UUID(),)
-
+		orderList := make([]dao.Orders, 0)
+		OutResult := make(map[string]interface{})
+		OrdersGoodsLen := float64(0)
+		OrdersGoodsNo := ""
 		if len(results) > 1 {
-			orderList := make([]dao.Orders, 0)
 
 			err, op := controller.Orders.AddOrdersPackage(TotalPrice, user.ID)
 			if err != nil {
@@ -205,6 +222,8 @@ func (controller *OrderController) createOrdersAction(context *gweb.Context) gwe
 			for _, value := range results {
 
 				oggs := value["OrdersGoodsInfos"].([]dao.OrdersGoodsInfo)
+				OrdersGoodsLen = math.Max(float64(OrdersGoodsLen), float64(len(oggs)))
+
 				//result["OrdersGoodsInfos"]=oggs
 				FavouredPrice := value["FavouredPrice"].(uint64)
 				FullCutAll := value["FullCutAll"].(uint64)
@@ -237,17 +256,16 @@ func (controller *OrderController) createOrdersAction(context *gweb.Context) gwe
 				orderList = append(orderList, orders)
 			}
 
-			OutResult := make(map[string]interface{})
 			OutResult["OrderNo"] = op.OrderNo
 			OutResult["OrderCount"] = len(orderList)
-			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", OutResult)}
-		} else {
 
-			orderList := make([]dao.Orders, 0)
+		} else {
 
 			for _, value := range results {
 
 				oggs := value["OrdersGoodsInfos"].([]dao.OrdersGoodsInfo)
+				OrdersGoodsNo = oggs[0].OrdersGoods.OrdersGoodsNo
+				OrdersGoodsLen = math.Max(float64(OrdersGoodsLen), float64(len(oggs)))
 				//result["OrdersGoodsInfos"]=oggs
 				FavouredPrice := value["FavouredPrice"].(uint64)
 				FullCutAll := value["FullCutAll"].(uint64)
@@ -280,18 +298,38 @@ func (controller *OrderController) createOrdersAction(context *gweb.Context) gwe
 				orderList = append(orderList, orders)
 			}
 
-			OutResult := make(map[string]interface{})
 			OutResult["OrderNo"] = orderList[0].OrderNo
 			OutResult["OrderCount"] = len(orderList)
-			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", OutResult)}
 
 		}
+		//拼团
+		//Buy，Collage，Add
+		if strings.EqualFold(Type, "Collage") {
+
+			if OrdersGoodsLen != 1 || len(orderList) != 1 {
+				return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("订单数据有误，无法拼团"), "OK", nil)}
+			} else {
+
+				OrderNo := OutResult["OrderNo"].(string)
+				err := controller.Collage.AddCollageRecord(OrderNo, OrdersGoodsNo, No, user.ID)
+				return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
+				//return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
+			}
+
+		}
+
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", OutResult)}
 
 	} else {
 		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: Error.Error(), Data: nil}}
 	}
 }
-
+func (controller *OrderController) collageRecordAction(context *gweb.Context) gweb.Result {
+	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
+	Index, _ := strconv.Atoi(context.Request.URL.Query().Get("Index"))
+	list := controller.Orders.ListCollageRecord(user.ID, Index)
+	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: list}}
+}
 func (controller *OrderController) ordersConfirmListAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
 
@@ -343,10 +381,27 @@ func (controller *OrderController) ordersCartListAction(context *gweb.Context) g
 	err, list, _ := controller.ShoppingCart.FindShoppingCartListDetails(user.ID)
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", list)}
 }
+func (controller *OrderController) ordersBuyCollageAction(context *gweb.Context) gweb.Result {
+	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
+	context.Request.ParseForm()
+	//No := context.Request.FormValue("No")
+	GoodsID, _ := strconv.ParseUint(context.Request.FormValue("GoodsID"), 10, 64)
+	SpecificationID, _ := strconv.ParseUint(context.Request.FormValue("SpecificationID"), 10, 64)
+	Quantity, _ := strconv.ParseUint(context.Request.FormValue("Quantity"), 10, 64)
+
+	if GoodsID != 0 && SpecificationID != 0 && Quantity != 0 {
+		err := controller.Orders.BuyCollageOrders(context.Session, user.ID, GoodsID, SpecificationID, uint(Quantity))
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "立即购买", nil)}
+	} else {
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("订单数据出错"), "", nil)}
+	}
+	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("订单数据出错"), "", nil)}
+}
 func (controller *OrderController) ordersBuyAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
 	context.Request.ParseForm()
 	_GSIDs := context.Request.FormValue("GSIDs")
+	//Type := context.Request.FormValue("Type")
 	GoodsID, _ := strconv.ParseUint(context.Request.FormValue("GoodsID"), 10, 64)
 	SpecificationID, _ := strconv.ParseUint(context.Request.FormValue("SpecificationID"), 10, 64)
 	Quantity, _ := strconv.ParseUint(context.Request.FormValue("Quantity"), 10, 64)

@@ -11,8 +11,8 @@ import (
 
 type CardItemService struct {
 	dao.BaseDao
-	OrdersGoods OrdersGoodsService
-	Voucher     VoucherService
+	Voucher VoucherService
+	Goods   GoodsService
 }
 
 func (service CardItemService) ListNewCount(UserID uint64) (TotalRecords int) {
@@ -34,7 +34,7 @@ func (service CardItemService) ListNewCount(UserID uint64) (TotalRecords int) {
 }
 func (service CardItemService) CancelOrdersGoodsCardItem(DB *gorm.DB, UserID, OrdersID uint64) error {
 
-	ogs, err := service.OrdersGoods.FindByOrdersID(DB, OrdersID)
+	ogs, err := GlobalService.Orders.FindOrdersGoodsByOrdersID(DB, OrdersID)
 
 	if err != nil {
 		return err
