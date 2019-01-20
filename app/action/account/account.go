@@ -38,7 +38,6 @@ type Controller struct {
 func (controller *Controller) Apply() {
 	//controller.Interceptors.Add(&InterceptorManager{})
 	//Index.RequestMapping = make(map[string]mvc.Function)
-	controller.AddHandler(gweb.ALLMethod("*", controller.defaultPage))
 
 	controller.AddHandler(gweb.ALLMethod("loginAdminPage", controller.loginAdminPage))
 	controller.AddHandler(gweb.ALLMethod("loginManagerPage", controller.loginManagerPage))

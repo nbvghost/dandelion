@@ -62,29 +62,27 @@ type Controller struct {
 func (controller *Controller) Apply() {
 	controller.Interceptors.Add(&InterceptorMp{})
 
-	controller.AddHandler(gweb.ALLMethod("", controller.rootPage))
-	controller.AddHandler(gweb.ALLMethod("*", controller.defaultPage))
 	controller.AddHandler(gweb.ALLMethod("index", controller.indexPage))
 
 	controller.AddHandler(gweb.GETMethod("get_login_user", controller.getLoginUserAction))
 	controller.AddHandler(gweb.POSMethod("get_login_user_phone", controller.getLoginUserPhoneAction))
 	controller.AddHandler(gweb.GETMethod("goods_type/list", controller.goodsTypeListAction))
-	controller.AddHandler(gweb.GETMethod("goods_type/child/:GoodsTypeID/list", controller.goodsTypeChildListByGoodsTypeIDAction))
+	controller.AddHandler(gweb.GETMethod("goods_type/child/{GoodsTypeID}/list", controller.goodsTypeChildListByGoodsTypeIDAction))
 
-	controller.AddHandler(gweb.GETMethod("goods/child/:GoodsTypeID/:GoodsTypeChildID/list", controller.goodsChildByGoodsTypeIDAction))
-	controller.AddHandler(gweb.GETMethod("goods/get/:ID", controller.goodsByGoodsIDAction))
+	controller.AddHandler(gweb.GETMethod("goods/child/{GoodsTypeID}/{GoodsTypeChildID}/list", controller.goodsChildByGoodsTypeIDAction))
+	controller.AddHandler(gweb.GETMethod("goods/get/{ID}", controller.goodsByGoodsIDAction))
 	controller.AddHandler(gweb.GETMethod("goods/hot/list", controller.goodsHotListAction))
 	controller.AddHandler(gweb.GETMethod("goods/all/list", controller.goodsAllListAction))
 
 	controller.AddHandler(gweb.GETMethod("score_goods/list", controller.scoreGoodsListAction))
-	controller.AddHandler(gweb.GETMethod("score_goods/exchange/:ScoreGoodsID", controller.scoreGoodsExchangeAction))
+	controller.AddHandler(gweb.GETMethod("score_goods/exchange/{ScoreGoodsID}", controller.scoreGoodsExchangeAction))
 	//controller.AddHandler(gweb.GETMethod("fullcut/list", controller.fullcutListAction))
 
 	controller.AddHandler(gweb.GETMethod("share/score", controller.shareScoreAction))
 
 	controller.AddHandler(gweb.GETMethod("card/list", controller.cardListAction))
-	controller.AddHandler(gweb.GETMethod("card/get/:CardItemID", controller.cardGetAction))
-	controller.AddHandler(gweb.GETMethod("verification/get/:VerificationNo", controller.verificationGetByVerificationNoAction))
+	controller.AddHandler(gweb.GETMethod("card/get/{CardItemID}", controller.cardGetAction))
+	controller.AddHandler(gweb.GETMethod("verification/get/{VerificationNo}", controller.verificationGetByVerificationNoAction))
 
 	controller.AddHandler(gweb.POSMethod("configuration/list", controller.configurationListAction))
 	controller.AddHandler(gweb.GETMethod("read/share/key", controller.readShareKeyAction))

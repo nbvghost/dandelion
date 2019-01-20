@@ -57,8 +57,7 @@ type Controller struct {
 func (controller *Controller) Apply() {
 	//Index.RequestMapping = make(map[string]mvc.Function)
 	controller.Interceptors.Add(&InterceptorManager{})
-	controller.AddHandler(gweb.ALLMethod("", controller.rootPage))
-	controller.AddHandler(gweb.ALLMethod("*", controller.defaultPage))
+
 	controller.AddHandler(gweb.ALLMethod("index", controller.indexPage))
 	controller.AddHandler(gweb.ALLMethod("articlePage", controller.articlePage))
 	controller.AddHandler(gweb.ALLMethod("article", controller.articleAction))
@@ -67,7 +66,7 @@ func (controller *Controller) Apply() {
 
 	controller.AddHandler(gweb.POSMethod("rank/add", controller.rankAddAction))
 	controller.AddHandler(gweb.POSMethod("rank/list", controller.rankListAction))
-	controller.AddHandler(gweb.DELMethod("rank/:RankID", controller.rankDeleteAction))
+	controller.AddHandler(gweb.DELMethod("rank/{RankID}", controller.rankDeleteAction))
 
 	controller.AddHandler(gweb.POSMethod("user/all/list", controller.ListAllTableDatas))
 

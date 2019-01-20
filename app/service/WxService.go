@@ -28,6 +28,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/nbvghost/gweb/conf"
 	"github.com/nbvghost/gweb/tool"
+	"github.com/nbvghost/gweb/tool/collections"
 )
 
 type WxService struct {
@@ -138,7 +139,7 @@ func (entity WxService) GetWXAConfig(prepay_id string, WxConfig dao.WxConfig) (o
 	outData["package"] = "prepay_id=" + prepay_id
 	outData["signType"] = "MD5"
 
-	list := &tool.List{}
+	list := &collections.ListString{}
 	for k, v := range outData {
 		list.Append(k + "=" + v)
 	}
@@ -155,7 +156,7 @@ func (entity WxService) SignatureVerification(dataMap util.Map) bool {
 	//mch_id := dataMap["mch_id"]
 	WxConfig := entity.MiniProgram()
 
-	list := &tool.List{}
+	list := &collections.ListString{}
 	for k, v := range dataMap {
 		if !strings.EqualFold("sign", k) {
 			list.Append(k + "=" + v)
@@ -495,7 +496,7 @@ func (entity WxService) Order(OrderNo string, title, description string, detail,
 	mapData["trade_type"] = "JSAPI"
 	mapData["sign_type"] = "MD5"
 
-	list := &tool.List{}
+	list := &collections.ListString{}
 
 	//xml := `<xml>`
 	for k, v := range mapData {
@@ -667,7 +668,7 @@ func (entity WxService) MiniProgram() dao.WxConfig {
 
 	var wx dao.WxConfig
 	wx.AppID = "wx10a413fd12780596"
-	wx.AppSecret = "038a313cc3bd8105ca6b141eb4e5ddbb"
+	wx.AppSecret = "72eb78717d093645510895a89dedaa79"
 	wx.MchID = "1253136001"
 	wx.PayKey = "6af34073b83d6f8a4f35289b92226f20"
 	//err := dao.Orm().Model(&dao.WxConfig{}).Where("OID=? and Type=?", OID, "miniprogram").First(&wx).Error
@@ -701,7 +702,7 @@ func (entity WxService) OrderQuery(OrderNo string) (Success bool, Result util.Ma
 	outMap["out_trade_no"] = OrderNo
 	outMap["sign_type"] = "MD5"
 
-	list := &tool.List{}
+	list := &collections.ListString{}
 	for k, v := range outMap {
 		list.Append(k + "=" + v)
 	}
@@ -765,7 +766,7 @@ func (entity WxService) GetTransfersInfo(transfers dao.Transfers) (Success bool)
 	outMap["mch_id"] = WxConfig.MchID
 	outMap["appid"] = WxConfig.AppID
 
-	list := &tool.List{}
+	list := &collections.ListString{}
 	for k, v := range outMap {
 		list.Append(k + "=" + v)
 	}
@@ -865,7 +866,7 @@ func (entity WxService) Transfers(transfers dao.Transfers) (Success bool, Messag
 	outMap["desc"] = transfers.Desc
 	outMap["spbill_create_ip"] = transfers.IP
 
-	list := &tool.List{}
+	list := &collections.ListString{}
 	for k, v := range outMap {
 		list.Append(k + "=" + v)
 	}
@@ -952,7 +953,7 @@ func (entity WxService) CloseOrder(OrderNo string, OID uint64) (Success bool, Me
 
 	outMap["out_trade_no"] = OrderNo
 
-	list := &tool.List{}
+	list := &collections.ListString{}
 	for k, v := range outMap {
 		list.Append(k + "=" + v)
 	}
@@ -1035,7 +1036,7 @@ func (entity WxService) Refund(order dao.Orders, PayMoney, RefundMoney uint64, D
 		outMap["refund_account"] = "REFUND_SOURCE_RECHARGE_FUNDS" //1
 	}
 
-	list := &tool.List{}
+	list := &collections.ListString{}
 	for k, v := range outMap {
 		list.Append(k + "=" + v)
 	}
@@ -1206,7 +1207,7 @@ func (entity WxService) MwGetWXJSConfig(url string, OID uint64) map[string]inter
 	timestamp := time.Now().Unix()
 	nonceStr := tool.UUID()
 	//chooseWXPay
-	list := &tool.List{}
+	list := &collections.ListString{}
 	list.Append("noncestr=" + nonceStr)
 	list.Append("jsapi_ticket=" + entity.MwGetTicket(wxConfig))
 	list.Append("timestamp=" + strconv.FormatInt(timestamp, 10))

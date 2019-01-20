@@ -6,6 +6,7 @@ import (
 
 	"dandelion/app/action/account"
 	"dandelion/app/action/admin"
+	"dandelion/app/action/api"
 	"dandelion/app/action/images"
 	"dandelion/app/action/index"
 	"dandelion/app/action/manager"
@@ -129,6 +130,9 @@ func main() {
 
 	index := &index.Controller{}
 	index.NewController("/", index)
+
+	api := &api.Controller{}
+	api.NewController("/api", api)
 
 	go func() {
 

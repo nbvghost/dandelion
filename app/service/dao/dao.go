@@ -8,6 +8,8 @@ import (
 	"dandelion/app/play"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/nbvghost/gweb/tool/collections"
+
 	//"github.com/go-gorp/gorp"
 	//_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
@@ -55,7 +57,7 @@ func init() {
 			_database.Raw("Show PROFILES").Scan(&profilings)
 			if len(profilings) > 1 {
 
-				list := &tool.List{}
+				list := &collections.ListInterface{}
 				for k := range profilings {
 					list.Append(profilings[k])
 				}

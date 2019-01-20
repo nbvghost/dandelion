@@ -1,7 +1,6 @@
 package service
 
 import (
-	"dandelion/app/play"
 	"dandelion/app/service/dao"
 
 	"github.com/nbvghost/gweb/conf"
@@ -83,6 +82,9 @@ func init() {
 	models = append(models, dao.Content{})
 	models = append(models, dao.ContentType{})
 	models = append(models, dao.ContentSubType{})
+	models = append(models, dao.Question{})
+	models = append(models, dao.QuestionTag{})
+	models = append(models, dao.AnswerQuestion{})
 
 	for index := range models {
 
@@ -110,14 +112,6 @@ func init() {
 	if _contenttype.ID == 0 {
 		a := dao.ContentType{Label: "文章列表", Type: "articles"}
 		_database.Create(&a)
-	}
-
-	var _Configuration dao.Configuration
-	var _configurationService ConfigurationService
-	_configurationService.FindWhere(_database, &_Configuration, "K=? and OID=?", play.ConfigurationKey_ScoreConvertGrowValue, 0)
-	if _Configuration.ID == 0 {
-		a := dao.Configuration{OID: 0, K: play.ConfigurationKey_ScoreConvertGrowValue, V: "1"}
-		_configurationService.Add(_database, &a)
 	}
 
 }

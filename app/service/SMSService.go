@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/nbvghost/gweb/tool"
+	"github.com/nbvghost/gweb/tool/collections"
 )
 
 type SMSService struct {
@@ -58,7 +59,7 @@ func (s SMSService) SendAliyunSms(ParamMap map[string]interface{}, TemplateCode 
 	params.Add("TemplateCode", TemplateCode)
 	//params.Add("OutId", "123")
 
-	list := &tool.List{}
+	list := &collections.ListString{}
 	for k, v := range params {
 		list.Append(specialUrlEncode(k) + "=" + specialUrlEncode(v[0]))
 	}
@@ -134,7 +135,7 @@ func (s SMSService) SendIDCode(Code string, tel string) (bool, string) {
 	params.Add("sms_template_code", "SMS_5068557")
 	params.Add("sms_type", "normal")
 
-	list := &tool.List{}
+	list := &collections.ListString{}
 	for k, v := range params {
 		list.Append(k + v[0])
 	}

@@ -41,7 +41,7 @@ func (controller *OrderController) Apply() {
 	controller.AddHandler(gweb.GETMethod("/wxpay/package", controller.ordersWxpayPackageAction))
 	controller.AddHandler(gweb.GETMethod("/wxpay/alone", controller.ordersWxpayAloneAction))
 	controller.AddHandler(gweb.GETMethod("/list", controller.ordersListAction))
-	controller.AddHandler(gweb.GETMethod("/:ID/get", controller.ordersGetListAction))
+	controller.AddHandler(gweb.GETMethod("/{ID}/get", controller.ordersGetListAction))
 	controller.AddHandler(gweb.PUTMethod("/change", controller.orderChangeAction))
 	controller.AddHandler(gweb.GETMethod("/collage/record", controller.collageRecordAction))
 	controller.AddHandler(gweb.PUTMethod("/express/info", controller.expressInfoAction))

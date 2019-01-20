@@ -29,12 +29,12 @@ func (controller *StoreController) Apply() {
 
 	controller.AddHandler(gweb.GETMethod("/location/list", controller.storeLocationListAction))
 	controller.AddHandler(gweb.GETMethod("/get", controller.storeGetAction))
-	controller.AddHandler(gweb.GETMethod("/get/:StoreID", controller.storeGetIDAction))
+	controller.AddHandler(gweb.GETMethod("/get/{StoreID}", controller.storeGetIDAction))
 	controller.AddHandler(gweb.POSMethod("/supply", controller.supplyAction))
 	controller.AddHandler(gweb.POSMethod("/verification", controller.verificationAction))
-	controller.AddHandler(gweb.GETMethod("/verification/get/:VerificationNo", controller.verificationGetByVerificationNoAction))
+	controller.AddHandler(gweb.GETMethod("/verification/get/{VerificationNo}", controller.verificationGetByVerificationNoAction))
 	controller.AddHandler(gweb.GETMethod("/list/stock", controller.listStockAction))
-	controller.AddHandler(gweb.GETMethod("/list/stock/goods/specification/:GoodsID", controller.listStockSpecificationsAction))
+	controller.AddHandler(gweb.GETMethod("/list/stock/goods/specification/{GoodsID}", controller.listStockSpecificationsAction))
 
 	controller.AddHandler(gweb.POSMethod("/journal/list", controller.journalListAction))
 	controller.AddHandler(gweb.POSMethod("/transfers", controller.transfersAction))

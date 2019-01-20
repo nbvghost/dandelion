@@ -29,12 +29,12 @@ type UserController struct {
 }
 
 func (controller *UserController) Apply() {
-	controller.AddHandler(gweb.GETMethod("/level/:UserID", controller.levelAction))
+	controller.AddHandler(gweb.GETMethod("/level/{UserID}", controller.levelAction))
 	controller.AddHandler(gweb.GETMethod("/info", controller.userInfoAction))
 	controller.AddHandler(gweb.POSMethod("/update", controller.updateAction))
 	controller.AddHandler(gweb.GETMethod("/info/DaySign", controller.userInfoDaySignAction))
-	controller.AddHandler(gweb.GETMethod("/growth/list/:Order", controller.userGrowthListAction))
-	controller.AddHandler(gweb.GETMethod("/info/:UserID", controller.userInfoByUserIDAction))
+	controller.AddHandler(gweb.GETMethod("/growth/list/{Order}", controller.userGrowthListAction))
+	controller.AddHandler(gweb.GETMethod("/info/{UserID}", controller.userInfoByUserIDAction))
 	controller.AddHandler(gweb.POSMethod("/info/sharekey", controller.userShareKeyAction))
 
 	controller.AddHandler(gweb.POSMethod("/info/add/formId", controller.addUserFormIdAction))

@@ -15,11 +15,11 @@ type ContentController struct {
 }
 
 func (controller *ContentController) Apply() {
-	controller.AddHandler(gweb.GETMethod(":ContentID/list/hot", controller.listHotAction))
-	controller.AddHandler(gweb.GETMethod(":ContentID/list/new", controller.listNewAction))
-	controller.AddHandler(gweb.GETMethod("article/:ArticleID", controller.articleAction))
-	controller.AddHandler(gweb.GETMethod(":ContentID/list/subtype", controller.Content.ListContentSubTypeAction))
-	controller.AddHandler(gweb.GETMethod(":ContentID/related/:ContentSubTypeID", controller.relatedAction))
+	controller.AddHandler(gweb.GETMethod("{ContentID}/list/hot", controller.listHotAction))
+	controller.AddHandler(gweb.GETMethod("{ContentID}/list/new", controller.listNewAction))
+	controller.AddHandler(gweb.GETMethod("article/{ArticleID}", controller.articleAction))
+	controller.AddHandler(gweb.GETMethod("{ContentID}/list/subtype", controller.Content.ListContentSubTypeAction))
+	controller.AddHandler(gweb.GETMethod("{ContentID}/related/{ContentSubTypeID}", controller.relatedAction))
 }
 func (controller *ContentController) articleAction(context *gweb.Context) gweb.Result {
 	ArticleID, _ := strconv.ParseUint(context.PathParams["ArticleID"], 10, 64)

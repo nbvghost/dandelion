@@ -2,28 +2,30 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ea2d37ad-998d-4f4a-8258-013be54c7705" name="Default" comment="我的海报">
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/action/api/api.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/action/api/question/Question.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/service/QuestionService.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/service/dao/QuestionModel.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/account/account.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/account/account.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/admin/admin.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/admin/admin.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/district/districtAction.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/index/articles/articles.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/index/articles/articles.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/index/index.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/index/index.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/manager/manager.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/manager/manager.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/mp/content/content.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/mp/content/content.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/action/mp/mp.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/mp/mp.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/action/mp/order/order.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/mp/order/order.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/play/key.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/play/key.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/CardItemService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/CardItemService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/CollageService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/CollageService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/GoodsService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/GoodsService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/mp/store/store.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/mp/store/store.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/mp/user/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/mp/user/user.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/service/InitService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/InitService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/OrdersGoodsService.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/OrdersService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/OrdersService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/OrdersService_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/OrdersService_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/UserService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/UserService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/UserService_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/UserService_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/VerificationService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/VerificationService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/SMSService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/SMSService.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/service/WxService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/WxService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/WxService_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/WxService_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/service/dao/dao.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/dao/dao.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/service/dao/model.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/dao/model.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/util/util.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/util/util.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dandelion" beforeDir="false" afterPath="$PROJECT_DIR$/dandelion" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dandelion.go" beforeDir="false" afterPath="$PROJECT_DIR$/dandelion.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/gweb.json" beforeDir="false" afterPath="$PROJECT_DIR$/gweb.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/resources/admin/js/admin.js" beforeDir="false" afterPath="$PROJECT_DIR$/resources/admin/js/admin.js" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -34,168 +36,90 @@
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/dandelion$TestWxService_INComeNotify_in_dandelion_app_service__1_.out" NAME="TestWxService_INComeNotify in dandelion/app/service Coverage Results" MODIFIED="1540213168425" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
-  <component name="FUSProjectUsageTrigger">
-    <session id="-1589670918">
-      <usages-collector id="statistics.lifecycle.project">
-        <counts>
-          <entry key="project.closed" value="11" />
-          <entry key="project.open.time.0" value="1" />
-          <entry key="project.open.time.1" value="2" />
-          <entry key="project.open.time.10" value="1" />
-          <entry key="project.open.time.11" value="2" />
-          <entry key="project.open.time.13" value="2" />
-          <entry key="project.open.time.16" value="1" />
-          <entry key="project.open.time.17" value="3" />
-          <entry key="project.open.time.18" value="1" />
-          <entry key="project.open.time.19" value="1" />
-          <entry key="project.open.time.30" value="1" />
-          <entry key="project.open.time.5" value="1" />
-          <entry key="project.open.time.8" value="3" />
-          <entry key="project.open.time.9" value="1" />
-          <entry key="project.opened" value="20" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.extensions.open">
-        <counts>
-          <entry key="go" value="254" />
-          <entry key="html" value="37" />
-          <entry key="jpg" value="1" />
-          <entry key="js" value="11" />
-          <entry key="json" value="11" />
-          <entry key="png" value="1" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.types.open">
-        <counts>
-          <entry key="Go" value="254" />
-          <entry key="HTML" value="37" />
-          <entry key="Image" value="2" />
-          <entry key="JSON" value="11" />
-          <entry key="JavaScript" value="11" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.extensions.edit">
-        <counts>
-          <entry key="go" value="12412" />
-          <entry key="html" value="2520" />
-          <entry key="js" value="547" />
-          <entry key="json" value="125" />
-          <entry key="txt" value="10" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.file.types.edit">
-        <counts>
-          <entry key="Go" value="12412" />
-          <entry key="HTML" value="2520" />
-          <entry key="JSON" value="125" />
-          <entry key="JavaScript" value="547" />
-          <entry key="PLAIN_TEXT" value="10" />
-        </counts>
-      </usages-collector>
-      <usages-collector id="statistics.go.postfix.template.usages.trigger">
-        <counts>
-          <entry key=".for" value="1" />
-          <entry key=".forr" value="2" />
-          <entry key=".p" value="1" />
-        </counts>
-      </usages-collector>
-    </session>
-  </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/action/mp/order/order.go">
+        <entry file="file://$PROJECT_DIR$/app/action/mp/mp.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="114">
-              <caret line="310" column="20" lean-forward="true" selection-start-line="310" selection-start-column="20" selection-end-line="310" selection-end-column="20" />
+            <state relative-caret-position="143">
+              <caret line="103" selection-start-line="103" selection-end-line="103" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/service/CollageService.go">
+        <entry file="file://$PROJECT_DIR$/app/action/api/question/Question.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="132">
-              <caret line="82" column="19" lean-forward="true" selection-start-line="82" selection-start-column="19" selection-end-line="82" selection-end-column="19" />
+            <state relative-caret-position="234">
+              <caret line="17" column="30" selection-start-line="17" selection-start-column="30" selection-end-line="17" selection-end-column="30" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/service/dao/Model.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="575">
+              <caret line="1132" lean-forward="true" selection-start-line="1132" selection-end-line="1132" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/app/service/OrdersService.go">
+        <entry file="file://$PROJECT_DIR$/app/service/dao/QuestionModel.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="96">
-              <caret line="634" column="11" lean-forward="true" selection-start-line="634" selection-start-column="11" selection-end-line="634" selection-end-column="11" />
-              <folding>
-                <element signature="n#!!block;n#OrderNotify#0" />
-                <element signature="n#!!block;n#ProcessingOrders#0" />
-              </folding>
+            <state relative-caret-position="252">
+              <caret line="23" column="65" lean-forward="true" selection-start-line="23" selection-start-column="65" selection-end-line="23" selection-end-column="65" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/view/admin/order_list.html">
+        <entry file="file://$PROJECT_DIR$/app/action/mp/content/content.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1980">
-              <caret line="110" column="125" selection-start-line="110" selection-start-column="125" selection-end-line="110" selection-end-column="125" />
+            <state relative-caret-position="205">
+              <caret line="20" column="89" selection-start-line="20" selection-start-column="89" selection-end-line="20" selection-end-column="89" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resources/admin/js/admin.js">
+        <entry file="file://$PROJECT_DIR$/app/action/mp/user/user.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="23580">
-              <caret line="1310" column="41" selection-start-line="1310" selection-start-column="41" selection-end-line="1310" selection-end-column="41" />
+            <state relative-caret-position="529">
+              <caret line="52" column="1" selection-start-line="52" selection-start-column="1" selection-end-line="52" selection-end-column="1" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/service/UserService.go">
+        <entry file="file://$PROJECT_DIR$/data.json">
+          <provider selected="true" editor-type-id="text-editor" />
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/gweb.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2934">
-              <caret line="178" column="20" selection-start-line="178" selection-start-column="20" selection-end-line="178" selection-end-column="20" />
+            <state relative-caret-position="270">
+              <caret line="15" column="40" selection-start-line="15" selection-start-column="40" selection-end-line="15" selection-end-column="40" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/resources/mp/advert.json">
+        <entry file="file://$PROJECT_DIR$/app/action/mp/order/order.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="126">
-              <caret line="7" selection-start-line="7" selection-end-line="7" />
+            <state relative-caret-position="169">
+              <caret line="71" selection-start-line="71" selection-end-line="71" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/action/mp/mp.go">
+        <entry file="file://$PROJECT_DIR$/app/action/mp/store/store.go">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="80">
-              <caret line="91" column="38" selection-start-line="91" selection-start-column="38" selection-end-line="91" selection-end-column="38" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/service/WxService.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="5076">
-              <caret line="310" column="31" selection-start-line="310" selection-start-column="24" selection-end-line="310" selection-end-column="36" />
-              <folding>
-                <element signature="e#17#394#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/action/account/account.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1908">
-              <caret line="128" column="50" selection-start-line="128" selection-start-column="50" selection-end-line="128" selection-end-column="50" />
+            <state relative-caret-position="187">
+              <caret line="33" column="60" selection-start-line="33" selection-start-column="60" selection-end-line="33" selection-end-column="60" />
             </state>
           </provider>
         </entry>
@@ -269,23 +193,10 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/view/account/loginManagerPage.html" />
-        <option value="$PROJECT_DIR$/view/account/loginAdminPage.html" />
-        <option value="$PROJECT_DIR$/app/service/AdminService.go" />
-        <option value="$PROJECT_DIR$/view/poster/product.html" />
-        <option value="$PROJECT_DIR$/view/poster/index.html" />
-        <option value="$PROJECT_DIR$/app/action/images/images.go" />
-        <option value="$PROJECT_DIR$/app/action/index/index.go" />
-        <option value="$PROJECT_DIR$/app/service/ScoreGoodsService.go" />
-        <option value="$PROJECT_DIR$/resources/mp/package.json" />
-        <option value="$PROJECT_DIR$/resources/mp/advert.json" />
-        <option value="$PROJECT_DIR$/app/service/JournalService.go" />
         <option value="$PROJECT_DIR$/app/service/TimeTaskService.go" />
         <option value="$PROJECT_DIR$/view/admin/add_express.html" />
         <option value="$PROJECT_DIR$/app/service/ExpressTemplateService.go" />
-        <option value="$PROJECT_DIR$/app/action/account/account.go" />
         <option value="$PROJECT_DIR$/app/service/TransfersService.go" />
-        <option value="$PROJECT_DIR$/app/action/mp/user/user.go" />
         <option value="$PROJECT_DIR$/view/poster/introduce.html" />
         <option value="$PROJECT_DIR$/view/admin/index.html" />
         <option value="$PROJECT_DIR$/app/service/dao/Base.go" />
@@ -293,59 +204,60 @@
         <option value="$PROJECT_DIR$/view/admin/add_timesell.html" />
         <option value="$PROJECT_DIR$/app/service/TimeSellService.go" />
         <option value="$PROJECT_DIR$/view/admin/pub/header.html" />
-        <option value="$PROJECT_DIR$/app/action/admin/admin.go" />
         <option value="$PROJECT_DIR$/view/admin/collage_list.html" />
         <option value="$PROJECT_DIR$/view/admin/add_collage.html" />
         <option value="$PROJECT_DIR$/app/service/FullCutService.go" />
         <option value="$USER_HOME$/go/src/github.com/nbvghost/gweb/tool/uuid.go" />
-        <option value="$PROJECT_DIR$/dandelion.go" />
         <option value="$PROJECT_DIR$/app/service/OrdersGoodsService.go" />
-        <option value="$PROJECT_DIR$/app/action/mp/mp.go" />
         <option value="$PROJECT_DIR$/app/service/CardItemService.go" />
         <option value="$PROJECT_DIR$/app/service/GoodsService.go" />
         <option value="$PROJECT_DIR$/app/service/VerificationService.go" />
         <option value="$PROJECT_DIR$/app/service/UserService_test.go" />
         <option value="$PROJECT_DIR$/app/service/WxService_test.go" />
-        <option value="$PROJECT_DIR$/app/service/InitService.go" />
         <option value="$PROJECT_DIR$/app/service/ShoppingCartService.go" />
-        <option value="$PROJECT_DIR$/gweb.json" />
         <option value="$PROJECT_DIR$/app/service/OrdersService_test.go" />
-        <option value="$PROJECT_DIR$/app/service/dao/Model.go" />
-        <option value="$PROJECT_DIR$/app/service/dao/Dao.go" />
         <option value="$PROJECT_DIR$/app/util/util.go" />
-        <option value="$PROJECT_DIR$/app/service/WxService.go" />
         <option value="$PROJECT_DIR$/app/play/key.go" />
         <option value="$PROJECT_DIR$/resources/admin/js/admin.js" />
         <option value="$PROJECT_DIR$/app/service/UserService.go" />
         <option value="$PROJECT_DIR$/app/service/OrdersService.go" />
         <option value="$PROJECT_DIR$/app/service/CollageService.go" />
+        <option value="$PROJECT_DIR$/app/service/InitService.go" />
+        <option value="$PROJECT_DIR$/app/action/api/api.go" />
+        <option value="$PROJECT_DIR$/app/service/QuestionService.go" />
+        <option value="$USER_HOME$/go/src/github.com/nbvghost/gweb/tool/collections/collection.go" />
+        <option value="$PROJECT_DIR$/app/service/dao/Dao.go" />
+        <option value="$PROJECT_DIR$/app/service/SMSService.go" />
+        <option value="$PROJECT_DIR$/app/service/WxService.go" />
+        <option value="$PROJECT_DIR$/app/action/api/question/Question.go" />
+        <option value="$PROJECT_DIR$/dandelion.go" />
+        <option value="$PROJECT_DIR$/app/action/index/index.go" />
+        <option value="$PROJECT_DIR$/app/action/index/articles/articles.go" />
+        <option value="$PROJECT_DIR$/app/action/account/account.go" />
+        <option value="$PROJECT_DIR$/app/action/admin/admin.go" />
+        <option value="$PROJECT_DIR$/app/action/manager/manager.go" />
+        <option value="$PROJECT_DIR$/app/action/mp/mp.go" />
         <option value="$PROJECT_DIR$/app/action/mp/order/order.go" />
+        <option value="$PROJECT_DIR$/app/action/mp/store/store.go" />
+        <option value="$PROJECT_DIR$/app/action/mp/content/content.go" />
+        <option value="$PROJECT_DIR$/app/action/mp/user/user.go" />
+        <option value="$PROJECT_DIR$/gweb.json" />
+        <option value="$PROJECT_DIR$/app/service/dao/Model.go" />
+        <option value="$PROJECT_DIR$/app/service/dao/QuestionModel.go" />
       </list>
     </option>
   </component>
-  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
-  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
-  <component name="JsGulpfileManager">
-    <detection-done>true</detection-done>
-    <sorting>DEFINITION_ORDER</sorting>
-  </component>
-  <component name="NodePackageJsonFileManager">
-    <packageJsonPaths>
-      <path value="$PROJECT_DIR$/resources/semantic-ui/package.json" />
-    </packageJsonPaths>
-  </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="685" />
-    <option name="y" value="343" />
-    <option name="width" value="1087" />
-    <option name="height" value="743" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="482" />
+    <option name="y" value="109" />
+    <option name="width" value="1371" />
+    <option name="height" value="931" />
   </component>
   <component name="ProjectView">
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -369,85 +281,57 @@
               <item name="dandelion" type="462c0819:PsiDirectoryNode" />
               <item name="app" type="462c0819:PsiDirectoryNode" />
               <item name="action" type="462c0819:PsiDirectoryNode" />
-              <item name="mp" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="resources" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="resources" type="462c0819:PsiDirectoryNode" />
-              <item name="mp" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="resources" type="462c0819:PsiDirectoryNode" />
-              <item name="mp" type="462c0819:PsiDirectoryNode" />
-              <item name="images" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="resources" type="462c0819:PsiDirectoryNode" />
-              <item name="mp" type="462c0819:PsiDirectoryNode" />
-              <item name="images" type="462c0819:PsiDirectoryNode" />
-              <item name="advert" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="resources" type="462c0819:PsiDirectoryNode" />
-              <item name="mp" type="462c0819:PsiDirectoryNode" />
-              <item name="images" type="462c0819:PsiDirectoryNode" />
-              <item name="advert" type="462c0819:PsiDirectoryNode" />
-              <item name="home" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="resources" type="462c0819:PsiDirectoryNode" />
-              <item name="poster" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="resources" type="462c0819:PsiDirectoryNode" />
-              <item name="poster" type="462c0819:PsiDirectoryNode" />
-              <item name="images" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="view" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="view" type="462c0819:PsiDirectoryNode" />
               <item name="admin" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
               <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="view" type="462c0819:PsiDirectoryNode" />
-              <item name="admin" type="462c0819:PsiDirectoryNode" />
-              <item name="pub" type="462c0819:PsiDirectoryNode" />
+              <item name="app" type="462c0819:PsiDirectoryNode" />
+              <item name="action" type="462c0819:PsiDirectoryNode" />
+              <item name="api" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
               <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="view" type="462c0819:PsiDirectoryNode" />
-              <item name="order" type="462c0819:PsiDirectoryNode" />
+              <item name="app" type="462c0819:PsiDirectoryNode" />
+              <item name="action" type="462c0819:PsiDirectoryNode" />
+              <item name="api" type="462c0819:PsiDirectoryNode" />
+              <item name="question" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
               <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="view" type="462c0819:PsiDirectoryNode" />
-              <item name="poster" type="462c0819:PsiDirectoryNode" />
+              <item name="app" type="462c0819:PsiDirectoryNode" />
+              <item name="action" type="462c0819:PsiDirectoryNode" />
+              <item name="district" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
+              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
+              <item name="app" type="462c0819:PsiDirectoryNode" />
+              <item name="action" type="462c0819:PsiDirectoryNode" />
+              <item name="front" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
+              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
+              <item name="app" type="462c0819:PsiDirectoryNode" />
+              <item name="action" type="462c0819:PsiDirectoryNode" />
+              <item name="front" type="462c0819:PsiDirectoryNode" />
+              <item name="appointment" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
+              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
+              <item name="app" type="462c0819:PsiDirectoryNode" />
+              <item name="service" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
+              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
+              <item name="app" type="462c0819:PsiDirectoryNode" />
+              <item name="service" type="462c0819:PsiDirectoryNode" />
+              <item name="dao" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
@@ -457,18 +341,20 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="DefaultGoTemplateProperty" value="Go File" />
     <property name="DefaultHtmlFileTemplate" value="HTML File" />
     <property name="GO_FMT" value="false" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="configurable.Global.GOPATH.is.expanded" value="true" />
     <property name="configurable.Module.GOPATH.is.expanded" value="true" />
     <property name="configurable.Project.GOPATH.is.expanded" value="true" />
     <property name="go.gopath.indexing.explicitly.defined" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
-    <property name="last_opened_file_path" value="$USER_HOME$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
@@ -539,8 +425,8 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Go Test.TestOrdersService_FindOrdersGoodsByCollageUser in dandelion/app/service" />
       <item itemvalue="Go Build.go build dandelion/" />
+      <item itemvalue="Go Test.TestOrdersService_FindOrdersGoodsByCollageUser in dandelion/app/service" />
       <item itemvalue="Go Test.TestWxService_INComeNotify in dandelion/app/service" />
       <item itemvalue="Go Test.TestOrdersService_ListCollageRecord in dandelion/app/service" />
     </list>
@@ -594,21 +480,22 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="22" width="1382" height="754" extended-state="6" />
+    <frame x="466" y="193" width="1371" height="931" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.19274808" visible="true" weight="0.21860817" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.19274808" visible="true" weight="0.25705567" />
       <window_info id="Structure" order="1" sideWeight="0.80725193" side_tool="true" weight="0.3054371" />
       <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Docker" show_stripe_button="false" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.48260212" weight="0.33387098" />
       <window_info anchor="bottom" id="Run" order="2" sideWeight="0.6759062" weight="0.40236053" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" sideWeight="0.8630862" visible="true" weight="0.3419355" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.8337147" visible="true" weight="0.3709273" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="6" sideWeight="0.49946696" weight="0.32939914" />
+      <window_info anchor="bottom" id="TODO" order="6" sideWeight="0.4969743" weight="0.42903227" />
       <window_info anchor="bottom" id="Terminal" order="7" sideWeight="0.49733475" weight="0.3764833" />
-      <window_info anchor="bottom" id="Event Log" order="8" sideWeight="0.13691376" side_tool="true" visible="true" weight="0.3419355" />
+      <window_info anchor="bottom" id="Event Log" order="8" sideWeight="0.16628528" side_tool="true" visible="true" weight="0.3709273" />
       <window_info anchor="bottom" id="Version Control" order="9" />
       <window_info anchor="bottom" id="Database Changes" order="10" show_stripe_button="false" />
       <window_info anchor="bottom" id="Statistic" order="11" sideWeight="0.8208955" weight="0.5418455" />
@@ -640,9 +527,6 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
-  </component>
-  <component name="VcsContentAnnotationSettings">
-    <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
@@ -693,165 +577,10 @@
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$USER_HOME$/go/src/github.com/nbvghost/gweb/controller.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4608">
-          <caret line="271" column="25" selection-start-line="271" selection-start-column="25" selection-end-line="271" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/poster/product.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="5" selection-start-line="5" selection-end-line="5" selection-end-column="106" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/TransfersService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="144">
-          <caret line="14" column="1" lean-forward="true" selection-start-line="14" selection-start-column="1" selection-end-line="14" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/admin/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="414">
-          <caret line="23" column="57" lean-forward="true" selection-start-line="23" selection-start-column="57" selection-end-line="23" selection-end-column="57" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/dao/Base.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="183">
-          <caret line="35" column="17" selection-start-line="35" selection-start-column="17" selection-end-line="35" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/admin/timesell_list.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="14" column="12" selection-start-line="14" selection-start-column="12" selection-end-line="14" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/admin/add_timesell.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="199">
-          <caret line="78" column="92" selection-start-line="78" selection-start-column="73" selection-end-line="78" selection-end-column="92" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/TimeSellService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="198">
-          <caret line="11" column="30" lean-forward="true" selection-start-line="11" selection-start-column="30" selection-end-line="11" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/admin/pub/header.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="162">
-          <caret line="9" column="67" lean-forward="true" selection-start-line="9" selection-start-column="67" selection-end-line="9" selection-end-column="67" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/admin/collage_list.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="19" column="23" selection-start-line="19" selection-start-column="23" selection-end-line="19" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/admin/add_collage.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-324">
-          <caret line="9" column="72" selection-start-line="9" selection-start-column="72" selection-end-line="9" selection-end-column="72" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/FullCutService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="144">
-          <caret line="17" column="30" selection-start-line="17" selection-start-column="30" selection-end-line="17" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/OrdersGoodsService.go" />
-    <entry file="file://$PROJECT_DIR$/app/action/admin/admin.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1314">
-          <caret line="88" selection-start-line="88" selection-end-line="88" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/go/src/github.com/nbvghost/gweb/tool/uuid.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="486">
-          <caret line="38" column="20" selection-start-line="38" selection-start-column="20" selection-end-line="38" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/dandelion.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="90">
-          <caret line="19" selection-start-line="19" selection-end-line="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/FileService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-494">
-          <caret line="17" column="17" lean-forward="true" selection-start-line="17" selection-start-column="17" selection-end-line="17" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/action/index/index.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="144">
-          <caret line="23" lean-forward="true" selection-start-line="23" selection-end-line="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Go/src/runtime/panic.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="316">
-          <caret line="587" selection-start-line="587" selection-end-line="587" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/Go/src/container/list/list.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="616">
-          <caret line="47" column="5" selection-start-line="47" selection-start-column="5" selection-end-line="47" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/GoodsService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-157">
-          <caret line="39" column="39" selection-start-line="39" selection-start-column="39" selection-end-line="39" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/VerificationService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="167">
-          <caret line="138" column="35" selection-start-line="138" selection-start-column="35" selection-end-line="138" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/service/CardItemService.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="72">
           <caret line="11" column="5" selection-start-line="11" selection-start-column="5" selection-end-line="11" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/go/src/github.com/nbvghost/gweb/tool/collection.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="468">
-          <caret line="75" column="41" lean-forward="true" selection-start-line="75" selection-start-column="20" selection-end-line="75" selection-end-column="41" />
         </state>
       </provider>
     </entry>
@@ -876,24 +605,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/action/index/articles/articles.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1260">
-          <caret line="85" column="64" selection-start-line="85" selection-start-column="64" selection-end-line="85" selection-end-column="64" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/service/ShoppingCartService.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1224">
           <caret line="74" column="51" selection-start-line="74" selection-start-column="51" selection-end-line="74" selection-end-column="51" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/action/wx/wxAction.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="26" column="34" selection-start-line="26" selection-start-column="33" selection-end-line="26" selection-end-column="34" />
         </state>
       </provider>
     </entry>
@@ -925,27 +640,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/dao/Dao.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="414">
-          <caret line="37" selection-start-line="37" selection-end-line="37" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/gweb.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="180">
-          <caret line="10" column="22" selection-start-line="10" selection-start-column="22" selection-end-line="10" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/InitService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="522">
-          <caret line="35" column="22" selection-start-line="35" selection-start-column="22" selection-end-line="35" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/util/util.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="173">
@@ -953,24 +647,24 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/dao/Model.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1434">
-          <caret line="995" column="8" selection-start-line="995" selection-start-column="4" selection-end-line="995" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/action/mp/user/user.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="756">
-          <caret line="56" column="63" selection-start-line="56" selection-start-column="57" selection-end-line="56" selection-end-column="63" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/play/key.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="936">
           <caret line="52" column="47" selection-start-line="52" selection-start-column="47" selection-end-line="52" selection-end-column="47" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/service/CollageService.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1278">
+          <caret line="82" column="19" selection-start-line="82" selection-start-column="19" selection-end-line="82" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/service/OrdersService.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="11178">
+          <caret line="641" column="34" selection-start-line="641" selection-start-column="34" selection-end-line="641" selection-end-column="34" />
         </state>
       </provider>
     </entry>
@@ -995,20 +689,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/WxService.go">
+    <entry file="file://$PROJECT_DIR$/app/action/wx/wxAction.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5076">
-          <caret line="310" column="31" selection-start-line="310" selection-start-column="24" selection-end-line="310" selection-end-column="36" />
-          <folding>
-            <element signature="e#17#394#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/action/account/account.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1908">
-          <caret line="128" column="50" selection-start-line="128" selection-start-column="50" selection-end-line="128" selection-end-column="50" />
+        <state relative-caret-position="252">
+          <caret line="26" column="47" selection-start-line="26" selection-start-column="47" selection-end-line="26" selection-end-column="47" />
         </state>
       </provider>
     </entry>
@@ -1019,35 +703,217 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/action/mp/mp.go">
+    <entry file="file://$PROJECT_DIR$/app/service/InitService.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="80">
-          <caret line="91" column="38" selection-start-line="91" selection-start-column="38" selection-end-line="91" selection-end-column="38" />
+        <state relative-caret-position="1476">
+          <caret line="87" selection-start-line="87" selection-end-line="87" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/CollageService.go">
+    <entry file="file://$PROJECT_DIR$/app/service/DistrictService.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="132">
-          <caret line="82" column="19" lean-forward="true" selection-start-line="82" selection-start-column="19" selection-end-line="82" selection-end-column="19" />
+        <state relative-caret-position="126">
+          <caret line="7" selection-start-line="7" selection-end-line="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/action/district/districtAction.go" />
+    <entry file="file://C:/Go/src/builtin/builtin.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="183">
+          <caret line="100" column="4" selection-start-line="100" selection-start-column="4" selection-end-line="100" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/service/QuestionService.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="234">
+          <caret line="13" lean-forward="true" selection-start-line="13" selection-end-line="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/service/dao/Base.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="936">
+          <caret line="58" column="17" selection-start-line="58" selection-start-column="17" selection-end-line="58" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/action/images/images.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="288">
+          <caret line="29" selection-start-line="29" selection-end-line="32" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/action/district/district.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="144">
+          <caret line="14" selection-start-line="14" selection-end-line="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/go/src/github.com/nbvghost/gweb/tool/collections/collection.go" />
+    <entry file="file://$PROJECT_DIR$/app/action/api/api.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="126">
+          <caret line="11" column="57" selection-start-line="11" selection-start-column="57" selection-end-line="11" selection-end-column="57" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/service/dao/Dao.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="288">
+          <caret line="32" column="1" selection-start-line="32" selection-start-column="1" selection-end-line="32" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://C:/Go/src/fmt/print.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3474">
+          <caret line="200" column="5" selection-start-line="200" selection-start-column="5" selection-end-line="200" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/service/SMSService.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2790">
+          <caret line="170" column="38" selection-start-line="170" selection-start-column="38" selection-end-line="170" selection-end-column="38" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/service/WxService.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="21510">
+          <caret line="1224" selection-start-line="1224" selection-end-line="1224" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/action/front/appointment/appointment.go">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/action/front/front.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="576">
+          <caret line="41" column="68" selection-start-line="41" selection-start-column="6" selection-end-line="41" selection-end-column="68" />
+          <folding>
+            <element signature="e#15#108#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/go/src/github.com/nbvghost/gweb/controller.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="108">
+          <caret line="136" selection-start-line="136" selection-end-line="136" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/action/index/index.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="151">
+          <caret line="60" lean-forward="true" selection-start-line="60" selection-end-line="60" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/action/index/articles/articles.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="205">
+          <caret line="47" column="55" selection-start-line="47" selection-start-column="55" selection-end-line="47" selection-end-column="55" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dandelion.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="143">
+          <caret line="119" selection-start-line="119" selection-end-line="119" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/action/account/account.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="223">
+          <caret line="56" column="36" selection-start-line="56" selection-start-column="36" selection-end-line="56" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/action/admin/admin.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="233">
+          <caret line="131" column="69" lean-forward="true" selection-start-line="131" selection-start-column="69" selection-end-line="131" selection-end-column="69" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/action/manager/manager.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-11">
+          <caret line="89" column="75" lean-forward="true" selection-start-line="89" selection-start-column="75" selection-end-line="89" selection-end-column="75" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/action/mp/order/order.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="114">
-          <caret line="310" column="20" lean-forward="true" selection-start-line="310" selection-start-column="20" selection-end-line="310" selection-end-column="20" />
+        <state relative-caret-position="169">
+          <caret line="71" selection-start-line="71" selection-end-line="71" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/OrdersService.go">
+    <entry file="file://$PROJECT_DIR$/app/action/mp/store/store.go">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="96">
-          <caret line="634" column="11" lean-forward="true" selection-start-line="634" selection-start-column="11" selection-end-line="634" selection-end-column="11" />
-          <folding>
-            <element signature="n#!!block;n#OrderNotify#0" />
-            <element signature="n#!!block;n#ProcessingOrders#0" />
-          </folding>
+        <state relative-caret-position="187">
+          <caret line="33" column="60" selection-start-line="33" selection-start-column="60" selection-end-line="33" selection-end-column="60" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/action/mp/mp.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="143">
+          <caret line="103" selection-start-line="103" selection-end-line="103" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/action/mp/content/content.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="205">
+          <caret line="20" column="89" selection-start-line="20" selection-start-column="89" selection-end-line="20" selection-end-column="89" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/action/mp/user/user.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="529">
+          <caret line="52" column="1" selection-start-line="52" selection-start-column="1" selection-end-line="52" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/data.json">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gweb.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="270">
+          <caret line="15" column="40" selection-start-line="15" selection-start-column="40" selection-end-line="15" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/action/api/question/Question.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="234">
+          <caret line="17" column="30" selection-start-line="17" selection-start-column="30" selection-end-line="17" selection-end-column="30" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/service/dao/Model.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="575">
+          <caret line="1132" lean-forward="true" selection-start-line="1132" selection-end-line="1132" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/service/dao/QuestionModel.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="252">
+          <caret line="23" column="65" lean-forward="true" selection-start-line="23" selection-start-column="65" selection-end-line="23" selection-end-column="65" />
         </state>
       </provider>
     </entry>

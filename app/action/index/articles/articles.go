@@ -36,24 +36,20 @@ type Controller struct {
 func (controller *Controller) Apply() {
 	//Index.RequestMapping = make(map[string]mvc.Function)
 	controller.Interceptors.Add(&InterceptorMp{})
-	controller.AddHandler(gweb.ALLMethod("", controller.defaultPage))
-	controller.AddHandler(gweb.ALLMethod("*", controller.indexPage))
 
-	controller.AddHandler(gweb.GETMethod("list/:OID/new", controller.listNewAction))
+	controller.AddHandler(gweb.GETMethod("list/{OID}/new", controller.listNewAction))
 	controller.AddHandler(gweb.GETMethod("article", controller.articleSeftPage))
 
 	//csts := controller.Content.FindContentSubTypesByContentID(content.ID)
 	controller.AddHandler(gweb.GETMethod("index", controller.indexPage))
-	controller.AddHandler(gweb.GETMethod("content/:ContentID/index", controller.contentPage))
-	controller.AddHandler(gweb.GETMethod("content/:ContentID/article/:ArticleID", controller.articlePage))
+	controller.AddHandler(gweb.GETMethod("content/{ContentID}/index", controller.contentPage))
+	controller.AddHandler(gweb.GETMethod("content/{ContentID}/article/{ArticleID}", controller.articlePage))
+	controller.AddHandler(gweb.GETMethod("content/{ContentID}/list/sub/new/{ContentSubTypeID}", controller.listSubContentNewAction))
+	controller.AddHandler(gweb.GETMethod("content/{ContentID}/list/hot", controller.listContentHotAction))
+	controller.AddHandler(gweb.GETMethod("content/{ContentID}/list/new", controller.listContentNewAction))
+	controller.AddHandler(gweb.GETMethod("content/{ContentID}/list/subtype", controller.Content.ListContentSubTypeAction))
 
-	controller.AddHandler(gweb.GETMethod("content/:ContentID/list/sub/new/:ContentSubTypeID", controller.listSubContentNewAction))
-	controller.AddHandler(gweb.GETMethod("content/:ContentID/list/hot", controller.listContentHotAction))
-	controller.AddHandler(gweb.GETMethod("content/:ContentID/list/new", controller.listContentNewAction))
-
-	controller.AddHandler(gweb.GETMethod("content/:ContentID/list/subtype", controller.Content.ListContentSubTypeAction))
-
-	controller.AddHandler(gweb.GETMethod("get/:ArticleID", controller.getArticleAction))
+	controller.AddHandler(gweb.GETMethod("get/{ArticleID}", controller.getArticleAction))
 	controller.AddHandler(gweb.GETMethod("new_list", controller.listNewPage))
 }
 func (controller *Controller) articleSeftPage(context *gweb.Context) gweb.Result {
