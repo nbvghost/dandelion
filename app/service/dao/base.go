@@ -46,7 +46,7 @@ func (b BaseDao) ChangeMap(DB *gorm.DB, ID uint64, model interface{}, params map
 	return DB.Model(model).Where("ID=?", ID).Updates(params).Error
 }
 func (b BaseDao) Get(DB *gorm.DB, ID uint64, target interface{}) error {
-	return DB.Where("ID=?", ID).First(target).Error
+	return DB.Where(map[string]interface{}{"ID": ID}).First(target).Error
 }
 func (b BaseDao) FindAllByOID(DB *gorm.DB, target interface{}, OID uint64) error {
 

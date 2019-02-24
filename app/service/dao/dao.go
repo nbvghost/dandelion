@@ -1,19 +1,16 @@
 package dao
 
 import (
-	"fmt"
-	"sort"
 	"time"
 
 	"dandelion/app/play"
-
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/nbvghost/gweb/tool/collections"
 
 	//"github.com/go-gorp/gorp"
 	//_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	//_ "github.com/jinzhu/gorm/dialects/mysql"
+	//_ "github.com/lib/pq"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/nbvghost/gweb/conf"
 	"github.com/nbvghost/gweb/tool"
 )
@@ -27,7 +24,7 @@ func Orm() *gorm.DB {
 }
 
 type Profiling struct {
-	Query_ID int     `gorm:"column:Query_ID"`
+	QueryID  int     `gorm:"column:Query_ID"`
 	Duration float64 `gorm:"column:Duration"`
 	Query    string  `gorm:"column:Query"`
 }
@@ -35,7 +32,7 @@ type Profiling struct {
 func init() {
 	var err error
 	//open:=make(chan bool,1)
-	_database, err = gorm.Open("mysql", conf.Config.DBUrl)
+	_database, err = gorm.Open("postgres", conf.Config.DBUrl)
 	tool.CheckError(err)
 
 	if conf.Config.Debug {
@@ -43,15 +40,17 @@ func init() {
 		_database.LogMode(true)
 	}
 
-	_database.Exec("SET NAMES utf8mb4")
-	_database.Exec("SET GLOBAL GROUP_CONCAT_MAX_LEN=1844674407370954752")
-	_database.Exec("SET SESSION GROUP_CONCAT_MAX_LEN=1844674407370954752")
-	_database.Exec("SET GLOBAL max_allowed_packet=1844674407370954752")
-	err = _database.Exec("set profiling = 1").Error
-	tool.CheckError(err)
+	//postgres.Jsonb{}
+
+	//_database.Exec("SET NAMES utf8mb4")
+	//_database.Exec("SET GLOBAL GROUP_CONCAT_MAX_LEN=1844674407370954752")
+	//_database.Exec("SET SESSION GROUP_CONCAT_MAX_LEN=1844674407370954752")
+	//_database.Exec("SET GLOBAL max_allowed_packet=1844674407370954752")
+	//err = _database.Exec("set profiling = 1").Error
+	//tool.CheckError(err)
 	go func() {
 
-		for {
+		/*for {
 			// Show PROFILES;
 			var profilings []Profiling
 			_database.Raw("Show PROFILES").Scan(&profilings)
@@ -77,7 +76,7 @@ func init() {
 
 			}
 			time.Sleep(3 * time.Second)
-		}
+		}*/
 
 	}()
 
@@ -144,7 +143,6 @@ type BaseModel struct {
 	CreatedAt time.Time  `gorm:"column:CreatedAt"`             //登陆日期
 	UpdatedAt time.Time  `gorm:"column:UpdatedAt"`             //修改日期
 	DeletedAt *time.Time `gorm:"column:DeletedAt"`             //删除日期
-	//Delete    int        `gorm:"column:Delete"`                //0=无，1=删除，
 }
 
 func SelectPaging(Index int, p *gorm.DB, target interface{}) (Total int) {

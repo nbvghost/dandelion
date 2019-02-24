@@ -43,7 +43,7 @@ func init() {
 	_database.AutoMigrate(user)*/
 
 	models = append(models, dao.User{})
-	models = append(models, dao.UserInfo{})
+	/*models = append(models, dao.UserInfo{})
 	models = append(models, dao.Admin{})
 	models = append(models, dao.Configuration{})
 	models = append(models, dao.Logger{})
@@ -84,12 +84,13 @@ func init() {
 	models = append(models, dao.ContentSubType{})
 	models = append(models, dao.Question{})
 	models = append(models, dao.QuestionTag{})
-	models = append(models, dao.AnswerQuestion{})
+	models = append(models, dao.AnswerQuestion{})*/
 
 	for index := range models {
 
 		if _database.HasTable(models[index]) == false {
-			_database.Set("gorm:table_options", "AUTO_INCREMENT=1000").CreateTable(models[index])
+			//_database.Set("gorm:table_options", "AUTO_INCREMENT=1000").CreateTable(models[index])
+			_database.CreateTable(models[index])
 		}
 		if conf.Config.Debug {
 			_database.AutoMigrate(models[index])

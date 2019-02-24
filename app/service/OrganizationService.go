@@ -3,6 +3,7 @@ package service
 import (
 	"dandelion/app/service/dao"
 	"errors"
+
 	"github.com/jinzhu/gorm"
 	"github.com/nbvghost/gweb/tool"
 )
@@ -10,16 +11,17 @@ import (
 type OrganizationService struct {
 	dao.BaseDao
 }
-func (service OrganizationService) AddOrganizationBlockAmount(Orm *gorm.DB,OID uint64,Menoy int64) error  {
+
+func (service OrganizationService) AddOrganizationBlockAmount(Orm *gorm.DB, OID uint64, Menoy int64) error {
 
 	var org dao.Organization
-	err:=service.Get(Orm,OID, &org)
+	err := service.Get(Orm, OID, &org)
 	if err != nil {
 		return err
 	}
 
-	tm:=int64(org.BlockAmount)+Menoy
-	if tm<0{
+	tm := int64(org.BlockAmount) + Menoy
+	if tm < 0 {
 		return errors.New("冻结金额不足，无法扣款")
 	}
 
@@ -28,7 +30,8 @@ func (service OrganizationService) AddOrganizationBlockAmount(Orm *gorm.DB,OID u
 }
 func (service OrganizationService) FindByDomain(Orm *gorm.DB, Domain string) *dao.Organization {
 	manager := &dao.Organization{}
-	err := Orm.Where("Domain=?", Domain).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
+	//err := Orm.Where("Domain=?", Domain).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
+	err := Orm.Where(map[string]interface{}{"Domain": Domain}).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
 	tool.CheckError(err)
 	return manager
 }

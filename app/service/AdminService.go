@@ -193,51 +193,51 @@ func (self AdminService) AddAdmin(Name, Password, Domain string) *dao.ActionStat
 
 	var _Configuration dao.Configuration
 
-	self.Organization.FindWhere(Orm, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve1, shop.ID)
+	self.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve1, shop.ID)
 	if _Configuration.ID == 0 {
 		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve1, V: "0"}
 		a.OID = shop.ID
-		self.Organization.Add(Orm, &a)
+		self.Organization.Add(tx, &a)
 	}
 
 	_Configuration = dao.Configuration{}
-	self.Organization.FindWhere(Orm, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve2, shop.ID)
+	self.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve2, shop.ID)
 	if _Configuration.ID == 0 {
 		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve2, V: "0"}
 		a.OID = shop.ID
-		self.Organization.Add(Orm, &a)
+		self.Organization.Add(tx, &a)
 	}
 
 	_Configuration = dao.Configuration{}
-	self.Organization.FindWhere(Orm, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve3, shop.ID)
+	self.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve3, shop.ID)
 	if _Configuration.ID == 0 {
 		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve3, V: "0"}
 		a.OID = shop.ID
-		self.Organization.Add(Orm, &a)
+		self.Organization.Add(tx, &a)
 	}
 
 	_Configuration = dao.Configuration{}
-	self.Organization.FindWhere(Orm, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve4, shop.ID)
+	self.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve4, shop.ID)
 	if _Configuration.ID == 0 {
 		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve4, V: "0"}
 		a.OID = shop.ID
-		self.Organization.Add(Orm, &a)
+		self.Organization.Add(tx, &a)
 	}
 
 	_Configuration = dao.Configuration{}
-	self.Organization.FindWhere(Orm, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve5, shop.ID)
+	self.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve5, shop.ID)
 	if _Configuration.ID == 0 {
 		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve5, V: "0"}
 		a.OID = shop.ID
-		self.Organization.Add(Orm, &a)
+		self.Organization.Add(tx, &a)
 	}
 
 	_Configuration = dao.Configuration{}
-	self.Organization.FindWhere(Orm, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve6, shop.ID)
+	self.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve6, shop.ID)
 	if _Configuration.ID == 0 {
 		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve6, V: "0"}
 		a.OID = shop.ID
-		self.Organization.Add(Orm, &a)
+		self.Organization.Add(tx, &a)
 	}
 
 	return as
@@ -252,7 +252,7 @@ func (service AdminService) GetAdmin(ID uint64) *dao.Admin {
 
 func (service AdminService) FindAdminByAccount(Orm *gorm.DB, Account string) *dao.Admin {
 	manager := &dao.Admin{}
-	err := Orm.Where("Account=?", Account).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
+	err := Orm.Where(map[string]interface{}{"Account": Account}).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
 	tool.CheckError(err)
 	return manager
 }

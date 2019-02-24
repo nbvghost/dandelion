@@ -18,8 +18,8 @@ type TimeTaskService struct {
 }
 
 func init() {
-	TimeTaskService := TimeTaskService{}
-	go TimeTaskService.QueryTask()
+	//TimeTaskService := TimeTaskService{}
+	//go TimeTaskService.QueryTask()
 }
 func (self TimeTaskService) QueryTask() {
 
