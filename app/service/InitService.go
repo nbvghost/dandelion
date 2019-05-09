@@ -34,7 +34,7 @@ func init() {
 
 	_database := dao.Orm()
 
-	models := make([]dao.BaseModelInterface, 0)
+	models := make([]dao.IDataBaseFace, 0)
 
 	/*user := &dao.User{}
 	if _database.HasTable(user) == false {
@@ -43,7 +43,7 @@ func init() {
 	_database.AutoMigrate(user)*/
 
 	models = append(models, dao.User{})
-	/*models = append(models, dao.UserInfo{})
+	models = append(models, dao.UserInfo{})
 	models = append(models, dao.Admin{})
 	models = append(models, dao.Configuration{})
 	models = append(models, dao.Logger{})
@@ -84,7 +84,7 @@ func init() {
 	models = append(models, dao.ContentSubType{})
 	models = append(models, dao.Question{})
 	models = append(models, dao.QuestionTag{})
-	models = append(models, dao.AnswerQuestion{})*/
+	models = append(models, dao.AnswerQuestion{})
 
 	for index := range models {
 

@@ -1,0 +1,13 @@
+{
+    "editor.multiCursorModifier": "ctrlCmd",
+    "go.gopath": "C:\\Users\\work\\go;C:\\Users\\work\\Documents\\DandelionWork",
+    "editor.minimap.enabled": true,
+    "editor.renderWhitespace": "none",
+    "editor.renderControlCharacters": true,
+    "breadcrumbs.enabled": true,
+    "git.autofetch": true,
+    "[html]": {},
+    "files.associations": {
+        "*.html": "html"
+    }
+}

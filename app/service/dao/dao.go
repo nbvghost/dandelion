@@ -8,9 +8,9 @@ import (
 	//"github.com/go-gorp/gorp"
 	//_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
-	//_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 	//_ "github.com/lib/pq"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+	//_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/nbvghost/gweb/conf"
 	"github.com/nbvghost/gweb/tool"
 )
@@ -32,7 +32,7 @@ type Profiling struct {
 func init() {
 	var err error
 	//open:=make(chan bool,1)
-	_database, err = gorm.Open("postgres", conf.Config.DBUrl)
+	_database, err = gorm.Open("mysql", conf.Config.DBUrl)
 	tool.CheckError(err)
 
 	if conf.Config.Debug {
@@ -135,7 +135,7 @@ func (as *ActionStatus) SmartData(success bool, s string, f string, data interfa
 	return as
 }
 
-type BaseModelInterface interface {
+type IDataBaseFace interface {
 	TableName() string
 }
 type BaseModel struct {

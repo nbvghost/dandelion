@@ -14,5 +14,5 @@
   "ViewActionMapping":[],
   "TLSCertFile": "cert/tls/cert2.pem",
   "TLSKeyFile": "cert/tls/privkey2.pem",
-  "DBUrl": "host=localhost port=5432 user=postgres dbname=dandelion password=274455411 sslmode=disable"
+  "DBUrl": "root:123456@tcp(127.0.0.1:3306)/dandelion?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
 }
