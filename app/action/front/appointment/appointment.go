@@ -6,10 +6,7 @@ import (
 
 	"github.com/nbvghost/gweb"
 
-	"strconv"
-
 	"dandelion/app/play"
-	"dandelion/app/service"
 	"dandelion/app/service/dao"
 )
 
@@ -42,12 +39,12 @@ type Controller struct {
 
 func (sub *Controller) Apply() {
 	//i.Interceptors.Add(&InterceptorFile{})
-	sub.AddHandler(gweb.ALLMethod(":id/index", indexPage))
+	//sub.AddHandler(gweb.ALLMethod(":id/index", indexPage))
 	sub.AddHandler(gweb.ALLMethod(":id/action/add", actionAddAction))
-	sub.AddHandler(gweb.ALLMethod("/", loadFilePage))
+	//sub.AddHandler(gweb.ALLMethod("/", loadFilePage))
 }
 func actionAddAction(context *gweb.Context) gweb.Result {
-	ID, _ := strconv.ParseUint(context.PathParams["id"], 10, 64)
+	/* ID, _ := strconv.ParseUint(context.PathParams["id"], 10, 64)
 	appointment := service.Appointment.GetAppointment(ID)
 	context.Request.ParseForm()
 
@@ -94,11 +91,12 @@ func actionAddAction(context *gweb.Context) gweb.Result {
 
 		tempOrderPack.Orders = append(tempOrderPack.Orders, order)
 	}
-	context.Session.Attributes.Put(play.SessionCart, carts)
+	context.Session.Attributes.Put(play.SessionCart, carts) */
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).Smart(true, "添加成功", "添加失败")}
 }
-func indexPage(context *gweb.Context) gweb.Result {
-	id, _ := strconv.ParseUint(context.PathParams["id"], 10, 64)
+
+/* func indexPage(context *gweb.Context) gweb.Result {
+	 id, _ := strconv.ParseUint(context.PathParams["id"], 10, 64)
 	appointment := service.Appointment.GetAppointment(id)
 	shop := service.Company.GetCompany(appointment.CompanyID)
 
@@ -108,3 +106,4 @@ func loadFilePage(context *gweb.Context) gweb.Result {
 
 	return service.File.LoadAction(context)
 }
+*/

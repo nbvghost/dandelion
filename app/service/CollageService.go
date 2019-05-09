@@ -4,6 +4,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/nbvghost/glog"
+
 	"dandelion/app/play"
 	"dandelion/app/service/dao"
 	"dandelion/app/util"
@@ -23,7 +25,8 @@ func (service CollageService) DeleteCollage(TimeSellID uint64) error {
 	service.Get(dao.Orm(), TimeSellID, &ts)
 	//err := service.Delete(dao.Orm(), &dao.TimeSell{}, ts.ID)
 	err := service.DeleteWhere(dao.Orm(), &dao.Collage{}, "Hash=?", ts.Hash)
-	tool.CheckError(err)
+	glog.Error(err)
+
 	return err
 }
 
@@ -67,7 +70,7 @@ func (service CollageService) DataTablesItem(context *gweb.Context) gweb.Result 
 func (service CollageService) GetItemByHash(Hash string) dao.Collage {
 	var timesell dao.Collage
 	err := dao.Orm().Model(&dao.Collage{}).Where("Hash=?", Hash).First(&timesell).Error
-	tool.CheckError(err)
+	glog.Error(err)
 	return timesell
 }
 func (service CollageService) GetItem(context *gweb.Context) gweb.Result {
@@ -79,7 +82,7 @@ func (service CollageService) GetItem(context *gweb.Context) gweb.Result {
 func (service CollageService) GetCollageByGoodsID(GoodsID uint64) dao.Collage {
 	var timesell dao.Collage
 	err := dao.Orm().Model(&dao.Collage{}).Where("GoodsID=?", GoodsID).First(&timesell).Error
-	tool.CheckError(err)
+	glog.Error(err)
 	return timesell
 }
 func (service CollageService) AddCollageRecord(OrderNo, OrdersGoodsNo, No string, UserID uint64) error {

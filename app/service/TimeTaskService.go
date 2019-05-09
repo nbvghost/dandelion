@@ -3,11 +3,8 @@ package service
 import (
 	"dandelion/app/play"
 	"dandelion/app/service/dao"
-	"fmt"
 	"strconv"
 	"time"
-
-	"github.com/nbvghost/gweb"
 )
 
 type TimeTaskService struct {
@@ -35,7 +32,7 @@ func (self TimeTaskService) QueryTask() {
 
 	c := time.Tick(15 * time.Second)
 	for range c {
-		fmt.Printf("在线人数：%v\n", len(gweb.Sessions.Data))
+		//fmt.Printf("在线人数：%v\n", len(gweb.Sessions.Data))
 		self.QueryTransfersTask()
 	}
 
@@ -117,7 +114,7 @@ func refund() {
 				suc := wxpay.Refund(v.ID, v.Score)
 				if suc {
 					err := Appointment.ChangeModel(service.Orm, v.ID, &dao.Appointment{State: 4})
-					tool.Trace(err)
+					glog.Trace(err)
 				}
 			}
 
@@ -138,14 +135,14 @@ func pay() {
 				if v.Score == total_fee {
 
 					t, err := time.ParseInLocation("20060102150405", time_end, time.Local)
-					tool.Trace(err)
+					glog.Trace(err)
 					err = Appointment.ChangeModel(service.Orm, v.ID, &dao.Appointment{State: 1, PayDate: t})
-					tool.Trace(err)
+					glog.Trace(err)
 				}
 			} else {
 				if (time.Now().Unix() - v.CreatedAt.Unix()) > 30*60 {
 					err := Appointment.ChangeModel(service.Orm, v.ID, &dao.Appointment{State: 2})
-					tool.Trace(err)
+					glog.Trace(err)
 				}
 			}
 

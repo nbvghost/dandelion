@@ -10,6 +10,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nbvghost/gweb/tool/collections"
+
+	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb/tool"
 )
 
@@ -74,20 +77,20 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 	params := map[string]string{"component_appid": OpenAppID, "authorization_code": authorization_code}
 
 	jd, err := json.Marshal(params)
-	tool.CheckError(err)
+	glog.Error(err)
 	fmt.Println(string(jd))
 	buf := bytes.NewBuffer(make([]byte, 0))
 	binary.Write(buf, binary.BigEndian, jd)
 	resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/component/api_query_auth?component_access_token="+Api_component_token(ComponentVerifyTicket), "application/json", buf)
-	tool.CheckError(err)
+	glog.Error(err)
 	b, err := ioutil.ReadAll(resp.Body)
-	tool.CheckError(err)
+	glog.Error(err)
 	fmt.Println(string(b))
 
 	m := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &m)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	if m["authorization_info"] != nil {
 		authorization_info := m["authorization_info"].(map[string]interface{})
@@ -109,14 +112,14 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 		params := map[string]string{"component_appid": OpenAppID, "component_appsecret": OpenAppSecret, "component_verify_ticket": ComponentVerifyTicket}
 
 		jd, err := json.Marshal(params)
-		tool.CheckError(err)
+		glog.Error(err)
 		fmt.Println(string(jd))
 		buf := bytes.NewBuffer(make([]byte, 0))
 		binary.Write(buf, binary.BigEndian, jd)
 		resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/component/api_component_token", "application/json", buf)
-		tool.CheckError(err)
+		glog.Error(err)
 		b, err := ioutil.ReadAll(resp.Body)
-		tool.CheckError(err)
+		glog.Error(err)
 		fmt.Println(string(b))
 
 		var respData = &struct {
@@ -125,7 +128,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 		}{}
 
 		err = json.Unmarshal(b, respData)
-		tool.CheckError(err)
+		glog.Error(err)
 
 		VerifyCache.Component_access_token = respData.Component_access_token
 		VerifyCache.Component_access_token_expires_in = respData.Expires_in
@@ -137,19 +140,20 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 		return VerifyCache.Component_access_token
 	}
 }*/
+
 /*func Api_create_preauthcode(component_access_token string) string {
 	if time.Now().Unix()-VerifyCache.Pre_auth_code_update >= VerifyCache.Pre_auth_code_expires_in-10 || strings.EqualFold(VerifyCache.Pre_auth_code, "") {
 
 		params := map[string]string{"component_appid": OpenAppID}
 		jd, err := json.Marshal(params)
-		tool.CheckError(err)
+		glog.Error(err)
 		fmt.Println(string(jd))
 		buf := bytes.NewBuffer(make([]byte, 0))
 		binary.Write(buf, binary.BigEndian, jd)
 		resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token="+component_access_token, "application/json", buf)
-		tool.CheckError(err)
+		glog.Error(err)
 		b, err := ioutil.ReadAll(resp.Body)
-		tool.CheckError(err)
+		glog.Error(err)
 		fmt.Println(string(b))
 
 		var respData = &struct {
@@ -158,7 +162,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 		}{}
 
 		err = json.Unmarshal(b, respData)
-		tool.CheckError(err)
+		glog.Error(err)
 
 		VerifyCache.Pre_auth_code = respData.Pre_auth_code
 		VerifyCache.Pre_auth_code_expires_in = respData.Expires_in
@@ -180,7 +184,7 @@ func GetAccessToken() string {
 	url := "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + AppID + "&secret=" + AppSecret
 
 	resp, err := http.Get(url)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	b, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
@@ -188,7 +192,7 @@ func GetAccessToken() string {
 	d := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &d)
-	tool.CheckError(err)
+	glog.Error(err)
 	fmt.Println(string(b))
 	fmt.Println(d)
 
@@ -209,7 +213,7 @@ func GetTicket() string {
 	url := "http://api.weixin.qq.com/cgi-bin/ticket/getticket?type=jsapi&access_token=" + GetAccessToken()
 
 	resp, err := http.Get(url)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	b, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
@@ -217,7 +221,7 @@ func GetTicket() string {
 	d := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &d)
-	tool.CheckError(err)
+	glog.Error(err)
 	fmt.Println(string(b))
 	fmt.Println(d)
 
@@ -263,7 +267,7 @@ func GetWXJSConfig(url string) (appId string, timestamp int64, nonceStr string, 
 	timestamp = time.Now().Unix()
 	nonceStr = tool.UUID()
 	//chooseWXPay
-	list := &tool.List{}
+	list := &collections.ListString{}
 	list.Append("noncestr=" + nonceStr)
 	list.Append("jsapi_ticket=" + GetTicket())
 	list.Append("timestamp=" + strconv.FormatInt(timestamp, 10))

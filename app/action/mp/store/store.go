@@ -2,13 +2,12 @@ package store
 
 import (
 	"dandelion/app/play"
+	"dandelion/app/service"
 	"dandelion/app/service/dao"
+	"dandelion/app/util"
 	"strconv"
 
-	"dandelion/app/service"
-
-	"dandelion/app/util"
-
+	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/tool"
 )
@@ -211,9 +210,9 @@ func (controller *StoreController) storeGetAction(context *gweb.Context) gweb.Re
 func (controller *StoreController) storeLocationListAction(context *gweb.Context) gweb.Result {
 
 	Latitude, err := strconv.ParseFloat(context.Request.URL.Query().Get("Latitude"), 64)
-	tool.CheckError(err)
+	glog.Error(err)
 	Longitude, err := strconv.ParseFloat(context.Request.URL.Query().Get("Longitude"), 64)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	list := controller.Store.LocationList(Latitude, Longitude)
 

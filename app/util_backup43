@@ -27,7 +27,7 @@ func randomBits(b []byte) {
 func RoundFloat64(data interface{}, decimal int) float64 {
 	s := fmt.Sprintf("%."+strconv.Itoa(decimal)+"f", data)
 	ib, err := strconv.ParseFloat(s, 64)
-	tool.CheckError(err)
+	glog.Error(err)
 	//fmt.Println(ib)
 	return ib
 }
@@ -37,7 +37,7 @@ func RoundFloat64(data interface{}, decimal int) float64 {
 func RoundInt64(data interface{}, decimal int) int64 {
 	s := fmt.Sprintf("%."+strconv.Itoa(decimal)+"f", data)
 	ib, err := strconv.ParseInt(s, 10, 64)
-	tool.CheckError(err)
+	glog.Error(err)
 	//fmt.Println(ib)
 	return ib
 }
@@ -47,7 +47,7 @@ func BytesToInt64(data []byte) int64 {
 		return 0
 	}
 	i, err := strconv.ParseInt(s, 10, 64)
-	tool.CheckError(err)
+	glog.Error(err)
 	if err != nil {
 		return 0
 	}
@@ -59,7 +59,7 @@ func BytesToFloat64(data []byte) float64 {
 		return 0
 	}
 	i, err := strconv.ParseFloat(s, 64)
-	tool.CheckError(err)
+	glog.Error(err)
 	if err != nil {
 		return 0
 	}

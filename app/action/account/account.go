@@ -8,6 +8,8 @@ import (
 	"encoding/base64"
 	"time"
 
+	"github.com/nbvghost/glog"
+
 	"math/rand"
 	"strings"
 
@@ -114,13 +116,13 @@ func (controller *Controller) miniProgramLoginAction(context *gweb.Context) gweb
 									superiorUser.ID,
 									"邀请新朋友获取积分", "邀请新朋友获取积分",
 									play.ScoreJournal_Type_InviteUser, int64(InviteUser.(float64)), dao.KV{Key: "SuperiorID", Value: SuperiorID})
-								tool.CheckError(err)
+								glog.Error(err)
 
 								err = controller.Journal.AddUserJournal(tx,
 									superiorUser.ID,
 									"邀请新朋友获得现金", "邀请新朋友获得现金",
 									play.UserJournal_Type_USER_LEVE, int64(30), dao.KV{Key: "UserID", Value: newUser.ID}, newUser.ID)
-								tool.CheckError(err)
+								glog.Error(err)
 
 								go func(superiorUser dao.User, newUser dao.User) {
 									controller.Wx.NewUserJoinNotify(newUser, superiorUser)
@@ -185,14 +187,14 @@ func (controller *Controller) SMSAction(context *gweb.Context) gweb.Result {
 		//context.Session.Attributes.Put(play.SessionOpenID, openid)
 		var user dao.User
 		err := controller.User.Get(Orm, item.ID, &user)
-		tool.Trace(err)
+		glog.Trace(err)
 
 		if user.ID == 0 {
 			return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "没有找到用户", Data: nil}}
 		} else {
 			user.Tel = item.Tel
 			err := controller.User.ChangeModel(Orm, user.ID, &dao.User{Tel: item.Tel})
-			tool.Trace(err)
+			glog.Trace(err)
 			return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: user}}
 		}
 
@@ -363,6 +365,7 @@ func (controller *Controller) wxAuthorizeAction(context *gweb.Context) gweb.Resu
 	WxConfig := controller.Wx.MiniWeb()
 	if strings.EqualFold(code, "") {
 		fmt.Println(state)
+
 		//context.Session.Attributes.Put(play.SessionRedirect, redirect)
 		url := "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + WxConfig.AppID + "&redirect_uri=" + url.QueryEscape(util.GetHost(context.Request)+"/account/wx/authorize?redirect="+redirect) + "&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect"
 		//url := "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + WxConfig.AppID + "&redirect_uri=" + url.QueryEscape(util.GetHost(context.Request)+"/account/loginWxPage") + "&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect"
@@ -373,7 +376,7 @@ func (controller *Controller) wxAuthorizeAction(context *gweb.Context) gweb.Resu
 		url := "https://api.weixin.qq.com/sns/oauth2/access_token?appid=" + WxConfig.AppID + "&secret=" + WxConfig.AppSecret + "&code=" + code + "&grant_type=authorization_code"
 
 		resp, err := http.Get(url)
-		tool.Trace(err)
+		glog.Trace(err)
 		b, err := ioutil.ReadAll(resp.Body)
 		defer resp.Body.Close()
 
@@ -381,7 +384,7 @@ func (controller *Controller) wxAuthorizeAction(context *gweb.Context) gweb.Resu
 
 		mapData := make(map[string]interface{})
 		err = json.Unmarshal(b, &mapData)
-		tool.Trace(err)
+		glog.Trace(err)
 		fmt.Println(mapData)
 		if mapData["openid"] == nil || mapData["access_token"] == nil {
 			return &gweb.RedirectToUrlResult{Url: redirect}
@@ -399,7 +402,7 @@ func (controller *Controller) wxAuthorizeAction(context *gweb.Context) gweb.Resu
 		//https://api.weixin.qq.com/cgi-bin/user/info?access_token=ACCESS_TOKEN&openid=OPENID&lang=zh_CN
 
 		resp, err = http.Get("https://api.weixin.qq.com/sns/userinfo?access_token=" + access_token + "&openid=" + openid + "&lang=zh_CN")
-		tool.Trace(err)
+		glog.Trace(err)
 		b, err = ioutil.ReadAll(resp.Body)
 		defer resp.Body.Close()
 
@@ -436,7 +439,7 @@ func (controller *Controller) wxAuthorizeAction(context *gweb.Context) gweb.Resu
 		access_token = controller.Wx.GetAccessToken(WxConfig)
 		//https://api.weixin.qq.com/cgi-bin/user/info?access_token=ACCESS_TOKEN&openid=OPENID&lang=zh_CN
 		resp, err = http.Get("https://api.weixin.qq.com/cgi-bin/user/info?access_token=" + access_token + "&openid=" + openid + "&lang=zh_CN")
-		tool.Trace(err)
+		glog.Trace(err)
 		b, err = ioutil.ReadAll(resp.Body)
 		defer resp.Body.Close()
 

@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
-	"github.com/nbvghost/gweb/tool"
 )
 
 type ContentService struct {
@@ -185,7 +185,7 @@ func (service ContentService) ListContentType() []dao.ContentType {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	var list []dao.ContentType
 	err := service.FindAll(Orm, &list)
-	tool.Trace(err)
+	glog.Trace(err)
 	return list
 }
 func (service ContentService) ListContentTypeByType(Type string) dao.ContentType {
@@ -193,14 +193,14 @@ func (service ContentService) ListContentTypeByType(Type string) dao.ContentType
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	var list dao.ContentType
 	err := service.FindWhere(Orm, &list, "Type=?", Type)
-	tool.Trace(err)
+	glog.Trace(err)
 	return list
 }
 func (service ContentService) FindContentSubTypesByNameAndContentID(Name string, ContentID uint64) dao.ContentSubType {
 	Orm := dao.Orm()
 	var cst dao.ContentSubType
 	err := Orm.Where("ContentID=? and Name=?", ContentID, Name).First(&cst).Error
-	tool.CheckError(err)
+	glog.Error(err)
 	return cst
 }
 

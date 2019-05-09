@@ -3,18 +3,17 @@ package manager
 import (
 	"net/url"
 
+	"github.com/nbvghost/glog"
+
 	"dandelion/app/util"
-
-	"github.com/nbvghost/gweb"
-	"github.com/nbvghost/gweb/tool"
-
-	"strconv"
-
-	"encoding/json"
 
 	"dandelion/app/play"
 	"dandelion/app/service"
 	"dandelion/app/service/dao"
+	"encoding/json"
+	"strconv"
+
+	"github.com/nbvghost/gweb"
 )
 
 type InterceptorManager struct {
@@ -92,14 +91,15 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		item := &dao.GoodsType{}
 		//item.OID = company.ID
 		err := util.RequestBodyToJSON(context.Request.Body, item)
-		tool.Trace(err)
+		glog.Trace(err)
+
 		//fmt.Println(item)
 		err = controller.Goods.Add(Orm, item)
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
 	case "change_goods_type":
 		item := &dao.GoodsType{}
 		err := util.RequestBodyToJSON(context.Request.Body, item)
-		tool.Trace(err)
+		glog.Trace(err)
 		err = controller.Goods.ChangeModel(Orm, item.ID, &dao.GoodsType{Name: item.Name})
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
 
@@ -114,14 +114,14 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 	case "add_goods_type_child":
 		item := &dao.GoodsTypeChild{}
 		err := util.RequestBodyToJSON(context.Request.Body, item)
-		tool.Trace(err)
+		glog.Trace(err)
 		//fmt.Println(item)
 		err = controller.Goods.Add(Orm, item)
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
 	case "change_goods_type_child":
 		item := &dao.GoodsTypeChild{}
 		err := util.RequestBodyToJSON(context.Request.Body, item)
-		tool.Trace(err)
+		glog.Trace(err)
 		err = controller.Goods.ChangeModel(Orm, item.ID, &dao.GoodsTypeChild{Name: item.Name, Image: item.Image})
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
 	case "list_goods_type_child":
@@ -285,14 +285,14 @@ func (controller *Controller) articleAction(context *gweb.Context) gweb.Result {
 		jsonText := context.Request.Form.Get("json")
 		article := &dao.Article{}
 		err := json.Unmarshal([]byte(jsonText), article)
-		tool.CheckError(err)
+		glog.Error(err)
 		result.Data = controller.Article.AddArticle(article)
 	case "change":
 		context.Request.ParseForm()
 		jsonText := context.Request.Form.Get("json")
 		article := &dao.Article{}
 		err := json.Unmarshal([]byte(jsonText), article)
-		tool.CheckError(err)
+		glog.Error(err)
 		controller.Article.ChangeArticle(article)
 		result.Data = &dao.ActionStatus{true, "SUCCESS", article}
 	case "one":

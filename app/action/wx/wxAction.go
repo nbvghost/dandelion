@@ -1,17 +1,13 @@
 package wx
 
 import (
-	"dandelion/app/service"
-	"dandelion/app/util"
 	"fmt"
-	"strconv"
+
+	"github.com/nbvghost/glog"
 
 	"github.com/nbvghost/gweb"
-	"github.com/nbvghost/gweb/tool"
 
 	"io/ioutil"
-
-	"strings"
 )
 
 //04591700ed65e0ebfd95fd4efb948b73
@@ -31,9 +27,11 @@ func (i *Controller) Apply() {
 func callbackAction(context *gweb.Context) gweb.Result {
 	fmt.Println(context.Request.URL.Query().Encode())
 	b, err := ioutil.ReadAll(context.Request.Body)
-	tool.CheckError(err)
+	glog.Error(err)
+
 	fmt.Println(string(b))
 	return &gweb.TextResult{}
+
 }
 
 func notifyAction(context *gweb.Context) gweb.Result {
@@ -42,7 +40,7 @@ func notifyAction(context *gweb.Context) gweb.Result {
 }
 func tokenAction(context *gweb.Context) gweb.Result {
 
-	if strings.EqualFold(context.Request.Method, "GET") {
+	/* if strings.EqualFold(context.Request.Method, "GET") {
 
 		signature := context.Request.URL.Query().Get("signature")
 		timestamp := context.Request.URL.Query().Get("timestamp")
@@ -66,7 +64,7 @@ func tokenAction(context *gweb.Context) gweb.Result {
 			return &gweb.TextResult{Data: "ERROR"}
 		}
 
-	}
+	} */
 
 	/*//encrypt_type=aes&msg_signature=0da847abf28d7fbd1e5f131c5e2c5045f0b7618d&nonce=289158306&signature=8cbe9a765ba9c6fd383c9abcd68cde7234f438cf&timestamp=1510642666
 	encrypt_type := context.Request.URL.Query().Get("encrypt_type")
@@ -77,7 +75,7 @@ func tokenAction(context *gweb.Context) gweb.Result {
 	fmt.Println(context.Request.URL.Query().Encode())
 
 	b, err := ioutil.ReadAll(context.Request.Body)
-	tool.CheckError(err)
+	glog.Error(err)
 	fmt.Println("dsfs", string(b))
 
 	if strings.EqualFold(encrypt_type, "aes") {
@@ -94,7 +92,7 @@ func tokenAction(context *gweb.Context) gweb.Result {
 			//fmt.Println(wxpay.VerifyCache)
 
 			err := service.Configuration.ChangeConfiguration(service.Orm, play.ConfigurationKey_component_verify_ticket, pushInfo.ComponentVerifyTicket)
-			tool.CheckError(err)
+			glog.Error(err)
 
 		}
 

@@ -6,6 +6,8 @@ import (
 	"math"
 	"strconv"
 
+	"github.com/nbvghost/glog"
+
 	"errors"
 	"strings"
 
@@ -71,7 +73,7 @@ func (controller *OrderController) ordersWxpayPackageAction(context *gweb.Contex
 	outData := controller.Wx.GetWXAConfig(result.Prepay_id, WxConfig)
 
 	err := controller.Orders.ChangeMap(dao.Orm(), orders.ID, &dao.OrdersPackage{}, map[string]interface{}{"PrepayID": result.Prepay_id})
-	tool.CheckError(err)
+	glog.Error(err)
 	//outData["OrdersID"] = strconv.Itoa(int(orders.ID))
 	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: outData}}
 
@@ -101,7 +103,7 @@ func (controller *OrderController) ordersWxpayAloneAction(context *gweb.Context)
 	outData := controller.Wx.GetWXAConfig(result.Prepay_id, WxConfig)
 
 	err := controller.Orders.ChangeMap(dao.Orm(), orders.ID, &dao.Orders{}, map[string]interface{}{"PrepayID": result.Prepay_id})
-	tool.CheckError(err)
+	glog.Error(err)
 	//outData["OrdersID"] = strconv.Itoa(int(orders.ID))
 	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: outData}}
 

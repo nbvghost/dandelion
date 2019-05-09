@@ -3,7 +3,7 @@ package service
 import (
 	"dandelion/app/service/dao"
 
-	"github.com/nbvghost/gweb/tool"
+	"github.com/nbvghost/glog"
 )
 
 type ConfigurationService struct {
@@ -15,7 +15,7 @@ func (b ConfigurationService) GetConfiguration(OID uint64, Key uint64) dao.Confi
 	var item dao.Configuration
 	err := Orm.Where("K=? and OID=?", Key, OID).First(&item).Error
 	//db.Where([]int64{20, 21, 22}).Find(&users
-	tool.CheckError(err)
+	glog.Error(err)
 	return item
 }
 func (b ConfigurationService) GetConfigurations(OID uint64, Keys []uint64) map[uint64]string {
@@ -23,7 +23,7 @@ func (b ConfigurationService) GetConfigurations(OID uint64, Keys []uint64) map[u
 	var items []dao.Configuration
 	err := Orm.Where("K in (?) and OID=?", Keys, OID).Find(&items).Error
 	//db.Where([]int64{20, 21, 22}).Find(&users
-	tool.CheckError(err)
+	glog.Error(err)
 
 	list := make(map[uint64]string)
 	for _, value := range items {
@@ -34,7 +34,7 @@ func (b ConfigurationService) GetConfigurations(OID uint64, Keys []uint64) map[u
 		if value.ID == 0 {
 			value.K = key
 			err = Orm.Create(value).Error
-			tool.CheckError(err)
+			glog.Error(err)
 
 		}
 	}*/

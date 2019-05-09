@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nbvghost/glog"
+
 	"github.com/pkg/errors"
 
 	"github.com/nbvghost/gweb"
@@ -130,7 +132,7 @@ func (controller *UserController) userInfoDaySignAction(context *gweb.Context) g
 	now := userInfo.DaySignTime
 	today := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, now.Location())
 	//d,err:=time.ParseDuration("24h")
-	//tool.CheckError(err)
+	//glog.Error(err)
 
 	fmt.Println(":", time.Now().Unix())
 	fmt.Println(":", today.Unix())
@@ -169,8 +171,10 @@ func (controller *UserController) userInfoDaySignAction(context *gweb.Context) g
 		} else {
 			score, have = DaySign["max"]
 			if !have {
-				tool.Trace("打卡data.json数据没有设置DaySign.max字段值")
+				glog.Trace("打卡data.json数据没有设置DaySign.max字段值")
+
 			}
+
 		}
 		err := controller.Journal.AddScoreJournal(dao.Orm(),
 			user.ID,

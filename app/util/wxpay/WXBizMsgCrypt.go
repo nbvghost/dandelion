@@ -11,11 +11,11 @@ import (
 	"fmt"
 	"io"
 	"sort"
-
 	"strings"
 )
 
-/**
+/*
+
  * 对密文进行解密.
  *
  * @param text 需要解密的密文

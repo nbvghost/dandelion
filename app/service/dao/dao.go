@@ -3,16 +3,17 @@ package dao
 import (
 	"time"
 
-	"dandelion/app/play"
+	"github.com/nbvghost/glog"
 
+	"dandelion/app/play"
 	//"github.com/go-gorp/gorp"
 	//_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+
 	//_ "github.com/lib/pq"
 	//_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/nbvghost/gweb/conf"
-	"github.com/nbvghost/gweb/tool"
 )
 
 var _database *gorm.DB
@@ -33,7 +34,7 @@ func init() {
 	var err error
 	//open:=make(chan bool,1)
 	_database, err = gorm.Open("mysql", conf.Config.DBUrl)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	if conf.Config.Debug {
 		_database.Debug()
@@ -47,7 +48,7 @@ func init() {
 	//_database.Exec("SET SESSION GROUP_CONCAT_MAX_LEN=1844674407370954752")
 	//_database.Exec("SET GLOBAL max_allowed_packet=1844674407370954752")
 	//err = _database.Exec("set profiling = 1").Error
-	//tool.CheckError(err)
+	//glog.Error(err)
 	go func() {
 
 		/*for {

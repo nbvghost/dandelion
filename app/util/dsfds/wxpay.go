@@ -11,20 +11,20 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 	params := map[string]string{"component_appid": OpenAppID, "authorization_code": authorization_code}
 
 	jd, err := json.Marshal(params)
-	tool.CheckError(err)
+	glog.Error(err)
 	fmt.Println(string(jd))
 	buf := bytes.NewBuffer(make([]byte, 0))
 	binary.Write(buf, binary.BigEndian, jd)
 	resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/component/api_query_auth?component_access_token="+Api_component_token(ComponentVerifyTicket), "application/json", buf)
-	tool.CheckError(err)
+	glog.Error(err)
 	b, err := ioutil.ReadAll(resp.Body)
-	tool.CheckError(err)
+	glog.Error(err)
 	fmt.Println(string(b))
 
 	m := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &m)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	if m["authorization_info"] != nil {
 		authorization_info := m["authorization_info"].(map[string]interface{})
@@ -46,14 +46,14 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 		params := map[string]string{"component_appid": OpenAppID, "component_appsecret": OpenAppSecret, "component_verify_ticket": ComponentVerifyTicket}
 
 		jd, err := json.Marshal(params)
-		tool.CheckError(err)
+		glog.Error(err)
 		fmt.Println(string(jd))
 		buf := bytes.NewBuffer(make([]byte, 0))
 		binary.Write(buf, binary.BigEndian, jd)
 		resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/component/api_component_token", "application/json", buf)
-		tool.CheckError(err)
+		glog.Error(err)
 		b, err := ioutil.ReadAll(resp.Body)
-		tool.CheckError(err)
+		glog.Error(err)
 		fmt.Println(string(b))
 
 		var respData = &struct {
@@ -62,7 +62,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 		}{}
 
 		err = json.Unmarshal(b, respData)
-		tool.CheckError(err)
+		glog.Error(err)
 
 		VerifyCache.Component_access_token = respData.Component_access_token
 		VerifyCache.Component_access_token_expires_in = respData.Expires_in
@@ -79,14 +79,14 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 
 		params := map[string]string{"component_appid": OpenAppID}
 		jd, err := json.Marshal(params)
-		tool.CheckError(err)
+		glog.Error(err)
 		fmt.Println(string(jd))
 		buf := bytes.NewBuffer(make([]byte, 0))
 		binary.Write(buf, binary.BigEndian, jd)
 		resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token="+component_access_token, "application/json", buf)
-		tool.CheckError(err)
+		glog.Error(err)
 		b, err := ioutil.ReadAll(resp.Body)
-		tool.CheckError(err)
+		glog.Error(err)
 		fmt.Println(string(b))
 
 		var respData = &struct {
@@ -95,7 +95,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 		}{}
 
 		err = json.Unmarshal(b, respData)
-		tool.CheckError(err)
+		glog.Error(err)
 
 		VerifyCache.Pre_auth_code = respData.Pre_auth_code
 		VerifyCache.Pre_auth_code_expires_in = respData.Expires_in
@@ -119,7 +119,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 	url := "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + WxConfig.AppID + "&secret=" + WxConfig.AppSecret
 
 	resp, err := http.Get(url)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	b, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
@@ -127,7 +127,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 	d := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &d)
-	tool.CheckError(err)
+	glog.Error(err)
 	fmt.Println(string(b))
 	fmt.Println(d)
 
@@ -148,7 +148,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 	url := "http://api.weixin.qq.com/cgi-bin/ticket/getticket?type=jsapi&access_token=" + GetAccessToken()
 
 	resp, err := http.Get(url)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	b, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
@@ -156,7 +156,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 	d := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &d)
-	tool.CheckError(err)
+	glog.Error(err)
 	fmt.Println(string(b))
 	fmt.Println(d)
 
@@ -191,20 +191,20 @@ func OrderQuery(OrderNo uint64) (return_code, result_code, trade_state, time_end
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
-	tool.Trace(err)
+	glog.Trace(err)
 	//fmt.Println(string(b))
 
 	reader := strings.NewReader(string(b))
 	response, err := http.Post("https://api.mch.weixin.qq.com/pay/orderquery", "text/xml", reader)
-	tool.Trace(err)
+	glog.Trace(err)
 
 	b, err = ioutil.ReadAll(response.Body)
-	tool.Trace(err)
+	glog.Trace(err)
 	//fmt.Println(string(b))
 
 	inMap := make(util.Map)
 	err = xml.Unmarshal(b, &inMap)
-	tool.Trace(err)
+	glog.Trace(err)
 	fmt.Println(inMap)
 
 	return_code = inMap["return_code"]

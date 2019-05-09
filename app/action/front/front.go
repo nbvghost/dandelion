@@ -38,7 +38,7 @@ func (this InterceptorData) Execute(context *gweb.Context) bool {
 }
 func (i *Controller) Apply() {
 	fmt.Println(i)
-	i.Interceptors.Add(&InterceptorData{})
+	//i.Interceptors.Add(&InterceptorData{})
 	//i.AddSubController("/appointment/", &appointment.Controller{})
 	//i.Interceptors.Add(&InterceptorFile{})
 	//i.AddHandler((&appointment.ControllerAppointment{}).Init())

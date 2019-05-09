@@ -7,14 +7,13 @@ import (
 	"strings"
 	"time"
 
+	"dandelion/app/play"
 	"dandelion/app/service/dao"
 	"dandelion/app/util"
 
-	"dandelion/app/play"
-
 	"github.com/jinzhu/gorm"
+	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
-	"github.com/nbvghost/gweb/tool"
 )
 
 type UserService struct {
@@ -45,7 +44,8 @@ func (service UserService) Situation(StartTime, EndTime int64) interface{} {
 
 	Orm.Table("User").Select("COUNT(ID) as TotalCount").Where("CreatedAt>=?", st).Where("CreatedAt<?", et).Find(&result)
 	//fmt.Println(result)
-	result.OnlineCount = len(gweb.Sessions.Data)
+	//todo://
+	//result.OnlineCount = len(gweb.Sessions.Data)
 	return result
 }
 func (service UserService) GetFromIDs(UserID uint64) dao.UserFormIds {
@@ -175,7 +175,7 @@ func (service UserService) AfterSettlementUserBrokerage(tx *gorm.DB, orders dao.
 		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
 		err = service.AddUserBlockAmount(tx, _user.ID, -leveMenoy)
 		if err != nil {
-			tool.CheckError(err)
+			glog.Error(err)
 			continue
 		}
 		//OutBrokerageMoney = OutBrokerageMoney + leveMenoy
@@ -229,7 +229,7 @@ func (service UserService) FirstSettlementUserBrokerage(tx *gorm.DB, orders dao.
 		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
 		err = service.AddUserBlockAmount(tx, _user.ID, leveMenoy)
 		if err != nil {
-			tool.CheckError(err)
+			glog.Error(err)
 			continue
 		}
 		//OutBrokerageMoney = OutBrokerageMoney + leveMenoy
@@ -310,25 +310,25 @@ func (service UserService) SettlementUser(Orm *gorm.DB, Brokerage uint64, orders
 		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
 		err = Journal.AddUserJournal(Orm, _user.ID, "佣金", strconv.Itoa(index+1)+"级用户", play.UserJournal_Type_LEVE, leveMenoy, dao.KV{Key: "OrdersID", Value: orders.ID}, user.ID)
 		if err != nil {
-			tool.CheckError(err)
+			glog.Error(err)
 			continue
 		}
 
 		err = service.AddUserBlockAmount(Orm, _user.ID, -leveMenoy)
 		if err != nil {
-			tool.CheckError(err)
+			glog.Error(err)
 			continue
 		}
 
 		err = Journal.AddOrganizationJournal(Orm, orders.OID, "商品交易", "推广佣金"+_user.Name, play.OrganizationJournal_Brokerage, -leveMenoy, dao.KV{Key: "OrdersID", Value: orders.ID})
 		if err != nil {
-			tool.CheckError(err)
+			glog.Error(err)
 			continue
 		}
 
 		err = Journal.AddScoreJournal(Orm, _user.ID, "积分", "佣金积分", play.ScoreJournal_Type_LEVE, int64(leveMenoy), dao.KV{Key: "OrdersID", Value: orders.ID})
 		if err != nil {
-			tool.CheckError(err)
+			glog.Error(err)
 			continue
 		}
 
@@ -344,7 +344,7 @@ func (service UserService) SettlementUser(Orm *gorm.DB, Brokerage uint64, orders
 func (service UserService) FindUserByIDs(IDs []uint64) []dao.User {
 	var users []dao.User
 	err := dao.Orm().Where(IDs).Find(&users).Error //SelectOne(user, "select * from User where Tel=?", Tel)
-	tool.CheckError(err)
+	glog.Error(err)
 	return users
 }
 func (service UserService) LeveAll6(Orm *gorm.DB, OneSuperiorID uint64) string {
@@ -460,7 +460,7 @@ func (service UserService) UserAction(context *gweb.Context) gweb.Result {
 func (service UserService) FindUserByTel(Orm *gorm.DB, Tel string) *dao.User {
 	user := &dao.User{}
 	err := Orm.Where("Tel=?", Tel).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
-	tool.CheckError(err)
+	glog.Error(err)
 	return user
 }
 
@@ -469,7 +469,7 @@ func (service UserService) FindUserByOpenID(Orm *gorm.DB, OpenID string) *dao.Us
 	user := &dao.User{}
 	//CompanyOpenID := user.GetCompanyOpenID(CompanyID, OpenID)
 	err := Orm.Where("OpenID=?", OpenID).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
-	tool.CheckError(err)
+	glog.Error(err)
 	return user
 }
 func (service UserService) AddUserByOpenID(Orm *gorm.DB, OpenID string) *dao.User {
@@ -484,6 +484,6 @@ func (service UserService) AddUserByOpenID(Orm *gorm.DB, OpenID string) *dao.Use
 	}
 	//CompanyOpenID := user.GetCompanyOpenID(CompanyID, OpenID)
 	//err := Orm.Where("OpenID=?", OpenID).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
-	//tool.CheckError(err)
+	//glog.Error(err)
 	return user
 }

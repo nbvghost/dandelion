@@ -26,6 +26,7 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb/conf"
 	"github.com/nbvghost/gweb/tool"
 	"github.com/nbvghost/gweb/tool/collections"
@@ -108,7 +109,7 @@ func (entity WxService) GetAccessToken(WxConfig dao.WxConfig) string {
 	url := "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + WxConfig.AppID + "&secret=" + WxConfig.AppSecret
 
 	resp, err := http.Get(url)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	b, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
@@ -116,7 +117,7 @@ func (entity WxService) GetAccessToken(WxConfig dao.WxConfig) string {
 	d := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &d)
-	tool.CheckError(err)
+	glog.Error(err)
 	//fmt.Println(string(b))
 	//fmt.Println(d)
 	if d["access_token"] == nil {
@@ -284,7 +285,7 @@ func (entity WxService) OrderDeliveryNotify(Order dao.Orders) *dao.ActionStatus 
 	data_data["keyword2"] = map[string]interface{}{"value": Order.ShipNo, "color": "#173177"}
 
 	ogs, err := GlobalService.Orders.FindOrdersGoodsByOrdersID(dao.Orm(), Order.ID)
-	tool.CheckError(err)
+	glog.Error(err)
 	var Titles = ""
 	for _, value := range ogs {
 		var goods dao.Goods
@@ -393,7 +394,7 @@ func (entity WxService) NewOrderNotify(Order dao.Orders) *dao.ActionStatus {
 	data_data["keyword6"] = map[string]interface{}{"value": strconv.Itoa(int(Order.PayMoney/100)) + "元", "color": "#173177"}
 
 	ogs, err := GlobalService.Orders.FindOrdersGoodsByOrdersID(dao.Orm(), Order.ID)
-	tool.CheckError(err)
+	glog.Error(err)
 	var Titles = ""
 	for _, value := range ogs {
 		var goods dao.Goods
@@ -418,22 +419,22 @@ func (entity WxService) SendUniformMessage(sendData map[string]interface{}) (*da
 	xcx := entity.MiniProgram()
 
 	b, err := json.Marshal(sendData)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	access_token := entity.GetAccessToken(xcx)
 	strReader := strings.NewReader(string(b))
 	respones, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/uniform_send?access_token="+access_token, "application/json", strReader)
-	tool.CheckError(err)
+	glog.Error(err)
 	if err != nil {
 		return &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}, -1
 	}
 	defer respones.Body.Close()
 	body, err := ioutil.ReadAll(respones.Body)
-	tool.CheckError(err)
+	glog.Error(err)
 	mapData := make(map[string]interface{})
 	fmt.Println(string(body))
 	err = json.Unmarshal(body, &mapData)
-	tool.CheckError(err)
+	glog.Error(err)
 	if mapData["errcode"] != nil {
 		if mapData["errcode"].(float64) == 0 {
 			return &dao.ActionStatus{Success: true, Message: "发送成功", Data: nil}, 0
@@ -444,24 +445,24 @@ func (entity WxService) SendUniformMessage(sendData map[string]interface{}) (*da
 }
 func (entity WxService) SendWXMessage(sendData map[string]interface{}) *dao.ActionStatus {
 	b, err := json.Marshal(sendData)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	WxConfig := entity.MiniProgram()
 
 	access_token := entity.GetAccessToken(WxConfig)
 	strReader := strings.NewReader(string(b))
 	respones, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token="+access_token, "application/json", strReader)
-	tool.CheckError(err)
+	glog.Error(err)
 	if err != nil {
 		return &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}
 	}
 	defer respones.Body.Close()
 	body, err := ioutil.ReadAll(respones.Body)
-	tool.CheckError(err)
+	glog.Error(err)
 	mapData := make(map[string]interface{})
 	fmt.Println(string(body))
 	err = json.Unmarshal(body, &mapData)
-	tool.CheckError(err)
+	glog.Error(err)
 	if mapData["errcode"] != nil {
 		if mapData["errcode"].(float64) == 0 {
 			return &dao.ActionStatus{Success: true, Message: "发送成功", Data: nil}
@@ -517,13 +518,13 @@ func (entity WxService) Order(OrderNo string, title, description string, detail,
 	strReader := strings.NewReader(string(xmlb))
 
 	respones, err := http.Post("https://api.mch.weixin.qq.com/pay/unifiedorder", "text/xml", strReader)
-	tool.CheckError(err)
+	glog.Error(err)
 	if err != nil {
 		return false, err.Error(), WxOrderResult{}
 	}
 
 	b, err := ioutil.ReadAll(respones.Body)
-	tool.CheckError(err)
+	glog.Error(err)
 	if err != nil {
 		return false, err.Error(), WxOrderResult{}
 	}
@@ -590,11 +591,11 @@ func (entity WxService) MPOrder(OrderNo string, title, description string, ogs [
 // func (self WxService) GetWxConfig(DB *gorm.DB, CompanyID uint64) *WxConfig {
 // 	item := &WxConfig{}
 // 	err := DB.Where("CompanyID=?", CompanyID).First(item).Error
-// 	tool.CheckError(err)
+// 	glog.Error(err)
 
 // 	if item.ID == 0 {
 // 		err = DB.Create(item).Error
-// 		tool.CheckError(err)
+// 		glog.Error(err)
 // 		return item
 // 	} else {
 // 		return item
@@ -610,13 +611,13 @@ func (entity WxService) ChangeWxConfig(DB *gorm.DB, ID uint64, Value dao.WxConfi
 /*func (entity WxService) MiniProgramByAppIDAndMchID(AppID, MchID string) dao.WxConfig {
 	var wx dao.WxConfig
 	err := dao.Orm().Model(&dao.WxConfig{}).Where("AppID=? and MchID=?", AppID, MchID).First(&wx).Error
-	tool.CheckError(err)
+	glog.Error(err)
 	return wx
 }*/
 /*func (entity WxService) GetWxConfig(ID uint64) dao.WxConfig {
 	var wx dao.WxConfig
 	err := dao.Orm().Model(&dao.WxConfig{}).Where("ID=?", ID).First(&wx).Error
-	tool.CheckError(err)
+	glog.Error(err)
 	return wx
 }*/
 func (entity WxService) MWQRCodeTemp(OID uint64, UserID uint64, qrtype, params string) *dao.ActionStatus {
@@ -672,7 +673,7 @@ func (entity WxService) MiniProgram() dao.WxConfig {
 	wx.MchID = "1253136001"
 	wx.PayKey = "6af34073b83d6f8a4f35289b92226f20"
 	//err := dao.Orm().Model(&dao.WxConfig{}).Where("OID=? and Type=?", OID, "miniprogram").First(&wx).Error
-	//tool.CheckError(err)
+	//glog.Error(err)
 	return wx
 }
 
@@ -686,7 +687,7 @@ func (entity WxService) MiniWeb() dao.WxConfig {
 	wx.AppSecret = "090938339bac641c9c336e58b118375d"
 	//var wx dao.WxConfig
 	//err := dao.Orm().Model(&dao.WxConfig{}).Where("OID=? and Type=?", OID, "miniweb").First(&wx).Error
-	//tool.CheckError(err)
+	//glog.Error(err)
 	return wx
 }
 
@@ -712,7 +713,7 @@ func (entity WxService) OrderQuery(OrderNo string) (Success bool, Result util.Ma
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
-	tool.Trace(err)
+	glog.Trace(err)
 	//fmt.Println(string(b))
 
 	client := &http.Client{}
@@ -721,15 +722,15 @@ func (entity WxService) OrderQuery(OrderNo string) (Success bool, Result util.Ma
 	if err != nil {
 		return false, inData
 	}
-	tool.Trace(err)
+	glog.Trace(err)
 
 	b, err = ioutil.ReadAll(response.Body)
-	tool.Trace(err)
+	glog.Trace(err)
 
 	//fmt.Println(string(b))
 
 	err = xml.Unmarshal(b, &inData)
-	tool.Trace(err)
+	glog.Trace(err)
 
 	//fmt.Println(inData)
 
@@ -776,7 +777,7 @@ func (entity WxService) GetTransfersInfo(transfers dao.Transfers) (Success bool)
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
-	tool.Trace(err)
+	glog.Trace(err)
 	//fmt.Println(string(b))
 	//certs, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")
 
@@ -806,13 +807,13 @@ func (entity WxService) GetTransfersInfo(transfers dao.Transfers) (Success bool)
 
 	reader := strings.NewReader(string(b))
 	response, err := client.Post("https://api.mch.weixin.qq.com/mmpaymkttransfers/gettransferinfo", "text/xml", reader)
-	tool.Trace(err)
+	glog.Trace(err)
 	if err != nil {
 		return false
 	}
 
 	b, err = ioutil.ReadAll(response.Body)
-	tool.Trace(err)
+	glog.Trace(err)
 	if err != nil {
 		return false
 	}
@@ -821,7 +822,7 @@ func (entity WxService) GetTransfersInfo(transfers dao.Transfers) (Success bool)
 
 	var inData = make(util.Map)
 	err = xml.Unmarshal(b, &inData)
-	tool.Trace(err)
+	glog.Trace(err)
 	if err != nil {
 		return false
 	}
@@ -876,7 +877,7 @@ func (entity WxService) Transfers(transfers dao.Transfers) (Success bool, Messag
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
-	tool.Trace(err)
+	glog.Trace(err)
 	//fmt.Println(string(b))
 	//certs, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")
 
@@ -905,16 +906,16 @@ func (entity WxService) Transfers(transfers dao.Transfers) (Success bool, Messag
 
 	reader := strings.NewReader(string(b))
 	response, err := client.Post("https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers", "text/xml", reader)
-	tool.Trace(err)
+	glog.Trace(err)
 
 	b, err = ioutil.ReadAll(response.Body)
-	tool.Trace(err)
+	glog.Trace(err)
 
 	//fmt.Println(string(b))
 
 	var inData = make(util.Map)
 	err = xml.Unmarshal(b, &inData)
-	tool.Trace(err)
+	glog.Trace(err)
 
 	//fmt.Println(inData)
 
@@ -963,20 +964,20 @@ func (entity WxService) CloseOrder(OrderNo string, OID uint64) (Success bool, Me
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
-	tool.Trace(err)
+	glog.Trace(err)
 
 	reader := strings.NewReader(string(b))
 	response, err := http.Post("https://api.mch.weixin.qq.com/pay/closeorder", "text/xml", reader)
-	tool.Trace(err)
+	glog.Trace(err)
 
 	b, err = ioutil.ReadAll(response.Body)
-	tool.Trace(err)
+	glog.Trace(err)
 
 	fmt.Println(string(b))
 
 	var inData = make(util.Map)
 	err = xml.Unmarshal(b, &inData)
-	tool.Trace(err)
+	glog.Trace(err)
 	//fmt.Println(inData)
 
 	if strings.EqualFold(inData["return_code"], "SUCCESS") && strings.EqualFold(inData["result_code"], "SUCCESS") {
@@ -1046,7 +1047,7 @@ func (entity WxService) Refund(order dao.Orders, PayMoney, RefundMoney uint64, D
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
-	tool.Trace(err)
+	glog.Trace(err)
 	//fmt.Println(string(b))
 	//certs, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")
 
@@ -1075,7 +1076,7 @@ func (entity WxService) Refund(order dao.Orders, PayMoney, RefundMoney uint64, D
 
 	reader := strings.NewReader(string(b))
 	response, err := client.Post("https://api.mch.weixin.qq.com/secapi/pay/refund", "text/xml", reader)
-	tool.Trace(err)
+	glog.Trace(err)
 	if err != nil {
 		Success = false
 		Message = err.Error()
@@ -1083,7 +1084,7 @@ func (entity WxService) Refund(order dao.Orders, PayMoney, RefundMoney uint64, D
 	}
 
 	b, err = ioutil.ReadAll(response.Body)
-	tool.Trace(err)
+	glog.Trace(err)
 	if err != nil {
 		Success = false
 		Message = err.Error()
@@ -1094,7 +1095,7 @@ func (entity WxService) Refund(order dao.Orders, PayMoney, RefundMoney uint64, D
 
 	var inData = make(util.Map)
 	err = xml.Unmarshal(b, &inData)
-	tool.Trace(err)
+	glog.Trace(err)
 	//fmt.Println(inData)
 
 	if strings.EqualFold(inData["return_code"], "SUCCESS") && strings.EqualFold(inData["result_code"], "SUCCESS") {
@@ -1176,7 +1177,7 @@ func (entity WxService) MwGetTicket(WxConfig dao.WxConfig) string {
 	url := "http://api.weixin.qq.com/cgi-bin/ticket/getticket?type=jsapi&access_token=" + entity.GetAccessToken(WxConfig)
 
 	resp, err := http.Get(url)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	b, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
@@ -1184,7 +1185,7 @@ func (entity WxService) MwGetTicket(WxConfig dao.WxConfig) string {
 	d := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &d)
-	tool.CheckError(err)
+	glog.Error(err)
 	//fmt.Println(string(b))
 	//fmt.Println(d)
 	if d["ticket"] != nil && d["expires_in"] != nil {

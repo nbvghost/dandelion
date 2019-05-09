@@ -8,8 +8,8 @@ import (
 	"dandelion/app/play"
 	"errors"
 
+	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
-	"github.com/nbvghost/gweb/tool"
 )
 
 type StoreService struct {
@@ -26,7 +26,7 @@ func (service StoreService) LocationList(Latitude, Longitude float64) []map[stri
 	Orm := dao.Orm()
 
 	rows, err := Orm.Model(&dao.Store{}).Select("ID,Images,Name,Address,ServicePhone,Stars,StarsCount,ROUND(6378.138*2*ASIN(SQRT(POW(SIN((?*PI()/180-Latitude*PI()/180)/2),2)+COS(?*PI()/180)*COS(Latitude*PI()/180)*POW(SIN((?*PI()/180-Longitude*PI()/180)/2),2)))*1000) AS Distance", Latitude, Latitude, Longitude).Order("Distance asc").Rows()
-	tool.CheckError(err)
+	glog.Error(err)
 	defer rows.Close()
 
 	list := make([]map[string]interface{}, 0)
@@ -42,7 +42,7 @@ func (service StoreService) LocationList(Latitude, Longitude float64) []map[stri
 		var Distance float64
 
 		err = rows.Scan(&ID, &Images, &Name, &Address, &ServicePhone, &Stars, &StarsCount, &Distance)
-		tool.CheckError(err)
+		glog.Error(err)
 		list = append(list, map[string]interface{}{"ID": ID, "Images": Images, "Name": Name, "Address": Address, "ServicePhone": ServicePhone, "Stars": Stars, "StarsCount": StarsCount, "Distance": Distance})
 	}
 

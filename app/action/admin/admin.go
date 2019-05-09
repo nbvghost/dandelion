@@ -7,14 +7,14 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/nbvghost/glog"
+
 	"dandelion/app/service/dao"
 
+	"errors"
 	"strconv"
 
-	"errors"
-
 	"github.com/nbvghost/gweb"
-	"github.com/nbvghost/gweb/tool"
 )
 
 type InterceptorManager struct {
@@ -206,31 +206,31 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		var specifications []dao.Specification
 		var item dao.Goods
 		err := util.JSONToStruct(goods_str, &item)
-		tool.Trace(err)
+		glog.Trace(err)
 
 		var gps []dao.GoodsParams
 		err = util.JSONToStruct(item.Params, &gps)
-		tool.Trace(err)
+		glog.Trace(err)
 
 		item.Params = util.StructToJSON(&gps)
 
 		var videos []string
 		err = util.JSONToStruct(item.Videos, &videos)
-		tool.Trace(err)
+		glog.Trace(err)
 		item.Videos = util.StructToJSON(&videos)
 
 		var pictures []string
 		err = util.JSONToStruct(item.Pictures, &pictures)
-		tool.Trace(err)
+		glog.Trace(err)
 		item.Pictures = util.StructToJSON(&pictures)
 
 		var images []string
 		err = util.JSONToStruct(item.Images, &images)
-		tool.Trace(err)
+		glog.Trace(err)
 		item.Images = util.StructToJSON(&images)
 
 		err = util.JSONToStruct(specifications_str, &specifications)
-		tool.Trace(err)
+		glog.Trace(err)
 
 		err = controller.Goods.SaveGoods(item, specifications)
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
@@ -243,31 +243,31 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		var specifications []dao.Specification
 		var item dao.Goods
 		err := util.JSONToStruct(goods_str, &item)
-		tool.Trace(err)
+		glog.Trace(err)
 
 		var gps []dao.GoodsParams
 		err = util.JSONToStruct(item.Params, &gps)
-		tool.Trace(err)
+		glog.Trace(err)
 
 		item.Params = util.StructToJSON(&gps)
 
 		var videos []string
 		err = util.JSONToStruct(item.Videos, &videos)
-		tool.Trace(err)
+		glog.Trace(err)
 		item.Videos = util.StructToJSON(&videos)
 
 		var pictures []string
 		err = util.JSONToStruct(item.Pictures, &pictures)
-		tool.Trace(err)
+		glog.Trace(err)
 		item.Pictures = util.StructToJSON(&pictures)
 
 		var images []string
 		err = util.JSONToStruct(item.Images, &images)
-		tool.Trace(err)
+		glog.Trace(err)
 		item.Images = util.StructToJSON(&images)
 
 		err = util.JSONToStruct(specifications_str, &specifications)
-		tool.Trace(err)
+		glog.Trace(err)
 
 		item.OID = company.ID
 		err = controller.Goods.SaveGoods(item, specifications)
@@ -465,7 +465,7 @@ func (controller *Controller) saveExpressTemplate(context *gweb.Context) gweb.Re
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	item := &dao.ExpressTemplate{}
 	err := util.RequestBodyToJSON(context.Request.Body, item)
-	tool.Trace(err)
+	glog.Trace(err)
 	item.OID = company.ID
 	err = controller.ExpressTemplate.SaveExpressTemplate(item)
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "保存成功", nil)}

@@ -6,14 +6,14 @@ import (
 	"io/ioutil"
 	"strconv"
 
+	"github.com/nbvghost/glog"
+
 	"dandelion/app/util"
 
 	"dandelion/app/service"
-
 	"log"
 
 	"github.com/nbvghost/gweb"
-	"github.com/nbvghost/gweb/tool"
 )
 
 type Controller struct {
@@ -31,13 +31,13 @@ func (controller *Controller) notifyAction(context *gweb.Context) gweb.Result {
 	resultMap := make(util.Map)
 
 	b, err := ioutil.ReadAll(context.Request.Body)
-	tool.Trace(err)
+	glog.Trace(err)
 
 	defer context.Request.Body.Close()
 	fmt.Println(string(b))
 
 	err = xml.Unmarshal(b, &resultMap)
-	tool.Trace(err)
+	glog.Trace(err)
 
 	outXML := ``
 

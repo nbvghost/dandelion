@@ -105,7 +105,7 @@ func (u *Configuration) BeforeCreate(scope *gorm.Scope) (err error) {
 			}
 		}()
 		panic(errors.New(u.TableName() + ":OID不能为空"))
-		return nil
+
 	}
 	return nil
 }
@@ -180,7 +180,7 @@ func (u *GiveVoucher) BeforeCreate(scope *gorm.Scope) (err error) {
 			}
 		}()
 		panic(errors.New(u.TableName() + ":OID不能为空"))
-		return nil
+
 	}
 	return nil
 }
@@ -368,7 +368,7 @@ func (u *ExpressTemplate) BeforeCreate(scope *gorm.Scope) (err error) {
 			}
 		}()
 		panic(errors.New(u.TableName() + ":OID不能为空"))
-		return nil
+
 	}
 	return nil
 }
@@ -443,7 +443,7 @@ func (u *SupplyOrders) BeforeCreate(scope *gorm.Scope) (err error) {
 			}
 		}()
 		panic(errors.New(u.TableName() + ":OID不能为空"))
-		return nil
+
 	}
 	return nil
 }
@@ -498,7 +498,7 @@ func (u *Orders) BeforeCreate(scope *gorm.Scope) (err error) {
 			}
 		}()
 		panic(errors.New(u.TableName() + ":OID不能为空"))
-		return nil
+
 	}
 	return nil
 }
@@ -538,7 +538,7 @@ func (u *ScoreGoods) BeforeCreate(scope *gorm.Scope) (err error) {
 			}
 		}()
 		panic(errors.New(u.TableName() + ":OID不能为空"))
-		return nil
+
 	}
 	return nil
 }
@@ -650,7 +650,7 @@ func (u *Goods) BeforeCreate(scope *gorm.Scope) (err error) {
 			}
 		}()
 		panic(errors.New(u.TableName() + ":OID不能为空"))
-		return nil
+
 	}
 	return
 }
@@ -700,7 +700,7 @@ func (u *Store) BeforeCreate(scope *gorm.Scope) (err error) {
 			}
 		}()
 		panic(errors.New(u.TableName() + ":OID不能为空"))
-		return nil
+
 	}
 	return nil
 }
@@ -734,7 +734,7 @@ func (u *TimeSell) BeforeCreate(scope *gorm.Scope) (err error) {
 			}
 		}()
 		panic(errors.New(u.TableName() + ":OID不能为空"))
-		return nil
+
 	}
 	return nil
 }
@@ -809,7 +809,7 @@ func (u *Collage) BeforeCreate(scope *gorm.Scope) (err error) {
 			}
 		}()
 		panic(errors.New(u.TableName() + ":OID不能为空"))
-		return nil
+
 	}
 	return nil
 }
@@ -836,7 +836,7 @@ func (u *Voucher) BeforeCreate(scope *gorm.Scope) (err error) {
 			}
 		}()
 		panic(errors.New(u.TableName() + ":OID不能为空"))
-		return nil
+
 	}
 	return nil
 }
@@ -860,7 +860,7 @@ func (u *FullCut) BeforeCreate(scope *gorm.Scope) (err error) {
 			}
 		}()
 		panic(errors.New(u.TableName() + ":OID不能为空"))
-		return nil
+
 	}
 	return nil
 }
@@ -959,7 +959,7 @@ func (u *Logger) BeforeCreate(scope *gorm.Scope) (err error) {
 			}
 		}()
 		panic(errors.New(u.TableName() + ":OID不能为空"))
-		return nil
+
 	}
 	return nil
 }

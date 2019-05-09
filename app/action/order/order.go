@@ -4,17 +4,7 @@ import (
 	"fmt"
 
 	"github.com/nbvghost/gweb"
-	"github.com/nbvghost/gweb/tool"
 
-	"strconv"
-
-	"time"
-
-	"encoding/json"
-
-	"dandelion/app/play"
-	"dandelion/app/service"
-	"dandelion/app/service/dao"
 	"dandelion/app/util"
 	"dandelion/app/util/wxpay"
 )
@@ -37,18 +27,18 @@ func orderAction(context *gweb.Context) gweb.Result {
 	switch action {
 	case "list":
 		//var carts map[uint64]*dao.TempOrderPack
-		carts := context.Session.Attributes.Get(play.SessionCart)
+		/* carts := context.Session.Attributes.Get(play.SessionCart)
 		if carts == nil {
 			carts = make(map[uint64]*dao.TempOrderPack)
-		}
+		} */
 
 		/*_carts := carts.(map[uint64]*dao.TempOrderPack)
 		for _, value := range _carts {
 			fmt.Println(value)
 		}*/
-		result.Data = (&dao.ActionStatus{}).SmartSuccessData(carts)
+		//result.Data = (&dao.ActionStatus{}).SmartSuccessData(carts)
 	case "Pay":
-		ShopID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ShopID"), 10, 64)
+		/* ShopID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ShopID"), 10, 64)
 
 		carts := context.Session.Attributes.Get(play.SessionCart)
 		if carts == nil {
@@ -71,7 +61,7 @@ func orderAction(context *gweb.Context) gweb.Result {
 		orderPack.Tip = Tip
 
 		b, err := json.Marshal(cart.Orders)
-		tool.CheckError(err)
+		glog.Error(err)
 		orderPack.OrderList = string(b)
 		service.OrderPack.Add(service.Orm, orderPack)
 
@@ -89,10 +79,10 @@ func orderAction(context *gweb.Context) gweb.Result {
 		detail := wxpay.WXDetail{goodsDetail}
 		b, err = json.Marshal(detail)
 
-		wxpay.OrderJS(orderPack.OrderNo, "困国国国", string(b), util.GetHost(context), "", "192.168.1.122", orderPack.Total)
+		wxpay.OrderJS(orderPack.OrderNo, "困国国国", string(b), util.GetHost(context), "", "192.168.1.122", orderPack.Total) */
 
 	case "Count":
-		index, _ := strconv.Atoi(context.Request.URL.Query().Get("index"))
+		/* index, _ := strconv.Atoi(context.Request.URL.Query().Get("index"))
 		value, _ := strconv.Atoi(context.Request.URL.Query().Get("value"))
 		ShopID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ShopID"), 10, 64)
 
@@ -114,10 +104,10 @@ func orderAction(context *gweb.Context) gweb.Result {
 				cart.Orders[index].Count = vp
 			}
 			//context.Session.Attributes.Put(play.SessionCart, _carts)
-		}
+		} */
 
 	case "del":
-		index, _ := strconv.Atoi(context.Request.URL.Query().Get("index"))
+		/* index, _ := strconv.Atoi(context.Request.URL.Query().Get("index"))
 		ShopID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ShopID"), 10, 64)
 		carts := context.Session.Attributes.Get(play.SessionCart)
 		if carts == nil {
@@ -131,7 +121,7 @@ func orderAction(context *gweb.Context) gweb.Result {
 			cart.Orders = append(cart.Orders[:index], cart.Orders[index+1:]...) // 最后面的“...”不能省略
 			//context.Session.Attributes.Put(play.SessionCart, _carts)
 		}
-		//OrderNo := context.Request.URL.Query().Get("OrderNo")
+		//OrderNo := context.Request.URL.Query().Get("OrderNo") */
 	}
 
 	return result
@@ -144,7 +134,7 @@ func payPage(context *gweb.Context) gweb.Result {
 
 	d := make(map[string]interface{})
 
-	appId, timestamp, nonceStr, signature := wxpay.GetWXJSConfig(util.GetFullUrl(context))
+	appId, timestamp, nonceStr, signature := wxpay.GetWXJSConfig(util.GetFullUrl(context.Request))
 	d["appId"] = appId
 	d["timestamp"] = timestamp
 	d["nonceStr"] = nonceStr

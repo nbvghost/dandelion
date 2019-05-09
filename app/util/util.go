@@ -16,9 +16,8 @@ import (
 	"strings"
 
 	"github.com/nbvghost/captcha"
+	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
-
-	"github.com/nbvghost/gweb/tool"
 )
 
 type Map map[string]string
@@ -177,7 +176,7 @@ func SignSha1(m string) string {
 func Rounding45(rounding float64, prec int) float64 {
 
 	f, err := strconv.ParseFloat(strconv.FormatFloat(rounding, 'f', prec, 64), 64)
-	tool.CheckError(err)
+	glog.Error(err)
 	return f
 	//strconv.ParseFloat(strconv.FormatFloat(float64(45454)/float64(100),'f',5,64),64)
 	//return math.Floor(rounding+0.5)
@@ -241,7 +240,7 @@ func DecodeShareKey(ShareKey string) (UserID, ProductID uint64) {
 	}
 
 	b, err := hex.DecodeString(readyData)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	buffer := bytes.NewBuffer(b)
 	binary.Read(buffer, binary.LittleEndian, &UserID)

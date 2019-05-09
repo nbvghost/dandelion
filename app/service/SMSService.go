@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb/tool"
 	"github.com/nbvghost/gweb/tool/collections"
 )
@@ -88,7 +89,7 @@ func (s SMSService) SendAliyunSms(ParamMap map[string]interface{}, TemplateCode 
 	fmt.Println(signature, url.QueryEscape(queryString))
 
 	resp, err := http.Get("http://dysmsapi.aliyuncs.com?Signature=" + signature + "&" + queryString)
-	tool.Trace(err)
+	glog.Trace(err)
 	b, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
 	fmt.Println(string(b))
@@ -97,7 +98,7 @@ func (s SMSService) SendAliyunSms(ParamMap map[string]interface{}, TemplateCode 
 	//map[alibaba_aliqin_fc_sms_num_send_response:map[result:map[err_code:0 model:465323720574031803^0 msg:OK success:true] request_id:zioman9yylzz]]
 	result := make(map[string]interface{})
 	err = json.Unmarshal(b, &result)
-	tool.Trace(err)
+	glog.Trace(err)
 	//fmt.Println(result)
 	if result["error_response"] != nil {
 		var dd = result["error_response"].(map[string]interface{})["sub_msg"].(string)
@@ -149,7 +150,7 @@ func (s SMSService) SendIDCode(Code string, tel string) (bool, string) {
 	params.Add("sign", sign)
 
 	resp, err := http.PostForm("http://gw.api.taobao.com/router/rest", params)
-	tool.Trace(err)
+	glog.Trace(err)
 	b, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
 
@@ -157,7 +158,7 @@ func (s SMSService) SendIDCode(Code string, tel string) (bool, string) {
 	//map[alibaba_aliqin_fc_sms_num_send_response:map[result:map[err_code:0 model:465323720574031803^0 msg:OK success:true] request_id:zioman9yylzz]]
 	result := make(map[string]interface{})
 	err = json.Unmarshal(b, &result)
-	tool.Trace(err)
+	glog.Trace(err)
 	//fmt.Println(result)
 	if result["error_response"] != nil {
 		var dd = result["error_response"].(map[string]interface{})["sub_msg"].(string)

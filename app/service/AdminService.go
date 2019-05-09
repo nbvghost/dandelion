@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/nbvghost/glog"
+
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -246,14 +248,15 @@ func (service AdminService) GetAdmin(ID uint64) *dao.Admin {
 	Orm := dao.Orm()
 	admin := &dao.Admin{}
 	err := Orm.Where("ID=?", ID).First(admin).Error //SelectOne(user, "select * from User where Email=?", Email)
-	tool.CheckError(err)
+	glog.Error(err)
+
 	return admin
 }
 
 func (service AdminService) FindAdminByAccount(Orm *gorm.DB, Account string) *dao.Admin {
 	manager := &dao.Admin{}
 	err := Orm.Where(map[string]interface{}{"Account": Account}).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
-	tool.CheckError(err)
+	glog.Error(err)
 	return manager
 }
 func (service AdminService) ManagerAction(context *gweb.Context) gweb.Result {

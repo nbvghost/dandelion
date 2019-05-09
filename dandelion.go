@@ -1,7 +1,8 @@
 package main
 
 import (
-	"log"
+	"github.com/nbvghost/gweb"
+
 	"net/http"
 
 	"dandelion/app/action/account"
@@ -14,7 +15,6 @@ import (
 	"dandelion/app/action/payment"
 
 	"github.com/nbvghost/gweb/conf"
-	"github.com/nbvghost/gweb/tool"
 )
 
 func main() {
@@ -128,41 +128,20 @@ func main() {
 	payment := &payment.Controller{}
 	payment.NewController("/payment/", payment)
 
-	index := &index.Controller{}
-	index.NewController("/", index)
+	home := &index.Controller{}
+	home.NewController("/", home)
 
 	api := &api.Controller{}
 	api.NewController("/api", api)
 
-	go func() {
+	_http := &http.Server{
+		Addr:    conf.Config.HttpPort,
+		Handler: nil,
+	}
+	_https := &http.Server{
+		Addr:    conf.Config.HttpsPort,
+		Handler: nil,
+	}
 
-		/*pool := x509.NewCertPool()
-		caCertPath := "cert/1_root_bundle.crt"
-
-		caCrt, err := ioutil.ReadFile(caCertPath)
-		if err != nil {
-			fmt.Println("ReadFile err:", err)
-			return
-		}
-		pool.AppendCertsFromPEM(caCrt)
-
-		s := &http.Server{
-			Addr:      ":443",
-			Handler:   nil,
-			TLSConfig: &tls.Config{
-			//Certificates:[]tls.Certificate{}{cc}
-			//RootCAs: pool,
-			//ClientAuth: tls.RequireAndVerifyClientCert,
-			//ClientAuth: tls.NoClientCert,
-			},
-		}*/
-
-		err := http.ListenAndServeTLS(conf.Config.HttpsPort, conf.Config.TLSCertFile, conf.Config.TLSKeyFile, nil)
-		tool.Trace(err)
-
-	}()
-
-	err := http.ListenAndServe(conf.Config.HttpPort, nil)
-	log.Println(err)
-	//http.ListenAndServeTLS(":9000", "cert/server.crt", "cert/server.key", nil)
+	gweb.StartServer(http.DefaultServeMux, _http, _https)
 }

@@ -9,6 +9,7 @@ import (
 
 	"dandelion/app/play"
 
+	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/tool"
 )
@@ -45,19 +46,19 @@ func (service TimeSellService) GetItem(context *gweb.Context) gweb.Result {
 func (service TimeSellService) GetTimeSellByHash(Hash string) dao.TimeSell {
 	var timesell dao.TimeSell
 	err := dao.Orm().Model(&dao.TimeSell{}).Where("Hash=?", Hash).First(&timesell).Error
-	tool.CheckError(err)
+	glog.Error(err)
 	return timesell
 }
 func (service TimeSellService) GetTimeSellListByHash(Hash string) []dao.TimeSell {
 	var timesells []dao.TimeSell
 	err := dao.Orm().Model(&dao.TimeSell{}).Where("Hash=?", Hash).Find(&timesells).Error
-	tool.CheckError(err)
+	glog.Error(err)
 	return timesells
 }
 func (service TimeSellService) GetTimeSellByGoodsID(GoodsID uint64) dao.TimeSell {
 	var timesell dao.TimeSell
 	err := dao.Orm().Model(&dao.TimeSell{}).Where("GoodsID=?", GoodsID).First(&timesell).Error
-	tool.CheckError(err)
+	glog.Error(err)
 	return timesell
 }
 
@@ -174,6 +175,6 @@ func (service TimeSellService) DeleteTimeSell(TimeSellID uint64) error {
 	service.Get(dao.Orm(), TimeSellID, &ts)
 	//err := service.Delete(dao.Orm(), &dao.TimeSell{}, ts.ID)
 	err := service.DeleteWhere(dao.Orm(), &dao.TimeSell{}, "Hash=?", ts.Hash)
-	tool.CheckError(err)
+	glog.Error(err)
 	return err
 }

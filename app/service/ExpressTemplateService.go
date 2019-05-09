@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb/tool"
 )
 
@@ -59,7 +60,7 @@ func (b ExpressTemplateService) GetExpressInfo(OrdersID uint64, LogisticCode, Sh
 	//resp, err := http.PostForm("http://sandboxapi.kdniao.cc:8080/kdniaosandbox/gateway/exterfaceInvoke.json", postData)
 
 	bsdfsd, errs := ioutil.ReadAll(resp.Body)
-	tool.CheckError(errs)
+	glog.Error(errs)
 	json.Unmarshal(bsdfsd, &result)
 
 	result["ShipperName"] = ShipperName

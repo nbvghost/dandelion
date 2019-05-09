@@ -7,14 +7,14 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/nbvghost/gweb"
+	"github.com/nbvghost/glog"
 
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"strings"
 
-	"github.com/nbvghost/gweb/tool"
+	"github.com/nbvghost/gweb"
 )
 
 type InterceptorMp struct {
@@ -91,7 +91,8 @@ func (controller *Controller) articlePage(context *gweb.Context) gweb.Result {
 				access_token := controller.Wx.GetAccessToken(WxConfig)
 				//https://api.weixin.qq.com/cgi-bin/user/info?access_token=ACCESS_TOKEN&openid=OPENID&lang=zh_CN
 				resp, err := http.Get("https://api.weixin.qq.com/cgi-bin/user/info?access_token=" + access_token + "&openid=" + user.OpenID + "&lang=zh_CN")
-				tool.Trace(err)
+				glog.Trace(err)
+
 				b, err := ioutil.ReadAll(resp.Body)
 				defer resp.Body.Close()
 

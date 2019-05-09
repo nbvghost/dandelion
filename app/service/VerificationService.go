@@ -13,7 +13,7 @@ import (
 	"dandelion/app/util"
 
 	"github.com/jinzhu/gorm"
-	"github.com/nbvghost/gweb/tool"
+	"github.com/nbvghost/glog"
 )
 
 type VerificationService struct {
@@ -196,6 +196,6 @@ func (service VerificationService) GetVerificationByVerificationNo(VerificationN
 	Orm := dao.Orm()
 	item := dao.Verification{}
 	err := Orm.Where("VerificationNo=?", VerificationNo).First(&item).Error //SelectOne(user, "select * from User where Tel=?", Tel)
-	tool.CheckError(err)
+	glog.Error(err)
 	return item
 }

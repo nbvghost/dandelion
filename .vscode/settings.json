@@ -1,13 +1,9 @@
 {
-    "editor.multiCursorModifier": "ctrlCmd",
+    "go.inferGopath": true,
     "go.gopath": "C:\\Users\\work\\go;C:\\Users\\work\\Documents\\DandelionWork",
-    "editor.minimap.enabled": true,
-    "editor.renderWhitespace": "none",
-    "editor.renderControlCharacters": true,
-    "breadcrumbs.enabled": true,
-    "git.autofetch": true,
-    "[html]": {},
-    "files.associations": {
-        "*.html": "html"
-    }
+    "go.useCodeSnippetsOnFunctionSuggest": true,
+    "go.gotoSymbol.includeImports": true,
+    "go.autocompleteUnimportedPackages": true,
+    "debug.allowBreakpointsEverywhere": true,
+    "go.buildOnSave": "workspace"
 }

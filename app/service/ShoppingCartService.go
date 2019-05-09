@@ -5,7 +5,7 @@ import (
 	"dandelion/app/util"
 	"strconv"
 
-	"github.com/nbvghost/gweb/tool"
+	"github.com/nbvghost/glog"
 )
 
 type ShoppingCartService struct {
@@ -21,14 +21,14 @@ func (service ShoppingCartService) GetGSIDs(UserID uint64, GSIDs []uint64) []dao
 	//Orm := Orm()
 	//return Orm.Where("GSID in (?)", IDs).Where(&dao.ShoppingCart{UserID: UserID}).Delete(&dao.ShoppingCart{}).Error
 	err := Orm.Where("GSID in (?) and UserID=?", GSIDs, UserID).Find(&scs).Error
-	tool.CheckError(err)
+	glog.Error(err)
 	return scs
 }
 func (service ShoppingCartService) GetGSID(UserID uint64, GSID uint64) dao.ShoppingCart {
 	Orm := dao.Orm()
 	var sc dao.ShoppingCart
 	err := Orm.Where("GSID=? and  UserID=?", GSID, UserID).First(&sc).Error
-	tool.CheckError(err)
+	glog.Error(err)
 	return sc
 }
 func (service ShoppingCartService) UpdateByUserIDAndID(UserID uint64, GSID uint64, Quantity uint) error {
@@ -69,7 +69,7 @@ func (service ShoppingCartService) FindShoppingCartByUserID(UserID uint64) []dao
 	Orm := dao.Orm()
 	var list []dao.ShoppingCart
 	err := service.FindWhere(Orm, &list, dao.ShoppingCart{UserID: UserID})
-	tool.CheckError(err)
+	glog.Error(err)
 	return list
 }
 func (service ShoppingCartService) FindShoppingCartListDetails(UserID uint64) (error, []map[string]interface{}, uint64) {

@@ -5,7 +5,7 @@ import (
 	"errors"
 
 	"github.com/jinzhu/gorm"
-	"github.com/nbvghost/gweb/tool"
+	"github.com/nbvghost/glog"
 )
 
 type OrganizationService struct {
@@ -32,7 +32,7 @@ func (service OrganizationService) FindByDomain(Orm *gorm.DB, Domain string) *da
 	manager := &dao.Organization{}
 	//err := Orm.Where("Domain=?", Domain).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
 	err := Orm.Where(map[string]interface{}{"Domain": Domain}).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
-	tool.CheckError(err)
+	glog.Error(err)
 	return manager
 }
 func (self OrganizationService) GetOrganization(ID uint64) *dao.Organization {

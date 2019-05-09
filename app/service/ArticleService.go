@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
-	"github.com/nbvghost/gweb/tool"
 )
 
 type ArticleService struct {
@@ -79,7 +79,7 @@ func (service ArticleService) ChangeArticle(article *dao.Article) error {
 func (service ArticleService) GetArticleByTitle(Orm *gorm.DB, Title string) *dao.Article {
 	article := &dao.Article{}
 	err := Orm.Where("Title=?", Title).First(article).Error //SelectOne(user, "select * from User where Email=?", Email)
-	tool.CheckError(err)
+	glog.Error(err)
 	return article
 }
 func (service ArticleService) DelArticle(ID uint64) error {
@@ -90,7 +90,7 @@ func (service ArticleService) FindArticleByContentSubTypeID(ContentSubTypeID uin
 	var articles []dao.Article
 
 	err := service.FindWhere(dao.Orm(), &articles, "ContentSubTypeID=?", ContentSubTypeID) //SelectOne(user, "select * from User where Email=?", Email)
-	tool.CheckError(err)
+	glog.Error(err)
 	return articles
 }
 func (service ArticleService) DeleteArticleAction(context *gweb.Context) gweb.Result {
@@ -110,7 +110,7 @@ func (service ArticleService) GetArticleAction(context *gweb.Context) gweb.Resul
 func (service ArticleService) GetArticle(ID uint64) *dao.Article {
 	article := &dao.Article{}
 	err := service.Get(dao.Orm(), ID, article) //SelectOne(user, "select * from User where Email=?", Email)
-	tool.CheckError(err)
+	glog.Error(err)
 	//service.ChangeMap(dao.Orm(), ID, &dao.Article{}, map[string]interface{}{"Look": article.Look + 1})
 	return article
 }
@@ -118,7 +118,7 @@ func (service ArticleService) GetArticleAndAddLook(context *gweb.Context, Articl
 
 	article := &dao.Article{}
 	err := service.Get(dao.Orm(), ArticleID, article) //SelectOne(user, "select * from User where Email=?", Email)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	if context.Session.Attributes.Get(strconv.Itoa(int(ArticleID))) == nil {
 		context.Session.Attributes.Put(strconv.Itoa(int(ArticleID)), "Look")
@@ -132,7 +132,7 @@ func (service ArticleService) GetArticleAndAddLook(context *gweb.Context, Articl
 					user.ID,
 					"看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)),
 					play.ScoreJournal_Type_Look_Article, int64(LookArticle.(float64)), dao.KV{Key: "ArticleID", Value: article.ID})
-				tool.CheckError(err)
+				glog.Error(err)
 			}
 		}
 
@@ -175,7 +175,7 @@ func (service ArticleService) AddArticle(article *dao.Article) *dao.ActionStatus
 		//fmt.Println(article.Introduce)
 		err = service.Save(Orm, article) //self.dao.AddArticle(Orm, article)
 		if err != nil {
-			tool.CheckError(err)
+			glog.Error(err)
 			as.Success = false
 			as.Message = err.Error()
 		} else {

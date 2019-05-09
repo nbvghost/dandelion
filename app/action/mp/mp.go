@@ -5,11 +5,12 @@ import (
 	"dandelion/app/service/dao"
 	"dandelion/app/util"
 
+	"github.com/nbvghost/glog"
+
 	"dandelion/app/service"
 
-	"strconv"
-
 	"dandelion/app/action/mp/store"
+	"strconv"
 
 	"dandelion/app/action/mp/order"
 
@@ -227,7 +228,8 @@ func (controller *Controller) shareScoreAction(context *gweb.Context) gweb.Resul
 			user.ID,
 			"转发与分享送积分", "转发与分享",
 			play.ScoreJournal_Type_Share, int64(Share.(float64)), dao.KV{})
-		tool.CheckError(err)
+		glog.Error(err)
+
 	}
 	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: nil}}
 }

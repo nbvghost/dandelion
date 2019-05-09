@@ -7,8 +7,8 @@ import (
 	"strconv"
 
 	"github.com/jinzhu/gorm"
+	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
-	"github.com/nbvghost/gweb/tool"
 )
 
 type GoodsService struct {
@@ -53,13 +53,13 @@ func (service GoodsService) OrdersStockManager(orders dao.Orders, isMinus bool) 
 					Stock = 0
 				}
 				err := service.ChangeMap(Orm, specification.ID, &dao.Specification{}, map[string]interface{}{"Stock": uint(Stock)})
-				tool.CheckError(err)
+				glog.Error(err)
 				Stock = int64(goods.Stock - value.Quantity)
 				if Stock < 0 {
 					Stock = 0
 				}
 				err = service.ChangeMap(Orm, goods.ID, &dao.Goods{}, map[string]interface{}{"Stock": uint(Stock)})
-				tool.CheckError(err)
+				glog.Error(err)
 			} else {
 				//添加
 				Stock := int64(specification.Stock + value.Quantity)
@@ -67,13 +67,13 @@ func (service GoodsService) OrdersStockManager(orders dao.Orders, isMinus bool) 
 					Stock = 0
 				}
 				err := service.ChangeMap(Orm, specification.ID, &dao.Specification{}, map[string]interface{}{"Stock": uint(Stock)})
-				tool.CheckError(err)
+				glog.Error(err)
 				Stock = int64(goods.Stock + value.Quantity)
 				if Stock < 0 {
 					Stock = 0
 				}
 				err = service.ChangeMap(Orm, goods.ID, &dao.Goods{}, map[string]interface{}{"Stock": uint(Stock)})
-				tool.CheckError(err)
+				glog.Error(err)
 			}
 
 		}
@@ -199,18 +199,18 @@ func (service GoodsService) GetGoods(DB *gorm.DB, ID uint64) dao.GoodsInfo {
 	Orm := dao.Orm()
 	var goods dao.Goods
 	err := service.Get(Orm, ID, &goods)
-	tool.Trace(err)
+	glog.Trace(err)
 
 	var specifications []dao.Specification
 	err = service.FindWhere(Orm, &specifications, dao.Specification{GoodsID: ID})
-	tool.Trace(err)
+	glog.Trace(err)
 
 	goodsInfo := service.GetGoodsInfo(goods)
 	goodsInfo.Specifications = specifications
 
 	/*var mtimeSell dao.TimeSell
 	err=TimeSellService{}.Get(Orm,goods.TimeSellID,&mtimeSell)
-	tool.Trace(err)
+	glog.Trace(err)
 	if mtimeSell.IsEnable(){
 		timeSell = mtimeSell
 	}else {
@@ -221,14 +221,14 @@ func (service GoodsService) GetGoods(DB *gorm.DB, ID uint64) dao.GoodsInfo {
 	//return DB.Model(target).Related(&dao.Specification{}).Where("ID=?", ID).First(target).Error
 	/*Orm := dao.Orm()
 	err := service.Get(Orm, ID, &goods)
-	tool.Trace(err)
+	glog.Trace(err)
 
 	err = service.FindWhere(Orm, &specifications, dao.Specification{GoodsID: ID})
-	tool.Trace(err)
+	glog.Trace(err)
 
 	var mtimeSell dao.TimeSell
 	err = TimeSellService{}.Get(Orm, goods.TimeSellID, &mtimeSell)
-	tool.Trace(err)
+	glog.Trace(err)
 	if mtimeSell.IsEnable() {
 		timeSell = mtimeSell
 	} else {
@@ -302,13 +302,13 @@ func (service GoodsService) DeleteGoodsTypeChild(GoodsTypeChildID uint64) *dao.A
 func (service GoodsService) DeleteTimeSellGoods(DB *gorm.DB, GoodsID uint64) error {
 	timesell := service.TimeSell.GetTimeSellByGoodsID(GoodsID)
 	err := service.Delete(DB, &dao.TimeSell{}, timesell.ID)
-	tool.CheckError(err)
+	glog.Error(err)
 	return err
 }
 func (service GoodsService) DeleteCollageGoods(DB *gorm.DB, GoodsID uint64) error {
 	timesell := service.Collage.GetCollageByGoodsID(GoodsID)
 	err := service.Delete(DB, &dao.Collage{}, timesell.ID)
-	tool.CheckError(err)
+	glog.Error(err)
 	return err
 }
 func (service GoodsService) FindGoodsByTimeSellID(TimeSellID uint64) []dao.Goods {
@@ -316,11 +316,11 @@ func (service GoodsService) FindGoodsByTimeSellID(TimeSellID uint64) []dao.Goods
 
 	var timesell dao.TimeSell
 	err := service.Get(Orm, TimeSellID, &timesell)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	var list []dao.Goods
 	err = service.FindWhere(Orm, &list, "ID=?", timesell.GoodsID)
-	tool.CheckError(err)
+	glog.Error(err)
 	return list
 }
 func (service GoodsService) FindGoodsByTimeSellHash(Hash string) []dao.Goods {
@@ -331,7 +331,7 @@ func (service GoodsService) FindGoodsByTimeSellHash(Hash string) []dao.Goods {
 
 	var list []dao.Goods
 	err := service.FindWhere(Orm, &list, "ID in (?)", GoodsIDs)
-	tool.CheckError(err)
+	glog.Error(err)
 	return list
 }
 func (service GoodsService) FindGoodsByCollageHash(Hash string) []dao.Goods {
@@ -342,7 +342,7 @@ func (service GoodsService) FindGoodsByCollageHash(Hash string) []dao.Goods {
 
 	var list []dao.Goods
 	err := service.FindWhere(Orm, &list, "ID in (?)", GoodsIDs)
-	tool.CheckError(err)
+	glog.Error(err)
 	return list
 }
 
@@ -390,7 +390,7 @@ func (service GoodsService) GoodsList(UserID uint64, SqlOrder string, Index int,
 	//db := Orm.Model(&dao.Goods{}).Order("CountSale desc").Limit(10)
 	//db.Find(&result)
 	err := service.FindWherePaging(Orm, SqlOrder, &goodsList, Index, where, args)
-	tool.CheckError(err)
+	glog.Error(err)
 
 	return service.GetGoodsInfoList(UserID, goodsList)
 }

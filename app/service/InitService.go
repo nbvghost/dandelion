@@ -21,14 +21,14 @@ func init() {
 	//_db, err := sql.Open("mysql", "tcp:localhost:3306*dandelion/root/123456")
 	//_db, err := sql.Open("mysql", "root:123456@tcp(localhost:3306)/dandelion?charset=utf8mb4&parseTime=True")
 	//_db, err := sql.Open("postgres", "postgres://postgres:123456@localhost:5433/dandelion?sslmode=disable")
-	//tool.CheckError(err)
+	//glog.Error(err)
 	//dbMap = &gorp.DbMap{Db: _db, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "utf8mb4"}}
 
 	//db, err = gorm.Open("mysql", "root:123456@/dandelion?charset=utf8mb4&parseTime=True") //&loc=Local
 	//db.SingularTable(true)
 	//db = db.Debug()
 	//fmt.Println(db)
-	//tool.CheckError(err)
+	//glog.Error(err)
 	//defer db.Close()
 	//fmt.Println(conf.Config.DBUrl)
 
