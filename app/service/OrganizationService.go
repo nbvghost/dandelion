@@ -1,11 +1,11 @@
 package service
 
 import (
-	"dandelion/app/service/dao"
 	"errors"
 
+	"dandelion/app/service/dao"
+
 	"github.com/jinzhu/gorm"
-	"github.com/nbvghost/glog"
 )
 
 type OrganizationService struct {
@@ -31,8 +31,8 @@ func (service OrganizationService) AddOrganizationBlockAmount(Orm *gorm.DB, OID 
 func (service OrganizationService) FindByDomain(Orm *gorm.DB, Domain string) *dao.Organization {
 	manager := &dao.Organization{}
 	//err := Orm.Where("Domain=?", Domain).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
-	err := Orm.Where(map[string]interface{}{"Domain": Domain}).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
-	glog.Error(err)
+	Orm.Where(map[string]interface{}{"Domain": Domain}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)
+
 	return manager
 }
 func (self OrganizationService) GetOrganization(ID uint64) *dao.Organization {

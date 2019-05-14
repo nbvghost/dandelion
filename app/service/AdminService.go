@@ -140,10 +140,10 @@ func (service AdminService) FindAdmin() []dao.Admin {
 }
 
 func (self AdminService) AddAdmin(Name, Password, Domain string) *dao.ActionStatus {
-	Orm := dao.Orm()
+	//Orm := dao.Orm()
 	as := &dao.ActionStatus{}
 
-	tx := Orm.Begin()
+	tx := dao.Orm().Begin()
 
 	admin := &dao.Admin{}
 	admin.Account = Name
@@ -189,7 +189,6 @@ func (self AdminService) AddAdmin(Name, Password, Domain string) *dao.ActionStat
 		return as
 	}
 
-	tx.Commit()
 	as.Success = true
 	as.Message = "添加成功"
 
@@ -241,7 +240,7 @@ func (self AdminService) AddAdmin(Name, Password, Domain string) *dao.ActionStat
 		a.OID = shop.ID
 		self.Organization.Add(tx, &a)
 	}
-
+	tx.Commit()
 	return as
 }
 func (service AdminService) GetAdmin(ID uint64) *dao.Admin {
@@ -255,8 +254,8 @@ func (service AdminService) GetAdmin(ID uint64) *dao.Admin {
 
 func (service AdminService) FindAdminByAccount(Orm *gorm.DB, Account string) *dao.Admin {
 	manager := &dao.Admin{}
-	err := Orm.Where(map[string]interface{}{"Account": Account}).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
-	glog.Error(err)
+	Orm.Where(map[string]interface{}{"Account": Account}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)
+
 	return manager
 }
 func (service AdminService) ManagerAction(context *gweb.Context) gweb.Result {
