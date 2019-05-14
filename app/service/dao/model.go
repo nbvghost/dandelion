@@ -627,11 +627,11 @@ type Goods struct {
 	Price            uint64 `gorm:"column:Price"`
 	Stock            uint   `gorm:"column:Stock"`
 	Hide             uint   `gorm:"column:Hide"`
-	Images           string `gorm:"column:Images;type:text;default:'[]'"` //json array
-	Videos           string `gorm:"column:Videos;type:text;default:'[]'"` //json array
+	Images           string `gorm:"column:Images;type:text;"` //json array
+	Videos           string `gorm:"column:Videos;type:text;"` //json array
 	Introduce        string `gorm:"column:Introduce;type:text"`
-	Pictures         string `gorm:"column:Pictures;type:text;default:'[]'"` //json array
-	Params           string `gorm:"column:Params;type:text;default:'[]'"`   //json array
+	Pictures         string `gorm:"column:Pictures;type:text;"` //json array
+	Params           string `gorm:"column:Params;type:text;"`   //json array
 	//TimeSellID        uint64 `gorm:"column:TimeSellID"`                          //
 	ExpressTemplateID uint64 `gorm:"column:ExpressTemplateID"` //
 	CountSale         uint64 `gorm:"column:CountSale"`         //销售量
