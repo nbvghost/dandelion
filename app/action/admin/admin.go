@@ -273,12 +273,15 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		err = controller.Goods.SaveGoods(item, specifications)
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
 	case "timesell_goods":
+		Hash := context.Request.URL.Query().Get("Hash")
 		dts := &dao.Datatables{}
+		//dts.Draw = 10
+		//dts.Length = play.Paging
 		util.RequestBodyToJSON(context.Request.Body, dts)
 		var GoodsIDs []uint64
-		Orm.Model(&dao.TimeSell{}).Pluck("GoodsID", &GoodsIDs)
+		Orm.Model(&dao.TimeSellGoods{}).Where("TimeSellHash=?", Hash).Pluck("GoodsID", &GoodsIDs)
 		dts.NotIDs = GoodsIDs
-		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.Goods{}, company.ID)
+		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.Goods{}, company.ID, "")
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 	case "collage_goods":
 		dts := &dao.Datatables{}
@@ -286,12 +289,12 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		var GoodsIDs []uint64
 		Orm.Model(&dao.Collage{}).Pluck("GoodsID", &GoodsIDs)
 		dts.NotIDs = GoodsIDs
-		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.Goods{}, company.ID)
+		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.Goods{}, company.ID, "")
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 	case "list_goods":
 		dts := &dao.Datatables{}
 		util.RequestBodyToJSON(context.Request.Body, dts)
-		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.Goods{}, company.ID)
+		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.Goods{}, company.ID, "")
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 	case "get_goods_type_child":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
@@ -313,7 +316,7 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 	case "list_goods_type":
 		dts := &dao.Datatables{}
 		util.RequestBodyToJSON(context.Request.Body, dts)
-		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.GoodsType{}, 0)
+		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.GoodsType{}, 0, "")
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 
 	}
@@ -325,7 +328,7 @@ func (controller *Controller) carditemListAction(context *gweb.Context) gweb.Res
 	Orm := dao.Orm()
 	dts := &dao.Datatables{}
 	util.RequestBodyToJSON(context.Request.Body, dts)
-	draw, recordsTotal, recordsFiltered, list := controller.CardItem.DatatablesListOrder(Orm, dts, &[]dao.CardItem{}, company.ID)
+	draw, recordsTotal, recordsFiltered, list := controller.CardItem.DatatablesListOrder(Orm, dts, &[]dao.CardItem{}, company.ID, "")
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 }
 func (controller *Controller) situationAction(context *gweb.Context) gweb.Result {
@@ -420,7 +423,7 @@ func (controller *Controller) storeJournalListAction(context *gweb.Context) gweb
 	Orm := dao.Orm()
 	dts := &dao.Datatables{}
 	util.RequestBodyToJSON(context.Request.Body, dts)
-	draw, recordsTotal, recordsFiltered, list := controller.CardItem.DatatablesListOrder(Orm, dts, &[]dao.StoreJournal{}, company.ID)
+	draw, recordsTotal, recordsFiltered, list := controller.CardItem.DatatablesListOrder(Orm, dts, &[]dao.StoreJournal{}, company.ID, "")
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 
 }
@@ -482,7 +485,7 @@ func (controller *Controller) datatablesExpressTemplate(context *gweb.Context) g
 	Orm := dao.Orm()
 	dts := &dao.Datatables{}
 	util.RequestBodyToJSON(context.Request.Body, dts)
-	draw, recordsTotal, recordsFiltered, list := controller.ExpressTemplate.DatatablesListOrder(Orm, dts, &[]dao.ExpressTemplate{}, company.ID)
+	draw, recordsTotal, recordsFiltered, list := controller.ExpressTemplate.DatatablesListOrder(Orm, dts, &[]dao.ExpressTemplate{}, company.ID, "")
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 
 }

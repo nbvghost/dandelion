@@ -64,7 +64,7 @@ func (service CollageService) DataTablesItem(context *gweb.Context) gweb.Result 
 	dts.Groupbys = make([]string, 0)
 	dts.Groupbys = append(dts.Groupbys, "Hash")
 
-	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(Orm, dts, &[]dao.Collage{}, company.ID)
+	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(Orm, dts, &[]dao.Collage{}, company.ID, "")
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 }
 func (service CollageService) GetItemByHash(Hash string) dao.Collage {

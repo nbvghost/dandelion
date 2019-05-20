@@ -68,7 +68,7 @@ func (service ArticleService) DataTablesAction(context *gweb.Context) gweb.Resul
 	Orm := dao.Orm()
 	dts := &dao.Datatables{}
 	util.RequestBodyToJSON(context.Request.Body, dts)
-	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(Orm, dts, &[]dao.Article{}, 0)
+	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(Orm, dts, &[]dao.Article{}, 0, "")
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 }
 func (service ArticleService) ChangeArticle(article *dao.Article) error {

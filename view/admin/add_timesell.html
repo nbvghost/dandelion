@@ -61,33 +61,6 @@
         </div>
 
         <div class="field">
-            <label>选择产品<input ng-click="showGoodsList()" type="button" class="ui mini blue button" value="添加产品"></label>
-            <table width="100%" class="ui small inverted teal table">
-                <thead>
-                <tr>
-                    <th>#ID</th>
-                    <th>名称</th>
-                    <th style="text-align: right;">
-
-                    </th>
-                </tr>
-                </thead>
-                <tbody>
-                    <tr ng-repeat="m in GoodsList">
-                        <td>@{m.ID}@</td>
-                        <td>@{m.Title}@</td>
-                        <td style="text-align: right;"><button ng-click="deleteTimeSellGoods(m)" type="button" class="ui mini red compact icon button"><i class="delete icon"></i></button></td>
-                    </tr>
-                </tbody>
-                <tfoot>
-                    <th></th>
-                    <th></th>
-                    <th></th>
-                </tfoot>
-            </table>
-        </div>
-
-        <div class="field">
             <label>是否启用</label>
             <div class="ui checkbox">
                 <input name="fruit1" tabindex="0" ng-checked="Item.Enable" ng-model="Item.Enable" type="checkbox">
@@ -98,6 +71,7 @@
         <div class="field">
             <button type="submit" class="ui red button">提交</button>
             <div class="ui cancel button">取消</div>
+            <a href="#!/timesell_manager?Hash=@{Item.Hash}@" ng-show="Item.Hash!=undefined" class="ui blue button">管理限时抢购商品</a>
         </div>
     </form>
 

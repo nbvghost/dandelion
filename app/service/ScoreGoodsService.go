@@ -41,12 +41,14 @@ func (service ScoreGoodsService) Situation(StartTime, EndTime int64) interface{}
 	return result
 }
 func (service ScoreGoodsService) AddScoreGoods(context *gweb.Context) gweb.Result {
+	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	Orm := dao.Orm()
 	item := &dao.ScoreGoods{}
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
 	}
+	item.OID = company.ID
 	err = service.Add(Orm, item)
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
 }
@@ -62,7 +64,7 @@ func (service ScoreGoodsService) DatatablesScoreGoods(context *gweb.Context) gwe
 	Orm := dao.Orm()
 	dts := &dao.Datatables{}
 	util.RequestBodyToJSON(context.Request.Body, dts)
-	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(Orm, dts, &[]dao.ScoreGoods{}, company.ID)
+	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(Orm, dts, &[]dao.ScoreGoods{}, company.ID, "")
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 }
 func (service ScoreGoodsService) Exchange(UserID, ScoreGoodsID uint64) error {

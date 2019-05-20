@@ -139,7 +139,7 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 	case "list_goods_type":
 		dts := &dao.Datatables{}
 		util.RequestBodyToJSON(context.Request.Body, dts)
-		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.GoodsType{}, 0)
+		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.GoodsType{}, 0, "")
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 
 	}
@@ -158,7 +158,7 @@ func (controller *Controller) giveVoucherListAction(context *gweb.Context) gweb.
 	Orm := dao.Orm()
 	dts := &dao.Datatables{}
 	util.RequestBodyToJSON(context.Request.Body, dts)
-	draw, recordsTotal, recordsFiltered, list := controller.GiveVoucher.DatatablesListOrder(Orm, dts, &[]dao.GiveVoucher{}, 0)
+	draw, recordsTotal, recordsFiltered, list := controller.GiveVoucher.DatatablesListOrder(Orm, dts, &[]dao.GiveVoucher{}, 0, "")
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 }
 func (controller *Controller) configurationChangeAction(context *gweb.Context) gweb.Result {
@@ -187,7 +187,7 @@ func (controller *Controller) rankListAction(context *gweb.Context) gweb.Result 
 	Orm := dao.Orm()
 	dts := &dao.Datatables{}
 	util.RequestBodyToJSON(context.Request.Body, dts)
-	draw, recordsTotal, recordsFiltered, list := controller.Rank.DatatablesListOrder(Orm, dts, &[]dao.Rank{}, 0)
+	draw, recordsTotal, recordsFiltered, list := controller.Rank.DatatablesListOrder(Orm, dts, &[]dao.Rank{}, 0, "")
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 }
 func (controller *Controller) rankDeleteAction(context *gweb.Context) gweb.Result {
@@ -203,7 +203,7 @@ func (controller *Controller) ListAllTableDatas(context *gweb.Context) gweb.Resu
 	Orm := dao.Orm()
 	dts := &dao.Datatables{}
 	util.RequestBodyToJSON(context.Request.Body, dts)
-	draw, recordsTotal, recordsFiltered, list := controller.User.DatatablesListOrder(Orm, dts, &[]dao.User{}, 0)
+	draw, recordsTotal, recordsFiltered, list := controller.User.DatatablesListOrder(Orm, dts, &[]dao.User{}, 0, "")
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 }
 func (controller *Controller) addArticlePage(context *gweb.Context) gweb.Result {

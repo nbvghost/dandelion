@@ -1,0 +1,47 @@
+
+<div class="field">
+    <label>选择产品<input ng-click="showGoodsList()" type="button" class="ui mini blue button" value="添加产品"></label>
+    <table width="100%" class="ui small inverted teal table">
+        <thead>
+        <tr>
+            <th>#ID</th>
+            <th>名称</th>
+            <th style="text-align: right;">
+
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="m in GoodsList">
+            <td>@{m.ID}@</td>
+            <td>@{m.Title}@</td>
+            <td style="text-align: right;"><button ng-click="deleteTimeSellGoods(m)" type="button" class="ui mini red compact icon button"><i class="delete icon"></i></button></td>
+        </tr>
+        </tbody>
+        <tfoot>
+        <th></th>
+        <th></th>
+        <th></th>
+        </tfoot>
+    </table>
+</div>
+<div id="goods_list" class="ui fullscreen modal">
+    <div class="header">选择产品</div>
+    <div class="content">
+        <table width="100%" id="goods_list_table" class="ui teal table">
+            <thead>
+            <tr>
+                <th>#ID</th>
+                <th>名称</th>
+                <th>总库存</th>
+                <th>市场价</th>
+                <th>创建时间</th>
+                <th></th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+    <div class="actions">
+        <button class="ui approve button">确定</button>
+    </div>
+</div>

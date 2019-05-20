@@ -136,7 +136,7 @@ type Datatables struct {
 ],"order":[
 {"column":0,"dir":"asc"}
 ],"start":0,"length":10,"search":{"value":"","regex":false}}`*/
-func (b BaseDao) DatatablesListOrder(Orm *gorm.DB, params *Datatables, target interface{}, OID uint64) (draw int, recordsTotal int, recordsFiltered int, list interface{}) {
+func (b BaseDao) DatatablesListOrder(Orm *gorm.DB, params *Datatables, target interface{}, OID uint64, where string, whereValues ...interface{}) (draw int, recordsTotal int, recordsFiltered int, list interface{}) {
 
 	//"draw": 1,
 	//"recordsTotal": 57,
@@ -163,8 +163,13 @@ func (b BaseDao) DatatablesListOrder(Orm *gorm.DB, params *Datatables, target in
 		}
 
 	}
+	var db *gorm.DB
+	if len(selectFileds) == 0 {
+		db = Orm
+	} else {
+		db = Orm.Select(selectFileds)
+	}
 
-	db := Orm.Select(selectFileds)
 	for _, value := range params.Order {
 		if !strings.EqualFold(params.Columns[value.Column].Data, "") {
 			db = db.Order(params.Columns[value.Column].Data + " " + value.Dir)
@@ -186,6 +191,11 @@ func (b BaseDao) DatatablesListOrder(Orm *gorm.DB, params *Datatables, target in
 		}
 
 	}
+
+	if strings.EqualFold(where, "") == false {
+		db = db.Where(where, whereValues...)
+	}
+
 	if params.Groupbys != nil && len(params.Groupbys) > 0 {
 		groupbyText := strings.Join(params.Groupbys, ",")
 		db = db.Group(groupbyText)

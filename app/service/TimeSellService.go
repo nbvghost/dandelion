@@ -1,8 +1,8 @@
 package service
 
 import (
+	"errors"
 	"strconv"
-	"strings"
 
 	"dandelion/app/service/dao"
 	"dandelion/app/util"
@@ -39,22 +39,18 @@ func (service TimeSellService) ListTimeSellGoods(context *gweb.Context) gweb.Res
 }
 func (service TimeSellService) GetItem(context *gweb.Context) gweb.Result {
 	//Orm := dao.Orm()
+	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	Hash := context.PathParams["Hash"]
-	item := service.GetTimeSellByHash(Hash)
+	item := service.GetTimeSellByHash(Hash, company.ID)
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", item)}
 }
-func (service TimeSellService) GetTimeSellByHash(Hash string) dao.TimeSell {
+func (service TimeSellService) GetTimeSellByHash(Hash string, OID uint64) dao.TimeSell {
 	var timesell dao.TimeSell
-	err := dao.Orm().Model(&dao.TimeSell{}).Where("Hash=?", Hash).First(&timesell).Error
-	glog.Error(err)
+	dao.Orm().Model(&dao.TimeSell{}).Where("Hash=? and OID=?", Hash, OID).First(&timesell)
 	return timesell
 }
-func (service TimeSellService) GetTimeSellListByHash(Hash string) []dao.TimeSell {
-	var timesells []dao.TimeSell
-	err := dao.Orm().Model(&dao.TimeSell{}).Where("Hash=?", Hash).Find(&timesells).Error
-	glog.Error(err)
-	return timesells
-}
+
+//todo:
 func (service TimeSellService) GetTimeSellByGoodsID(GoodsID uint64) dao.TimeSell {
 	var timesell dao.TimeSell
 	err := dao.Orm().Model(&dao.TimeSell{}).Where("GoodsID=?", GoodsID).First(&timesell).Error
@@ -77,13 +73,13 @@ func (service TimeSellService) SaveItem(context *gweb.Context) gweb.Result {
 	var err error
 
 	TimeSellJson := context.Request.FormValue("TimeSell")
-	GoodsListJson := context.Request.FormValue("GoodsListIDs")
+	//GoodsListJson := context.Request.FormValue("GoodsListIDs")
 
-	GoodsListIDs := make([]uint64, 0)
-	err = util.JSONToStruct(GoodsListJson, &GoodsListIDs)
-	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
-	}
+	//GoodsListIDs := make([]uint64, 0)
+	//err = util.JSONToStruct(GoodsListJson, &GoodsListIDs)
+	//if err != nil {
+	//return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+	//}
 
 	tx := dao.Orm().Begin()
 	defer func() {
@@ -93,15 +89,15 @@ func (service TimeSellService) SaveItem(context *gweb.Context) gweb.Result {
 			tx.Rollback()
 		}
 	}()
-	item := &dao.TimeSell{}
-	err = util.JSONToStruct(TimeSellJson, item)
+	item := dao.TimeSell{}
+	err = util.JSONToStruct(TimeSellJson, &item)
 	if err != nil {
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
 	}
 	Hash := tool.UUID()
-	if strings.EqualFold(item.Hash, "") {
+	if item.ID == 0 {
 		//新添加
-		for _, value := range GoodsListIDs {
+		/*for _, value := range GoodsListIDs {
 			isHaveTS := service.GetTimeSellByGoodsID(value)
 			if isHaveTS.ID != 0 && isHaveTS.OID != company.ID {
 				continue
@@ -114,11 +110,37 @@ func (service TimeSellService) SaveItem(context *gweb.Context) gweb.Result {
 			item.OID = company.ID
 			err = service.Save(tx, item)
 
-		}
+		}*/
 
+		item := &dao.TimeSell{}
+		err = util.JSONToStruct(TimeSellJson, item)
+		//item.GoodsID = value
+		item.Hash = Hash
+		item.OID = company.ID
+		err = service.Save(tx, item)
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "提交成功", item)}
 	} else {
+		_item := service.GetTimeSellByHash(item.Hash, company.ID)
+		if _item.ID == 0 {
+			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("无法修改"), "", nil)}
+		}
+		_item.Hash = item.Hash
+		_item.BuyNum = item.BuyNum
+		_item.Enable = item.Enable
+		_item.DayNum = item.DayNum
+		_item.Discount = item.Discount
+		_item.TotalNum = item.TotalNum
+		_item.StartTime = item.StartTime
+		_item.StartH = item.StartH
+		_item.StartM = item.StartM
+		_item.EndH = item.EndH
+		_item.EndM = item.EndM
+		err = service.Save(tx, _item)
+
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "提交成功", _item)}
+
 		//修改
-		for _, value := range GoodsListIDs {
+		/*for _, value := range GoodsListIDs {
 			isHaveTS := service.GetTimeSellByGoodsID(value)
 			if isHaveTS.ID != 0 {
 				if strings.EqualFold(item.Hash, isHaveTS.Hash) && isHaveTS.OID == company.ID {
@@ -141,11 +163,9 @@ func (service TimeSellService) SaveItem(context *gweb.Context) gweb.Result {
 			_item.ID = 0
 			err = service.Save(tx, _item)
 
-		}
+		}*/
 
 	}
-
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "提交成功", nil)}
 
 }
 
@@ -158,7 +178,7 @@ func (service TimeSellService) DataTablesItem(context *gweb.Context) gweb.Result
 	dts.Groupbys = make([]string, 0)
 	dts.Groupbys = append(dts.Groupbys, "Hash")
 
-	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(Orm, dts, &[]dao.TimeSell{}, company.ID)
+	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(Orm, dts, &[]dao.TimeSell{}, company.ID, "")
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 }
 

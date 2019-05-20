@@ -319,8 +319,12 @@ func (service GoodsService) FindGoodsByTimeSellID(TimeSellID uint64) []dao.Goods
 	glog.Error(err)
 
 	var list []dao.Goods
-	err = service.FindWhere(Orm, &list, "ID=?", timesell.GoodsID)
-	glog.Error(err)
+
+	//rows, _ := Orm.Raw("")
+
+	//todo:
+	//err = service.FindWhere(Orm, &list, "ID=?", timesell.GoodsID)
+	//glog.Error(err)
 	return list
 }
 func (service GoodsService) FindGoodsByTimeSellHash(Hash string) []dao.Goods {

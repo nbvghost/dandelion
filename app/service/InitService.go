@@ -85,6 +85,7 @@ func init() {
 	models = append(models, dao.Question{})
 	models = append(models, dao.QuestionTag{})
 	models = append(models, dao.AnswerQuestion{})
+	models = append(models, dao.TimeSellGoods{})
 
 	for index := range models {
 

@@ -56,7 +56,7 @@ func (service AdminService) ListItem(context *gweb.Context) gweb.Result {
 	admin := context.Session.Attributes.Get(play.SessionAdmin).(*dao.Admin)
 	dts := &dao.Datatables{}
 	util.RequestBodyToJSON(context.Request.Body, dts)
-	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(dao.Orm(), dts, &[]dao.Admin{}, admin.OID)
+	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(dao.Orm(), dts, &[]dao.Admin{}, admin.OID, "")
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 }
 
@@ -306,7 +306,7 @@ func (service AdminService) ManagerAction(context *gweb.Context) gweb.Result {
 	case "list":
 		dts := &dao.Datatables{}
 		util.RequestBodyToJSON(context.Request.Body, dts)
-		draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(Orm, dts, &[]dao.Admin{}, admin.OID)
+		draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(Orm, dts, &[]dao.Admin{}, admin.OID, "")
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 	}
 

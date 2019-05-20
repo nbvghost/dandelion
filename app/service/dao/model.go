@@ -534,6 +534,7 @@ func (u *ScoreGoods) BeforeCreate(scope *gorm.Scope) (err error) {
 	if u.OID == 0 {
 		defer func() {
 			if err := recover(); err != nil {
+
 				debug.PrintStack()
 			}
 		}()
@@ -712,7 +713,7 @@ func (Store) TableName() string {
 type TimeSell struct {
 	BaseModel
 	OID       uint64    `gorm:"column:OID"`
-	Hash      string    `gorm:"column:Hash"` //同一个Hash表示同一个活动
+	Hash      string    `gorm:"column:Hash;unique"` //同一个Hash表示同一个活动
 	BuyNum    int       `gorm:"column:BuyNum"`
 	Enable    bool      `gorm:"column:Enable"`
 	DayNum    int       `gorm:"column:DayNum"`
@@ -723,7 +724,7 @@ type TimeSell struct {
 	StartM    int       `gorm:"column:StartM"`
 	EndH      int       `gorm:"column:EndH"`
 	EndM      int       `gorm:"column:EndM"`
-	GoodsID   uint64    `gorm:"column:GoodsID"`
+	//GoodsID   uint64    `gorm:"column:GoodsID"`
 }
 
 func (u *TimeSell) BeforeCreate(scope *gorm.Scope) (err error) {
@@ -741,10 +742,6 @@ func (u *TimeSell) BeforeCreate(scope *gorm.Scope) (err error) {
 
 //是满足所有的限时抢购的条件
 func (ts TimeSell) IsEnable() bool {
-
-	if ts.GoodsID == 0 {
-		return false
-	}
 	if ts.ID == 0 {
 		return false
 	}
@@ -773,6 +770,18 @@ func (ts TimeSell) IsEnable() bool {
 }
 func (TimeSell) TableName() string {
 	return "TimeSell"
+}
+
+//限时抢购商品
+type TimeSellGoods struct {
+	BaseModel
+	TimeSellHash string `gorm:"column:TimeSellHash"`
+	GoodsID      uint64 `gorm:"column:GoodsID"`
+	Disable      bool   `gorm:"column:Disable"` //限时抢购中，单个商品是暂时
+}
+
+func (TimeSellGoods) TableName() string {
+	return "TimeSellGoods"
 }
 
 //拼团记录
