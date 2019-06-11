@@ -24,6 +24,19 @@ func Orm() *gorm.DB {
 	return _database
 }
 
+// Logger default logger
+type GormLogger struct {
+	gorm.LogWriter
+}
+
+// Print format & print log
+func (logger GormLogger) Print(values ...interface{}) {
+	//logger.Println(gorm.LogFormatter(values...)...)
+	//log.Println(values...)
+	//glog.Trace(values...)
+	glog.Trace(gorm.LogFormatter(values...)...)
+}
+
 type Profiling struct {
 	QueryID  int     `gorm:"column:Query_ID"`
 	Duration float64 `gorm:"column:Duration"`
@@ -37,8 +50,9 @@ func init() {
 	glog.Error(err)
 
 	if conf.Config.Debug {
-		_database.Debug()
+		//_database.Debug()
 		_database.LogMode(true)
+		_database.SetLogger(GormLogger{})
 	}
 
 	//postgres.Jsonb{}

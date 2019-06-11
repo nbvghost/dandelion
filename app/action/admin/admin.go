@@ -88,8 +88,9 @@ func (controller *Controller) Apply() {
 	controller.AddHandler(gweb.POSMethod("timesell/change", controller.TimeSell.SaveItem))
 	controller.AddHandler(gweb.GETMethod("timesell/{Hash}", controller.TimeSell.GetItem))
 	controller.AddHandler(gweb.POSMethod("timesell/datatables/list", controller.TimeSell.DataTablesItem))
-	controller.AddHandler(gweb.GETMethod("timesell/goods/{Hash}/list", controller.TimeSell.ListTimeSellGoods))
+	controller.AddHandler(gweb.POSMethod("timesell/goods/{Hash}/list", controller.TimeSell.ListTimeSellGoods))
 	controller.AddHandler(gweb.DELMethod("timesell/goods/{GoodsID}", controller.TimeSell.DeleteTimeSellGoods))
+	controller.AddHandler(gweb.POSMethod("timesell/goods/add", controller.TimeSell.AddTimeSellGoodsAction))
 	controller.AddHandler(gweb.DELMethod("timesell/{ID}", controller.TimeSell.DeleteItem))
 
 	controller.AddHandler(gweb.POSMethod("collage/save", controller.Collage.SaveItem))
@@ -177,6 +178,7 @@ func (controller *Controller) Apply() {
 	controller.AddHandler(gweb.PUTMethod("voucher/{ID}", controller.Voucher.ChangeItem))
 
 }
+
 func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	action := context.Request.URL.Query().Get("action")
@@ -273,13 +275,14 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		err = controller.Goods.SaveGoods(item, specifications)
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
 	case "timesell_goods":
-		Hash := context.Request.URL.Query().Get("Hash")
+		company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+		//Hash := context.Request.URL.Query().Get("Hash")
 		dts := &dao.Datatables{}
 		//dts.Draw = 10
 		//dts.Length = play.Paging
 		util.RequestBodyToJSON(context.Request.Body, dts)
 		var GoodsIDs []uint64
-		Orm.Model(&dao.TimeSellGoods{}).Where("TimeSellHash=?", Hash).Pluck("GoodsID", &GoodsIDs)
+		Orm.Model(&dao.TimeSellGoods{}).Where("OID=?", company.ID).Pluck("GoodsID", &GoodsIDs)
 		dts.NotIDs = GoodsIDs
 		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.Goods{}, company.ID, "")
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}

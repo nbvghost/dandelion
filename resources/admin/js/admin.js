@@ -3885,34 +3885,26 @@ main.controller("timesell_list_controller",function ($http,$filter,$scope, $root
 })
 main.controller("timesell_manager_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
     var goods_list_table;
+    var TimeSellGoodsList;
 
-    $scope.GoodsList=[];
+
 
     if($routeParams.Hash==undefined){
         alert("参数不足，无法操作");
         return
     }
 
-    $scope.listTimeSellGoods = function(){
+   /* $scope.listTimeSellGoods = function(){
         $http.get("timesell/goods/"+$routeParams.Hash+"/list",{}).then(function (data) {
             $scope.GoodsList = data.data.Data;
         });
     }
+    $scope.listTimeSellGoods();*/
     $scope.showGoodsList=function(){
         $("#goods_list").modal("show");
         goods_list_table.ajax.reload();
     }
-    $scope.deleteTimeSellGoods = function(m){
 
-        //timesell/goods/:GoodsID
-
-        if(confirm("是否要取消这个产品的限时抢购？")){
-            $http.delete("timesell/goods/"+m.ID,{}).then(function (data) {
-                alert(data.data.Message);
-                $scope.listTimeSellGoods();
-            });
-        }
-    }
     $timeout(function () {
 
         goods_list_table = $('#goods_list_table').DataTable({
@@ -3929,38 +3921,9 @@ main.controller("timesell_manager_controller",function ($http,$filter,$scope, $r
                     }},
                 {data:null,className:"opera",orderable:false,render:function (data, type, row) {
 
-                        var have = false;
-                        for(var i=0;i<$scope.GoodsList.length;i++){
-                            var mitem = $scope.GoodsList[i];
-                            if(row.ID==mitem.ID){
-                                have=true;
-                                break;
-                            }
-                        }
+                    return '<button class="ui select blue mini button">添加</button>';
 
-                        if(have){
-                            return '<button class="ui mini button">已经选择</button>';
-                        }else{
-                            return '<button class="ui select blue mini button">添加</button>';
-                        }
                     }}
-                /*{data:"TimeSellID",className:"opera",orderable:false,render:function (data, type, row) {
-
-                        var have = false;
-                        for(var i=0;i<$scope.GoodsList.length;i++){
-                            var mitem = $scope.GoodsList[i];
-                            if(row.ID==mitem.ID){
-                                have=true;
-                                break;
-                            }
-                        }
-
-                        if(have){
-                            return '<button class="ui mini button">已经选择</button>';
-                        }else{
-                            return '<button class="ui select blue mini button">添加</button>';
-                        }
-                    }}*/
             ],
             "createdRow": function ( row, data, index ) {
                 //console.log(row,data,index);
@@ -3997,37 +3960,45 @@ main.controller("timesell_manager_controller",function ($http,$filter,$scope, $r
             console.log(row.data());
 
             var itme = row.data();
-            var have = false;
-            for(var i=0;i<$scope.GoodsList.length;i++){
-                var mitem = $scope.GoodsList[i];
-                if(itme.ID==mitem.ID){
-                    have=true;
-                    break;
-                }
-            }
 
-            if(have==false){
-                $scope.$apply(function () {
-                    $scope.GoodsList.push(itme);
-                });
-            }
 
-            /*$http.post("timesell/goods/"+m.ID,{}).then(function (data) {
+            var form ={};
+            form.GoodsID=itme.ID;
+            form.TimeSellHash=$routeParams.Hash;
+            /* $http.post("timesell/goods/add",{}).then(function (data) {
                 alert(data.data.Message);
-                $scope.listTimeSellGoods();
+                //$scope.listTimeSellGoods();
             });*/
+
+            $http.post("timesell/goods/add",$.param(form), {
+                transformRequest: angular.identity,
+                headers: {"Content-Type": "application/x-www-form-urlencoded"}
+            }).then(function (data, status, headers, config) {
+
+
+                if(data.data.Success==true){
+
+
+                }else{
+                    alert(data.data.Message);
+                }
+                goods_list_table.draw(false);
+                TimeSellGoodsList.draw(false);
+                //table.ajax.reload();
+
+            });
 
             //$("#goods_list").modal("hide");
             //goods_list_table.ajax.reload();
             //$scope.GoodsList
-            goods_list_table.draw(false);
+
         });
 
 
 
 
         //goods_list_table
-        /*goods_table = $('#goods_list_table').DataTable({
+        TimeSellGoodsList = $('#TimeSellGoodsList').DataTable({
             "columns": [
                 {data:"ID"},
                 {data:"Title"},
@@ -4039,18 +4010,8 @@ main.controller("timesell_manager_controller",function ($http,$filter,$scope, $r
 
                         return $filter("date")(data,"medium");
                     }},
-                {data:"TimeSellID",className:"opera",orderable:false,render:function (data, type, row) {
-                        console.log(data);
-
-                        /!*if($routeParams.ID==data){
-                            return '<button class="ui mini button">已选择</button>';
-                        }*!/
-
-                        if(data==0){
-                            return '<button class="ui select blue mini button">选择</button>';
-                        }else{
-                            return '<button class="ui select blue mini button">替换成这个活动</button>';
-                        }
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+                        return '<button class="ui delete blue mini button">删除这个商品</button>';
                     }}
             ],
             "createdRow": function ( row, data, index ) {
@@ -4069,14 +4030,41 @@ main.controller("timesell_manager_controller",function ($http,$filter,$scope, $r
             "processing": true,
             "serverSide": true,
             "ajax": {
-                "url": "goods?action=timesell_goods",
+                "url": "timesell/goods/"+$routeParams.Hash+"/list",
                 "type": "POST",
                 "contentType": "application/json",
                 "data": function ( d ) {
                     return JSON.stringify(d);
                 }
             }
-        });*/
+        });
+
+        $('#TimeSellGoodsList').on('click','td.opera .delete', function () {
+
+
+            var tr = $(this).closest('tr');
+            var row = TimeSellGoodsList.row( tr );
+
+            console.log(row.data());
+
+            var itme = row.data();
+
+
+
+            if(confirm("是否要取消这个产品的限时抢购？")){
+                $http.delete("timesell/goods/"+itme.ID,{}).then(function (data) {
+                    alert(data.data.Message);
+                    //$scope.listTimeSellGoods();
+                    TimeSellGoodsList.draw(false);
+                });
+            }
+
+
+            //$("#goods_list").modal("hide");
+            //goods_list_table.ajax.reload();
+            //$scope.GoodsList
+            //TimeSellGoodsList.draw(false);
+        });
 
     });
 

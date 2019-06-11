@@ -1,88 +1,93 @@
 <div class="ui teal attached inverted stackable menu">
-    <div class="header item">
-        后台管理系统
-    </div>
-    <div class="ui mini simple dropdown item">
-        产品
-        <i class="dropdown icon"></i>
-        <div class="mini menu">
-            <a href="#!/add_goods" class="item"><i class="add icon"></i>产品发布</a>
-            <a href="#!/goods_list" class="item"><i class="list icon"></i>产品列表</a>
-        </div>
-    </div>
+    <div class="ui container">
 
-    <div class="ui mini simple dropdown item">
-        活动
-        <i class="dropdown icon"></i>
-        <div class="mini menu">
-            <a href="#!/score_goods_list" class="item"><i class="list icon"></i>积分产品管理</a>
-            <a href="#!/voucher_list" class="item"><i class="list icon"></i>卡券管理</a>
-            <a href="#!/fullcut_list" class="item"><i class="list icon"></i>满减管理</a>
-            <a href="#!/timesell_list" class="item"><i class="list icon"></i>限时抢购</a>
-            <a href="#!/collage_list" class="item"><i class="list icon"></i>拼团</a>
+        <div class="header item">
+            <img src="" class="logo">
+            后台管理系统
         </div>
-    </div>
+        <div class="ui mini simple dropdown item">
+            产品
+            <i class="dropdown icon"></i>
+            <div class="mini menu">
+                <a href="#!/add_goods" class="item"><i class="add icon"></i>产品发布</a>
+                <a href="#!/goods_list" class="item"><i class="list icon"></i>产品列表</a>
+            </div>
+        </div>
 
-    <div class="ui mini simple dropdown item">
-        门店
-        <i class="dropdown icon"></i>
-        <div class="mini menu">
-            <a href="#!/store_list" class="item"><i class="list icon"></i>门店列表</a>
+        <div class="ui mini simple dropdown item">
+            活动
+            <i class="dropdown icon"></i>
+            <div class="mini menu">
+                <a href="#!/score_goods_list" class="item"><i class="list icon"></i>积分产品管理</a>
+                <a href="#!/voucher_list" class="item"><i class="list icon"></i>卡券管理</a>
+                <a href="#!/fullcut_list" class="item"><i class="list icon"></i>满减管理</a>
+                <a href="#!/timesell_list" class="item"><i class="list icon"></i>限时抢购</a>
+                <a href="#!/collage_list" class="item"><i class="list icon"></i>拼团</a>
+            </div>
         </div>
-    </div>
-    <div class="ui mini simple dropdown item">
-        订单
-        <i class="dropdown icon"></i>
-        <div class="mini menu">
-            <a href="#!/order_list" class="item"><i class="list icon"></i>订单列表</a>
-        </div>
-    </div>
 
-    <div class="ui mini simple dropdown item">
-        内容管理
-        <i class="dropdown icon"></i>
-        <div class="mini menu">
-            <a href="#!/content_list" class="item"><i class="list icon"></i>内容管理</a>
-        </div>
-    </div>
-
-
-    <div class="ui mini simple dropdown item">
-        账务统计
-        <i class="dropdown icon"></i>
-        <div class="mini menu">
-            <a href="#!/view_situation" class="item"><i class="file outline icon"></i>销售概况</a>
-            <a href="#!/carditem_list" class="item"><i class="chart bar icon"></i>单品销售统计</a>
-            <a href="#!/store_situation" class="item"><i class="calculator icon"></i>门店营收</a>
-        </div>
-    </div>
-    <div class="ui mini simple dropdown item">
-        系统设置
-        <i class="dropdown icon"></i>
-        <div class="mini menu">
-            <a href="#!/express" class="item"><i class="file outline icon"></i>快递设置</a>
-            <a href="#!/user_setup" class="item"><i class="setting icon"></i>会员等级/佣金</a>
-        </div>
-    </div>
-
-    <div class="right menu">
-        <div class="ui mini simple item">
-            Domain:{{.session.Organization.Domain}}
-        </div>
-        <div style="display: none;" class="item">
-            <div class="ui action left icon input">
-                <i class="search icon"></i>
-                <input type="text" placeholder="Search">
-                <button class="ui mini red button">搜索</button>
+        <div class="ui mini simple dropdown item">
+            门店
+            <i class="dropdown icon"></i>
+            <div class="mini menu">
+                <a href="#!/store_list" class="item"><i class="list icon"></i>门店列表</a>
             </div>
         </div>
         <div class="ui mini simple dropdown item">
-            管理员
-            <i class="mini dropdown icon"></i>
-            <div class="menu">
-                <a href="#!/admin_list" class="item"><i class="list icon"></i>管理员</a>
-                <a href="/account/loginOutAdmin" class="item"><i class="window close icon"></i>退出</a>
+            订单
+            <i class="dropdown icon"></i>
+            <div class="mini menu">
+                <a href="#!/order_list" class="item"><i class="list icon"></i>订单列表</a>
             </div>
         </div>
+
+        <div class="ui mini simple dropdown item">
+            内容管理
+            <i class="dropdown icon"></i>
+            <div class="mini menu">
+                <a href="#!/content_list" class="item"><i class="list icon"></i>内容管理</a>
+            </div>
+        </div>
+
+
+        <div class="ui mini simple dropdown item">
+            账务统计
+            <i class="dropdown icon"></i>
+            <div class="mini menu">
+                <a href="#!/view_situation" class="item"><i class="file outline icon"></i>销售概况</a>
+                <a href="#!/carditem_list" class="item"><i class="chart bar icon"></i>单品销售统计</a>
+                <a href="#!/store_situation" class="item"><i class="calculator icon"></i>门店营收</a>
+            </div>
+        </div>
+        <div class="ui mini simple dropdown item">
+            系统设置
+            <i class="dropdown icon"></i>
+            <div class="mini menu">
+                <a href="#!/express" class="item"><i class="file outline icon"></i>快递设置</a>
+                <a href="#!/user_setup" class="item"><i class="setting icon"></i>会员等级/佣金</a>
+            </div>
+        </div>
+
+        <div class="right menu">
+            <div class="ui mini simple item">
+                Domain:{{.session.Organization.Domain}}
+            </div>
+            <div style="display: none;" class="item">
+                <div class="ui action left icon input">
+                    <i class="search icon"></i>
+                    <input type="text" placeholder="Search">
+                    <button class="ui mini red button">搜索</button>
+                </div>
+            </div>
+            <div class="ui mini simple dropdown item">
+                管理员
+                <i class="mini dropdown icon"></i>
+                <div class="menu">
+                    <a href="#!/admin_list" class="item"><i class="list icon"></i>管理员</a>
+                    <a href="/account/loginOutAdmin" class="item"><i class="window close icon"></i>退出</a>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>

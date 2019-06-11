@@ -178,7 +178,7 @@ func (service GoodsService) GetGoodsInfo(goods dao.Goods) dao.GoodsInfo {
 	//brokerageProvisoConfV, _ := strconv.ParseUint(brokerageProvisoConf.V, 10, 64)
 	//vipdiscountConf := service.Configuration.GetConfiguration(play.ConfigurationKey_VIPDiscount)
 	//VIPDiscount, _ := strconv.ParseUint(vipdiscountConf.V, 10, 64)
-	timeSell := service.TimeSell.GetTimeSellByGoodsID(goods.ID)
+	timeSell := service.TimeSell.GetTimeSellByGoodsID(goods.ID, goods.OID)
 	goodsInfo := dao.GoodsInfo{}
 	goodsInfo.Goods = goods
 	goodsInfo.Favoured = dao.Favoured{}
@@ -299,9 +299,9 @@ func (service GoodsService) DeleteGoodsTypeChild(GoodsTypeChildID uint64) *dao.A
 	return (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)
 }
 
-func (service GoodsService) DeleteTimeSellGoods(DB *gorm.DB, GoodsID uint64) error {
-	timesell := service.TimeSell.GetTimeSellByGoodsID(GoodsID)
-	err := service.Delete(DB, &dao.TimeSell{}, timesell.ID)
+func (service GoodsService) DeleteTimeSellGoods(DB *gorm.DB, GoodsID uint64, OID uint64) error {
+	timesell := service.TimeSell.GetTimeSellByGoodsID(GoodsID, OID)
+	err := service.DeleteWhere(DB, &dao.TimeSellGoods{}, "TimeSellHash=? and GoodsID=?", timesell.Hash, GoodsID) //Delete(DB, &dao.TimeSellGoods{}, timesell.ID)
 	glog.Error(err)
 	return err
 }
@@ -349,7 +349,11 @@ func (service GoodsService) FindGoodsByCollageHash(Hash string) []dao.Goods {
 	glog.Error(err)
 	return list
 }
-
+func (service GoodsService) FindGoodsByOrganizationIDAndGoodsID(OrganizationID uint64, GoodsID uint64) dao.Goods {
+	var Goods dao.Goods
+	dao.Orm().Model(&dao.Goods{}).Where("ID=? and OID=?", GoodsID, OrganizationID).First(&Goods)
+	return Goods
+}
 func (service GoodsService) AllList() []dao.Goods {
 
 	Orm := dao.Orm()
@@ -368,7 +372,7 @@ func (service GoodsService) GetGoodsInfoList(UserID uint64, goodsList []dao.Good
 	var results = make([]dao.GoodsInfo, 0)
 
 	for _, value := range goodsList {
-		timeSell := service.TimeSell.GetTimeSellByGoodsID(value.ID)
+		timeSell := service.TimeSell.GetTimeSellByGoodsID(value.ID, value.OID)
 		goodsInfo := dao.GoodsInfo{}
 		goodsInfo.Goods = value
 		goodsInfo.Favoured = dao.Favoured{}

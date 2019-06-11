@@ -775,6 +775,7 @@ func (TimeSell) TableName() string {
 //限时抢购商品
 type TimeSellGoods struct {
 	BaseModel
+	OID          uint64 `gorm:"column:OID"`
 	TimeSellHash string `gorm:"column:TimeSellHash"`
 	GoodsID      uint64 `gorm:"column:GoodsID"`
 	Disable      bool   `gorm:"column:Disable"` //限时抢购中，单个商品是暂时
@@ -797,6 +798,19 @@ type CollageRecord struct {
 
 func (CollageRecord) TableName() string {
 	return "CollageRecord"
+}
+
+//拼团商品
+type CollageGoods struct {
+	BaseModel
+	OID         uint64 `gorm:"column:OID"`
+	CollageHash string `gorm:"column:CollageHash"`
+	GoodsID     uint64 `gorm:"column:GoodsID"`
+	Disable     bool   `gorm:"column:Disable"` //限时抢购中，单个商品是暂时
+}
+
+func (CollageGoods) TableName() string {
+	return "CollageGoods"
 }
 
 //拼团

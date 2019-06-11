@@ -2,6 +2,7 @@
   "ViewDir": "view",
   "ResourcesDir": "resources",
   "ResourcesDirName": "resources",
+  "LogDir": "logs",
   "UploadDir": "upload",
   "UploadDirName": "upload",
   "DefaultPage": "index",

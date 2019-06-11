@@ -3,6 +3,7 @@ package service
 import (
 	"dandelion/app/service/dao"
 
+	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb/conf"
 	"github.com/nbvghost/gweb/tool"
 )
@@ -16,6 +17,15 @@ type GlobalServiceStruct struct {
 }
 
 func init() {
+
+	glog.StartLogger(&glog.ParamValue{
+		ServerAddr:  conf.Config.LogServer,
+		ServerName:  "dandelion",
+		LogFilePath: conf.Config.LogDir,
+		Debug:       conf.Config.Debug,
+		PrintStack:  true,
+		FileStorage: true,
+	})
 
 	//var err error
 	//_db, err := sql.Open("mysql", "tcp:localhost:3306*dandelion/root/123456")
@@ -50,6 +60,7 @@ func init() {
 	models = append(models, dao.UserJournal{})
 	models = append(models, dao.StoreJournal{})
 	models = append(models, dao.CollageRecord{})
+	models = append(models, dao.CollageGoods{})
 	models = append(models, dao.District{})
 	models = append(models, dao.SupplyOrders{})
 	models = append(models, dao.StoreStock{})
@@ -94,6 +105,7 @@ func init() {
 			_database.CreateTable(models[index])
 		}
 		if conf.Config.Debug {
+			glog.Debug("migrate:", models[index].TableName())
 			_database.AutoMigrate(models[index])
 		}
 

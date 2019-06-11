@@ -18,23 +18,81 @@ type TimeSellService struct {
 	dao.BaseDao
 }
 
+func (service TimeSellService) AddTimeSellGoodsAction(context *gweb.Context) gweb.Result {
+	organization := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+
+	context.Request.ParseForm()
+
+	GoodsID, _ := strconv.ParseUint(context.Request.FormValue("GoodsID"), 10, 64)
+	TimeSellHash := context.Request.FormValue("TimeSellHash")
+
+	goods := GlobalService.Goods.FindGoodsByOrganizationIDAndGoodsID(organization.ID, GoodsID)
+	if goods.ID == 0 {
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("没有找到商品"), "", nil)}
+	}
+	timeSell := service.GetTimeSellByHash(TimeSellHash, organization.ID)
+	if timeSell.ID == 0 {
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("没有找到限时抢购"), "", nil)}
+	}
+
+	have := service.GetTimeSellGoodsByGoodsID(goods.ID, organization.ID)
+	if have.ID > 0 {
+		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("这个商品已被添加为限时抢购"), "", nil)}
+	}
+
+	//service.ChangeMap(dao.Orm(), timeSell.ID, &dao.TimeSell{}, map[string]interface{}{})
+	err := service.Add(dao.Orm(), &dao.TimeSellGoods{
+		TimeSellHash: timeSell.Hash,
+		GoodsID:      goods.ID,
+		Disable:      false,
+		OID:          organization.ID,
+	})
+
+	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "Success", goods)}
+}
 func (service TimeSellService) DeleteTimeSellGoods(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	ID, _ := strconv.ParseUint(context.PathParams["GoodsID"], 10, 64)
-
-	list := GlobalService.Goods.DeleteTimeSellGoods(Orm, ID)
+	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	list := GlobalService.Goods.DeleteTimeSellGoods(Orm, ID, company.ID)
 
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "删除成功", list)}
 
 }
 func (service TimeSellService) ListTimeSellGoods(context *gweb.Context) gweb.Result {
-
 	Hash := context.PathParams["Hash"]
+	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	dts := &dao.Datatables{}
+	//dts.Draw = 10
+	//dts.Length = play.Paging
+	util.RequestBodyToJSON(context.Request.Body, dts)
+	GoodsIDs := []uint64{}
+	dao.Orm().Model(&dao.TimeSellGoods{}).Where("TimeSellHash=? and OID=?", Hash, company.ID).Pluck("GoodsID", &GoodsIDs)
+	if len(GoodsIDs) == 0 {
+		GoodsIDs = []uint64{0}
+	}
+	dts.InIDs = GoodsIDs
+	draw, recordsTotal, recordsFiltered, list := GlobalService.Goods.DatatablesListOrder(dao.Orm(), dts, &[]dao.Goods{}, company.ID, "")
+	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
+
+	/*Hash := context.PathParams["Hash"]
+	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	Orm := dao.Orm()
+	dts := &dao.Datatables{}
+	util.RequestBodyToJSON(context.Request.Body, dts)
+
+	//dts.Groupbys = make([]string, 0)
+	//dts.Groupbys = append(dts.Groupbys, "Hash")
+
+	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(Orm, dts, &[]dao.TimeSellGoods{}, company.ID, "TimeSellHash=?", Hash)
+	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}*/
+
+	/*Hash := context.PathParams["Hash"]
 
 	list := GlobalService.Goods.FindGoodsByTimeSellHash(Hash)
 	//var item dao.ExpressTemplate
 	//err := controller.ExpressTemplate.Get(service.Orm, ID, &item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "", list)}
+	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "", list)}*/
 	//2002
 }
 func (service TimeSellService) GetItem(context *gweb.Context) gweb.Result {
@@ -51,11 +109,18 @@ func (service TimeSellService) GetTimeSellByHash(Hash string, OID uint64) dao.Ti
 }
 
 //todo:
-func (service TimeSellService) GetTimeSellByGoodsID(GoodsID uint64) dao.TimeSell {
+func (service TimeSellService) GetTimeSellByGoodsID(GoodsID uint64, OID uint64) dao.TimeSell {
+	timesellGoods := service.GetTimeSellGoodsByGoodsID(GoodsID, OID)
+	dao.Orm().Model(&dao.TimeSellGoods{}).Where("GoodsID=? and OID=?", GoodsID, OID).First(&timesellGoods)
+
 	var timesell dao.TimeSell
-	err := dao.Orm().Model(&dao.TimeSell{}).Where("GoodsID=?", GoodsID).First(&timesell).Error
-	glog.Error(err)
+	dao.Orm().Model(&dao.TimeSell{}).Where("Hash=? and OID=?", timesellGoods.TimeSellHash, timesellGoods.OID).First(&timesell)
 	return timesell
+}
+func (service TimeSellService) GetTimeSellGoodsByGoodsID(GoodsID uint64, OID uint64) dao.TimeSellGoods {
+	var timesellGoods dao.TimeSellGoods
+	dao.Orm().Model(&dao.TimeSellGoods{}).Where("GoodsID=? and OID=?", GoodsID, OID).First(&timesellGoods)
+	return timesellGoods
 }
 
 /*

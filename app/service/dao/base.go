@@ -124,6 +124,7 @@ type Datatables struct {
 	Draw     int       `json:"draw"`
 	Groupbys []string
 	NotIDs   []uint64
+	InIDs    []uint64
 }
 
 /*`{"draw":1,"columns":[
@@ -202,6 +203,10 @@ func (b BaseDao) DatatablesListOrder(Orm *gorm.DB, params *Datatables, target in
 	}
 	if params.NotIDs != nil && len(params.NotIDs) > 0 {
 		db = db.Not(params.NotIDs)
+	}
+
+	if params.InIDs != nil && len(params.InIDs) > 0 {
+		db = db.Where("ID in (?)", params.InIDs)
 	}
 
 	db.Limit(params.Length).Offset(params.Start).Find(target).Offset(0).Count(&recordsTotal)
