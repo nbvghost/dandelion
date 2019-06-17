@@ -1,0 +1,30 @@
+html,body{
+    margin: 0px;
+    padding: 0px;
+}
+#header{
+    border: 1px solid red;
+    width: 100%;
+    height: 550px;
+}
+#header .bar{
+    height: 35px;
+    border: 1px solid red;
+}
+#header .slider{
+    height: 100%;
+    width: 100%;
+    background: red;
+}
+#content{
+
+}
+#content .aboutus{
+    text-align: center;
+}
+#content .product{
+    text-align: center;
+}
+#content .partner{
+    text-align: center;
+}
