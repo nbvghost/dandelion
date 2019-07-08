@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Title -->
+    <title>Shop Single Product | Front - Responsive Website Template</title>
+
+    <!-- Required Meta Tags Always Come First -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="../../favicon.ico">
+
+    <!-- Google Fonts -->
+    <link href="//fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" rel="stylesheet">
+
+    <!-- CSS Implementing Plugins -->
+    <link rel="stylesheet" href="resources/css/fontawesome-all.css">
+    <link rel="stylesheet" href="../../assets/vendor/hs-megamenu/src/hs.megamenu.css">
+    <link rel="stylesheet" href="../../assets/vendor/malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.css">
+    <link rel="stylesheet" href="resources/slick/slick.css">
+    <link rel="stylesheet" href="resources/slick/slick-theme.css">
+    <link rel="stylesheet" href="../../assets/vendor/bootstrap-select/dist/css/bootstrap-select.min.css">
+    <link rel="stylesheet" href="../../assets/vendor/animate.css/animate.min.css">
+
+    <!-- CSS Front Template -->
+    <link rel="stylesheet" href="resources/css/theme.css">
+</head>
+<body>
+<!-- ========== HEADER ========== -->
+{{IncludeHTML "sites/default/shop/header.tp.html" .}}
+<!-- ========== END HEADER ========== -->
+{{ToJSON .params.GoodsInfo}}
+<!-- ========== MAIN CONTENT ========== -->
+<main id="content" role="main">
+    <!-- Hero Section -->
+    <div class="container space-top-1 space-top-sm-2">
+        <div class="row">
+            <div class="col-lg-7 mb-7 mb-lg-0">
+                <div class="pr-lg-4">
+                    <div class="position-relative">
+                        <!-- Main Slider -->
+                        <div id="heroSlider" class="js-slick-carousel u-slick border rounded"
+                             data-fade="true"
+                             data-infinite="true"
+                             data-autoplay-speed="7000"
+                             data-arrows-classes="d-none d-sm-inline-block u-slick__arrow u-slick__arrow--flat-white content-centered-y shadow-soft rounded-circle"
+                             data-arrow-left-classes="fas fa-arrow-left u-slick__arrow-inner u-slick__arrow-inner--left ml-3"
+                             data-arrow-right-classes="fas fa-arrow-right u-slick__arrow-inner u-slick__arrow-inner--right mr-3"
+                             data-nav-for="#heroSliderNav">
+
+                            {{with $Images:= FromJSONToArray .params.GoodsInfo.Goods.Images}}
+
+                                {{range $k, $v := $Images}}
+
+                                    <div class="js-slide">
+                                        <img class="img-fluid w-100 rounded" src="{{$v}}" alt="Image Description">
+                                    </div>
+                                {{end}}
+
+                            {{end}}
+                        </div>
+                        <!-- End Main Slider -->
+
+                        <!-- Slider Nav -->
+                        <div class="position-absolute bottom-0 right-0 left-0 px-4 py-3">
+                            <div id="heroSliderNav" class="js-slick-carousel u-slick u-slick--gutters-1 u-slick--transform-off max-width-27 mx-auto"
+                                 data-slides-show="3"
+                                 data-infinite="true"
+                                 data-autoplay-speed="7000"
+                                 data-is-thumbs="true"
+                                 data-is-thumbs-progress="true"
+                                 data-thumbs-progress-options='{
+                       "color": "#377DFF",
+                       "width": 8
+                     }'
+                                 data-thumbs-progress-container=".js-slick-thumb-progress"
+                                 data-nav-for="#heroSlider">
+
+
+                                {{with $Images:= FromJSONToArray .params.GoodsInfo.Goods.Images}}
+
+                                    {{range $k, $v := $Images}}
+
+                                        <div class="js-slide p-1">
+                                            <a class="js-slick-thumb-progress position-relative d-block u-avatar border rounded-circle p-1" href="javascript:;">
+                                                <img class="img-fluid rounded-circle" src="{{$v}}" alt="Image Description">
+                                            </a>
+                                        </div>
+                                    {{end}}
+
+                                {{end}}
+
+                            </div>
+                        </div>
+                        <!-- End Slider Nav -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Description -->
+            <div class="col-lg-5">
+                <!-- Rating -->
+                <div class="d-flex align-items-center small mb-2">
+                    <div class="text-warning mr-2">
+                        <small class="fas fa-star"></small>
+                        <small class="fas fa-star"></small>
+                        <small class="fas fa-star"></small>
+                        <small class="fas fa-star"></small>
+                        <small class="fas fa-star"></small>
+                    </div>
+                    <a class="js-go-to link-muted" href="#reviewSection"
+                       data-target="#reviewSection"
+                       data-compensation="#header"
+                       data-type="static">Read all 287 reviews</a>
+                </div>
+                <!-- End Rating -->
+
+                <!-- Title -->
+                <div class="mb-5">
+                    <h1 class="h3 font-weight-medium">{{.params.GoodsInfo.Goods.Title}}</h1>
+                    <p>{{.params.GoodsInfo.Goods.Summary}}</p>
+                </div>
+                <!-- End Title -->
+
+                <!-- Price -->
+                <div class="mb-5">
+                    <h2 class="font-size-1 text-secondary font-weight-medium mb-0">Total price:</h2>
+                    <span class="font-size-2 font-weight-medium">${{DigitDiv .params.GoodsInfo.Goods.Price 100 2}}</span>
+                    <span class="text-secondary ml-2"><del>$179.99</del></span>
+                </div>
+                <!-- End Price -->
+
+                <!-- Quantity -->
+                <div class="border rounded py-2 px-3 mb-3">
+                    <div class="js-quantity row align-items-center">
+                        <div class="col-7">
+                            <small class="d-block text-secondary font-weight-medium">Select quantity</small>
+                            <input class="js-result form-control h-auto border-0 rounded p-0" type="text" value="1">
+                        </div>
+                        <div class="col-5 text-right">
+                            <a class="js-minus btn btn-icon btn-xs btn-outline-secondary rounded-circle" href="javascript:;">
+                                <small class="fas fa-minus btn-icon__inner"></small>
+                            </a>
+                            <a class="js-plus btn btn-icon btn-xs btn-outline-secondary rounded-circle" href="javascript:;">
+                                <small class="fas fa-plus btn-icon__inner"></small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Quantity -->
+
+                <!-- Accordion -->
+                <div id="shopCartAccordion" class="accordion mb-5">
+                    <!-- Card -->
+                    <div class="card">
+                        <div class="card-header card-collapse" id="shopCardHeadingOne">
+                            <h3 class="mb-0">
+                                <button type="button" class="btn btn-link btn-block card-btn collapsed"
+                                        data-toggle="collapse"
+                                        data-target="#shopCardOne"
+                                        aria-expanded="false"
+                                        aria-controls="shopCardOne">
+                    <span class="row align-items-center">
+                      <span class="col-9">
+                        <span class="media align-items-center">
+                          <span id="icon65" class="svg-preloader ie-height-48 w-100 max-width-6 mr-3">
+                            <img class="js-svg-injector" src="../../assets/svg/icons/icon-65.svg" alt="SVG"
+                                 data-parent="#icon65">
+                          </span>
+                          <span class="media-body">
+                            <span class="d-block font-size-1 font-weight-medium">Free shipping</span>
+                          </span>
+                        </span>
+                      </span>
+                      <span class="col-3 text-right">
+                        <span class="card-btn-arrow">
+                          <span class="fas fa-arrow-down small"></span>
+                        </span>
+                      </span>
+                    </span>
+                                </button>
+                            </h3>
+                        </div>
+                        <div id="shopCardOne" class="collapse" aria-labelledby="shopCardHeadingOne" data-parent="#shopCartAccordion">
+                            <div class="card-body">
+                                <p class="small mb-0">We offer free shipping anywhere in the U.S. A skilled delivery team will bring the boxes into your office.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End Card -->
+
+                    <!-- Card -->
+                    <div class="card">
+                        <div class="card-header card-collapse" id="shopCardHeadingTwo">
+                            <h4 class="mb-0">
+                                <button type="button" class="btn btn-link btn-block card-btn collapsed"
+                                        data-toggle="collapse"
+                                        data-target="#shopCardTwo"
+                                        aria-expanded="false"
+                                        aria-controls="shopCardTwo">
+                    <span class="row align-items-center">
+                      <span class="col-9">
+                        <span class="media align-items-center">
+                          <span id="icon64" class="svg-preloader ie-height-48 w-100 max-width-6 mr-3">
+                            <img class="js-svg-injector" src="../../assets/svg/icons/icon-64.svg" alt="SVG"
+                                 data-parent="#icon64">
+                          </span>
+                          <span class="media-body">
+                            <span class="d-block font-size-1 font-weight-medium">30 Days return</span>
+                          </span>
+                        </span>
+                      </span>
+                      <span class="col-3 text-right">
+                        <span class="card-btn-arrow">
+                          <span class="fas fa-arrow-down small"></span>
+                        </span>
+                      </span>
+                    </span>
+                                </button>
+                            </h4>
+                        </div>
+                        <div id="shopCardTwo" class="collapse" aria-labelledby="shopCardHeadingTwo" data-parent="#shopCartAccordion">
+                            <div class="card-body">
+                                <p class="small mb-0">If you're not satisfied, return it for a full refund. We'll take care of disassembly and return shipping.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End Card -->
+                </div>
+                <!-- End Accordion -->
+
+                <div class="mb-4">
+                    <button type="button" class="btn btn-block btn-primary btn-pill transition-3d-hover">Add to Cart</button>
+                </div>
+
+                <!-- Help Link -->
+                <div class="media align-items-center">
+            <span id="icon4" class="svg-preloader ie-height-48 w-100 max-width-6 mr-2">
+              <img class="js-svg-injector" src="../../assets/svg/icons/icon-4.svg" alt="SVG"
+                   data-parent="#icon4">
+            </span>
+                    <div class="media-body text-secondary small">
+                        <span class="font-weight-medium mr-1">Need Help?</span>
+                        <a class="link-muted" href="#">Chat now</a>
+                    </div>
+                </div>
+                <!-- End Help Link -->
+            </div>
+            <!-- End Product Description -->
+        </div>
+    </div>
+    <!-- End Hero Section -->
+
+    <!-- Product Description Section -->
+    <div class="container space-top-2 space-lg-2">
+        <div class="row">
+            <div class="col-md-6 mb-5 mb-md-0">
+                <div class="pr-lg-4">
+                    <h3 class="h5 font-weight-medium">Details</h3>
+                    <p>{{.params.GoodsInfo.Goods.Summary}}</p>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-5 mb-md-0">
+                <h3 class="h5 font-weight-medium">Material and care</h3>
+
+
+                {{with $Params:= FromJSONToArray .params.GoodsInfo.Goods.Params}}
+                <div class="row">
+                    <div class="col-sm-6">
+                        <ul class="text-secondary pl-3 mb-0">
+
+                            {{range $k, $v := $Params}}
+                                {{with $Mod:=DigitMod $k 2}}
+
+                                {{else}}
+                                    {{if eq $Mod 0}}
+                                        <li class="py-1">{{$v.Name}}: {{$v.Value}}</li>
+                                    {{end}}
+                                {{end}}
+
+                            {{end}}
+                        </ul>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <ul class="text-secondary pl-3 mb-0">
+                            {{range $k, $v := $Params}}
+                                {{with $Mod:=DigitMod $k 2}}
+                                    {{if eq $Mod 1}}
+                                        <li class="py-1">{{$v.Name}}: {{$v.Value}}</li>
+                                    {{end}}
+                                {{end}}
+                            {{end}}
+                        </ul>
+                    </div>
+                </div>
+
+                {{end}}
+
+
+
+
+
+
+
+
+            </div>
+        </div>
+    </div>
+    <!-- End Product Description Section -->
+
+    <!-- Product Review Section -->
+    <div class="container">
+        <p>{{.params.GoodsInfo.Goods.Introduce}}</p>
+        {{with $Pictures:= FromJSONToArray .params.GoodsInfo.Goods.Pictures}}
+
+            {{range $k, $v := $Pictures}}
+                <img width="100%" src="{{$v}}" class="fluid" alt="Responsive image">
+            {{end}}
+        {{end}}
+
+    </div>
+    <!-- End Product Review Section -->
+
+    <!-- Related Products Section -->
+    <div class="container space-2 space-lg-3">
+        <!-- Title -->
+        <div class="w-md-80 w-lg-40 text-center mx-md-auto mb-9">
+            <h2 class="h3 font-weight-medium">Just for you</h2>
+        </div>
+        <!-- End Title -->
+
+        <div class="js-slick-carousel u-slick u-slick--gutters-3 u-slick--equal-height"
+             data-slides-show="4"
+             data-slides-scroll="3"
+             data-infinite="true"
+             data-pagi-classes="text-center u-slick__pagination mt-7 mb-0"
+             data-responsive='[{
+             "breakpoint": 992,
+             "settings": {
+               "slidesToShow": 3
+             }
+           }, {
+             "breakpoint": 720,
+             "settings": {
+               "slidesToShow": 2
+             }
+           }, {
+             "breakpoint": 480,
+             "settings": {
+               "slidesToShow": 1
+             }
+           }]'>
+            <div class="js-slide">
+                <!-- Product -->
+                <div class="card text-center w-100">
+                    <div class="position-relative">
+                        <img class="card-img-top" src="../../assets/img/300x180/img3.jpg" alt="Image Description">
+
+                        <div class="position-absolute top-0 left-0 pt-3 pl-3">
+                            <span class="badge badge-success badge-pill">New arrival</span>
+                        </div>
+                        <div class="position-absolute top-0 right-0 pt-3 pr-3">
+                            <button type="button" class="btn btn-sm btn-icon btn-outline-secondary rounded-circle" data-toggle="tooltip" data-placement="top" title="Save for later">
+                                <span class="fas fa-heart btn-icon__inner"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body pt-4 px-4 pb-0">
+                        <div class="mb-2">
+                            <a class="d-inline-block text-secondary small font-weight-medium mb-1" href="#">Accessories</a>
+                            <h3 class="font-size-1 font-weight-normal">
+                                <a class="text-secondary" href="single-product.html">Herschel backpack in dark blue</a>
+                            </h3>
+                            <div class="d-block font-size-1">
+                                <span class="font-weight-medium">$56.99</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer border-0 pt-0 pb-4 px-4">
+                        <div class="mb-3">
+                            <a class="d-inline-flex align-items-center small" href="#">
+                                <div class="text-warning mr-2">
+                                    <small class="far fa-star text-muted"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                </div>
+                                <span class="text-secondary">0</span>
+                            </a>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-sm-wide btn-pill transition-3d-hover">Add to Cart</button>
+                    </div>
+                </div>
+                <!-- End Product -->
+            </div>
+
+            <div class="js-slide">
+                <!-- Product -->
+                <div class="card text-center w-100">
+                    <div class="position-relative">
+                        <img class="card-img-top" src="../../assets/img/300x180/img12.jpg" alt="Image Description">
+
+                        <div class="position-absolute top-0 right-0 pt-3 pr-3">
+                            <button type="button" class="btn btn-sm btn-icon btn-outline-secondary rounded-circle" data-toggle="tooltip" data-placement="top" title="Save for later">
+                                <span class="fas fa-heart btn-icon__inner"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body pt-4 px-4 pb-0">
+                        <div class="mb-2">
+                            <a class="d-inline-block text-secondary small font-weight-medium mb-1" href="#">Clothing</a>
+                            <h4 class="font-size-1 font-weight-normal">
+                                <a class="text-secondary" href="single-product.html">Front hoodie</a>
+                            </h4>
+                            <div class="d-block">
+                                <span class="font-weight-medium">$91.88</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer border-0 pt-0 pb-4 px-4">
+                        <div class="mb-3">
+                            <a class="d-inline-flex align-items-center small" href="#">
+                                <div class="text-warning mr-2">
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                </div>
+                                <span class="text-secondary">40</span>
+                            </a>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-sm-wide btn-pill transition-3d-hover">Add to Cart</button>
+                    </div>
+                </div>
+                <!-- End Product -->
+            </div>
+
+            <div class="js-slide">
+                <!-- Product -->
+                <div class="card text-center w-100">
+                    <div class="position-relative">
+                        <img class="card-img-top" src="../../assets/img/300x180/img4.jpg" alt="Image Description">
+
+                        <div class="position-absolute top-0 left-0 pt-3 pl-3">
+                            <span class="badge badge-danger badge-pill">Sold out</span>
+                        </div>
+                        <div class="position-absolute top-0 right-0 pt-3 pr-3">
+                            <button type="button" class="btn btn-sm btn-icon btn-outline-secondary rounded-circle" data-toggle="tooltip" data-placement="top" title="Save for later">
+                                <span class="fas fa-heart btn-icon__inner"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body pt-4 px-4 pb-0">
+                        <div class="mb-2">
+                            <a class="d-inline-block text-secondary small font-weight-medium mb-1" href="#">Accessories</a>
+                            <h4 class="font-size-1 font-weight-normal">
+                                <a class="text-secondary" href="single-product.html">Herschel backpack in gray</a>
+                            </h4>
+                            <div class="d-block font-size-1">
+                                <span class="font-weight-medium">$29.99</span>
+                                <span class="text-secondary ml-1"><del>$33.99</del></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer border-0 pt-0 pb-4 px-4">
+                        <div class="mb-3">
+                            <a class="d-inline-flex align-items-center small" href="#">
+                                <div class="text-warning mr-2">
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                </div>
+                                <span class="text-secondary">125</span>
+                            </a>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-sm-wide btn-pill transition-3d-hover">Add to Cart</button>
+                    </div>
+                </div>
+                <!-- End Product -->
+            </div>
+
+            <div class="js-slide">
+                <!-- Product -->
+                <div class="card text-center w-100">
+                    <div class="position-relative">
+                        <img class="card-img-top" src="../../assets/img/300x180/img6.jpg" alt="Image Description">
+
+                        <div class="position-absolute top-0 right-0 pt-3 pr-3">
+                            <button type="button" class="btn btn-sm btn-icon btn-outline-secondary rounded-circle" data-toggle="tooltip" data-placement="top" title="Save for later">
+                                <span class="fas fa-heart btn-icon__inner"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body pt-4 px-4 pb-0">
+                        <div class="mb-2">
+                            <a class="d-inline-block text-secondary small font-weight-medium mb-1" href="#">Clothing</a>
+                            <h4 class="font-size-1 font-weight-normal">
+                                <a class="text-secondary" href="single-product.html">Front Originals adicolor t-shirt with trefoil logo</a>
+                            </h4>
+                            <div class="d-block">
+                                <span class="font-weight-medium">$38.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer border-0 pt-0 pb-4 px-4">
+                        <div class="mb-3">
+                            <a class="d-inline-flex align-items-center small" href="#">
+                                <div class="text-warning mr-2">
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                </div>
+                                <span class="text-secondary">9</span>
+                            </a>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-sm-wide btn-pill transition-3d-hover">Add to Cart</button>
+                    </div>
+                </div>
+                <!-- End Product -->
+            </div>
+
+            <div class="js-slide">
+                <!-- Product -->
+                <div class="card text-center w-100">
+                    <div class="position-relative">
+                        <img class="card-img-top" src="../../assets/img/300x180/img7.jpg" alt="Image Description">
+
+                        <div class="position-absolute top-0 right-0 pt-3 pr-3">
+                            <button type="button" class="btn btn-sm btn-icon btn-outline-secondary rounded-circle" data-toggle="tooltip" data-placement="top" title="Save for later">
+                                <span class="fas fa-heart btn-icon__inner"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body pt-4 px-4 pb-0">
+                        <div class="mb-2">
+                            <a class="d-inline-block text-secondary small font-weight-medium mb-1" href="#">Accessories</a>
+                            <h4 class="font-size-1 font-weight-normal">
+                                <a class="text-secondary" href="single-product.html">Front mesh baseball cap with signature logo</a>
+                            </h4>
+                            <div class="d-block">
+                                <span class="font-weight-medium">$8.88</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer border-0 pt-0 pb-4 px-4">
+                        <div class="mb-3">
+                            <a class="d-inline-flex align-items-center small" href="#">
+                                <div class="text-warning mr-2">
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                </div>
+                                <span class="text-secondary">31</span>
+                            </a>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-sm-wide btn-pill transition-3d-hover">Add to Cart</button>
+                    </div>
+                </div>
+                <!-- End Product -->
+            </div>
+
+            <div class="js-slide">
+                <!-- Product -->
+                <div class="card text-center w-100">
+                    <div class="position-relative">
+                        <img class="card-img-top" src="../../assets/img/300x180/img11.jpg" alt="Image Description">
+
+                        <div class="position-absolute top-0 left-0 pt-3 pl-3">
+                            <span class="badge badge-success badge-pill">New arrival</span>
+                        </div>
+                        <div class="position-absolute top-0 right-0 pt-3 pr-3">
+                            <button type="button" class="btn btn-sm btn-icon btn-outline-secondary rounded-circle" data-toggle="tooltip" data-placement="top" title="Save for later">
+                                <span class="fas fa-heart btn-icon__inner"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body pt-4 px-4 pb-0">
+                        <div class="mb-2">
+                            <a class="d-inline-block text-secondary small font-weight-medium mb-1" href="#">Clothing</a>
+                            <h4 class="font-size-1 font-weight-normal">
+                                <a class="text-secondary" href="single-product.html">Front Originals adicolor t-shirt in gray</a>
+                            </h4>
+                            <div class="d-block">
+                                <span class="font-weight-medium">$24.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer border-0 pt-0 pb-4 px-4">
+                        <div class="mb-3">
+                            <a class="d-inline-flex align-items-center small" href="#">
+                                <div class="text-warning mr-2">
+                                    <small class="far fa-star text-muted"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                </div>
+                                <span class="text-secondary">0</span>
+                            </a>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-sm-wide btn-pill transition-3d-hover">Add to Cart</button>
+                    </div>
+                </div>
+                <!-- End Product -->
+            </div>
+
+            <div class="js-slide">
+                <!-- Product -->
+                <div class="card text-center w-100">
+                    <div class="position-relative">
+                        <img class="card-img-top" src="../../assets/img/300x180/img9.jpg" alt="Image Description">
+
+                        <div class="position-absolute top-0 right-0 pt-3 pr-3">
+                            <button type="button" class="btn btn-sm btn-icon btn-outline-secondary rounded-circle" data-toggle="tooltip" data-placement="top" title="Save for later">
+                                <span class="fas fa-heart btn-icon__inner"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body pt-4 px-4 pb-0">
+                        <div class="mb-2">
+                            <a class="d-inline-block text-secondary small font-weight-medium mb-1" href="#">Clothing</a>
+                            <h4 class="font-size-1 font-weight-normal">
+                                <a class="text-secondary" href="single-product.html">COLLUSION Unisex mechanic print t-shirt</a>
+                            </h4>
+                            <div class="d-block">
+                                <span class="font-weight-medium">$43.99</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer border-0 pt-0 pb-4 px-4">
+                        <div class="mb-3">
+                            <a class="d-inline-flex align-items-center small" href="#">
+                                <div class="text-warning mr-2">
+                                    <small class="far fa-star text-muted"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                    <small class="far fa-star text-muted"></small>
+                                </div>
+                                <span class="text-secondary">0</span>
+                            </a>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-sm-wide btn-pill transition-3d-hover">Add to Cart</button>
+                    </div>
+                </div>
+                <!-- End Product -->
+            </div>
+
+            <div class="js-slide">
+                <!-- Product -->
+                <div class="card text-center w-100">
+                    <div class="position-relative">
+                        <img class="card-img-top" src="../../assets/img/300x180/img8.jpg" alt="Image Description">
+
+                        <div class="position-absolute top-0 right-0 pt-3 pr-3">
+                            <button type="button" class="btn btn-sm btn-icon btn-outline-secondary rounded-circle" data-toggle="tooltip" data-placement="top" title="Save for later">
+                                <span class="fas fa-heart btn-icon__inner"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body pt-4 px-4 pb-0">
+                        <div class="mb-2">
+                            <a class="d-inline-block text-secondary small font-weight-medium mb-1" href="#">Accessories</a>
+                            <h4 class="font-size-1 font-weight-normal">
+                                <a class="text-secondary" href="single-product.html">Billabong Walled snapback in green</a>
+                            </h4>
+                            <div class="d-block">
+                                <span class="font-weight-medium">$12.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer border-0 pt-0 pb-4 px-4">
+                        <div class="mb-3">
+                            <a class="d-inline-flex align-items-center small" href="#">
+                                <div class="text-warning mr-2">
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                </div>
+                                <span class="text-secondary">2</span>
+                            </a>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-sm-wide btn-pill transition-3d-hover">Add to Cart</button>
+                    </div>
+                </div>
+                <!-- End Product -->
+            </div>
+        </div>
+    </div>
+    <!-- End Related Products Section -->
+
+    <!-- Review Section -->
+    <div id="reviewSection" class="container space-bottom-2 space-bottom-lg-3">
+        <div class="row">
+            <div class="col-lg-4 mb-7 mb-lg-0">
+                <div class="border-bottom pb-4 mb-4">
+                    <!-- Overall Rating Stats -->
+                    <div class="card border-0 bg-primary text-white p-4 mb-3">
+                        <div class="d-flex justify-content-center align-items-center">
+                            <span class="display-4 font-weight-semi-bold">4.7</span>
+                            <div class="ml-3">
+                                <div class="small">
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="fas fa-star"></small>
+                                    <small class="far fa-star"></small>
+                                </div>
+                                <span class="font-weight-normal"><strong>287</strong> reviews</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End Overall Rating Stats -->
+
+                    <h3 class="h4">Rating breakdown</h3>
+
+                    <!-- Ratings -->
+                    <ul class="list-unstyled">
+                        <li class="py-1">
+                            <a class="row align-items-center mx-gutters-2 font-size-1" href="javascript:;">
+                                <div class="col-3">
+                                    <span class="text-dark">5 stars</span>
+                                </div>
+                                <div class="col-7">
+                                    <div class="progress" style="height: 4px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                <div class="col-2 text-right">
+                                    <span class="text-secondary">205</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="py-1">
+                            <a class="row align-items-center mx-gutters-2 font-size-1" href="javascript:;">
+                                <div class="col-3">
+                                    <span class="text-dark">4 stars</span>
+                                </div>
+                                <div class="col-7">
+                                    <div class="progress" style="height: 4px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 53%;" aria-valuenow="53" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                <div class="col-2 text-right">
+                                    <span class="text-secondary">55</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="py-1">
+                            <a class="row align-items-center mx-gutters-2 font-size-1" href="javascript:;">
+                                <div class="col-3">
+                                    <span class="text-dark">3 stars</span>
+                                </div>
+                                <div class="col-7">
+                                    <div class="progress" style="height: 4px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 20%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                <div class="col-2 text-right">
+                                    <span class="text-secondary">23</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="py-1">
+                            <a class="row align-items-center mx-gutters-2 font-size-1" href="javascript:;">
+                                <div class="col-3">
+                                    <span class="text-dark">2 stars</span>
+                                </div>
+                                <div class="col-7">
+                                    <div class="progress" style="height: 4px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                <div class="col-2 text-right">
+                                    <span class="text-secondary">0</span>
+                                </div>
+                            </a>
+                        </li>
+                        <li class="py-1">
+                            <a class="row align-items-center mx-gutters-2 font-size-1" href="javascript:;">
+                                <div class="col-3">
+                                    <span class="text-dark">1 stars</span>
+                                </div>
+                                <div class="col-7">
+                                    <div class="progress" style="height: 4px;">
+                                        <div class="progress-bar" role="progressbar" style="width: 1%;" aria-valuenow="1" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                                <div class="col-2 text-right">
+                                    <span class="text-secondary">4</span>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                    <!-- End Ratings -->
+                </div>
+
+                <span class="d-block display-4 font-weight-medium">77%</span>
+                <p class="small">of customers recommend this product</p>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="pl-lg-4">
+                    <!-- Title -->
+                    <div class="border-bottom pb-4 mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="h5 text-secondary font-weight-normal mb-0">Sort on</h3>
+
+                            <!-- Select -->
+                            <select class="js-select selectpicker dropdown-select"
+                                    data-size="10"
+                                    data-width="fit"
+                                    data-style="btn-soft-secondary btn-xs">
+                                <option value="mostRecent" selected>Most recent</option>
+                                <option value="relevant">Relevant</option>
+                                <option value="helpful">Helpful</option>
+                                <option value="newest">Newest</option>
+                            </select>
+                            <!-- End Select -->
+                        </div>
+                    </div>
+                    <!-- End Title -->
+
+                    <!-- Review -->
+                    <div class="border-bottom pb-4 mb-4">
+                        <!-- Review Rating -->
+                        <div class="d-flex justify-content-between align-items-center text-secondary font-size-1 mb-3">
+                            <div class="text-warning">
+                                <small class="fas fa-star"></small>
+                                <small class="fas fa-star"></small>
+                                <small class="fas fa-star"></small>
+                                <small class="fas fa-star"></small>
+                                <small class="fas fa-star"></small>
+                            </div>
+                            <span>April 3, 2019</span>
+                        </div>
+                        <!-- End Review Rating -->
+
+                        <h4 class="h6 font-weight-semi-bold text-uppercase">I jus love it!</h4>
+                        <p>I bought this hat for my boyfriend, but then i found out he cheated on me so I kept it and I love it!! I wear it all the time and there is no problem with the fit even though its a “mens” hat.</p>
+
+                        <!-- Reviewer -->
+                        <div class="text-secondary font-size-1 mb-2">
+                            <strong class="text-dark">Hailey</strong>
+                            <span>- Verified Purchase</span>
+                        </div>
+                        <!-- End Reviewer -->
+
+                        <!-- Helpful -->
+                        <div class="font-size-1">
+                            <span>Was this helpful?</span>
+                            <span class="ml-2">
+                  <a class="link-muted" href="javascript:;">Yes</a>
+                  <span class="text-secondary">(45)</span>
+                </span>
+                            <span class="ml-2">
+                  <a class="link-muted" href="javascript:;">No</a>
+                  <span class="text-secondary">(21)</span>
+                </span>
+                        </div>
+                        <!-- End Helpful -->
+                    </div>
+                    <!-- End Review -->
+
+                    <!-- Review -->
+                    <div class="border-bottom pb-4 mb-4">
+                        <!-- Review Rating -->
+                        <div class="d-flex justify-content-between align-items-center text-secondary font-size-1 mb-3">
+                            <div class="text-warning">
+                                <small class="fas fa-star"></small>
+                                <small class="fas fa-star"></small>
+                                <small class="fas fa-star"></small>
+                                <small class="fas fa-star"></small>
+                                <small class="fas fa-star"></small>
+                            </div>
+                            <span>January 19, 2019</span>
+                        </div>
+                        <!-- End Review Rating -->
+
+                        <h4 class="h6 font-weight-semi-bold text-uppercase">Really nice</h4>
+                        <p>Material is great and the hat is comfortable and stylish.</p>
+
+                        <!-- Reviewer -->
+                        <div class="text-secondary font-size-1 mb-2">
+                            <strong class="text-dark">David</strong>
+                            <span>- Verified Purchase</span>
+                        </div>
+                        <!-- End Reviewer -->
+
+                        <!-- Helpful -->
+                        <div class="font-size-1">
+                            <span>Was this helpful?</span>
+                            <span class="ml-2">
+                  <a class="link-muted" href="javascript:;">Yes</a>
+                  <span class="text-secondary">(2)</span>
+                </span>
+                            <span class="ml-2">
+                  <a class="link-muted" href="javascript:;">No</a>
+                  <span class="text-secondary">(0)</span>
+                </span>
+                        </div>
+                        <!-- End Helpful -->
+                    </div>
+                    <!-- End Review -->
+
+                    <!-- Review -->
+                    <div class="border-bottom pb-4 mb-4">
+                        <!-- Review Rating -->
+                        <div class="d-flex justify-content-between align-items-center text-secondary font-size-1 mb-3">
+                            <div class="text-warning">
+                                <small class="fas fa-star"></small>
+                                <small class="fas fa-star"></small>
+                                <small class="fas fa-star"></small>
+                                <small class="fas fa-star"></small>
+                                <small class="fas fa-star"></small>
+                            </div>
+                            <span>December 21, 2018</span>
+                        </div>
+                        <!-- End Review Rating -->
+
+                        <p>A really well built cap. It looks great and wears just as well. A great staple in ball caps.</p>
+
+                        <!-- Reviewer -->
+                        <div class="text-secondary font-size-1 mb-2">
+                            <strong class="text-dark">Chrizelle</strong>
+                            <span>- Verified Purchase</span>
+                        </div>
+                        <!-- End Reviewer -->
+
+                        <!-- Helpful -->
+                        <div class="font-size-1">
+                            <span>Was this helpful?</span>
+                            <span class="ml-2">
+                  <a class="link-muted" href="javascript:;">Yes</a>
+                  <span class="text-secondary">(0)</span>
+                </span>
+                            <span class="ml-2">
+                  <a class="link-muted" href="javascript:;">No</a>
+                  <span class="text-secondary">(0)</span>
+                </span>
+                        </div>
+                        <!-- End Helpful -->
+                    </div>
+                    <!-- End Review -->
+
+                    <div class="d-sm-flex justify-content-sm-end">
+                        <a class="btn btn-soft-primary btn-pill transition-3d-hover px-5 mb-2 mr-3" href="#">Read More</a>
+                        <button type="button" class="btn btn-primary btn-pill transition-3d-hover px-5 mb-2">Write a Review</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Review Section -->
+
+    <!-- Subscribe Section -->
+    <div class="bg-light">
+        <div class="container space-2">
+            <div class="row justify-content-center">
+                <div class="col-md-9 col-lg-6">
+                    <!-- Title -->
+                    <div class="text-center mb-4">
+                        <h2 class="h1 font-weight-medium">Stay in the know</h2>
+                        <p>Get special offers on the latest developments from Front.</p>
+                    </div>
+                    <!-- End Title -->
+
+                    <!-- Subscribe Form -->
+                    <form class="js-validate js-form-message w-lg-85 mx-lg-auto">
+                        <label class="sr-only" for="subscribeSrEmail">Email address</label>
+                        <div class="input-group input-group-pill">
+                            <input type="email" class="form-control" name="email" id="subscribeSrEmail" placeholder="Email address" aria-label="Email address" aria-describedby="subscribeButton" required
+                                   data-msg="Please enter a valid email address.">
+                            <div class="input-group-append">
+                                <button type="submit" class="btn btn-primary btn-sm-wide" id="subscribeButton">Join</button>
+                            </div>
+                        </div>
+                    </form>
+                    <!-- End Subscribe Form -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Subscribe Section -->
+</main>
+<!-- ========== END MAIN CONTENT ========== -->
+
+<!-- ========== FOOTER ========== -->
+{{IncludeHTML "sites/default/shop/footer.tp.html" .}}
+<!-- ========== END FOOTER ========== -->
+
+<!-- ========== SECONDARY CONTENTS ========== -->
+<!-- Shopping Cart Modal Window -->
+<div id="shoppingCartModal" class="js-modal-window u-modal-window">
+    <div class="card">
+        <!-- Header -->
+        <header class="card-header bg-light py-3 px-5">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="h6 mb-0">Size guide</h3>
+
+                <button type="button" class="close" aria-label="Close" onclick="Custombox.modal.close();">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </header>
+        <!-- End Header -->
+
+        <!-- Body -->
+        <div class="card-body p-5">
+            <table class="table table-bordered table-striped mb-0">
+                <thead>
+                <tr>
+                    <th>Size</th>
+                    <th>Numeric</th>
+                    <th>Chest (CM)</th>
+                    <th>Arm (CM)</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Small</td>
+                    <td>36</td>
+                    <td>89-94</td>
+                    <td>81</td>
+                </tr>
+                <tr>
+                    <td>Medium</td>
+                    <td>38-40</td>
+                    <td>97-102</td>
+                    <td>86</td>
+                </tr>
+                <tr>
+                    <td>Large</td>
+                    <td>42</td>
+                    <td>104-109</td>
+                    <td>89</td>
+                </tr>
+                <tr>
+                    <td>Extra large</td>
+                    <td>44-46</td>
+                    <td>112-117</td>
+                    <td>91</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- End Body -->
+    </div>
+</div>
+<!-- End Shopping Cart Modal Window -->
+
+<!-- Account Sidebar Navigation -->
+
+<!-- End Account Sidebar Navigation -->
+<!-- ========== END SECONDARY CONTENTS ========== -->
+
+<!-- Go to Top -->
+<a class="js-go-to u-go-to" href="#"
+   data-position='{"bottom": 15, "right": 15 }'
+   data-type="fixed"
+   data-offset-top="400"
+   data-compensation="#header"
+   data-show-effect="slideInUp"
+   data-hide-effect="slideOutDown">
+    <span class="fas fa-arrow-up u-go-to__inner"></span>
+</a>
+<!-- End Go to Top -->
+
+<!-- JS Global Compulsory -->
+<script src="resources/jquery/jquery.min.js"></script>
+<script src="resources/jquery/jquery-migrate.min.js"></script>
+<script src="resources/bootstrap/bootstrap.min.js"></script>
+
+<!-- JS Implementing Plugins -->
+<script src="resources/jquery/jquery.validate.min.js"></script>
+<script src="resources/slick/slick.js"></script>
+
+
+<!-- JS Plugins Init. -->
+<script>
+    /*$(window).on('load', function () {
+        // initialization of HSMegaMenu component
+        $('.js-mega-menu').HSMegaMenu({
+            event: 'hover',
+            pageContainer: $('.container'),
+            breakpoint: 767.98,
+            hideTimeOut: 0
+        });
+
+        // initialization of svg injector module
+        $.HSCore.components.HSSVGIngector.init('.js-svg-injector');
+    });*/
+
+    $(document).ready(function () {
+
+
+
+
+        $('#heroSlider').slick({
+            dots:true,
+            infinite:false,
+            adaptiveHeight:false,
+        });
+        $('#heroSliderNav').slick({
+            dots: false,
+            infinite: true,
+            centerMode: true,
+            slidesToShow: 5,
+            slidesToScroll: 3,
+            autoplay:true,
+        });
+
+
+
+
+        /*// initialization of header
+        $.HSCore.components.HSHeader.init($('#header'));
+
+        // initialization of unfold component
+        $.HSCore.components.HSUnfold.init($('[data-unfold-target]'), {
+            afterOpen: function () {
+                $(this).find('input[type="search"]').focus();
+            }
+        });
+
+        // initialization of malihu scrollbar
+        $.HSCore.components.HSMalihuScrollBar.init($('.js-scrollbar'));
+
+        // initialization of forms
+        $.HSCore.components.HSFocusState.init();
+
+        // initialization of form validation
+        $.HSCore.components.HSValidation.init('.js-validate', {
+            rules: {
+                confirmPassword: {
+                    equalTo: '#signupPassword'
+                }
+            }
+        });
+
+        // initialization of show animations
+        $.HSCore.components.HSShowAnimation.init('.js-animation-link');
+
+        // initialization of slick carousel
+        $.HSCore.components.HSSlickCarousel.init('.js-slick-carousel');
+
+        // initialization of quantity counter
+        $.HSCore.components.HSQantityCounter.init('.js-quantity');
+
+        // initialization of select picker
+        $.HSCore.components.HSSelectPicker.init('.js-select');
+
+        // initialization of go to
+        $.HSCore.components.HSGoTo.init('.js-go-to');*/
+    });
+</script>
+</body>
+</html>

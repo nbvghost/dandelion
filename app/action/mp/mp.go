@@ -275,11 +275,13 @@ func (controller *Controller) goodsByGoodsIDAction(context *gweb.Context) gweb.R
 
 	goodsInfo := controller.Goods.GetGoods(Orm, ID)
 
+
+
 	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: goodsInfo}}
 }
 func (controller *Controller) goodsTypeListAction(context *gweb.Context) gweb.Result {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: controller.Goods.ListGoodsType()}}
+	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: controller.Goods.ListAllGoodsType()}}
 }
 func (controller *Controller) goodsTypeChildListByGoodsTypeIDAction(context *gweb.Context) gweb.Result {
 	GoodsTypeID, _ := strconv.ParseUint(context.PathParams["GoodsTypeID"], 10, 64)

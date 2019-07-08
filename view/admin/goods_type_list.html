@@ -1,0 +1,42 @@
+<div id="goods_type_list" class="ui container">
+    <p>
+        <a class="ui red ribbon label">产品系列管理</a>
+    </p>
+    <div class="ui mini menu">
+        <div class="right menu">
+            <a class="item" ng-click="showGoodsTypeModal(0)">
+                <div class="ui red button">添加系列</div>
+            </a>
+        </div>
+    </div>
+
+    <table width="100%" id="table_local" class="ui teal table">
+        <thead>
+        <tr>
+            <th>#ID</th>
+            <th>系列名称</th>
+            <th></th>
+        </tr>
+        </thead>
+    </table>
+
+</div>
+<div id="add_goods_type" class="ui modal">
+    <div class="header">@{GoodsTypeModalObj.Title}@</div>
+    <div class="content">
+        <form class="ui form" ng-submit="addGoodsType()">
+            <div class="field">
+                <label>系列名称</label>
+                <input type="text" ng-model="GoodsType.Name" required placeholder="系列名称">
+            </div>
+            <div class="actions">
+                <button type="submit" class="ui red button">确定</button>
+                <div class="ui cancel button">取消</div>
+            </div>
+        </form>
+    </div>
+    <div style="display: none;" class="actions">
+        <div class="ui approve red button">确定</div>
+        <div class="ui cancel button">取消</div>
+    </div>
+</div>

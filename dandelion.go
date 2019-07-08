@@ -1,9 +1,11 @@
 package main
 
 import (
-	"github.com/nbvghost/gweb"
-
 	"net/http"
+
+	"dandelion/app/action/sites"
+
+	"github.com/nbvghost/gweb"
 
 	"dandelion/app/action/account"
 	"dandelion/app/action/admin"
@@ -18,6 +20,7 @@ import (
 )
 
 func main() {
+
 
 	//service.WxService{}.SendUniformMessage(service.WxService{}.MiniWeb(), service.WxService{}.MiniProgram())
 
@@ -134,6 +137,10 @@ func main() {
 	api := &api.Controller{}
 	api.NewController("/api", api)
 
+
+	sites := &sites.Controller{}
+	sites.NewController("/sites", sites)
+
 	_http := &http.Server{
 		Addr:    conf.Config.HttpPort,
 		Handler: nil,
@@ -142,6 +149,6 @@ func main() {
 		Addr:    conf.Config.HttpsPort,
 		Handler: nil,
 	}
-
+	_https=nil
 	gweb.StartServer(http.DefaultServeMux, _http, _https)
 }

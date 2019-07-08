@@ -402,29 +402,41 @@ func (service GoodsService) GoodsList(UserID uint64, SqlOrder string, Index int,
 
 	return service.GetGoodsInfoList(UserID, goodsList)
 }
-func (service GoodsService) HotList() []dao.Goods {
+func (service GoodsService) HotList(count uint64) []dao.Goods {
 
 	Orm := dao.Orm()
 
 	var result []dao.Goods
 
-	db := Orm.Model(&dao.Goods{}).Order("CountSale desc").Limit(10)
+	db := Orm.Model(&dao.Goods{}).Order("CountSale desc").Limit(count)
 
 	db.Find(&result)
 
 	return result
 
 }
-func (service GoodsService) ListGoodsType() []dao.GoodsType {
+func (service GoodsService) ListAllGoodsType() []dao.GoodsType {
 	Orm := dao.Orm()
 	var gts []dao.GoodsType
 	service.FindAll(Orm, &gts)
+	return gts
+}
+func (service GoodsService) ListGoodsType(OID uint64) []dao.GoodsType {
+	Orm := dao.Orm()
+	var gts []dao.GoodsType
+	service.FindAllByOID(Orm,&gts,OID)
 	return gts
 }
 func (service GoodsService) ListGoodsTypeChild(GoodsTypeID uint64) []dao.GoodsTypeChild {
 	Orm := dao.Orm()
 	var gts []dao.GoodsTypeChild
 	service.FindWhere(Orm, &gts, dao.GoodsTypeChild{GoodsTypeID: GoodsTypeID})
+	return gts
+}
+func (service GoodsService) ListGoodsTypeChildByOID(OID uint64) []dao.GoodsTypeChild {
+	Orm := dao.Orm()
+	var gts []dao.GoodsTypeChild
+	service.FindWhere(Orm, &gts, dao.GoodsTypeChild{OID: OID})
 	return gts
 }
 func (service GoodsService) ListGoodsChildByGoodsTypeID(GoodsTypeID, GoodsTypeChildID uint64) []dao.Goods {

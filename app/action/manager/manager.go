@@ -75,7 +75,7 @@ func (controller *Controller) Apply() {
 	controller.AddHandler(gweb.POSMethod("give_voucher/save", controller.giveVoucherSaveAction))
 	controller.AddHandler(gweb.POSMethod("give_voucher/list", controller.giveVoucherListAction))
 
-	controller.AddHandler(gweb.ALLMethod("goods", controller.GoodsAction))
+	//controller.AddHandler(gweb.ALLMethod("goods", controller.GoodsAction))
 
 }
 func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
@@ -134,8 +134,8 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
 
 	case "list_goods_type_all":
-		gts := controller.Goods.ListGoodsType()
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
+		//gts := controller.Goods.ListGoodsType()
+		//return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
 	case "list_goods_type":
 		dts := &dao.Datatables{}
 		util.RequestBodyToJSON(context.Request.Body, dts)

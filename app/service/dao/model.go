@@ -549,7 +549,7 @@ func (ScoreGoods) TableName() string {
 
 type GoodsType struct {
 	BaseModel
-	//OID  uint64 `gorm:"column:OID"`
+	OID  uint64 `gorm:"column:OID"`
 	Name string `gorm:"column:Name"`
 }
 
@@ -579,7 +579,7 @@ func (GoodsType) TableName() string {
 
 type GoodsTypeChild struct {
 	BaseModel
-	//OID         uint64 `gorm:"column:OID"`
+	OID         uint64 `gorm:"column:OID"`
 	Name        string `gorm:"column:Name"`
 	Image       string `gorm:"column:Image"`
 	GoodsTypeID uint64 `gorm:"column:GoodsTypeID"`
@@ -630,6 +630,7 @@ type Goods struct {
 	Hide             uint   `gorm:"column:Hide"`
 	Images           string `gorm:"column:Images;type:text;"` //json array
 	Videos           string `gorm:"column:Videos;type:text;"` //json array
+	Summary          string `gorm:"column:Summary;type:text"`
 	Introduce        string `gorm:"column:Introduce;type:text"`
 	Pictures         string `gorm:"column:Pictures;type:text;"` //json array
 	Params           string `gorm:"column:Params;type:text;"`   //json array

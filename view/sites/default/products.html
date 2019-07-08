@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<!-- saved from url=(0062)http://demo.cssmoban.com/cssthemes6/cpts_1788_csq/contact.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Contact</title>
+
+    <!-- Meta tag Keywords -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    {{IncludeHTML "sites/default/asset.tp.html" .}}
+</head>
+<body>
+
+
+{{IncludeHTML "sites/default/header.tp.html" .}}
+
+
+
+<!-- inner page banner -->
+<section class="inner_page_banner text-center pt-4">
+    <h2 class="page_heading text-uppercase pt-md-5 pt-sm-4">Contact Page</h2>
+    <h4 class="text-uppercase pt-2"><a href="">Home</a> - Contact Page</h4>
+</section>
+<!-- //inner page banner -->
+
+<!-- Contact -->
+<section class="contact py-5" id="contact-us">
+    <h3 class="heading text-center text-uppercase">Contact Us</h3>
+    <p class="heading-bottom text-center font-italic mb-5">Industrial Revolution Business</p>
+    <div class="container">
+        <div class="row contact-main">
+            <div class="col-md-6 contact-left text-center">
+                <address>
+                    <p><i class="fas fa-map-marker-alt" aria-hidden="true"></i> Indus Fact Business Solutions</p>
+                    <p>12th Main, 5th cross</p>
+                    <p>2214H, Francisco</p>
+                    <p><i class="fas fa-phone" aria-hidden="true"></i>+(14) 012 345 6789</p>
+                    <p><i class="fas fa-envelope" aria-hidden="true"></i> <a href="mailto:info@example.com">info@examplemail.com</a></p>
+                </address>
+                <div class="social-icons">
+                    <ul>
+                        <li><a href=""><i class="fab fa-facebook-f" aria-hidden="true"></i></a></li>
+                        <li><a href=""><i class="fab fa-twitter" aria-hidden="true"></i></a></li>
+                        <li><a href=""><i class="fab fa-pinterest-p" aria-hidden="true"></i></a></li>
+                        <li><a href=""><i class="fab fa-google-plus-g" aria-hidden="true"></i></a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6 contact-right">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d100939.98555687309!2d-122.50815494344963!3d37.75781499229416!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80859a6d00690021%3A0x4a501367f076adff!2sSan+Francisco%2C+CA%2C+USA!5e0!3m2!1sen!2sin!4v1486123800256" class="map"></iframe>
+            </div>
+
+            <div class="contact-wthree">
+                <form action="" method="post">
+                    <input type="text" name="User Name" placeholder="First Name" required="">
+                    <input class="email" name="Email" type="email" placeholder="Email" required="">
+                    <input type="text" name="Number" placeholder="Phone Number" required="">
+                    <input class="password" name="password" type="password" placeholder="Password" required="">
+                    <textarea name="Message" placeholder="Message" required=""></textarea>
+                    <input type="submit" value="SUBMIT">
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- //Contact -->
+
+{{IncludeHTML "sites/default/footer.tp.html" .}}
+
+<!-- js-scripts -->
+
+
+
+<!-- start-smoth-scrolling -->
+<script src="./js/SmoothScroll.min.js"></script>
+<script type="text/javascript" src="./js/move-top.js"></script>
+<script type="text/javascript" src="./js/easing.js"></script>
+<script type="text/javascript">
+    jQuery(document).ready(function($) {
+        $(".scroll").click(function(event){
+            //event.preventDefault();
+            $('html,body').animate({scrollTop:$(this.hash).offset().top},1000);
+        });
+    });
+</script>
+<!-- here stars scrolling icon -->
+<script type="text/javascript">
+    $(document).ready(function() {
+        /*
+            var defaults = {
+            containerID: 'toTop', // fading element id
+            containerHoverID: 'toTopHover', // fading element hover id
+            scrollSpeed: 1200,
+            easingType: 'linear'
+            };
+        */
+
+        $().UItoTop({ easingType: 'easeOutQuart' });
+
+    });
+</script>
+<!-- //here ends scrolling icon -->
+<!-- start-smoth-scrolling -->
+
+<!-- //js-scripts -->
+
+<a href="" id="toTop" style="display: none;"><span id="toTopHover" style="opacity: 0;"></span>To Top</a></body></html>
