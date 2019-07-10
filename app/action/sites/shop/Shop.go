@@ -29,9 +29,11 @@ func (controller *Controller) indexPage(context *gweb.Context) gweb.Result {
 
 
 	gs:=controller.Goods.HotList(8)
+	gtcs:=controller.Goods.GetTopGoodsTypeChild(dao.Orm(),3)
 
 	return &gweb.HTMLResult{Params: map[string]interface{}{
 		"Goods":gs,
+		"TopGoodsTypeChildList":gtcs,
 	}}
 
 }

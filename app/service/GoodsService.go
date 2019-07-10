@@ -392,6 +392,26 @@ func (service GoodsService) GetGoodsInfoList(UserID uint64, goodsList []dao.Good
 	return results
 }
 
+type TopGoodsTypeChild struct {
+	Name string `gorm:"column:Name"`
+	Image string `gorm:"column:Image"`
+	GoodsTypeChildID uint64 `gorm:"column:GoodsTypeChildID"`
+	Price uint64 `gorm:"column:Price"`
+}
+func (service GoodsService) GetTopGoodsTypeChild(DB *gorm.DB,Num uint64) []TopGoodsTypeChild {
+	list:=make([]TopGoodsTypeChild,0)
+	//SELECT gtc.Name,gtc.Image,gtc.ID AS GoodsTypeChildID,gtc.GoodsTypeID AS GoodsTypeID,MIN(g.Price) FROM Goods AS g LEFT JOIN GoodsTypeChild AS gtc ON (gtc.GoodsTypeID=g.GoodsTypeID AND gtc.ID=g.GoodsTypeChildID) GROUP BY g.GoodsTypeID;
+	rows,err:=DB.Raw("SELECT gtc.Name as Name,gtc.Image as Image,gtc.ID AS GoodsTypeChildID,gtc.GoodsTypeID AS GoodsTypeID,MIN(g.Price) as Price FROM Goods AS g LEFT JOIN GoodsTypeChild AS gtc ON (gtc.GoodsTypeID=g.GoodsTypeID AND gtc.ID=g.GoodsTypeChildID) GROUP BY g.GoodsTypeID limit ?",Num).Rows()
+	if glog.Error(err){
+		return list
+	}
+	for rows.Next(){
+		var result TopGoodsTypeChild
+		DB.ScanRows(rows,&result)
+		list=append(list,result)
+	}
+	return list
+}
 func (service GoodsService) GoodsList(UserID uint64, SqlOrder string, Index int, where interface{}, args ...interface{}) []dao.GoodsInfo {
 	Orm := dao.Orm()
 	var goodsList []dao.Goods
