@@ -79,6 +79,10 @@ main.config(function($routeProvider, $locationProvider,$provide,$httpProvider,$h
         templateUrl: "timesell_manager",
         controller: "timesell_manager_controller"
     });
+    $routeProvider.when("/collage_manager", {
+        templateUrl: "collage_manager",
+        controller: "collage_manager_controller"
+    });
     $routeProvider.when("/collage_list", {
         templateUrl: "collage_list",
         controller: "collage_list_controller"
@@ -3764,9 +3768,7 @@ main.controller("collage_list_controller",function ($http,$filter,$scope, $rootS
 
     $scope.Item =null;
     $scope.TargetAction=null;
-    var table;
-
-
+    let table;
 
 
     $timeout(function () {
@@ -3780,7 +3782,7 @@ main.controller("collage_list_controller",function ($http,$filter,$scope, $rootS
 
                     }},
                 {data:"TotalNum"},
-                {data:"GoodsID"},
+                //{data:"GoodsID"},
                 {data:"Hash",visible:false},
                 {data:null,className:"opera",orderable:false,render:function (data, type, row) {
                         return '<button  class="ui edit blue mini button">修改/查看</button>'+
@@ -3863,20 +3865,20 @@ main.controller("add_collage_controller",function ($http,$filter,$scope, $rootSc
             $scope.Item=Item;
             //$scope.showModal({title:'修改优惠券',url:'timesell/save',method:'POST'});
             //timesell/goods/:TimeSellID/list
-            $scope.listTimeSellGoods();
+            //$scope.listTimeSellGoods();
 
         });
 
     }else{
         $scope.TargetAction={title:'添加拼团',url:'collage/save',method:'POST'};
     }
-    $scope.listTimeSellGoods = function(){
+    /*$scope.listTimeSellGoods = function(){
         $http.get("collage/goods/"+$routeParams.Hash+"/list",{}).then(function (data) {
             $scope.GoodsList = data.data.Data;
         });
-    }
+    }*/
 
-    $scope.deleteTimeSellGoods = function(m){
+    /*$scope.deleteTimeSellGoods = function(m){
 
         //timesell/goods/:GoodsID
 
@@ -3888,7 +3890,7 @@ main.controller("add_collage_controller",function ($http,$filter,$scope, $rootSc
         }
 
 
-    }
+    }*/
 
 
     //#!/add_timesell
@@ -3896,18 +3898,18 @@ main.controller("add_collage_controller",function ($http,$filter,$scope, $rootSc
 
     $scope.add_score_goods = function(){
 
-        if($scope.GoodsList.length==0){
+        /*if($scope.GoodsList.length==0){
             alert("请先添加产品");
             return
-        }
+        }*/
 
         var form ={};
         form.Collage=JSON.stringify($scope.Item);
-        var GoodsListIDs =[];
+        /*var GoodsListIDs =[];
         for(var i=0;i<$scope.GoodsList.length;i++){
             GoodsListIDs.push($scope.GoodsList[i].ID);
         }
-        form.GoodsListIDs=JSON.stringify(GoodsListIDs);
+        form.GoodsListIDs=JSON.stringify(GoodsListIDs);*/
         $http({
             method:$scope.TargetAction.method,
             url:$scope.TargetAction.url,
@@ -3916,25 +3918,29 @@ main.controller("add_collage_controller",function ($http,$filter,$scope, $rootSc
             headers: {'Content-Type':'application/x-www-form-urlencoded'}
         }).then(function (data, status, headers, config) {
 
+
+            alert(data.data.Message);
+            alert("前往限时抢购商品管理页面，管理商品");
+            window.location.href="#!/collage_manager?Hash="+data.data.Data.Hash;
             $scope.Item =null;
             $scope.TargetAction=null;
-            alert(data.data.Message);
-            window.history.back();
+
+            //window.history.back();
 
         });
 
     }
-    $scope.showGoodsList=function(){
+   /* $scope.showGoodsList=function(){
         $("#goods_list").modal("show");
 
     }
     $scope.showModal = function (ta) {
         $scope.TargetAction = ta;
         $("#add_score_goods").modal("show");
-    }
+    }*/
     $timeout(function () {
 
-        goods_list_table = $('#goods_list_table').DataTable({
+        /*goods_list_table = $('#goods_list_table').DataTable({
             "columns": [
                 {data:"ID"},
                 {data:"Title"},
@@ -3948,10 +3954,6 @@ main.controller("add_collage_controller",function ($http,$filter,$scope, $rootSc
                     }},
                 {data:"TimeSellID",className:"opera",orderable:false,render:function (data, type, row) {
                         console.log("--------",row);
-
-                        /*if($routeParams.ID==data){
-                            return '<button class="ui mini button">已选择</button>';
-                        }*/
 
                         var have = false;
                         for(var i=0;i<$scope.GoodsList.length;i++){
@@ -4024,7 +4026,7 @@ main.controller("add_collage_controller",function ($http,$filter,$scope, $rootSc
             //goods_list_table.ajax.reload();
             //$scope.GoodsList
             goods_list_table.draw(false);
-        });
+        });*/
 
     });
 });
@@ -4134,6 +4136,191 @@ main.controller("timesell_list_controller",function ($http,$filter,$scope, $root
 
     });
 })
+main.controller("collage_manager_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+    var goods_list_table;
+    var TimeSellGoodsList;
+
+
+
+    if($routeParams.Hash==undefined){
+        alert("参数不足，无法操作");
+        return
+    }
+
+    /* $scope.listTimeSellGoods = function(){
+         $http.get("timesell/goods/"+$routeParams.Hash+"/list",{}).then(function (data) {
+             $scope.GoodsList = data.data.Data;
+         });
+     }
+     $scope.listTimeSellGoods();*/
+    $scope.showGoodsList=function(){
+        $("#goods_list").modal("show");
+        goods_list_table.ajax.reload();
+    }
+
+    $timeout(function () {
+
+        goods_list_table = $('#goods_list_table').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Title"},
+                {data:"Stock"},
+                {data:"Price",render: function (data, type, row) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"CreatedAt",render: function (data, type, row) {
+
+                        return $filter("date")(data,"medium");
+                    }},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+
+                        return '<button class="ui select blue mini button">添加</button>';
+
+                    }}
+            ],
+            "createdRow": function ( row, data, index ) {
+                //console.log(row,data,index);
+            },
+            columnDefs:[
+
+            ],
+            "initComplete":function (d) {
+
+            },
+            paging: true,
+            //"dom": '<"toolbar">frtip',
+            "pagingType": "full_numbers",
+            searching: true,
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                //"url": "goods?action=list_goods",
+                "url": "goods?action=collage_goods&Hash="+$routeParams.Hash,
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+        $('#goods_list_table').on('click','td.opera .select', function () {
+
+
+            var tr = $(this).closest('tr');
+            var row = goods_list_table.row( tr );
+
+            console.log(row.data());
+
+            var itme = row.data();
+
+
+            var form ={};
+            form.GoodsID=itme.ID;
+            form.CollageHash=$routeParams.Hash;
+            /* $http.post("timesell/goods/add",{}).then(function (data) {
+                alert(data.data.Message);
+                //$scope.listTimeSellGoods();
+            });*/
+
+            $http.post("collage/goods/add",$.param(form), {
+                transformRequest: angular.identity,
+                headers: {"Content-Type": "application/x-www-form-urlencoded"}
+            }).then(function (data, status, headers, config) {
+
+
+                if(data.data.Success==true){
+
+
+                }else{
+                    alert(data.data.Message);
+                }
+                goods_list_table.draw(false);
+                TimeSellGoodsList.draw(false);
+                //table.ajax.reload();
+
+            });
+
+            //$("#goods_list").modal("hide");
+            //goods_list_table.ajax.reload();
+            //$scope.GoodsList
+
+        });
+
+
+
+
+        //goods_list_table
+        TimeSellGoodsList = $('#TimeSellGoodsList').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Title"},
+                {data:"Stock"},
+                {data:"Price",render: function (data, type, row) {
+                        return $filter("currency")(data/100);
+                    }},
+                {data:"CreatedAt",render: function (data, type, row) {
+
+                        return $filter("date")(data,"medium");
+                    }},
+                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
+                        return '<button class="ui delete blue mini button">删除这个商品</button>';
+                    }}
+            ],
+            "createdRow": function ( row, data, index ) {
+                //console.log(row,data,index);
+            },
+            columnDefs:[
+
+            ],
+            "initComplete":function (d) {
+
+            },
+            paging: true,
+            //"dom": '<"toolbar">frtip',
+            "pagingType": "full_numbers",
+            searching: true,
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "collage/goods/"+$routeParams.Hash+"/list",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+        $('#TimeSellGoodsList').on('click','td.opera .delete', function () {
+
+
+            var tr = $(this).closest('tr');
+            var row = TimeSellGoodsList.row( tr );
+
+            console.log(row.data());
+
+            var itme = row.data();
+
+
+
+            if(confirm("是否要取消这个产品的限时抢购？")){
+                $http.delete("collage/goods/"+itme.ID,{}).then(function (data) {
+                    alert(data.data.Message);
+                    //$scope.listTimeSellGoods();
+                    TimeSellGoodsList.draw(false);
+                });
+            }
+
+
+            //$("#goods_list").modal("hide");
+            //goods_list_table.ajax.reload();
+            //$scope.GoodsList
+            //TimeSellGoodsList.draw(false);
+        });
+
+    });
+});
 main.controller("timesell_manager_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
     var goods_list_table;
     var TimeSellGoodsList;

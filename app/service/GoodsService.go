@@ -187,7 +187,7 @@ func (service GoodsService) GetGoodsInfo(goods dao.Goods) dao.GoodsInfo {
 		//Favoured:=uint64(util.Rounding45(float64(goods.Price)*(float64(timeSell.Discount)/float64(100)), 2))
 		goodsInfo.Favoured = dao.Favoured{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint64(timeSell.Discount)}
 	} else {
-		collage := service.Collage.GetCollageByGoodsID(goods.ID)
+		collage := service.Collage.GetCollageByGoodsID(goods.ID,goods.OID)
 		if collage.ID != 0 && collage.TotalNum > 0 {
 			goodsInfo.Favoured = dao.Favoured{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)}
 		}
@@ -305,11 +305,16 @@ func (service GoodsService) DeleteTimeSellGoods(DB *gorm.DB, GoodsID uint64, OID
 	glog.Error(err)
 	return err
 }
-func (service GoodsService) DeleteCollageGoods(DB *gorm.DB, GoodsID uint64) error {
-	timesell := service.Collage.GetCollageByGoodsID(GoodsID)
-	err := service.Delete(DB, &dao.Collage{}, timesell.ID)
+func (service GoodsService) DeleteCollageGoods(DB *gorm.DB, GoodsID uint64, OID uint64) error {
+	timesell := service.Collage.GetCollageByGoodsID(GoodsID,OID)
+
+	err := service.DeleteWhere(DB, &dao.CollageGoods{}, "CollageHash=? and GoodsID=?", timesell.Hash, GoodsID) //Delete(DB, &dao.TimeSellGoods{}, timesell.ID)
 	glog.Error(err)
 	return err
+
+	//err := service.Delete(DB, &dao.Collage{}, timesell.ID)
+	//glog.Error(err)
+	//return err
 }
 func (service GoodsService) FindGoodsByTimeSellID(TimeSellID uint64) []dao.Goods {
 	Orm := dao.Orm()
@@ -380,7 +385,7 @@ func (service GoodsService) GetGoodsInfoList(UserID uint64, goodsList []dao.Good
 			//Favoured:=uint64(util.Rounding45(float64(value.Price)*(float64(timeSell.Discount)/float64(100)), 2))
 			goodsInfo.Favoured = dao.Favoured{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint64(timeSell.Discount)}
 		} else {
-			collage := service.Collage.GetCollageByGoodsID(value.ID)
+			collage := service.Collage.GetCollageByGoodsID(value.ID,value.OID)
 			if collage.ID != 0 && collage.TotalNum > 0 {
 				goodsInfo.Favoured = dao.Favoured{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)}
 			}
@@ -421,6 +426,32 @@ func (service GoodsService) GoodsList(UserID uint64, SqlOrder string, Index int,
 	glog.Error(err)
 
 	return service.GetGoodsInfoList(UserID, goodsList)
+}
+func (service GoodsService) HotListByGoodsTypeIDAndGoodsTypeChildID(GoodsTypeID,GoodsTypeChildID,Num uint64) []dao.Goods {
+
+	Orm := dao.Orm()
+
+	var result []dao.Goods
+
+	db := Orm.Model(&dao.Goods{}).Where("GoodsTypeID=? and GoodsTypeChildID=?",GoodsTypeID,GoodsTypeChildID).Order("CountSale desc").Limit(Num)
+
+	db.Find(&result)
+
+	return result
+
+}
+func (service GoodsService) NewListByGoodsTypeIDAndGoodsTypeChildID(GoodsTypeID,GoodsTypeChildID,Num uint64) []dao.Goods {
+
+	Orm := dao.Orm()
+
+	var result []dao.Goods
+
+	db := Orm.Model(&dao.Goods{}).Where("GoodsTypeID=? and GoodsTypeChildID=?",GoodsTypeID,GoodsTypeChildID).Order("CreatedAt desc").Limit(Num)
+
+	db.Find(&result)
+
+	return result
+
 }
 func (service GoodsService) HotList(count uint64) []dao.Goods {
 

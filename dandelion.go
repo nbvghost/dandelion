@@ -21,7 +21,6 @@ import (
 
 func main() {
 
-
 	//service.WxService{}.SendUniformMessage(service.WxService{}.MiniWeb(), service.WxService{}.MiniProgram())
 
 	//sms:=service.SMSService{}
@@ -137,7 +136,6 @@ func main() {
 	api := &api.Controller{}
 	api.NewController("/api", api)
 
-
 	sites := &sites.Controller{}
 	sites.NewController("/sites", sites)
 
@@ -149,6 +147,6 @@ func main() {
 		Addr:    conf.Config.HttpsPort,
 		Handler: nil,
 	}
-	_https=nil
+	_https = nil
 	gweb.StartServer(http.DefaultServeMux, _http, _https)
 }

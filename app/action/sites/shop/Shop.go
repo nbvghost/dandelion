@@ -48,11 +48,14 @@ func (controller *Controller) productPage(context *gweb.Context) gweb.Result {
 }
 func (controller *Controller) productsPage(context *gweb.Context) gweb.Result {
 
-	//gtid={{$v.GoodsType.ID}}&gtcid
-	gtid,_:=strconv.ParseUint(context.PathParams["gtid"],10,64)
-	gtcid,_:=strconv.ParseUint(context.PathParams["gtcid"],10,64)
+	//"GoodsTypeID":GoodsTypeID,
+	//	"GoodsTypeChildID":GoodsTypeChildID,
 
-	gs:=controller.Goods.ListGoodsChildByGoodsTypeID(gtid,gtcid)
+	//gtid={{$v.GoodsType.ID}}&gtcid
+	GoodsTypeID,_:=strconv.ParseUint(context.PathParams["GoodsTypeID"],10,64)
+	GoodsTypeChildID,_:=strconv.ParseUint(context.PathParams["GoodsTypeChildID"],10,64)
+
+	gs:=controller.Goods.ListGoodsChildByGoodsTypeID(GoodsTypeID,GoodsTypeChildID)
 
 	return &gweb.HTMLResult{Params: map[string]interface{}{
 		"Goods":gs,
@@ -63,10 +66,17 @@ func (controller *Controller) categoriesPage(context *gweb.Context) gweb.Result 
 	gts := controller.Goods.ListGoodsType(org.ID)
 	gtcs:=controller.Goods.ListGoodsTypeChildByOID(org.ID)
 
+	//GoodsTypeID,GoodsTypeChildID
+
+
+
+
 	GoodsTypeMap:=make([]interface{},0)
 
 	for index:=range gts{
 		item:=gts[index]
+
+
 
 		childList:=make([]dao.GoodsTypeChild,0)
 		for cindex:=range gtcs{
@@ -81,11 +91,34 @@ func (controller *Controller) categoriesPage(context *gweb.Context) gweb.Result 
 			"GoodsTypeChild":childList,
 		})
 	}
+	GoodsTypeID,_:=strconv.ParseUint(context.Request.URL.Query().Get("GoodsTypeID"),10,64)
+	GoodsTypeChildID,_:=strconv.ParseUint(context.Request.URL.Query().Get("GoodsTypeChildID"),10,64)
+
+	if GoodsTypeID<=0 && len(GoodsTypeMap)>0{
+		item:=GoodsTypeMap[0].(map[string]interface{})
+		GoodsTypeID=item["GoodsType"].(dao.GoodsType).ID
+
+		if item["GoodsTypeChild"]!=nil{
+			itemChild:=item["GoodsTypeChild"].([]dao.GoodsTypeChild)
+			if len(itemChild)>0{
+				GoodsTypeChildID=itemChild[0].ID
+			}
+
+		}
 
 
+	}
+
+
+	hotGoods:=controller.Goods.HotListByGoodsTypeIDAndGoodsTypeChildID(GoodsTypeID,GoodsTypeChildID,3)
+	newGoods:=controller.Goods.NewListByGoodsTypeIDAndGoodsTypeChildID(GoodsTypeID,GoodsTypeChildID,3)
 
 	return &gweb.HTMLResult{Params: map[string]interface{}{
 		"GoodsType":GoodsTypeMap,
+		"NewGoods":newGoods,
+		"HotGoods":hotGoods,
+		"GoodsTypeID":GoodsTypeID,
+		"GoodsTypeChildID":GoodsTypeChildID,
 	}}
 }
 func (controller *Controller) AddProjectdsfdsfsdAction(context *gweb.Context) gweb.Result {

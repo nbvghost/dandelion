@@ -1,0 +1,38 @@
+
+<div class="field">
+    <label>选择产品<input ng-click="showGoodsList()" type="button" class="ui mini blue button" value="添加产品"></label>
+    <table width="100%" id="TimeSellGoodsList" class="ui small teal table">
+        <thead>
+        <tr>
+            <th>#ID</th>
+            <th>名称</th>
+            <th>名称</th>
+            <th>名称</th>
+            <th>名称</th>
+            <th style="text-align: right;">
+
+            </th>
+        </tr>
+        </thead>
+    </table>
+</div>
+<div id="goods_list" class="ui fullscreen modal">
+    <div class="header">选择产品</div>
+    <div class="content">
+        <table width="100%" id="goods_list_table" class="ui teal table">
+            <thead>
+            <tr>
+                <th>#ID</th>
+                <th>名称</th>
+                <th>总库存</th>
+                <th>市场价</th>
+                <th>创建时间</th>
+                <th></th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+    <div class="actions">
+        <button class="ui approve button">确定</button>
+    </div>
+</div>

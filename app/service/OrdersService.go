@@ -850,7 +850,7 @@ func (service OrdersService) BuyCollageOrders(Session *gweb.Session, UserID, Goo
 	ordersGoods := service.createOrdersGoods(shoppingCart)
 
 	//ordersGoods.CollageNo = tool.UUID()
-	collage := service.Collage.GetCollageByGoodsID(goods.ID)
+	collage := service.Collage.GetCollageByGoodsID(goods.ID,goods.OID)
 	if collage.ID != 0 && collage.TotalNum > 0 {
 
 		favoured := dao.Favoured{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)}

@@ -97,8 +97,9 @@ func (controller *Controller) Apply() {
 	controller.AddHandler(gweb.POSMethod("collage/change", controller.Collage.SaveItem))
 	controller.AddHandler(gweb.GETMethod("collage/{Hash}", controller.Collage.GetItem))
 	controller.AddHandler(gweb.POSMethod("collage/datatables/list", controller.Collage.DataTablesItem))
-	controller.AddHandler(gweb.GETMethod("collage/goods/{Hash}/list", controller.Collage.ListGoods))
+	controller.AddHandler(gweb.POSMethod("collage/goods/{Hash}/list", controller.Collage.ListGoods))
 	controller.AddHandler(gweb.DELMethod("collage/goods/{GoodsID}", controller.Collage.DeleteGoods))
+	controller.AddHandler(gweb.POSMethod("collage/goods/add", controller.Collage.AddCollageGoodsAction))
 	controller.AddHandler(gweb.DELMethod("collage/{ID}", controller.Collage.DeleteItem))
 
 	//controller.AddHandler(gweb.POSMethod("timesell/add", controller.TimeSell.AddTimeSellAction))
@@ -275,7 +276,7 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		err = controller.Goods.SaveGoods(item, specifications)
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
 	case "timesell_goods":
-		company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+		//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 		//Hash := context.Request.URL.Query().Get("Hash")
 		dts := &dao.Datatables{}
 		//dts.Draw = 10
@@ -290,7 +291,8 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		dts := &dao.Datatables{}
 		util.RequestBodyToJSON(context.Request.Body, dts)
 		var GoodsIDs []uint64
-		Orm.Model(&dao.Collage{}).Pluck("GoodsID", &GoodsIDs)
+		//Orm.Model(&dao.Collage{}).Pluck("GoodsID", &GoodsIDs)
+		Orm.Model(&dao.CollageGoods{}).Where("OID=?", company.ID).Pluck("GoodsID", &GoodsIDs)
 		dts.NotIDs = GoodsIDs
 		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.Goods{}, company.ID, "")
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}

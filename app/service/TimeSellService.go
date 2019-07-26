@@ -18,6 +18,7 @@ type TimeSellService struct {
 	dao.BaseDao
 }
 
+
 func (service TimeSellService) AddTimeSellGoodsAction(context *gweb.Context) gweb.Result {
 	organization := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 
@@ -110,7 +111,8 @@ func (service TimeSellService) GetTimeSellByHash(Hash string, OID uint64) dao.Ti
 
 //todo:
 func (service TimeSellService) GetTimeSellByGoodsID(GoodsID uint64, OID uint64) dao.TimeSell {
-	timesellGoods := service.GetTimeSellGoodsByGoodsID(GoodsID, OID)
+	//timesellGoods := service.GetTimeSellGoodsByGoodsID(GoodsID, OID)
+	var timesellGoods dao.TimeSellGoods
 	dao.Orm().Model(&dao.TimeSellGoods{}).Where("GoodsID=? and OID=?", GoodsID, OID).First(&timesellGoods)
 
 	var timesell dao.TimeSell
@@ -189,7 +191,7 @@ func (service TimeSellService) SaveItem(context *gweb.Context) gweb.Result {
 		if _item.ID == 0 {
 			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("无法修改"), "", nil)}
 		}
-		_item.Hash = item.Hash
+		//_item.Hash = item.Hash
 		_item.BuyNum = item.BuyNum
 		_item.Enable = item.Enable
 		_item.DayNum = item.DayNum

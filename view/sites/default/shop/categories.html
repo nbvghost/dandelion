@@ -24,7 +24,9 @@
     <link rel="stylesheet" href="resources/css/theme.css">
 </head>
 <body>
-{{.}}
+{{ToJSON .params.GoodsTypeID}}
+{{ToJSON .params.GoodsTypeChildID}}
+
 <!-- ========== HEADER ========== -->
 {{IncludeHTML "sites/default/shop/header.tp.html" .}}
 
@@ -61,14 +63,23 @@
             <div class="col-lg-3 mb-7 mb-lg-0">
                 <!-- List -->
                 <ul id="sidebarNav" class="list-unstyled">
-
+                    {{$GoodsTypeID:=.params.GoodsTypeID}}
+                    {{$GoodsTypeChildID:=.params.GoodsTypeChildID}}
                     {{range $k, $v := .params.GoodsType}}
                         <li>
-                            <a class="d-block text-dark font-size-1 font-weight-medium py-2 dropdown-toggle dropdown-toggle-collapse" href="javascript:;" role="button" data-toggle="collapse" aria-expanded="false" aria-controls="sidebarNav1Collapse" data-target="#sidebarNav{{$k}}Collapse">
+                            <a class="d-block text-dark font-size-1 font-weight-medium py-2 dropdown-toggle dropdown-toggle-collapse" href="javascript:;" role="button" data-toggle="collapse" aria-expanded="true" aria-controls="sidebarNav1Collapse" data-target="#sidebarNav{{$k}}Collapse">
                                 {{$v.GoodsType.Name}}
                             </a>
 
-                            <div id="sidebarNav{{$k}}Collapse" class="collapse" data-parent="#sidebarNav">
+                            {{if (eq $GoodsTypeID  $v.GoodsType.ID)}}
+
+                                <div id="sidebarNav{{$k}}Collapse" class="collapse show" data-parent="#sidebarNav">
+
+                            {{else}}
+                                <div id="sidebarNav{{$k}}Collapse" class="collapse" data-parent="#sidebarNav">
+                            {{end}}
+
+
                                 <ul id="sidebarNav1" class="list-unstyled">
                                     <!-- Menu List -->
 
@@ -76,9 +87,11 @@
 
                                         {{range $ck, $cv := $v.GoodsTypeChild}}
                                             <li>
-                                                <a class="dropdown-item" href="products?style=grid&gtid={{$v.GoodsType.ID}}&gtcid={{$cv.ID}}">
-                                                    {{$cv.Name}}
-                                                </a>
+                                                {{if (eq $GoodsTypeChildID  $cv.ID)}}
+                                                    <a class="dropdown-item active" href="categories?GoodsTypeID={{$v.GoodsType.ID}}&GoodsTypeChildID={{$cv.ID}}">{{$cv.Name}}</a>
+                                                {{else}}
+                                                    <a class="dropdown-item" href="categories?GoodsTypeID={{$v.GoodsType.ID}}&GoodsTypeChildID={{$cv.ID}}">{{$cv.Name}}</a>
+                                                {{end}}
                                             </li>
                                         {{end}}
                                     {{end}}
@@ -96,64 +109,76 @@
 
             <div class="col-lg-9">
                 <!-- CTA -->
-                <div class="bg-img-hero rounded p-6 mb-5" style="background-image: url(../../assets/img/1920x800/img19.jpg);">
+                <div class="bg-img-hero rounded p-6 mb-5" style="background-image: url('resources/img/categories_img_r_t.jpg');">
                     <div class="row align-items-md-center">
                         <div class="col-md-8 mb-3 mb-md-0">
                             <h1 class="h4 font-weight-medium mb-0">Save up to 30% with orders above $50</h1>
                         </div>
                         <div class="col-md-4 text-md-right">
-                            <a class="btn btn-primary btn-pill transition-3d-hover px-5" href="#">Shop Now</a>
+                            <a class="btn btn-primary btn-pill transition-3d-hover px-5" href="products?style=grid&GoodsTypeID={{.params.GoodsTypeID}}&GoodsTypeChildID={{.params.GoodsTypeChildID}}">Shop Now</a>
                         </div>
                     </div>
                 </div>
                 <!-- End CTA -->
 
-                <div class="row">
-                    <div class="col-sm-6 mb-5">
-                        <!-- Card -->
-                        <div class="card d-block">
-                            <div class="card-body d-flex align-items-center p-0">
-                                <div class="w-65 border-right">
-                                    <img class="img-fluid" src="../../assets/img/380x400/img3.jpg" alt="Image Description">
-                                </div>
-                                <div class="w-35">
-                                    <div class="border-bottom">
-                                        <img class="img-fluid" src="../../assets/img/380x360/img32.jpg" alt="Image Description">
-                                    </div>
-                                    <img class="img-fluid" src="../../assets/img/380x360/img33.jpg" alt="Image Description">
-                                </div>
-                            </div>
-                            <div class="card-footer text-center py-4">
-                                <h2 class="h5 mb-1">T-shirts</h2>
-                                <span class="d-block text-muted font-size-1 mb-3">Starting from $29.99</span>
-                                <a class="btn btn-sm btn-outline-primary btn-pill transition-3d-hover px-5" href="#">View All T-shirts</a>
-                            </div>
-                        </div>
-                        <!-- End Card -->
-                    </div>
 
-                    <div class="col-sm-6 mb-5">
-                        <!-- Card -->
-                        <div class="card d-block">
-                            <div class="card-body d-flex align-items-center p-0">
-                                <div class="w-65 border-right">
-                                    <img class="img-fluid" src="../../assets/img/380x400/img4.jpg" alt="Image Description">
-                                </div>
-                                <div class="w-35">
-                                    <div class="border-bottom">
-                                        <img class="img-fluid" src="../../assets/img/380x360/img34.jpg" alt="Image Description">
+                <div class="row">
+                    {{range $k, $v := .params.HotGoods}}
+
+                        <div class="col-sm-4 mb-3">
+                            <!-- Product -->
+                            <div class="card text-center h-100">
+                                <div class="position-relative">
+
+                                    {{with $images:=(FromJSONToArray $v.Images)}}
+                                        {{if gt (len $images) 0}}
+                                            <img class="card-img-top" src="{{index $images 0}}" alt="Image Description">
+                                        {{end}}
+                                    {{else}}
+                                        <img class="card-img-top" src="" alt="Image Description">
+                                    {{end}}
+
+                                    <div class="position-absolute top-0 right-0 pt-3 pr-3">
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-secondary rounded-circle" data-toggle="tooltip" data-placement="top" title="Save for later">
+                                            <span class="fas fa-heart btn-icon__inner"></span>
+                                        </button>
                                     </div>
-                                    <img class="img-fluid" src="../../assets/img/380x360/img35.jpg" alt="Image Description">
+                                </div>
+
+                                <div class="card-body pt-4 px-4 pb-0">
+                                    <div class="mb-2">
+                                        <a class="d-inline-block text-secondary small font-weight-medium mb-1" href="#">Clothing</a>
+                                        <h4 class="font-size-1 font-weight-normal">
+                                            <a class="text-secondary" href="product?ID={{$v.ID}}">{{$v.Title}}</a>
+                                        </h4>
+                                        <div class="d-block">
+                                            <span class="font-weight-medium">{{$v.Price}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-footer border-0 pt-0 pb-4 px-4">
+                                    <div class="mb-3">
+                                        <a class="d-inline-flex align-items-center small" href="#">
+                                            <div class="text-warning mr-2">
+                                                <small class="fas fa-star"></small>
+                                                <small class="fas fa-star"></small>
+                                                <small class="fas fa-star"></small>
+                                                <small class="fas fa-star"></small>
+                                                <small class="far fa-star text-muted"></small>
+                                            </div>
+                                            <span class="text-secondary">40</span>
+                                        </a>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary btn-sm-wide btn-pill transition-3d-hover">Add to Cart</button>
                                 </div>
                             </div>
-                            <div class="card-footer text-center py-4">
-                                <h3 class="h5 mb-1">Tech covers</h3>
-                                <span class="d-block text-muted font-size-1 mb-3">Starting from $399.99</span>
-                                <a class="btn btn-sm btn-outline-primary btn-pill transition-3d-hover px-5" href="#">View All Tech covers</a>
-                            </div>
+                            <!-- End Product -->
                         </div>
-                        <!-- End Card -->
-                    </div>
+                    {{end}}
+
+                </div>
+                <div class="row">
 
                     <div class="col-md-4 mb-5">
                         <!-- Card -->
@@ -194,51 +219,62 @@
                         <!-- End Card -->
                     </div>
 
-                    <div class="col-sm-6 mb-5">
-                        <!-- Card -->
-                        <div class="card d-block">
-                            <div class="card-body d-flex align-items-center p-0">
-                                <div class="w-65 border-right">
-                                    <img class="img-fluid" src="../../assets/img/380x400/img5.jpg" alt="Image Description">
-                                </div>
-                                <div class="w-35">
-                                    <div class="border-bottom">
-                                        <img class="img-fluid" src="../../assets/img/380x360/img36.jpg" alt="Image Description">
-                                    </div>
-                                    <img class="img-fluid" src="../../assets/img/380x360/img37.jpg" alt="Image Description">
-                                </div>
-                            </div>
-                            <div class="card-footer text-center py-4">
-                                <h3 class="h5 mb-1">Caps</h3>
-                                <span class="d-block text-muted font-size-1 mb-3">Starting from $13.99</span>
-                                <a class="btn btn-sm btn-outline-primary btn-pill transition-3d-hover px-5" href="#">View All Caps</a>
-                            </div>
-                        </div>
-                        <!-- End Card -->
-                    </div>
+                </div>
+                <div class="row">
 
-                    <div class="col-sm-6 mb-5">
-                        <!-- Card -->
-                        <div class="card d-block">
-                            <div class="card-body d-flex align-items-center p-0">
-                                <div class="w-65 border-right">
-                                    <img class="img-fluid" src="../../assets/img/380x400/img6.jpg" alt="Image Description">
-                                </div>
-                                <div class="w-35">
-                                    <div class="border-bottom">
-                                        <img class="img-fluid" src="../../assets/img/380x360/img38.jpg" alt="Image Description">
+                    {{range $k, $v := .params.NewGoods}}
+
+                        <div class="col-sm-4 mb-3">
+                            <!-- Product -->
+                            <div class="card text-center h-100">
+                                <div class="position-relative">
+
+                                    {{with $images:=(FromJSONToArray $v.Images)}}
+                                        {{if gt (len $images) 0}}
+                                            <img class="card-img-top" src="{{index $images 0}}" alt="Image Description">
+                                        {{end}}
+                                    {{else}}
+                                        <img class="card-img-top" src="" alt="Image Description">
+                                    {{end}}
+
+                                    <div class="position-absolute top-0 right-0 pt-3 pr-3">
+                                        <button type="button" class="btn btn-sm btn-icon btn-outline-secondary rounded-circle" data-toggle="tooltip" data-placement="top" title="Save for later">
+                                            <span class="fas fa-heart btn-icon__inner"></span>
+                                        </button>
                                     </div>
-                                    <img class="img-fluid" src="../../assets/img/380x360/img39.jpg" alt="Image Description">
+                                </div>
+
+                                <div class="card-body pt-4 px-4 pb-0">
+                                    <div class="mb-2">
+                                        <a class="d-inline-block text-secondary small font-weight-medium mb-1" href="#">Clothing</a>
+                                        <h4 class="font-size-1 font-weight-normal">
+                                            <a class="text-secondary" href="product?ID={{$v.ID}}">{{$v.Title}}</a>
+                                        </h4>
+                                        <div class="d-block">
+                                            <span class="font-weight-medium">{{$v.Price}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-footer border-0 pt-0 pb-4 px-4">
+                                    <div class="mb-3">
+                                        <a class="d-inline-flex align-items-center small" href="#">
+                                            <div class="text-warning mr-2">
+                                                <small class="fas fa-star"></small>
+                                                <small class="fas fa-star"></small>
+                                                <small class="fas fa-star"></small>
+                                                <small class="fas fa-star"></small>
+                                                <small class="far fa-star text-muted"></small>
+                                            </div>
+                                            <span class="text-secondary">40</span>
+                                        </a>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary btn-sm-wide btn-pill transition-3d-hover">Add to Cart</button>
                                 </div>
                             </div>
-                            <div class="card-footer text-center py-4">
-                                <h3 class="h5 mb-1">Accessories</h3>
-                                <span class="d-block text-muted font-size-1 mb-3">Starting from $4.44</span>
-                                <a class="btn btn-sm btn-outline-primary btn-pill transition-3d-hover px-5" href="#">View All Accessories</a>
-                            </div>
+                            <!-- End Product -->
                         </div>
-                        <!-- End Card -->
-                    </div>
+                    {{end}}
                 </div>
             </div>
         </div>
@@ -246,7 +282,7 @@
     <!-- End Categories Section -->
 
     <!-- Hero Section -->
-    <div class="bg-img-hero-center" style="background-image: url(../../assets/img/1920x800/img20.jpg);">
+    <div class="bg-img-hero-center" style="background-image: url('resources/img/categories_img_b.jpg');">
         <div class="container space-2 space-lg-3">
             <div class="w-md-65 w-lg-35">
                 <div class="mb-4">

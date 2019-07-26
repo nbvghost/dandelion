@@ -107,18 +107,27 @@
         </div>
     </div>
     <!-- End Search -->
-
     <div class="u-header__section">
         <!-- Topbar -->
         <div class="container u-header__hide-content pt-2">
             <div class="d-flex align-items-center">
                 <!-- Language -->
+                <div class="dropdown">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Language</a>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="#">Action</a>
+                        <a class="dropdown-item" href="#">Another action</a>
+                        <a class="dropdown-item" href="#">Something else here</a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item" href="#">Separated link</a>
+                    </div>
+                </div>
                 <div class="position-relative">
                     <a id="languageDropdownInvoker" class="dropdown-nav-link dropdown-toggle d-flex align-items-center" href="javascript:;" role="button"
                        aria-controls="languageDropdown"
                        aria-haspopup="true"
                        aria-expanded="false"
-                       data-unfold-event="hover"
+                       data-unfold-event="click"
                        data-unfold-target="#languageDropdown"
                        data-unfold-type="css-animation"
                        data-unfold-duration="300"
@@ -315,6 +324,7 @@
 
                         <!-- Button -->
                         <li class="nav-item u-header__nav-last-item">
+
                             <a class="btn btn-sm btn-primary btn-pill transition-3d-hover" href="">
                                 Shopping Cart
                             </a>

@@ -822,7 +822,7 @@ type Collage struct {
 	Num      int    `gorm:"column:Num"`      //拼团人数
 	Discount int    `gorm:"column:Discount"` // 折扣
 	TotalNum int    `gorm:"column:TotalNum"` //总拼团产品数量
-	GoodsID  uint64 `gorm:"column:GoodsID"`
+	//GoodsID  uint64 `gorm:"column:GoodsID"`
 }
 
 func (u *Collage) BeforeCreate(scope *gorm.Scope) (err error) {

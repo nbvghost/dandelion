@@ -25,12 +25,20 @@
 
     <!-- CSS Front Template -->
     <link rel="stylesheet" href="resources/css/theme.css">
+    <script>
+        let Goods={{.params.GoodsInfo.Specifications}};
+        let Goods=[{"ID":3,"CreatedAt":"2019-07-07T08:42:28+08:00","UpdatedAt":"2019-07-11T13:38:45+08:00","DeletedAt":null,"GoodsID":3,"Label":"虽要国要","Num":34,"Weight":34000,"Stock":34,"CostPrice":3400,"MarketPrice":3400,"Brokerage":3400},{"ID":9,"CreatedAt":"2019-07-11T13:38:45+08:00","UpdatedAt":"2019-07-11T13:38:45+08:00","DeletedAt":null,"GoodsID":3,"Label":"械格尔图","Num":45,"Weight":45000,"Stock":45,"CostPrice":4500,"MarketPrice":4500,"Brokerage":4500}];
+
+    </script>
 </head>
 <body>
 <!-- ========== HEADER ========== -->
 {{IncludeHTML "sites/default/shop/header.tp.html" .}}
 <!-- ========== END HEADER ========== -->
-{{ToJSON .params.GoodsInfo}}
+<button type="button" class="btn btn-outline-primary btn-sm">Primary</button>
+
+
+
 <!-- ========== MAIN CONTENT ========== -->
 <main id="content" role="main">
     <!-- Hero Section -->
@@ -131,8 +139,43 @@
                 </div>
                 <!-- End Price -->
 
+                {{/*{{ToJSON .params.GoodsInfo.Specifications}}*/}}
+
+
                 <!-- Quantity -->
+
                 <div class="border rounded py-2 px-3 mb-3">
+
+                    <div class="mb-3">
+
+                        <h2 class="font-size-1 text-secondary font-weight-medium mb-0">Specifications:</h2>
+                        <div class="list-group">
+                            {{range $k, $v := .params.GoodsInfo.Specifications}}
+                                <button type="button" class="list-group-item list-group-item-action active">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1"> {{$v.Label}}</h5>
+                                        <small>3 days ago</small>
+                                    </div>
+                                    <p class="mb-1">{{ToJSON $v}}</p>
+                                    <small>Donec id elit non mi porta.</small>
+                                </button>
+                            {{end}}
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            {{/*{{range $k, $v := .params.GoodsInfo.Specifications}}
+                                <li class="list-group-item list-group-item-action active">{{$v.Label}}</li>
+                            {{end}}*/}}
+                            {{/*{{range $k, $v := .params.GoodsInfo.Specifications}}
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-toggle="button" aria-pressed="false" autocomplete="off">
+                                    {{$v.Label}}{{ToJSON $v}}
+                                </button>
+                            {{end}}*/}}
+
+                        </ul>
+
+
+                    </div>
+
                     <div class="js-quantity row align-items-center">
                         <div class="col-7">
                             <small class="d-block text-secondary font-weight-medium">Select quantity</small>
@@ -149,7 +192,9 @@
                     </div>
                 </div>
                 <!-- End Quantity -->
-
+                <div class="mb-4">
+                    <button type="button" class="btn btn-block btn-primary btn-pill transition-3d-hover">Add to Cart</button>
+                </div>
                 <!-- Accordion -->
                 <div id="shopCartAccordion" class="accordion mb-5">
                     <!-- Card -->
@@ -230,9 +275,7 @@
                 </div>
                 <!-- End Accordion -->
 
-                <div class="mb-4">
-                    <button type="button" class="btn btn-block btn-primary btn-pill transition-3d-hover">Add to Cart</button>
-                </div>
+
 
                 <!-- Help Link -->
                 <div class="media align-items-center">
