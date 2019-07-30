@@ -4,6 +4,7 @@ import (
 	"dandelion/app/play"
 	"dandelion/app/service/dao"
 	"dandelion/app/util"
+	"fmt"
 
 	"github.com/nbvghost/glog"
 
@@ -291,8 +292,32 @@ func (controller *Controller) goodsTypeChildListByGoodsTypeIDAction(context *gwe
 func (controller *Controller) goodsChildByGoodsTypeIDAction(context *gweb.Context) gweb.Result {
 	GoodsTypeID, _ := strconv.ParseUint(context.PathParams["GoodsTypeID"], 10, 64)
 	GoodsTypeChildID, _ := strconv.ParseUint(context.PathParams["GoodsTypeChildID"], 10, 64)
-	results := controller.Goods.ListGoodsChildByGoodsTypeID(GoodsTypeID, GoodsTypeChildID)
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: results}}
+	Index, _ := strconv.Atoi(context.Request.URL.Query().Get("Index"))
+	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
+
+
+	//GoodsTypeID       uint64  `gorm:"column:GoodsTypeID"`
+	//GoodsTypeChildID  uint64  `gorm:"column:GoodsTypeChildID"`
+
+	sqlWhere:=""
+	if GoodsTypeChildID==0{
+		sqlWhere=fmt.Sprintf("GoodsTypeID=%v",GoodsTypeID)
+	}else{
+		sqlWhere=fmt.Sprintf("GoodsTypeID=%v and GoodsTypeChildID=%v",GoodsTypeID,GoodsTypeChildID)
+	}
+
+	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: controller.Goods.GoodsList(user.ID, "UpdatedAt desc", Index, sqlWhere)}}
+
+
+
+	/*if GoodsTypeChildID==0{
+		results := controller.Goods.ListGoodsByGoodsTypeID(GoodsTypeID)
+		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: results}}
+	}else{
+		results := controller.Goods.ListGoodsChildByGoodsTypeID(GoodsTypeID, GoodsTypeChildID)
+		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: results}}
+	}*/
+
 }
 func (controller *Controller) getLoginUserPhoneAction(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()

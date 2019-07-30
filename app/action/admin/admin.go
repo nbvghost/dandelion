@@ -316,7 +316,7 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
 
 	case "list_goods_type_all":
-		gts := controller.Goods.ListGoodsType(company.ID)
+		gts := controller.Goods.ListGoodsTypeForAdmin(company.ID)
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
 	case "list_goods_type":
 		dts := &dao.Datatables{}
@@ -325,42 +325,7 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 
 		//--------------------------------------
-	case "del_goods_type":
-			ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
-			return &gweb.JsonResult{Data: controller.Goods.DeleteGoodsType(ID)}
-	case "add_goods_type":
-		item := &dao.GoodsType{}
-		item.OID = company.ID
-		err := util.RequestBodyToJSON(context.Request.Body, item)
-		glog.Trace(err)
 
-		//fmt.Println(item)
-		err = controller.Goods.Add(Orm, item)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
-	case "change_goods_type":
-		item := &dao.GoodsType{}
-		err := util.RequestBodyToJSON(context.Request.Body, item)
-		glog.Trace(err)
-		err = controller.Goods.ChangeModel(Orm, item.ID, &dao.GoodsType{Name: item.Name})
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
-
-	case "del_goods_type_child":
-		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
-		return &gweb.JsonResult{Data: controller.Goods.DeleteGoodsTypeChild(ID)}
-	case "add_goods_type_child":
-		item := &dao.GoodsTypeChild{}
-		item.OID = company.ID
-		err := util.RequestBodyToJSON(context.Request.Body, item)
-		glog.Trace(err)
-		//fmt.Println(item)
-		err = controller.Goods.Add(Orm, item)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
-	case "change_goods_type_child":
-		item := &dao.GoodsTypeChild{}
-		err := util.RequestBodyToJSON(context.Request.Body, item)
-		glog.Trace(err)
-		err = controller.Goods.ChangeModel(Orm, item.ID, &dao.GoodsTypeChild{Name: item.Name, Image: item.Image})
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
 
 	}
 

@@ -130,7 +130,11 @@
             $.getJSON("/images/miniprogram/qrcode?Page={{.query.Page}}&UserID={{.query.UserID}}",function(result){
                 //console.log("/file/temp/load?path="+result.Data);
                 $.post("/configuration/list",JSON.stringify([1002]),function(configurationResult){
-                    onload("/file/temp/load?path="+result.Data,configurationResult.Data[1002]);
+                    let posterImageUrl = configurationResult.Data[1002];
+                    if (posterImageUrl.length==0|| posterImageUrl==undefined||posterImageUrl==""){
+                        posterImageUrl="resources/poster/images/poster.jpg";
+                    }
+                    onload("/file/temp/load?path="+result.Data,posterImageUrl);
                 },"json");
             });
 

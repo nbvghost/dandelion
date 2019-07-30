@@ -55,9 +55,258 @@ main.config(function ($routeProvider, $locationProvider) {
         templateUrl: "give_voucher",
         controller: "give_voucher_controller"
     });
+    $routeProvider.when("/goods_type_list", {
+        templateUrl: "goods_type_list",
+        controller: "goods_type_list_controller"
+    });
+
+    $routeProvider.when("/goods_type_child_list", {
+        templateUrl: "goods_type_child_list",
+        controller: "goods_type_child_list_controller"
+    });
 
 });
+main.controller("goods_type_child_list_controller",function ($http, $scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
 
+    var ID = $routeParams.ID;
+
+    if(ID==undefined||ID==""||ID==0){
+        alert("数据出错，无法添加");
+        window.history.back();
+        return
+    }
+
+
+    $scope.GoodsTypeChild={Image:""};
+
+    $scope.GoodsTypeChildModalObj={Title:"添加子系列",Action:"add_goods_type_child"};
+    $scope.ShowGoodsTypeChildModal = function () {
+
+        $('#goods_type_child_modal').modal({
+            onApprove : function() {
+
+            }
+        }).modal('show');
+
+    }
+    $scope.loadList =function(){
+
+        $http.get("goods?action=list_goods_type_child_id&ID="+ID,{}, {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+            $scope.GoodsTypeChildList = data.data.Data;
+        });
+
+    }
+    $scope.loadList();
+
+    $scope.deleteGoodsTypeChild = function(m){
+
+        if(confirm("确定删除："+m.Name+"?")){
+            $http.get("goods?action=del_goods_type_child&ID="+m.ID,{}, {
+                transformRequest: angular.identity,
+                headers: {"Content-Type": "application/json"}
+            }).then(function (data, status, headers, config) {
+
+                alert(data.data.Message);
+                $scope.loadList();
+
+            });
+        }
+    }
+    $scope.editGoodsTypeChild = function(m){
+
+        $scope.GoodsTypeChild=m;
+
+        $scope.GoodsTypeChildModalObj={Title:"修改子系列",Action:"change_goods_type_child"};
+
+        $('#goods_type_child_modal').modal('show');
+
+
+    }
+    $scope.saveGoodsTypeChild = function () {
+
+        if($scope.GoodsTypeChild.Image==""){
+
+            alert("请上传图片");
+            return
+        }
+
+        $scope.GoodsTypeChild.GoodsTypeID=parseInt(ID);
+        $http.post("goods?action="+$scope.GoodsTypeChildModalObj.Action,JSON.stringify($scope.GoodsTypeChild), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            $scope.GoodsTypeChild={Image:""};
+            alert(data.data.Message);
+            $('#goods_type_child_modal').modal("hide");
+
+            $scope.loadList();
+
+        });
+
+    }
+
+    $scope.uploadImages = function (progressID,file, errFiles) {
+
+        if (file) {
+            var thumbnail =Upload.upload({
+                url: '/file/up',
+                data: {file: file},
+            });
+            thumbnail.then(function (response) {
+                $timeout(function () {
+                    var url =response.data.Data;
+
+                    $scope.GoodsTypeChild.Image = url;
+
+                });
+            }, function (response) {
+                if (response.status > 0){
+                    $scope.errorMsg = response.status + ': ' + response.data;
+                }
+            }, function (evt) {
+                // Math.min is to fix IE which reports 200% sometimes
+                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                //$("."+progressID).text(progress+"%");
+                //$("."+progressID).css("width",progress+"%");
+            });
+        }else{
+            UpImageError(errFiles);
+        }
+    }
+
+});
+main.controller("goods_type_list_controller",function ($http, $scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
+
+    $scope.GoodsType={Name:""};
+
+    $scope.ModalType =[{Title:"添加系列",action:"add_goods_type"},{Title:"修改系列",action:"change_goods_type"}];
+
+    var table;
+    $scope.GoodsTypeModalObj =$scope.ModalType.add;
+    $scope.showGoodsTypeModal =function (index) {
+        $scope.GoodsTypeModalObj = $scope.ModalType[index];
+
+        $('#add_goods_type').modal({
+            onApprove : function() {
+
+            }
+        }).modal('show');
+    }
+    $scope.addGoodsType = function () {
+
+        $http.post("goods?action="+$scope.GoodsTypeModalObj.action,JSON.stringify($scope.GoodsType), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+
+            $scope.GoodsType={Name:""};
+            alert(data.data.Message);
+            $('#add_goods_type').modal("hide");
+
+            table.ajax.reload();
+        });
+
+    }
+
+    $timeout(function () {
+        table = $('#table_local').DataTable({
+            "columns": [
+                {data:"ID"},
+                {data:"Name"},
+                {data:null,className:"opera",orderable:false,render:function () {
+                        return '<button class="ui edit blue mini button">编辑</button>' +'<button class="ui child blue mini button">子类管理</button>' +
+                            '  <button class="ui delete red mini button">删除</button>';
+
+                    }}
+            ],
+            "createdRow": function ( row, data, index ) {
+                //console.log(row,data,index);
+            },
+            columnDefs:[
+
+            ],
+            "initComplete":function (d) {
+
+            },
+            paging: true,
+            //"dom": '<"toolbar">frtip',
+            "pagingType": "full_numbers",
+            searching: false,
+            "processing": true,
+            "serverSide": true,
+            "ajax": {
+                "url": "goods?action=list_goods_type",
+                "type": "POST",
+                "contentType": "application/json",
+                "data": function ( d ) {
+                    return JSON.stringify(d);
+                }
+            }
+        });
+
+        $('#table_local').on('click','td.opera .edit', function () {
+
+
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
+            console.log(row.data());
+
+            $timeout(function () {
+                $scope.GoodsType={Name:row.data().Name,ID:row.data().ID};
+                $scope.showGoodsTypeModal(1);
+            });
+
+        });
+        $('#table_local').on('click','td.opera .child', function () {
+
+
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
+            console.log(row.data());
+
+
+            window.location.href="#!/goods_type_child_list?ID="+row.data().ID;
+
+            $timeout(function () {
+                //$scope.GoodsType={Name:row.data().Name,ID:row.data().ID};
+                //$scope.showGoodsTypeModal(1);
+            });
+
+        });
+        $('#table_local').on('click','td.opera .delete', function () {
+
+
+            var tr = $(this).closest('tr');
+            var row = table.row( tr );
+
+            console.log(row.data());
+
+            /*$timeout(function () {
+                var data = row.data();
+                data.PassWord="";
+                $scope.onShowBox(data,1);
+            });*/
+
+            if(confirm("确定删除？")){
+                $http.get("goods?action=del_goods_type",{params:{ID:row.data().ID}}).then(function (data) {
+
+                    alert(data.data.Message);
+
+                    table.ajax.reload();
+
+                })
+            }
+
+
+
+        });
+    });
+
+});
 
 main.controller("give_voucher_controller",function ($http,$filter,$scope, $rootScope, $routeParams,$document,$timeout,$interval,Upload) {
     //showAddGiveVoucher

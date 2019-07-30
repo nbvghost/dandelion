@@ -543,12 +543,29 @@ func (service OrdersService) ListOrdersStatusCount(UserID uint64, Status []strin
 	db.Find(&orders).Count(&TotalRecords)
 	return
 }
-func (service OrdersService) ListCollageRecord(UserID uint64, Index int) (List interface{}) {
+
+type CollageRecord struct {
+	OrdersID      uint64    `gorm:"column:OrdersID"`
+	No            string    `gorm:"column:No"`
+	UserID        uint64    `gorm:"column:UserID"`
+	Collager      uint64    `gorm:"column:Collager"`
+	Favoured      string    `gorm:"column:Favoured"`
+	Goods         string    `gorm:"column:Goods"`
+	Specification string    `gorm:"column:Specification"`
+	Status         string    `gorm:"column:Status"`
+	IsPay         uint64    `gorm:"column:IsPay"`
+	Quantity      uint64    `gorm:"column:Quantity"`
+	CreatedAt     time.Time `gorm:"column:CreatedAt"`
+	COUNT         uint64    `gorm:"column:COUNT"`
+	IsPaySUM      uint64    `gorm:"column:SUM"`
+	//OrdersGoods dao.OrdersGoods
+}
+func (service OrdersService) ListCollageRecord(UserID uint64, Index int) []CollageRecord {
 	Orm := dao.Orm()
 
 	db := Orm.Raw(`
 SELECT
-o.ID AS OrdersID,cr.No,cr.UserID,cr.Collager,og.Favoured,og.Goods,og.Specification,o.IsPay AS IsPay,og.Quantity as Quantity,
+o.ID AS OrdersID,cr.No,cr.UserID,cr.Collager,og.Favoured,og.Goods,og.Specification,o.Status AS Status,o.IsPay AS IsPay,og.Quantity as Quantity,
 (SELECT mcr.CreatedAt FROM CollageRecord mcr WHERE mcr.NO=cr.NO AND mcr.Collager>0) AS CreatedAt,
 (SELECT COUNT(mo.IsPay) FROM CollageRecord mcr,Orders mo WHERE mcr.NO=cr.NO AND mo.OrderNo=mcr.OrderNo) AS COUNT,
 (SELECT SUM(mo.IsPay) FROM CollageRecord mcr,Orders mo WHERE mcr.NO=cr.NO AND mo.OrderNo=mcr.OrderNo) AS IsPaySUM
@@ -560,21 +577,7 @@ GROUP BY cr.No
 `, UserID)
 	//db := Orm.Raw("SELECT o.ID AS OrdersID,cr.No,cr.UserID,cr.Collager,cr.IsPay,sdf.*,og.Favoured,og.Goods,cr.CreatedAt as CreatedAt from User u,Orders o,CollageRecord cr,OrdersGoods og,(SELECT COUNT(cr.NO) AS COUNT,SUM(cr.IsPay) AS SUM FROM CollageRecord cr GROUP BY cr.NO) AS sdf WHERE cr.UserID=? AND u.ID=cr.UserID AND o.OrderNo=cr.OrderNo AND og.OrdersGoodsNo=cr.OrdersGoodsNo GROUP BY cr.No", UserID)
 
-	packs := []struct {
-		OrdersID      uint64    `gorm:"column:OrdersID"`
-		No            string    `gorm:"column:No"`
-		UserID        uint64    `gorm:"column:UserID"`
-		Collager      uint64    `gorm:"column:Collager"`
-		Favoured      string    `gorm:"column:Favoured"`
-		Goods         string    `gorm:"column:Goods"`
-		Specification string    `gorm:"column:Specification"`
-		IsPay         uint64    `gorm:"column:IsPay"`
-		Quantity      uint64    `gorm:"column:Quantity"`
-		CreatedAt     time.Time `gorm:"column:CreatedAt"`
-		COUNT         uint64    `gorm:"column:COUNT"`
-		IsPaySUM      uint64    `gorm:"column:SUM"`
-		//OrdersGoods dao.OrdersGoods
-	}{}
+	packs := make([]CollageRecord,0)
 	db = db.Limit(play.Paging).Offset(play.Paging * Index).Order("CreatedAt desc")
 	db.Scan(&packs)
 

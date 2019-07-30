@@ -24,7 +24,13 @@
 
 
 
+            {{if .debug}}
             $scope.admin = {account: "admin", password: "274455411"};
+            {{else}}
+            $scope.admin = {account: "", password: ""};
+            {{end}}
+
+
 
             $scope.login = function () {
 

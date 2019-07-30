@@ -64,12 +64,9 @@ func (controller *Controller) productsPage(context *gweb.Context) gweb.Result {
 func (controller *Controller) categoriesPage(context *gweb.Context) gweb.Result {
 	org:=controller.Organization.FindByDomain(dao.Orm(),context.PathParams["siteName"])
 	gts := controller.Goods.ListGoodsType(org.ID)
-	gtcs:=controller.Goods.ListGoodsTypeChildByOID(org.ID)
+	gtcs:=controller.Goods.ListGoodsTypeChildAll(org.ID)
 
 	//GoodsTypeID,GoodsTypeChildID
-
-
-
 
 	GoodsTypeMap:=make([]interface{},0)
 

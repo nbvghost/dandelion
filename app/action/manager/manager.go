@@ -75,7 +75,7 @@ func (controller *Controller) Apply() {
 	controller.AddHandler(gweb.POSMethod("give_voucher/save", controller.giveVoucherSaveAction))
 	controller.AddHandler(gweb.POSMethod("give_voucher/list", controller.giveVoucherListAction))
 
-	//controller.AddHandler(gweb.ALLMethod("goods", controller.GoodsAction))
+	controller.AddHandler(gweb.ALLMethod("goods", controller.GoodsAction))
 
 }
 func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
