@@ -856,8 +856,8 @@ func (service OrdersService) BuyCollageOrders(Session *gweb.Session, UserID, Goo
 	collage := service.Collage.GetCollageByGoodsID(goods.ID,goods.OID)
 	if collage.ID != 0 && collage.TotalNum > 0 {
 
-		favoured := dao.Favoured{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)}
-		ordersGoods.Favoured = util.StructToJSON(favoured)
+		favoured := dao.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)}
+		ordersGoods.Discounts = util.StructToJSON([]dao.Discount{favoured})
 	}
 
 	ogs := make([]dao.OrdersGoods, 0)
@@ -1013,7 +1013,7 @@ func (service OrdersService) AddOrders(orders *dao.Orders, list []dao.OrdersGood
 	}()
 	for _, value := range list {
 		(&value).OrdersGoods.OrdersID = orders.ID
-		(&value).OrdersGoods.Favoured = util.StructToJSON((&value).Favoured)
+		(&value).OrdersGoods.Discounts = util.StructToJSON((&value).Discounts)
 		err = service.Add(tx, &((&value).OrdersGoods))
 		if err != nil {
 			return err
@@ -1075,7 +1075,7 @@ func (service OrdersService) AnalyseOrdersGoodsList(UserID uint64, addressee dao
 	var golErr error
 	var TotalPrice uint64 = 0
 
-	for key, _ := range oslist {
+	for key:= range oslist {
 		result := make(map[string]interface{})
 
 		var org dao.Organization
@@ -1115,7 +1115,7 @@ func (service OrdersService) analyseOne(UserID, OID uint64, addressee dao.Addres
 
 	expresstemplateMap := make(map[uint64]dao.ExpressTemplateNMW)
 
-	for index, _ := range list {
+	for index := range list {
 		value := &list[index]
 		//value.ID = 5445
 		var goods dao.Goods
@@ -1143,12 +1143,12 @@ func (service OrdersService) analyseOne(UserID, OID uint64, addressee dao.Addres
 		//value.TotalBrokerage =
 
 		ogs := dao.OrdersGoodsInfo{}
-		ogs.Favoured = dao.Favoured{}
+		ogs.Discounts =make([]dao.Discount,0)
 		//ogss
 
-		var favoured dao.Favoured
-		if strings.EqualFold(value.Favoured, "") == false {
-			util.JSONToStruct(value.Favoured, &favoured)
+		var favoured dao.Discount
+		if strings.EqualFold(value.Discounts, "") == false {
+			util.JSONToStruct(value.Discounts, &favoured)
 		}
 		//计算价格以及优惠
 		if favoured.Discount > 0 {
@@ -1156,7 +1156,7 @@ func (service OrdersService) analyseOne(UserID, OID uint64, addressee dao.Addres
 			GoodsPrice = GoodsPrice + Price
 			Favoured := uint64(util.Rounding45(float64(value.SellPrice)*(float64(favoured.Discount)/float64(100)), 2))
 			FavouredPrice = FavouredPrice + (Favoured * uint64(value.Quantity))
-			ogs.Favoured = favoured
+			ogs.Discounts = []dao.Discount{favoured}
 			value.SellPrice = value.SellPrice - Favoured
 		} else {
 			GoodsPrice = GoodsPrice + Price

@@ -82,12 +82,12 @@ func (Admin) TableName() string {
 
 type OrdersGoodsInfo struct {
 	OrdersGoods OrdersGoods
-	Favoured    Favoured
+	Discounts    []Discount
 }
 type GoodsInfo struct {
 	Goods          Goods
 	Specifications []Specification
-	Favoured       Favoured
+	Discounts       []Discount
 }
 
 type Configuration struct {
@@ -135,7 +135,7 @@ func (UserFormIds) TableName() string {
 }
 
 //优惠商品
-type Favoured struct {
+type Discount struct {
 	Name     string
 	Target   string
 	TypeName string
@@ -395,19 +395,19 @@ type OrdersGoods struct {
 	Status        string `gorm:"column:Status"`               //OGAskRefund，OGRefundNo，OGRefundOk，OGRefundInfo，OGRefundComplete
 	RefundInfo    string `gorm:"column:RefundInfo;type:text"` //RefundInfo json 退款退货信息
 	OrdersID      uint64 `gorm:"column:OrdersID"`             //
-	//GoodsID         uint64 `gorm:"column:GoodsID"`                     //
-	//SpecificationID uint64 `gorm:"column:SpecificationID"`             //
 	Goods         string `gorm:"column:Goods;type:text"`         //josn
 	Specification string `gorm:"column:Specification;type:text"` //json
-	Favoured      string `gorm:"column:Favoured;type:text"`
-	//CollageNo     string `gorm:"column:CollageNo"` //拼团码，每个订单都是唯一
-	//TimeSellID     uint64 `gorm:"column:TimeSellID"`             //限时抢购ID
-	//TimeSell       string `gorm:"column:TimeSell;type:text"` //json
+	Discounts      string `gorm:"column:Discounts;type:JSON"`
 	Quantity       uint   `gorm:"column:Quantity"`       //数量
 	CostPrice      uint64 `gorm:"column:CostPrice"`      //单价-原价
 	SellPrice      uint64 `gorm:"column:SellPrice"`      //单价-销售价
 	TotalBrokerage uint64 `gorm:"column:TotalBrokerage"` //总佣金
 	Error          string `gorm:"column:Error"`          //
+	//SpecificationID uint64 `gorm:"column:SpecificationID"`             //
+	//CollageNo     string `gorm:"column:CollageNo"` //拼团码，每个订单都是唯一
+	//TimeSellID     uint64 `gorm:"column:TimeSellID"`             //限时抢购ID
+	//TimeSell       string `gorm:"column:TimeSell;type:text"` //json
+	//GoodsID         uint64 `gorm:"column:GoodsID"`                     //
 }
 
 func (og OrdersGoods) AddError(err string) {

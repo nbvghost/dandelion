@@ -181,15 +181,15 @@ func (service GoodsService) GetGoodsInfo(goods dao.Goods) dao.GoodsInfo {
 	timeSell := service.TimeSell.GetTimeSellByGoodsID(goods.ID, goods.OID)
 	goodsInfo := dao.GoodsInfo{}
 	goodsInfo.Goods = goods
-	goodsInfo.Favoured = dao.Favoured{}
+	goodsInfo.Discounts =make([]dao.Discount,0)
 
 	if timeSell.IsEnable() {
 		//Favoured:=uint64(util.Rounding45(float64(goods.Price)*(float64(timeSell.Discount)/float64(100)), 2))
-		goodsInfo.Favoured = dao.Favoured{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint64(timeSell.Discount)}
+		goodsInfo.Discounts = append(goodsInfo.Discounts, dao.Discount{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint64(timeSell.Discount)})
 	} else {
 		collage := service.Collage.GetCollageByGoodsID(goods.ID,goods.OID)
 		if collage.ID != 0 && collage.TotalNum > 0 {
-			goodsInfo.Favoured = dao.Favoured{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)}
+			goodsInfo.Discounts = append(goodsInfo.Discounts,dao.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)})
 		}
 
 	}
@@ -380,14 +380,14 @@ func (service GoodsService) GetGoodsInfoList(UserID uint64, goodsList []dao.Good
 		timeSell := service.TimeSell.GetTimeSellByGoodsID(value.ID, value.OID)
 		goodsInfo := dao.GoodsInfo{}
 		goodsInfo.Goods = value
-		goodsInfo.Favoured = dao.Favoured{}
+		goodsInfo.Discounts = make([]dao.Discount,0)
 		if timeSell.IsEnable() {
 			//Favoured:=uint64(util.Rounding45(float64(value.Price)*(float64(timeSell.Discount)/float64(100)), 2))
-			goodsInfo.Favoured = dao.Favoured{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint64(timeSell.Discount)}
+			goodsInfo.Discounts = append(goodsInfo.Discounts,dao.Discount{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint64(timeSell.Discount)})
 		} else {
 			collage := service.Collage.GetCollageByGoodsID(value.ID,value.OID)
 			if collage.ID != 0 && collage.TotalNum > 0 {
-				goodsInfo.Favoured = dao.Favoured{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)}
+				goodsInfo.Discounts = append(goodsInfo.Discounts,dao.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)})
 			}
 
 		}
