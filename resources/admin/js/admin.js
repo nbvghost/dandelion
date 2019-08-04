@@ -3950,7 +3950,7 @@ main.controller("collage_manager_controller",function ($http,$filter,$scope, $ro
             "serverSide": true,
             "ajax": {
                 //"url": "goods?action=list_goods",
-                "url": "goods?action=collage_goods&Hash="+$routeParams.Hash,
+                "url": "goods?action=activity_goods&Hash="+$routeParams.Hash,
                 "type": "POST",
                 "contentType": "application/json",
                 "data": function ( d ) {
@@ -4135,7 +4135,7 @@ main.controller("timesell_manager_controller",function ($http,$filter,$scope, $r
             "serverSide": true,
             "ajax": {
                 //"url": "goods?action=list_goods",
-                "url": "goods?action=timesell_goods&Hash="+$routeParams.Hash,
+                "url": "goods?action=activity_goods&Hash="+$routeParams.Hash,
                 "type": "POST",
                 "contentType": "application/json",
                 "data": function ( d ) {
@@ -4752,7 +4752,7 @@ main.controller("add_goods_controller",function ($http, $scope, $rootScope, $rou
         //$scope.Goods.Specifications = $scope.Specifications;
         $scope.Goods.GoodsTypeID = parseInt($scope.GoodsTypeID);
         $scope.Goods.GoodsTypeChildID = parseInt($scope.GoodsTypeChildID);
-        $scope.Goods.Price =parseInt($scope.Goods.Price*100);
+        $scope.Goods.Price =$scope.Goods.Price*100;//parseInt($scope.Goods.Price*100);
         /*var form = new FormData();
         form.append("goods",JSON.stringify($scope.Goods));
         form.append("specifications",JSON.stringify($scope.Specifications));*/

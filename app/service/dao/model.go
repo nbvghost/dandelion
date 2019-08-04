@@ -473,8 +473,8 @@ type Orders struct {
 	UserID          uint64    `gorm:"column:UserID"`          //用户ID
 	PrepayID        string    `gorm:"column:PrepayID"`        //
 	IsPay           uint64    `gorm:"column:IsPay"`           //是否支付成功,0=未支付，1，支付成功，2过期
-	OrdersPackageNo string    `gorm:"column:OrdersPackageNo"` //订单号
 	OrderNo         string    `gorm:"column:OrderNo;unique"`  //订单号
+	OrdersPackageNo string    `gorm:"column:OrdersPackageNo"` //订单号
 	PayMoney        uint64    `gorm:"column:PayMoney"`        //支付价
 	PostType        int       `gorm:"column:PostType"`        //1=邮寄，2=线下使用
 	Status          string    `gorm:"column:Status"`          //状态

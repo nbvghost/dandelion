@@ -275,25 +275,21 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		item.OID = company.ID
 		err = controller.Goods.SaveGoods(item, specifications)
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
-	case "timesell_goods":
+	case "activity_goods":
 		//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 		//Hash := context.Request.URL.Query().Get("Hash")
 		dts := &dao.Datatables{}
 		//dts.Draw = 10
 		//dts.Length = play.Paging
 		util.RequestBodyToJSON(context.Request.Body, dts)
-		var GoodsIDs []uint64
-		Orm.Model(&dao.TimeSellGoods{}).Where("OID=?", company.ID).Pluck("GoodsID", &GoodsIDs)
-		dts.NotIDs = GoodsIDs
-		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.Goods{}, company.ID, "")
-		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
-	case "collage_goods":
-		dts := &dao.Datatables{}
-		util.RequestBodyToJSON(context.Request.Body, dts)
-		var GoodsIDs []uint64
-		//Orm.Model(&dao.Collage{}).Pluck("GoodsID", &GoodsIDs)
-		Orm.Model(&dao.CollageGoods{}).Where("OID=?", company.ID).Pluck("GoodsID", &GoodsIDs)
-		dts.NotIDs = GoodsIDs
+		var TimeSellGoodsIDs []uint64
+		Orm.Model(&dao.TimeSellGoods{}).Where("OID=?", company.ID).Pluck("GoodsID", &TimeSellGoodsIDs)
+		var CollageGoodsIDs []uint64
+		Orm.Model(&dao.CollageGoods{}).Where("OID=?", company.ID).Pluck("GoodsID", &CollageGoodsIDs)
+		ActivityGoods:=make([]uint64,0)
+		ActivityGoods=append(ActivityGoods,TimeSellGoodsIDs...)
+		ActivityGoods=append(ActivityGoods,CollageGoodsIDs...)
+		dts.NotIDs = ActivityGoods
 		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.Goods{}, company.ID, "")
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 	case "list_goods":
@@ -312,9 +308,8 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
 	case "list_goods_type_child_id":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
-		gts := controller.Goods.ListGoodsTypeChild(ID)
+		gts := controller.Goods.ListAllGoodsTypeChild(ID)
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
-
 	case "list_goods_type_all":
 		gts := controller.Goods.ListGoodsTypeForAdmin(company.ID)
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}

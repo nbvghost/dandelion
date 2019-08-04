@@ -130,7 +130,7 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
 	case "list_goods_type_child_id":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
-		gts := controller.Goods.ListGoodsTypeChild(ID)
+		gts := controller.Goods.ListAllGoodsTypeChild(ID)
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
 
 	case "list_goods_type_all":

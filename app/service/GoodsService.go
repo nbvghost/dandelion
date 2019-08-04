@@ -372,25 +372,28 @@ func (service GoodsService) AllList() []dao.Goods {
 	return result
 
 }
+func (service GoodsService) GetDiscounts(GoodsID,OID uint64) []dao.Discount {
+	discounts := make([]dao.Discount,0)
+	timeSell := service.TimeSell.GetTimeSellByGoodsID(GoodsID, OID)
+	if timeSell.IsEnable() {
+		//Favoured:=uint64(util.Rounding45(float64(value.Price)*(float64(timeSell.Discount)/float64(100)), 2))
+		discounts = append(discounts,dao.Discount{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint64(timeSell.Discount)})
+	} else {
+		collage := service.Collage.GetCollageByGoodsID(GoodsID,OID)
+		if collage.ID != 0 && collage.TotalNum > 0 {
+			discounts = append(discounts,dao.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)})
+		}
+	}
+	return discounts
+}
 func (service GoodsService) GetGoodsInfoList(UserID uint64, goodsList []dao.Goods) []dao.GoodsInfo {
 
 	var results = make([]dao.GoodsInfo, 0)
 
 	for _, value := range goodsList {
-		timeSell := service.TimeSell.GetTimeSellByGoodsID(value.ID, value.OID)
 		goodsInfo := dao.GoodsInfo{}
 		goodsInfo.Goods = value
-		goodsInfo.Discounts = make([]dao.Discount,0)
-		if timeSell.IsEnable() {
-			//Favoured:=uint64(util.Rounding45(float64(value.Price)*(float64(timeSell.Discount)/float64(100)), 2))
-			goodsInfo.Discounts = append(goodsInfo.Discounts,dao.Discount{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint64(timeSell.Discount)})
-		} else {
-			collage := service.Collage.GetCollageByGoodsID(value.ID,value.OID)
-			if collage.ID != 0 && collage.TotalNum > 0 {
-				goodsInfo.Discounts = append(goodsInfo.Discounts,dao.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)})
-			}
-
-		}
+		goodsInfo.Discounts =service.GetDiscounts(value.ID,value.OID)
 		results = append(results, goodsInfo)
 	}
 
@@ -502,6 +505,17 @@ func (service GoodsService) ListGoodsType(OID uint64) []dao.GoodsType {
 	Orm.Model(&dao.GoodsType{}).Where("ID in (?)",gtsIDs).Find(&gts)
 	return gts
 }
+func (service GoodsService) ListAllGoodsTypeChild(GoodsTypeID uint64) []dao.GoodsTypeChild {
+	/*Orm := dao.Orm()
+	var gts []dao.GoodsTypeChild
+	service.FindWhere(Orm, &gts, dao.GoodsTypeChild{GoodsTypeID: GoodsTypeID})
+	return gts*/
+	Orm := dao.Orm()
+	var gts []dao.GoodsTypeChild
+	Orm.Model(&dao.GoodsTypeChild{}).Where("GoodsTypeID=?",GoodsTypeID).Find(&gts)
+	return gts
+}
+
 func (service GoodsService) ListGoodsTypeChild(GoodsTypeID uint64) []dao.GoodsTypeChild {
 	/*Orm := dao.Orm()
 	var gts []dao.GoodsTypeChild

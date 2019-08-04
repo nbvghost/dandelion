@@ -223,16 +223,15 @@ func (controller *OrderController) createOrdersAction(context *gweb.Context) gwe
 			}
 			for _, value := range results {
 
-				oggs := value["OrdersGoodsInfos"].([]dao.OrdersGoodsInfo)
+				oggs := value.OrdersGoodsInfos
 				OrdersGoodsLen = math.Max(float64(OrdersGoodsLen), float64(len(oggs)))
 
 				//result["OrdersGoodsInfos"]=oggs
-				FavouredPrice := value["FavouredPrice"].(uint64)
-				FullCutAll := value["FullCutAll"].(uint64)
-				GoodsPrice := value["GoodsPrice"].(uint64)
-				ExpressPrice := value["ExpressPrice"].(uint64)
-
-				organization := value["Organization"].(dao.Organization)
+				FavouredPrice := value.FavouredPrice
+				FullCutAll := value.FullCutAll
+				GoodsPrice := value.GoodsPrice
+				ExpressPrice := value.ExpressPrice
+				organization := value.Organization
 
 				PayMoney := GoodsPrice - FullCutAll + ExpressPrice //支付价格已经包含了 满减，限时抢购的扣去的部分  - _FullCutPrice-FavouredPrice
 
@@ -265,16 +264,15 @@ func (controller *OrderController) createOrdersAction(context *gweb.Context) gwe
 
 			for _, value := range results {
 
-				oggs := value["OrdersGoodsInfos"].([]dao.OrdersGoodsInfo)
+				oggs := value.OrdersGoodsInfos
 				OrdersGoodsNo = oggs[0].OrdersGoods.OrdersGoodsNo
 				OrdersGoodsLen = math.Max(float64(OrdersGoodsLen), float64(len(oggs)))
 				//result["OrdersGoodsInfos"]=oggs
-				FavouredPrice := value["FavouredPrice"].(uint64)
-				FullCutAll := value["FullCutAll"].(uint64)
-				GoodsPrice := value["GoodsPrice"].(uint64)
-				ExpressPrice := value["ExpressPrice"].(uint64)
-
-				organization := value["Organization"].(dao.Organization)
+				FavouredPrice := value.FavouredPrice
+				FullCutAll := value.FullCutAll
+				GoodsPrice := value.GoodsPrice
+				ExpressPrice := value.ExpressPrice
+				organization := value.Organization
 
 				PayMoney := GoodsPrice - FullCutAll + ExpressPrice //支付价格已经包含了 满减，限时抢购的扣去的部分  - _FullCutPrice-FavouredPrice
 

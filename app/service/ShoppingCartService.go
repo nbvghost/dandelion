@@ -72,7 +72,7 @@ func (service ShoppingCartService) FindShoppingCartByUserID(UserID uint64) []dao
 	glog.Error(err)
 	return list
 }
-func (service ShoppingCartService) FindShoppingCartListDetails(UserID uint64) (error, []map[string]interface{}, uint64) {
+func (service ShoppingCartService) FindShoppingCartListDetails(UserID uint64) (error,  []AnalyseOrdersGoods, uint64) {
 	//Orm := Orm()
 	ordersService := OrdersService{}
 
@@ -82,7 +82,7 @@ func (service ShoppingCartService) FindShoppingCartListDetails(UserID uint64) (e
 
 	oredersGoodsList := make([]dao.OrdersGoods, 0)
 
-	for key, _ := range list {
+	for key := range list {
 
 		oredersGoods := ordersService.createOrdersGoods(list[key])
 		oredersGoodsList = append(oredersGoodsList, oredersGoods)

@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/nbvghost/glog"
 
 	"dandelion/app/play"
 	"dandelion/app/service/dao"
@@ -419,8 +420,10 @@ func (service OrdersService) Cancel(OrdersID uint64) (error, string) {
 			} else {
 				//没支付的订单
 				Success, Message1 := service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", 0)
+				glog.Trace("Orders","Cancel",Message1)
 				if Success == false {
 					Success, Message1 = service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", 1)
+					glog.Trace("Orders","Cancel",Message1)
 				}
 
 				if Success {
@@ -433,7 +436,7 @@ func (service OrdersService) Cancel(OrdersID uint64) (error, string) {
 					//管理商品库存
 					service.Goods.OrdersStockManager(orders, false)
 					err := service.ChangeMap(Orm, OrdersID, &dao.Orders{}, map[string]interface{}{"Status": play.OS_CancelOk})
-					return err, Message1 + "，取消成功"
+					return err, "取消成功"
 
 					//return errors.New(Message1), ""
 					/*Success, Message2 := service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", 1)
@@ -967,6 +970,7 @@ func (service OrdersService) createOrdersGoods(shoppingCart dao.ShoppingCart) da
 	ordersGoods.CostPrice = specification.MarketPrice
 	ordersGoods.SellPrice = specification.MarketPrice
 	ordersGoods.OrdersGoodsNo = tool.UUID()
+	ordersGoods.Discounts =util.StructToJSON(service.Goods.GetDiscounts(goods.ID,goods.OID))
 
 	/*//限时抢购
 	timesell := service.TimeSell.GetTimeSellByGoodsID(goods.ID)
@@ -1058,8 +1062,18 @@ func (service OrdersService) ChangeOrdersPayMoney(PayMoney float64, OrdersID uin
 
 }
 
+type AnalyseOrdersGoods struct {
+	Organization dao.Organization
+	Error error
+	OrdersGoodsInfos []dao.OrdersGoodsInfo
+	FavouredPrice uint64
+	FullCutAll uint64
+	GoodsPrice uint64
+	ExpressPrice uint64
+	FullCut dao.FullCut
+}
 //订单分析，
-func (service OrdersService) AnalyseOrdersGoodsList(UserID uint64, addressee dao.Address, PostType int, AllList []dao.OrdersGoods) (error, []map[string]interface{}, uint64) {
+func (service OrdersService) AnalyseOrdersGoodsList(UserID uint64, addressee dao.Address, PostType int, AllList []dao.OrdersGoods) (error, []AnalyseOrdersGoods, uint64) {
 
 	oslist := make(map[uint64][]dao.OrdersGoods)
 	for index, v := range AllList {
@@ -1070,29 +1084,29 @@ func (service OrdersService) AnalyseOrdersGoodsList(UserID uint64, addressee dao
 		oslist[v.OID] = append(oslist[v.OID], AllList[index])
 	}
 
-	out_result := make([]map[string]interface{}, 0)
+	out_result := make([]AnalyseOrdersGoods, 0)
 
 	var golErr error
 	var TotalPrice uint64 = 0
 
 	for key:= range oslist {
-		result := make(map[string]interface{})
+		result := AnalyseOrdersGoods{}
 
 		var org dao.Organization
 		service.Organization.Get(dao.Orm(), key, &org)
-		result["Organization"] = org
 
 		Error, fullcut, oggs, FavouredPrice, FullCutAll, GoodsPrice, ExpressPrice := service.analyseOne(UserID, org.ID, addressee, PostType, oslist[key])
 		if Error != nil {
 			golErr = Error
 		}
-		result["Error"] = Error
-		result["OrdersGoodsInfos"] = oggs
-		result["FavouredPrice"] = FavouredPrice
-		result["FullCutAll"] = FullCutAll
-		result["GoodsPrice"] = GoodsPrice
-		result["ExpressPrice"] = ExpressPrice
-		result["FullCut"] = fullcut
+		result.Error = Error
+		result.Organization = org
+		result.OrdersGoodsInfos = oggs
+		result.FavouredPrice = FavouredPrice
+		result.FullCutAll = FullCutAll
+		result.GoodsPrice = GoodsPrice
+		result.ExpressPrice = ExpressPrice
+		result.FullCut = fullcut
 
 		TotalPrice = TotalPrice + (GoodsPrice - FullCutAll + ExpressPrice)
 		out_result = append(out_result, result)
@@ -1146,18 +1160,22 @@ func (service OrdersService) analyseOne(UserID, OID uint64, addressee dao.Addres
 		ogs.Discounts =make([]dao.Discount,0)
 		//ogss
 
-		var favoured dao.Discount
+		var discounts []dao.Discount
 		if strings.EqualFold(value.Discounts, "") == false {
-			util.JSONToStruct(value.Discounts, &favoured)
+			util.JSONToStruct(value.Discounts, &discounts)
 		}
 		//计算价格以及优惠
-		if favoured.Discount > 0 {
-			Price = uint64(util.Rounding45(float64(Price)-(float64(Price)*(float64(favoured.Discount)/float64(100))), 2))
-			GoodsPrice = GoodsPrice + Price
-			Favoured := uint64(util.Rounding45(float64(value.SellPrice)*(float64(favoured.Discount)/float64(100)), 2))
-			FavouredPrice = FavouredPrice + (Favoured * uint64(value.Quantity))
-			ogs.Discounts = []dao.Discount{favoured}
-			value.SellPrice = value.SellPrice - Favoured
+		if len(discounts) > 0 {
+			for index:=range discounts{
+				favoured:=discounts[index]
+				Price = uint64(util.Rounding45(float64(Price)-(float64(Price)*(float64(favoured.Discount)/float64(100))), 2))
+				GoodsPrice = GoodsPrice + Price
+				Favoured := uint64(util.Rounding45(float64(value.SellPrice)*(float64(favoured.Discount)/float64(100)), 2))
+				FavouredPrice = FavouredPrice + (Favoured * uint64(value.Quantity))
+				value.SellPrice = value.SellPrice - Favoured
+			}
+			ogs.Discounts = discounts
+
 		} else {
 			GoodsPrice = GoodsPrice + Price
 			FullCutPrice = FullCutPrice + Price
