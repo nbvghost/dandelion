@@ -110,14 +110,14 @@ func (service TimeSellService) GetTimeSellByHash(Hash string, OID uint64) dao.Ti
 }
 
 //todo:
-func (service TimeSellService) GetTimeSellByGoodsID(GoodsID uint64, OID uint64) dao.TimeSell {
+func (service TimeSellService) GetTimeSellByGoodsID(GoodsID uint64, OID uint64) *dao.TimeSell {
 	//timesellGoods := service.GetTimeSellGoodsByGoodsID(GoodsID, OID)
 	var timesellGoods dao.TimeSellGoods
 	dao.Orm().Model(&dao.TimeSellGoods{}).Where("GoodsID=? and OID=?", GoodsID, OID).First(&timesellGoods)
 
 	var timesell dao.TimeSell
 	dao.Orm().Model(&dao.TimeSell{}).Where("Hash=? and OID=?", timesellGoods.TimeSellHash, timesellGoods.OID).First(&timesell)
-	return timesell
+	return &timesell
 }
 func (service TimeSellService) GetTimeSellGoodsByGoodsID(GoodsID uint64, OID uint64) dao.TimeSellGoods {
 	var timesellGoods dao.TimeSellGoods

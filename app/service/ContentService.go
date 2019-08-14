@@ -199,8 +199,7 @@ func (service ContentService) ListContentTypeByType(Type string) dao.ContentType
 func (service ContentService) FindContentSubTypesByNameAndContentID(Name string, ContentID uint64) dao.ContentSubType {
 	Orm := dao.Orm()
 	var cst dao.ContentSubType
-	err := Orm.Where("ContentID=? and Name=?", ContentID, Name).First(&cst).Error
-	glog.Error(err)
+	Orm.Where("ContentID=? and Name=?", ContentID, Name).First(&cst)
 	return cst
 }
 

@@ -238,11 +238,11 @@
 <div id="wrapper">
     <ul>
         <li ng-repeat="m in articles" repeat-finish="repeatDone();">
-            <a target="_blank" href="article/@{m.ID}@">
+            <a href="article/@{m.ID}@">
                 <div class="Title">@{m.Title}@</div>
                 <div class="Content">
                     <div class="left">
-                        <img ng-src="/file/load?path=@{m.Thumbnail}@">
+                        <img ng-src="@{m.Thumbnail}@">
                     </div>
                     <div class="right">
                         <div class="top">

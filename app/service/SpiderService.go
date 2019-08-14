@@ -188,7 +188,8 @@ func (spider SpiderService) GetArticleQueryDataAndAdd(body io.ReadCloser, Conten
 		//fmt.Println(s.Find(".txt-box .img-d a img").Nodes[0])
 
 		imgs, _ := s.Find(".img-box a img").Attr("src")
-		imgsurl := spider.File.DownNetWriteAliyunOSS("http:" + imgs)
+		//imgsurl := spider.File.DownNetWriteAliyunOSS("http:" + imgs)
+		imgsurl := "/file/load?path="+spider.File.DownNetImage("http:" + imgs)
 		//fmt.Println(ds)
 		//fmt.Println(imgs)
 
@@ -222,7 +223,7 @@ func (spider SpiderService) GetArticleQueryDataAndAdd(body io.ReadCloser, Conten
 			}
 			//fmt.Println(timedate)
 			//fmt.Println(df)
-			spider.Article.AddSpiderArticle(spider.OID, "嘉恋文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
+			spider.Article.AddSpiderArticle(spider.OID, "热点文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
 
 		}
 
@@ -245,7 +246,8 @@ func (spider SpiderService) GetArticleDataAndAdd(body io.ReadCloser, ContentSubT
 		//fmt.Printf("Review %s\n",ee)
 
 		imgs, _ := s.Find(".img-box a img").Attr("src")
-		imgsurl := spider.File.DownNetWriteAliyunOSS("http:" + imgs)
+		//imgsurl := spider.File.DownNetWriteAliyunOSS("http:" + imgs)
+		imgsurl := "/file/load?path="+spider.File.DownNetImage("http:" + imgs)
 		//fmt.Println(ds)
 		//fmt.Println(imgs)
 
@@ -279,7 +281,7 @@ func (spider SpiderService) GetArticleDataAndAdd(body io.ReadCloser, ContentSubT
 			}
 			//fmt.Println(timedate)
 			//fmt.Println(df)
-			spider.Article.AddSpiderArticle(spider.OID, "嘉恋文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
+			spider.Article.AddSpiderArticle(spider.OID, "热点文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
 
 		}
 
@@ -347,7 +349,8 @@ func (spider SpiderService) ReadWeiXinArticle(url string) string {
 				//fmt.Println(vatt.Val)
 				//vatt.Val = DownNetImage(vatt.Val)
 				value.Attr[index].Key = "data-src"
-				value.Attr[index].Val = spider.File.DownNetWriteAliyunOSS(vatt.Val)
+				//value.Attr[index].Val = spider.File.DownNetWriteAliyunOSS(vatt.Val)
+				value.Attr[index].Val = "/file/load?path="+spider.File.DownNetImage(vatt.Val)
 				att := html.Attribute{}
 				att.Key = "src"
 				att.Val = value.Attr[index].Val
