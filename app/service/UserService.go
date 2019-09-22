@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"dandelion/app/play"
-	"dandelion/app/service/dao"
-	"dandelion/app/util"
+	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/util"
 
 	"github.com/jinzhu/gorm"
 	"github.com/nbvghost/glog"

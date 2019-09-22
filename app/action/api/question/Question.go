@@ -1,7 +1,7 @@
 package question
 
 import (
-	"dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/service"
 
 	"github.com/nbvghost/gweb"
 )

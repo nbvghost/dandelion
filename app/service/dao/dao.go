@@ -5,7 +5,7 @@ import (
 
 	"github.com/nbvghost/glog"
 
-	"dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/play"
 	//"github.com/go-gorp/gorp"
 	//_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"

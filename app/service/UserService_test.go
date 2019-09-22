@@ -3,7 +3,7 @@ package service
 import (
 	"testing"
 
-	"dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/service/dao"
 )
 
 func TestUserService_SettlementUser(t *testing.T) {

@@ -1,15 +1,15 @@
 package admin
 
 import (
-	"dandelion/app/play"
-	"dandelion/app/service"
-	"dandelion/app/util"
+	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/util"
 	"net/url"
 	"strings"
 
 	"github.com/nbvghost/glog"
 
-	"dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/service/dao"
 
 	"errors"
 	"strconv"
@@ -286,9 +286,9 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		Orm.Model(&dao.TimeSellGoods{}).Where("OID=?", company.ID).Pluck("GoodsID", &TimeSellGoodsIDs)
 		var CollageGoodsIDs []uint64
 		Orm.Model(&dao.CollageGoods{}).Where("OID=?", company.ID).Pluck("GoodsID", &CollageGoodsIDs)
-		ActivityGoods:=make([]uint64,0)
-		ActivityGoods=append(ActivityGoods,TimeSellGoodsIDs...)
-		ActivityGoods=append(ActivityGoods,CollageGoodsIDs...)
+		ActivityGoods := make([]uint64, 0)
+		ActivityGoods = append(ActivityGoods, TimeSellGoodsIDs...)
+		ActivityGoods = append(ActivityGoods, CollageGoodsIDs...)
 		dts.NotIDs = ActivityGoods
 		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.Goods{}, company.ID, "")
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
@@ -320,7 +320,6 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 
 		//--------------------------------------
-
 
 	}
 

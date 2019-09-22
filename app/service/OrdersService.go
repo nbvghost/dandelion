@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/nbvghost/glog"
 
-	"dandelion/app/play"
-	"dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/service/dao"
 
-	"dandelion/app/util"
+	"github.com/nbvghost/dandelion/app/util"
 
 	"errors"
 
@@ -420,10 +420,10 @@ func (service OrdersService) Cancel(OrdersID uint64) (error, string) {
 			} else {
 				//没支付的订单
 				Success, Message1 := service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", 0)
-				glog.Trace("Orders","Cancel",Message1)
+				glog.Trace("Orders", "Cancel", Message1)
 				if Success == false {
 					Success, Message1 = service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", 1)
-					glog.Trace("Orders","Cancel",Message1)
+					glog.Trace("Orders", "Cancel", Message1)
 				}
 
 				if Success {
@@ -555,7 +555,7 @@ type CollageRecord struct {
 	Favoured      string    `gorm:"column:Favoured"`
 	Goods         string    `gorm:"column:Goods"`
 	Specification string    `gorm:"column:Specification"`
-	Status         string    `gorm:"column:Status"`
+	Status        string    `gorm:"column:Status"`
 	IsPay         uint64    `gorm:"column:IsPay"`
 	Quantity      uint64    `gorm:"column:Quantity"`
 	CreatedAt     time.Time `gorm:"column:CreatedAt"`
@@ -563,6 +563,7 @@ type CollageRecord struct {
 	IsPaySUM      uint64    `gorm:"column:SUM"`
 	//OrdersGoods dao.OrdersGoods
 }
+
 func (service OrdersService) ListCollageRecord(UserID uint64, Index int) []CollageRecord {
 	Orm := dao.Orm()
 
@@ -580,7 +581,7 @@ GROUP BY cr.No
 `, UserID)
 	//db := Orm.Raw("SELECT o.ID AS OrdersID,cr.No,cr.UserID,cr.Collager,cr.IsPay,sdf.*,og.Favoured,og.Goods,cr.CreatedAt as CreatedAt from User u,Orders o,CollageRecord cr,OrdersGoods og,(SELECT COUNT(cr.NO) AS COUNT,SUM(cr.IsPay) AS SUM FROM CollageRecord cr GROUP BY cr.NO) AS sdf WHERE cr.UserID=? AND u.ID=cr.UserID AND o.OrderNo=cr.OrderNo AND og.OrdersGoodsNo=cr.OrdersGoodsNo GROUP BY cr.No", UserID)
 
-	packs := make([]CollageRecord,0)
+	packs := make([]CollageRecord, 0)
 	db = db.Limit(play.Paging).Offset(play.Paging * Index).Order("CreatedAt desc")
 	db.Scan(&packs)
 
@@ -856,7 +857,7 @@ func (service OrdersService) BuyCollageOrders(Session *gweb.Session, UserID, Goo
 	ordersGoods := service.createOrdersGoods(shoppingCart)
 
 	//ordersGoods.CollageNo = tool.UUID()
-	collage := service.Collage.GetCollageByGoodsID(goods.ID,goods.OID)
+	collage := service.Collage.GetCollageByGoodsID(goods.ID, goods.OID)
 	if collage.ID != 0 && collage.TotalNum > 0 {
 
 		favoured := dao.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)}
@@ -970,7 +971,7 @@ func (service OrdersService) createOrdersGoods(shoppingCart dao.ShoppingCart) da
 	ordersGoods.CostPrice = specification.MarketPrice
 	ordersGoods.SellPrice = specification.MarketPrice
 	ordersGoods.OrdersGoodsNo = tool.UUID()
-	ordersGoods.Discounts =util.StructToJSON(service.Goods.GetDiscounts(goods.ID,goods.OID))
+	ordersGoods.Discounts = util.StructToJSON(service.Goods.GetDiscounts(goods.ID, goods.OID))
 
 	/*//限时抢购
 	timesell := service.TimeSell.GetTimeSellByGoodsID(goods.ID)
@@ -1063,15 +1064,16 @@ func (service OrdersService) ChangeOrdersPayMoney(PayMoney float64, OrdersID uin
 }
 
 type AnalyseOrdersGoods struct {
-	Organization dao.Organization
-	Error error
+	Organization     dao.Organization
+	Error            error
 	OrdersGoodsInfos []dao.OrdersGoodsInfo
-	FavouredPrice uint64
-	FullCutAll uint64
-	GoodsPrice uint64
-	ExpressPrice uint64
-	FullCut dao.FullCut
+	FavouredPrice    uint64
+	FullCutAll       uint64
+	GoodsPrice       uint64
+	ExpressPrice     uint64
+	FullCut          dao.FullCut
 }
+
 //订单分析，
 func (service OrdersService) AnalyseOrdersGoodsList(UserID uint64, addressee dao.Address, PostType int, AllList []dao.OrdersGoods) (error, []AnalyseOrdersGoods, uint64) {
 
@@ -1089,7 +1091,7 @@ func (service OrdersService) AnalyseOrdersGoodsList(UserID uint64, addressee dao
 	var golErr error
 	var TotalPrice uint64 = 0
 
-	for key:= range oslist {
+	for key := range oslist {
 		result := AnalyseOrdersGoods{}
 
 		var org dao.Organization
@@ -1157,7 +1159,7 @@ func (service OrdersService) analyseOne(UserID, OID uint64, addressee dao.Addres
 		//value.TotalBrokerage =
 
 		ogs := dao.OrdersGoodsInfo{}
-		ogs.Discounts =make([]dao.Discount,0)
+		ogs.Discounts = make([]dao.Discount, 0)
 		//ogss
 
 		var discounts []dao.Discount
@@ -1166,8 +1168,8 @@ func (service OrdersService) analyseOne(UserID, OID uint64, addressee dao.Addres
 		}
 		//计算价格以及优惠
 		if len(discounts) > 0 {
-			for index:=range discounts{
-				favoured:=discounts[index]
+			for index := range discounts {
+				favoured := discounts[index]
 				Price = uint64(util.Rounding45(float64(Price)-(float64(Price)*(float64(favoured.Discount)/float64(100))), 2))
 				GoodsPrice = GoodsPrice + Price
 				Favoured := uint64(util.Rounding45(float64(value.SellPrice)*(float64(favoured.Discount)/float64(100)), 2))

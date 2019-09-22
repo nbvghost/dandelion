@@ -1,7 +1,7 @@
 package api
 
 import (
-	"dandelion/app/action/api/question"
+	"github.com/nbvghost/dandelion/app/action/api/question"
 
 	"github.com/nbvghost/gweb"
 )

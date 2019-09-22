@@ -1,7 +1,7 @@
 package district
 
 import (
-	"dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/service"
 
 	"strings"
 

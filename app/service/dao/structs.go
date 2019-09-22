@@ -12,6 +12,7 @@ type ExpressTemplateItem struct {
 	AN    int
 	ANM   float64 //增加，元
 }
+
 func (etfi ExpressTemplateItem) CalculateExpressPrice(et ExpressTemplate, nmw ExpressTemplateNMW) uint64 {
 
 	if strings.EqualFold(et.Drawee, "BUSINESS") {
@@ -125,6 +126,7 @@ type ExpressTemplateTemplate struct {
 	Default ExpressTemplateItem
 	Items   []ExpressTemplateItem
 }
+
 //退货信息
 type RefundInfo struct {
 	ShipName    string //退货快递公司

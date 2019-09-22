@@ -1,8 +1,8 @@
 package service
 
 import (
-	"dandelion/app/play"
-	"dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/service/dao"
 	"strconv"
 	"time"
 )

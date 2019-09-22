@@ -1,7 +1,7 @@
 package project
 
 import (
-	"dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/service/dao"
 
 	"github.com/nbvghost/gweb"
 )

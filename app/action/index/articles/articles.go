@@ -1,9 +1,9 @@
 package articles
 
 import (
-	"dandelion/app/play"
-	"dandelion/app/service"
-	"dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/service/dao"
 	"net/http"
 	"strconv"
 

@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/play"
 )
 
 type Controller struct {

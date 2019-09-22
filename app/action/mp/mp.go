@@ -1,25 +1,25 @@
 package mp
 
 import (
-	"dandelion/app/play"
-	"dandelion/app/service/dao"
-	"dandelion/app/util"
 	"fmt"
+	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/util"
 
 	"github.com/nbvghost/glog"
 
-	"dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/service"
 
-	"dandelion/app/action/mp/store"
+	"github.com/nbvghost/dandelion/app/action/mp/store"
 	"strconv"
 
-	"dandelion/app/action/mp/order"
+	"github.com/nbvghost/dandelion/app/action/mp/order"
 
 	"encoding/base64"
 
-	"dandelion/app/action/mp/content"
-	"dandelion/app/action/mp/journal"
-	"dandelion/app/action/mp/user"
+	"github.com/nbvghost/dandelion/app/action/mp/content"
+	"github.com/nbvghost/dandelion/app/action/mp/journal"
+	"github.com/nbvghost/dandelion/app/action/mp/user"
 
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/tool"
@@ -276,8 +276,6 @@ func (controller *Controller) goodsByGoodsIDAction(context *gweb.Context) gweb.R
 
 	goodsInfo := controller.Goods.GetGoods(Orm, ID)
 
-
-
 	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: goodsInfo}}
 }
 func (controller *Controller) goodsTypeListAction(context *gweb.Context) gweb.Result {
@@ -295,20 +293,17 @@ func (controller *Controller) goodsChildByGoodsTypeIDAction(context *gweb.Contex
 	Index, _ := strconv.Atoi(context.Request.URL.Query().Get("Index"))
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
 
-
 	//GoodsTypeID       uint64  `gorm:"column:GoodsTypeID"`
 	//GoodsTypeChildID  uint64  `gorm:"column:GoodsTypeChildID"`
 
-	sqlWhere:=""
-	if GoodsTypeChildID==0{
-		sqlWhere=fmt.Sprintf("GoodsTypeID=%v",GoodsTypeID)
-	}else{
-		sqlWhere=fmt.Sprintf("GoodsTypeID=%v and GoodsTypeChildID=%v",GoodsTypeID,GoodsTypeChildID)
+	sqlWhere := ""
+	if GoodsTypeChildID == 0 {
+		sqlWhere = fmt.Sprintf("GoodsTypeID=%v", GoodsTypeID)
+	} else {
+		sqlWhere = fmt.Sprintf("GoodsTypeID=%v and GoodsTypeChildID=%v", GoodsTypeID, GoodsTypeChildID)
 	}
 
 	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: controller.Goods.GoodsList(user.ID, "UpdatedAt desc", Index, sqlWhere)}}
-
-
 
 	/*if GoodsTypeChildID==0{
 		results := controller.Goods.ListGoodsByGoodsTypeID(GoodsTypeID)

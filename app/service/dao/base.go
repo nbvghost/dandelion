@@ -3,7 +3,7 @@ package dao
 import (
 	"strings"
 
-	"dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/play"
 
 	"github.com/jinzhu/gorm"
 )

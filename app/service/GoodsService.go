@@ -1,10 +1,11 @@
 package service
 
 import (
-	"dandelion/app/service/dao"
-	"dandelion/app/util"
 	"log"
 	"strconv"
+
+	"github.com/nbvghost/dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/util"
 
 	"github.com/jinzhu/gorm"
 	"github.com/nbvghost/glog"
@@ -181,15 +182,15 @@ func (service GoodsService) GetGoodsInfo(goods dao.Goods) dao.GoodsInfo {
 	timeSell := service.TimeSell.GetTimeSellByGoodsID(goods.ID, goods.OID)
 	goodsInfo := dao.GoodsInfo{}
 	goodsInfo.Goods = goods
-	goodsInfo.Discounts =make([]dao.Discount,0)
+	goodsInfo.Discounts = make([]dao.Discount, 0)
 
 	if timeSell.IsEnable() {
 		//Favoured:=uint64(util.Rounding45(float64(goods.Price)*(float64(timeSell.Discount)/float64(100)), 2))
 		goodsInfo.Discounts = append(goodsInfo.Discounts, dao.Discount{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint64(timeSell.Discount)})
 	} else {
-		collage := service.Collage.GetCollageByGoodsID(goods.ID,goods.OID)
+		collage := service.Collage.GetCollageByGoodsID(goods.ID, goods.OID)
 		if collage.ID != 0 && collage.TotalNum > 0 {
-			goodsInfo.Discounts = append(goodsInfo.Discounts,dao.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)})
+			goodsInfo.Discounts = append(goodsInfo.Discounts, dao.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)})
 		}
 
 	}
@@ -306,7 +307,7 @@ func (service GoodsService) DeleteTimeSellGoods(DB *gorm.DB, GoodsID uint64, OID
 	return err
 }
 func (service GoodsService) DeleteCollageGoods(DB *gorm.DB, GoodsID uint64, OID uint64) error {
-	timesell := service.Collage.GetCollageByGoodsID(GoodsID,OID)
+	timesell := service.Collage.GetCollageByGoodsID(GoodsID, OID)
 
 	err := service.DeleteWhere(DB, &dao.CollageGoods{}, "CollageHash=? and GoodsID=?", timesell.Hash, GoodsID) //Delete(DB, &dao.TimeSellGoods{}, timesell.ID)
 	glog.Error(err)
@@ -372,16 +373,16 @@ func (service GoodsService) AllList() []dao.Goods {
 	return result
 
 }
-func (service GoodsService) GetDiscounts(GoodsID,OID uint64) []dao.Discount {
-	discounts := make([]dao.Discount,0)
+func (service GoodsService) GetDiscounts(GoodsID, OID uint64) []dao.Discount {
+	discounts := make([]dao.Discount, 0)
 	timeSell := service.TimeSell.GetTimeSellByGoodsID(GoodsID, OID)
 	if timeSell.IsEnable() {
 		//Favoured:=uint64(util.Rounding45(float64(value.Price)*(float64(timeSell.Discount)/float64(100)), 2))
-		discounts = append(discounts,dao.Discount{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint64(timeSell.Discount)})
+		discounts = append(discounts, dao.Discount{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint64(timeSell.Discount)})
 	} else {
-		collage := service.Collage.GetCollageByGoodsID(GoodsID,OID)
+		collage := service.Collage.GetCollageByGoodsID(GoodsID, OID)
 		if collage.ID != 0 && collage.TotalNum > 0 {
-			discounts = append(discounts,dao.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)})
+			discounts = append(discounts, dao.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint64(collage.Discount)})
 		}
 	}
 	return discounts
@@ -393,7 +394,7 @@ func (service GoodsService) GetGoodsInfoList(UserID uint64, goodsList []dao.Good
 	for _, value := range goodsList {
 		goodsInfo := dao.GoodsInfo{}
 		goodsInfo.Goods = value
-		goodsInfo.Discounts =service.GetDiscounts(value.ID,value.OID)
+		goodsInfo.Discounts = service.GetDiscounts(value.ID, value.OID)
 		results = append(results, goodsInfo)
 	}
 
@@ -401,22 +402,23 @@ func (service GoodsService) GetGoodsInfoList(UserID uint64, goodsList []dao.Good
 }
 
 type TopGoodsTypeChild struct {
-	Name string `gorm:"column:Name"`
-	Image string `gorm:"column:Image"`
+	Name             string `gorm:"column:Name"`
+	Image            string `gorm:"column:Image"`
 	GoodsTypeChildID uint64 `gorm:"column:GoodsTypeChildID"`
-	Price uint64 `gorm:"column:Price"`
+	Price            uint64 `gorm:"column:Price"`
 }
-func (service GoodsService) GetTopGoodsTypeChild(DB *gorm.DB,Num uint64) []TopGoodsTypeChild {
-	list:=make([]TopGoodsTypeChild,0)
+
+func (service GoodsService) GetTopGoodsTypeChild(DB *gorm.DB, Num uint64) []TopGoodsTypeChild {
+	list := make([]TopGoodsTypeChild, 0)
 	//SELECT gtc.Name,gtc.Image,gtc.ID AS GoodsTypeChildID,gtc.GoodsTypeID AS GoodsTypeID,MIN(g.Price) FROM Goods AS g LEFT JOIN GoodsTypeChild AS gtc ON (gtc.GoodsTypeID=g.GoodsTypeID AND gtc.ID=g.GoodsTypeChildID) GROUP BY g.GoodsTypeID;
-	rows,err:=DB.Raw("SELECT gtc.Name as Name,gtc.Image as Image,gtc.ID AS GoodsTypeChildID,gtc.GoodsTypeID AS GoodsTypeID,MIN(g.Price) as Price FROM Goods AS g LEFT JOIN GoodsTypeChild AS gtc ON (gtc.GoodsTypeID=g.GoodsTypeID AND gtc.ID=g.GoodsTypeChildID) GROUP BY g.GoodsTypeID limit ?",Num).Rows()
-	if glog.Error(err){
+	rows, err := DB.Raw("SELECT gtc.Name as Name,gtc.Image as Image,gtc.ID AS GoodsTypeChildID,gtc.GoodsTypeID AS GoodsTypeID,MIN(g.Price) as Price FROM Goods AS g LEFT JOIN GoodsTypeChild AS gtc ON (gtc.GoodsTypeID=g.GoodsTypeID AND gtc.ID=g.GoodsTypeChildID) GROUP BY g.GoodsTypeID limit ?", Num).Rows()
+	if glog.Error(err) {
 		return list
 	}
-	for rows.Next(){
+	for rows.Next() {
 		var result TopGoodsTypeChild
-		DB.ScanRows(rows,&result)
-		list=append(list,result)
+		DB.ScanRows(rows, &result)
+		list = append(list, result)
 	}
 	return list
 }
@@ -430,26 +432,26 @@ func (service GoodsService) GoodsList(UserID uint64, SqlOrder string, Index int,
 
 	return service.GetGoodsInfoList(UserID, goodsList)
 }
-func (service GoodsService) HotListByGoodsTypeIDAndGoodsTypeChildID(GoodsTypeID,GoodsTypeChildID,Num uint64) []dao.Goods {
+func (service GoodsService) HotListByGoodsTypeIDAndGoodsTypeChildID(GoodsTypeID, GoodsTypeChildID, Num uint64) []dao.Goods {
 
 	Orm := dao.Orm()
 
 	var result []dao.Goods
 
-	db := Orm.Model(&dao.Goods{}).Where("GoodsTypeID=? and GoodsTypeChildID=?",GoodsTypeID,GoodsTypeChildID).Order("CountSale desc").Limit(Num)
+	db := Orm.Model(&dao.Goods{}).Where("GoodsTypeID=? and GoodsTypeChildID=?", GoodsTypeID, GoodsTypeChildID).Order("CountSale desc").Limit(Num)
 
 	db.Find(&result)
 
 	return result
 
 }
-func (service GoodsService) NewListByGoodsTypeIDAndGoodsTypeChildID(GoodsTypeID,GoodsTypeChildID,Num uint64) []dao.Goods {
+func (service GoodsService) NewListByGoodsTypeIDAndGoodsTypeChildID(GoodsTypeID, GoodsTypeChildID, Num uint64) []dao.Goods {
 
 	Orm := dao.Orm()
 
 	var result []dao.Goods
 
-	db := Orm.Model(&dao.Goods{}).Where("GoodsTypeID=? and GoodsTypeChildID=?",GoodsTypeID,GoodsTypeChildID).Order("CreatedAt desc").Limit(Num)
+	db := Orm.Model(&dao.Goods{}).Where("GoodsTypeID=? and GoodsTypeChildID=?", GoodsTypeID, GoodsTypeChildID).Order("CreatedAt desc").Limit(Num)
 
 	db.Find(&result)
 
@@ -478,8 +480,8 @@ func (service GoodsService) ListAllGoodsType() []dao.GoodsType {
 	var gts []dao.GoodsType
 	var gtsIDs []uint64
 	//service.FindWhere(Orm, &gts, dao.GoodsTypeChild{})
-	Orm.Model(&dao.Goods{}).Group("GoodsTypeID").Pluck("GoodsTypeID",&gtsIDs)
-	Orm.Model(&dao.GoodsType{}).Where("ID in (?)",gtsIDs).Find(&gts)
+	Orm.Model(&dao.Goods{}).Group("GoodsTypeID").Pluck("GoodsTypeID", &gtsIDs)
+	Orm.Model(&dao.GoodsType{}).Where("ID in (?)", gtsIDs).Find(&gts)
 	return gts
 }
 func (service GoodsService) ListGoodsTypeForAdmin(OID uint64) []dao.GoodsType {
@@ -501,8 +503,8 @@ func (service GoodsService) ListGoodsType(OID uint64) []dao.GoodsType {
 	var gts []dao.GoodsType
 	var gtsIDs []uint64
 	//service.FindWhere(Orm, &gts, dao.GoodsTypeChild{})
-	Orm.Model(&dao.Goods{}).Where("OID=?",OID).Group("GoodsTypeID").Pluck("GoodsTypeID",&gtsIDs)
-	Orm.Model(&dao.GoodsType{}).Where("ID in (?)",gtsIDs).Find(&gts)
+	Orm.Model(&dao.Goods{}).Where("OID=?", OID).Group("GoodsTypeID").Pluck("GoodsTypeID", &gtsIDs)
+	Orm.Model(&dao.GoodsType{}).Where("ID in (?)", gtsIDs).Find(&gts)
 	return gts
 }
 func (service GoodsService) ListAllGoodsTypeChild(GoodsTypeID uint64) []dao.GoodsTypeChild {
@@ -512,7 +514,7 @@ func (service GoodsService) ListAllGoodsTypeChild(GoodsTypeID uint64) []dao.Good
 	return gts*/
 	Orm := dao.Orm()
 	var gts []dao.GoodsTypeChild
-	Orm.Model(&dao.GoodsTypeChild{}).Where("GoodsTypeID=?",GoodsTypeID).Find(&gts)
+	Orm.Model(&dao.GoodsTypeChild{}).Where("GoodsTypeID=?", GoodsTypeID).Find(&gts)
 	return gts
 }
 
@@ -525,8 +527,8 @@ func (service GoodsService) ListGoodsTypeChild(GoodsTypeID uint64) []dao.GoodsTy
 	var gts []dao.GoodsTypeChild
 	var gtsIDs []uint64
 	//service.FindWhere(Orm, &gts, dao.GoodsTypeChild{})
-	Orm.Model(&dao.Goods{}).Where("GoodsTypeID=?",GoodsTypeID).Group("GoodsTypeChildID").Pluck("GoodsTypeChildID",&gtsIDs)
-	Orm.Model(&dao.GoodsTypeChild{}).Where("ID in (?)",gtsIDs).Find(&gts)
+	Orm.Model(&dao.Goods{}).Where("GoodsTypeID=?", GoodsTypeID).Group("GoodsTypeChildID").Pluck("GoodsTypeChildID", &gtsIDs)
+	Orm.Model(&dao.GoodsTypeChild{}).Where("ID in (?)", gtsIDs).Find(&gts)
 	return gts
 }
 func (service GoodsService) ListGoodsTypeChildAll(OID uint64) []dao.GoodsTypeChild {
@@ -534,8 +536,8 @@ func (service GoodsService) ListGoodsTypeChildAll(OID uint64) []dao.GoodsTypeChi
 	var gts []dao.GoodsTypeChild
 	var gtsIDs []uint64
 	//service.FindWhere(Orm, &gts, dao.GoodsTypeChild{})
-	Orm.Model(&dao.Goods{}).Where("OID=?",OID).Group("GoodsTypeChildID").Pluck("GoodsTypeChildID",&gtsIDs)
-	Orm.Model(&dao.GoodsTypeChild{}).Where("ID in (?)",gtsIDs).Find(&gts)
+	Orm.Model(&dao.Goods{}).Where("OID=?", OID).Group("GoodsTypeChildID").Pluck("GoodsTypeChildID", &gtsIDs)
+	Orm.Model(&dao.GoodsTypeChild{}).Where("ID in (?)", gtsIDs).Find(&gts)
 	return gts
 }
 func (service GoodsService) ListGoodsChildByGoodsTypeID(GoodsTypeID, GoodsTypeChildID uint64) []dao.Goods {
@@ -549,4 +551,25 @@ func (service GoodsService) ListGoodsByGoodsTypeID(GoodsTypeID uint64) []dao.Goo
 	var gts []dao.Goods
 	service.FindWhere(Orm, &gts, dao.Goods{GoodsTypeID: GoodsTypeID})
 	return gts
+}
+func (service GoodsService) AddGoodsTypeByNameByChild(name string, childName string) (goodsType dao.GoodsType, goodsTypeChild dao.GoodsTypeChild) {
+	Orm := dao.Orm()
+
+	var gt dao.GoodsType
+	var gtc dao.GoodsTypeChild
+
+	err := Orm.Model(&dao.GoodsType{}).Where("Name=?", name).First(&gt).Error
+	if gorm.IsRecordNotFoundError(err) {
+		gt.Name = name
+		service.Save(Orm, &gt)
+	}
+
+	err = Orm.Model(&dao.GoodsTypeChild{}).Where("Name=? and GoodsTypeID=?", childName, gt.ID).First(&gtc).Error
+	if gorm.IsRecordNotFoundError(err) {
+		gtc.Name = childName
+		gtc.GoodsTypeID = gt.ID
+		service.Save(Orm, &gtc)
+	}
+
+	return gt, gtc
 }

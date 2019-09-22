@@ -9,8 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"dandelion/app/service/dao"
-
+	"github.com/nbvghost/dandelion/app/service/dao"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/nbvghost/glog"
@@ -189,7 +188,7 @@ func (spider SpiderService) GetArticleQueryDataAndAdd(body io.ReadCloser, Conten
 
 		imgs, _ := s.Find(".img-box a img").Attr("src")
 		//imgsurl := spider.File.DownNetWriteAliyunOSS("http:" + imgs)
-		imgsurl := "/file/load?path="+spider.File.DownNetImage("http:" + imgs)
+		imgsurl := "/file/load?path=" + spider.File.DownNetImage("http:"+imgs)
 		//fmt.Println(ds)
 		//fmt.Println(imgs)
 
@@ -247,7 +246,7 @@ func (spider SpiderService) GetArticleDataAndAdd(body io.ReadCloser, ContentSubT
 
 		imgs, _ := s.Find(".img-box a img").Attr("src")
 		//imgsurl := spider.File.DownNetWriteAliyunOSS("http:" + imgs)
-		imgsurl := "/file/load?path="+spider.File.DownNetImage("http:" + imgs)
+		imgsurl := "/file/load?path=" + spider.File.DownNetImage("http:"+imgs)
 		//fmt.Println(ds)
 		//fmt.Println(imgs)
 
@@ -350,7 +349,7 @@ func (spider SpiderService) ReadWeiXinArticle(url string) string {
 				//vatt.Val = DownNetImage(vatt.Val)
 				value.Attr[index].Key = "data-src"
 				//value.Attr[index].Val = spider.File.DownNetWriteAliyunOSS(vatt.Val)
-				value.Attr[index].Val = "/file/load?path="+spider.File.DownNetImage(vatt.Val)
+				value.Attr[index].Val = "/file/load?path=" + spider.File.DownNetImage(vatt.Val)
 				att := html.Attribute{}
 				att.Key = "src"
 				att.Val = value.Attr[index].Val

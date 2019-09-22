@@ -8,9 +8,9 @@ import (
 
 	"github.com/nbvghost/glog"
 
-	"dandelion/app/util"
+	"github.com/nbvghost/dandelion/app/util"
 
-	"dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/service"
 	"log"
 
 	"github.com/nbvghost/gweb"

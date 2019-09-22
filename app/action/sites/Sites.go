@@ -1,14 +1,11 @@
 package sites
 
 import (
-	"dandelion/app/action/sites/shop"
-	"dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/action/sites/shop"
+	"github.com/nbvghost/dandelion/app/service/dao"
 
 	"github.com/nbvghost/gweb"
 )
-
-
-
 
 type Controller struct {
 	gweb.BaseController
@@ -26,11 +23,8 @@ func (controller *Controller) Apply() {
 	shop.Interceptors = controller.Interceptors
 	controller.AddSubController("/{siteName}/shop/", shop)
 
-
 }
 func (controller *Controller) AddProjectdsfdsfsdAction(context *gweb.Context) gweb.Result {
-
-
 
 	return &gweb.FileServerResult{}
 }

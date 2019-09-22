@@ -1,6 +1,6 @@
 package service
 
-import "dandelion/app/service/dao"
+import "github.com/nbvghost/dandelion/app/service/dao"
 
 //LoggerService
 type LoggerService struct {

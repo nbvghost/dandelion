@@ -1,6 +1,6 @@
 package service
 
-import "dandelion/app/service/dao"
+import "github.com/nbvghost/dandelion/app/service/dao"
 
 //http://www.stats.gov.cn/tjsj/tjbz/xzqhdm/
 //https://github.com/mumuy/data_location

@@ -3,23 +3,27 @@ package main
 import (
 	"net/http"
 
-	"dandelion/app/action/sites"
+	"github.com/nbvghost/dandelion/app/action/sites"
+	"github.com/nbvghost/dandelion/app/service"
 
 	"github.com/nbvghost/gweb"
 
-	"dandelion/app/action/account"
-	"dandelion/app/action/admin"
-	"dandelion/app/action/api"
-	"dandelion/app/action/images"
-	"dandelion/app/action/index"
-	"dandelion/app/action/manager"
-	"dandelion/app/action/mp"
-	"dandelion/app/action/payment"
+	"github.com/nbvghost/dandelion/app/action/account"
+	"github.com/nbvghost/dandelion/app/action/admin"
+	"github.com/nbvghost/dandelion/app/action/api"
+	"github.com/nbvghost/dandelion/app/action/images"
+	"github.com/nbvghost/dandelion/app/action/index"
+	"github.com/nbvghost/dandelion/app/action/manager"
+	"github.com/nbvghost/dandelion/app/action/mp"
+	"github.com/nbvghost/dandelion/app/action/payment"
 
 	"github.com/nbvghost/gweb/conf"
 )
 
 func main() {
+
+	s := &service.Catch1688Service{}
+	s.Run()
 
 	//service.WxService{}.SendUniformMessage(service.WxService{}.MiniWeb(), service.WxService{}.MiniProgram())
 

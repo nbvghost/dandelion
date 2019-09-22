@@ -5,8 +5,8 @@ import (
 
 	"github.com/nbvghost/gweb"
 
-	"dandelion/app/util"
-	"dandelion/app/util/wxpay"
+	"github.com/nbvghost/dandelion/app/util"
+	"github.com/nbvghost/dandelion/app/util/wxpay"
 )
 
 type Controller struct {

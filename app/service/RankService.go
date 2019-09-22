@@ -1,8 +1,8 @@
 package service
 
 import (
-	"dandelion/app/service/dao"
 	"errors"
+	"github.com/nbvghost/dandelion/app/service/dao"
 )
 
 type RankService struct {

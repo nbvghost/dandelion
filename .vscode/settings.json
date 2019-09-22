@@ -1,6 +1,4 @@
 {
-    "go.inferGopath": true,
-    "go.gopath": "C:\\Users\\work\\go;C:\\Users\\work\\Documents\\DandelionWork",
     "go.useCodeSnippetsOnFunctionSuggest": true,
     "go.gotoSymbol.includeImports": true,
     "go.autocompleteUnimportedPackages": true,

@@ -1,8 +1,8 @@
 package content
 
 import (
-	"dandelion/app/service"
-	"dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/service/dao"
 	"strconv"
 
 	"github.com/nbvghost/gweb"

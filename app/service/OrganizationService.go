@@ -3,7 +3,7 @@ package service
 import (
 	"errors"
 
-	"dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/service/dao"
 
 	"github.com/jinzhu/gorm"
 )

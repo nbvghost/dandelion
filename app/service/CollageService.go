@@ -6,9 +6,9 @@ import (
 
 	"github.com/nbvghost/glog"
 
-	"dandelion/app/play"
-	"dandelion/app/service/dao"
-	"dandelion/app/util"
+	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/util"
 
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/tool"
@@ -18,6 +18,7 @@ import (
 type CollageService struct {
 	dao.BaseDao
 }
+
 func (service CollageService) AddCollageGoodsAction(context *gweb.Context) gweb.Result {
 	organization := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 
@@ -43,9 +44,9 @@ func (service CollageService) AddCollageGoodsAction(context *gweb.Context) gweb.
 	//service.ChangeMap(dao.Orm(), timeSell.ID, &dao.TimeSell{}, map[string]interface{}{})
 	err := service.Add(dao.Orm(), &dao.CollageGoods{
 		CollageHash: collage.Hash,
-		GoodsID:      goods.ID,
-		Disable:      false,
-		OID:          organization.ID,
+		GoodsID:     goods.ID,
+		Disable:     false,
+		OID:         organization.ID,
 	})
 
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "Success", goods)}
@@ -86,7 +87,7 @@ func (service CollageService) DeleteGoods(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	ID, _ := strconv.ParseUint(context.PathParams["GoodsID"], 10, 64)
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
-	list := GlobalService.Goods.DeleteCollageGoods(Orm, ID,company.ID)
+	list := GlobalService.Goods.DeleteCollageGoods(Orm, ID, company.ID)
 
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "删除成功", list)}
 
@@ -154,9 +155,9 @@ func (service CollageService) GetCollageByGoodsID(GoodsID uint64, OID uint64) da
 	glog.Error(err)
 	return timesell*/
 }
-func (service CollageService) GetCollageByHash(Hash string,OID uint64) dao.Collage {
+func (service CollageService) GetCollageByHash(Hash string, OID uint64) dao.Collage {
 	var timesell dao.Collage
-	err := dao.Orm().Model(&dao.Collage{}).Where("Hash=? and OID=?", Hash,OID).First(&timesell).Error
+	err := dao.Orm().Model(&dao.Collage{}).Where("Hash=? and OID=?", Hash, OID).First(&timesell).Error
 	glog.Error(err)
 	return timesell
 }
@@ -243,13 +244,13 @@ func (service CollageService) SaveItem(context *gweb.Context) gweb.Result {
 
 	} else {
 		//修改
-		_item:=service.GetCollageByHash(item.Hash, company.ID)
+		_item := service.GetCollageByHash(item.Hash, company.ID)
 		if _item.ID == 0 {
 			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("无法修改"), "", nil)}
 		}
-		_item.Num=item.Num
-		_item.Discount=item.Discount
-		_item.TotalNum=item.TotalNum
+		_item.Num = item.Num
+		_item.Discount = item.Discount
+		_item.TotalNum = item.TotalNum
 		err = service.Save(tx, _item)
 
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "提交成功", _item)}

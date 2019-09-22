@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"dandelion/app/action/index/articles"
-	"dandelion/app/play"
-	"dandelion/app/service"
-	"dandelion/app/service/dao"
-	"dandelion/app/util"
+	"github.com/nbvghost/dandelion/app/action/index/articles"
+	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/util"
 
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/tool"

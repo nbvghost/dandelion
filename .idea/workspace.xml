@@ -2,15 +2,76 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ea2d37ad-998d-4f4a-8258-013be54c7705" name="Default" comment="我的海报">
-      <change afterPath="$PROJECT_DIR$/app/service/dao/structs.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vscode/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/.vscode/settings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/account/account.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/account/account.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/admin/admin.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/admin/admin.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/api/api.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/api/api.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/api/question/Question.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/api/question/Question.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/district/district.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/district/district.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/front/appointment/appointment.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/front/appointment/appointment.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/front/front.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/front/front.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/images/images.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/images/images.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/index/articles/articles.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/index/articles/articles.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/index/index.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/index/index.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/manager/manager.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/manager/manager.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/mp/content/content.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/mp/content/content.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/mp/journal/journal.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/mp/journal/journal.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/mp/mp.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/mp/mp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/mp/order/order.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/mp/order/order.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/mp/store/store.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/mp/store/store.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/mp/user/user.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/mp/user/user.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/order/order.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/order/order.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/payment/payment.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/payment/payment.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/project/Project.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/project/Project.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/sites/Sites.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/sites/Sites.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/sites/shop/Shop.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/sites/shop/Shop.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/action/wx/wxAction.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/action/wx/wxAction.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/AdminService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/AdminService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/ArticleService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/ArticleService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/CardItemService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/CardItemService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/CollageService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/CollageService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/ConfigurationService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/ConfigurationService.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/service/ContentService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/ContentService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/DistrictService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/DistrictService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/ExpressTemplateService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/ExpressTemplateService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/FullCutService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/FullCutService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/GiveVoucherService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/GiveVoucherService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/GoodsService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/GoodsService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/InitService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/InitService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/JournalService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/JournalService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/LoggerService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/LoggerService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/ManagerService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/ManagerService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/OrdersService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/OrdersService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/OrdersService_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/OrdersService_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/OrganizationService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/OrganizationService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/QuestionService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/QuestionService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/RankService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/RankService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/ScoreGoodsService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/ScoreGoodsService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/ShoppingCartService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/ShoppingCartService.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/service/SpiderService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/SpiderService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/StoreService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/StoreService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/StoreStockService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/StoreStockService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/StoreStockService_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/StoreStockService_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/service/TimeSellService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/TimeSellService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/TimeTaskService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/TimeTaskService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/TransfersService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/TransfersService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/UserService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/UserService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/UserService_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/UserService_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/VerificationService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/VerificationService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/VoucherService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/VoucherService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/WxService.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/WxService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/WxService_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/WxService_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/dao/QuestionModel.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/dao/QuestionModel.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/dao/base.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/dao/base.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/dao/dao.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/dao/dao.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/service/dao/model.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/dao/model.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dandelion" beforeDir="false" afterPath="$PROJECT_DIR$/dandelion" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/view/articles/content.html" beforeDir="false" afterPath="$PROJECT_DIR$/view/articles/content.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/view/articles/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/view/articles/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/service/dao/structs.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/service/dao/structs.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/util/wxpay/WXBizMsgCrypt.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/util/wxpay/WXBizMsgCrypt.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/util/wxpay/wxpay.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/util/wxpay/wxpay.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dandelion.go" beforeDir="false" afterPath="$PROJECT_DIR$/dandelion.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/view/admin/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/view/admin/index.html" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -19,7 +80,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/dandelion$TestWxService_INComeNotify_in_dandelion_app_service__1_.out" NAME="TestWxService_INComeNotify in dandelion/app/service Coverage Results" MODIFIED="1540213168425" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/dandelion$TestWxService_INComeNotify_in_dandelion_app_service__1_.out" NAME="TestWxService_INComeNotify in github.com/nbvghost/dandelion/app/service Coverage Results" MODIFIED="1540213168425" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
   <component name="DatabaseView">
     <option name="SHOW_INTERMEDIATE" value="true" />
@@ -48,96 +109,6 @@
   <component name="FavoritesManager">
     <favorites_list name="dandelion" />
   </component>
-  <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/service/dao/model.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="17766">
-              <caret line="997" column="49" selection-start-line="997" selection-start-column="49" selection-end-line="997" selection-end-column="49" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/app/service/SpiderService.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="198">
-              <caret line="27" lean-forward="true" selection-start-line="27" selection-end-line="27" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/view/articles/content.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="72">
-              <caret line="4" column="52" selection-start-line="4" selection-start-column="52" selection-end-line="4" selection-end-column="52" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/view/articles/index.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2070">
-              <caret line="115" column="33" selection-start-line="115" selection-start-column="33" selection-end-line="115" selection-end-column="33" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/service/FileService.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="108">
-              <caret line="13" column="27" selection-start-line="13" selection-start-column="24" selection-end-line="13" selection-end-column="36" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/go/src/github.com/PuerkitoBio/goquery/type.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="756">
-              <caret line="51" column="5" selection-start-line="51" selection-start-column="5" selection-end-line="51" selection-end-column="5" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/service/ArticleService.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="774">
-              <caret line="55" column="48" selection-start-line="55" selection-start-column="48" selection-end-line="55" selection-end-column="48" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/service/ContentService.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2286">
-              <caret line="138" selection-start-line="138" selection-end-line="138" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/data.json">
-          <provider selected="true" editor-type-id="text-editor" />
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/action/mp/mp.go">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1206">
-              <caret line="91" column="37" selection-start-line="91" selection-start-column="37" selection-end-line="91" selection-end-column="37" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
-  </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
@@ -147,120 +118,15 @@
       </list>
     </option>
   </component>
-  <component name="FindInProjectRecents">
-    <findStrings>
-      <find>GetTimeSellByGoodsID</find>
-      <find>GetCollageByGoodsID</find>
-      <find>DeleteTimeSellGoods</find>
-      <find>orders</find>
-      <find>Goodsty</find>
-      <find>gtcs</find>
-      <find>goods_type_list</find>
-      <find>goods_type_list_controller</find>
-      <find>list_goods_type</find>
-      <find>goods_type_child_list</find>
-      <find>goods_type_child_list_controller</find>
-      <find>ordersg</find>
-      <find>Favoured</find>
-      <find>OrdersStockManager</find>
-      <find>GoodsList</find>
-      <find>GetGoodsInfoList</find>
-      <find>FavouredPrice</find>
-      <find>AnalyseOrdersGoodsList</find>
-      <find>createOrders</find>
-      <find>list_goods_type_all</find>
-      <find>list_goods_type_child_id</find>
-      <find>add_goods</find>
-      <find>collage_goods</find>
-      <find>TimeSell_Goods</find>
-      <find>goods</find>
-      <find>DownNetImage</find>
-      <find>imgsurl</find>
-      <find>GetArticleQueryDataAndAdd</find>
-      <find>嘉</find>
-      <find>嘉恋</find>
-    </findStrings>
-    <replaceStrings>
-      <replace>)</replace>
-      <replace>))</replace>
-      <replace>Goods</replace>
-      <replace>GlobalGoodsService</replace>
-      <replace>text</replace>
-      <replace>:text</replace>
-      <replace>img/</replace>
-    </replaceStrings>
-    <dirStrings>
-      <dir>C:\Users\work\Documents\DandelionWork\src\dandelion\app</dir>
-      <dir>C:\Users\work\Documents\DandelionWork\src\dandelion\view\sites\default</dir>
-      <dir>C:\Users\work\Documents\DandelionWork\src\dandelion\view\sites</dir>
-      <dir>C:\Users\work\Documents\DandelionWork\src\dandelion</dir>
-    </dirStrings>
-  </component>
   <component name="GOROOT" path="C:\Go" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GoLibraries">
+    <option name="indexEntireGoPath" value="false" />
     <option name="urls">
       <list>
         <option value="file://$PROJECT_DIR$/../.." />
-      </list>
-    </option>
-  </component>
-  <component name="IdeDocumentHistory">
-    <option name="CHANGED_PATHS">
-      <list>
-        <option value="$PROJECT_DIR$/view/sites/default/css/fontawesome-all.css" />
-        <option value="$PROJECT_DIR$/view/sites/default/asset.tp.html" />
-        <option value="$PROJECT_DIR$/view/sites/default/footer.tp.html" />
-        <option value="$PROJECT_DIR$/view/sites/default/header.tp.html" />
-        <option value="$PROJECT_DIR$/app/action/sites/Shop.go" />
-        <option value="$PROJECT_DIR$/app/action/sites/Sites.go" />
-        <option value="$USER_HOME$/go/src/github.com/nbvghost/gweb/controller.go" />
-        <option value="$PROJECT_DIR$/view/manager/pub/header.html" />
-        <option value="$PROJECT_DIR$/view/sites/default/shop/products-list.html" />
-        <option value="$PROJECT_DIR$/view/sites/default/shop/products.html" />
-        <option value="$PROJECT_DIR$/view/admin/add_goods.html" />
-        <option value="$USER_HOME$/go/src/github.com/nbvghost/gweb/tool/funcmap.go" />
-        <option value="$PROJECT_DIR$/view/sites/default/shop/resources/img/svg/icons/icon-65.svg" />
-        <option value="$PROJECT_DIR$/view/sites/default/shop/resources/img/svg/icons/icon-64.svg" />
-        <option value="$PROJECT_DIR$/view/sites/default/shop/resources/img/svg/icons/icon-4.svg" />
-        <option value="$PROJECT_DIR$/dandelion.go" />
-        <option value="$PROJECT_DIR$/view/sites/default/gallery.html" />
-        <option value="$PROJECT_DIR$/view/sites/default/services.html" />
-        <option value="$PROJECT_DIR$/view/sites/default/about.html" />
-        <option value="$PROJECT_DIR$/view/sites/default/contact.html" />
-        <option value="$PROJECT_DIR$/view/sites/default/products.html" />
-        <option value="$PROJECT_DIR$/view/sites/default/index.html" />
-        <option value="$PROJECT_DIR$/view/sites/default/shop/categories.html" />
-        <option value="$PROJECT_DIR$/view/sites/default/shop/product.html" />
-        <option value="$PROJECT_DIR$/view/sites/default/shop/index.html" />
-        <option value="$PROJECT_DIR$/view/sites/default/shop/header.tp.html" />
-        <option value="$PROJECT_DIR$/view/sites/default/shop/footer.tp.html" />
-        <option value="$PROJECT_DIR$/view/admin/add_collage.html" />
-        <option value="$PROJECT_DIR$/app/service/CollageService.go" />
-        <option value="$PROJECT_DIR$/view/poster/index.html" />
-        <option value="$PROJECT_DIR$/app/action/mp/mp.go" />
-        <option value="$PROJECT_DIR$/app/action/sites/shop/Shop.go" />
-        <option value="$PROJECT_DIR$/resources/manager/js/manager.js" />
-        <option value="$PROJECT_DIR$/view/admin/pub/header.html" />
-        <option value="$PROJECT_DIR$/view/account/loginManagerPage.html" />
-        <option value="$PROJECT_DIR$/view/account/loginAdminPage.html" />
-        <option value="$PROJECT_DIR$/gweb.json" />
-        <option value="$PROJECT_DIR$/app/service/ShoppingCartService.go" />
-        <option value="$PROJECT_DIR$/app/action/mp/order/order.go" />
-        <option value="$PROJECT_DIR$/app/service/OrdersService.go" />
-        <option value="$PROJECT_DIR$/app/service/GoodsService.go" />
-        <option value="$PROJECT_DIR$/app/action/manager/manager.go" />
-        <option value="$PROJECT_DIR$/app/action/admin/admin.go" />
-        <option value="$PROJECT_DIR$/resources/admin/js/admin.js" />
-        <option value="$PROJECT_DIR$/app/service/dao/structs.go" />
-        <option value="$PROJECT_DIR$/app/service/TimeSellService.go" />
-        <option value="$PROJECT_DIR$/app/service/ContentService.go" />
-        <option value="$PROJECT_DIR$/app/service/dao/model.go" />
-        <option value="$PROJECT_DIR$/view/articles/index.html" />
-        <option value="$PROJECT_DIR$/view/articles/content.html" />
-        <option value="$PROJECT_DIR$/app/service/SpiderService.go" />
       </list>
     </option>
   </component>
@@ -270,102 +136,7 @@
     <other-services-enabled>true</other-services-enabled>
     <auto-save>true</auto-save>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="687" />
-    <option name="y" value="211" />
-    <option name="width" value="1936" />
-    <option name="height" value="1066" />
-  </component>
-  <component name="ProjectView">
-    <navigator proportions="" version="1">
-      <foldersAlwaysOnTop value="true" />
-    </navigator>
-    <panes>
-      <pane id="Scope" />
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="app" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="app" type="462c0819:PsiDirectoryNode" />
-              <item name="action" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="app" type="462c0819:PsiDirectoryNode" />
-              <item name="action" type="462c0819:PsiDirectoryNode" />
-              <item name="admin" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="app" type="462c0819:PsiDirectoryNode" />
-              <item name="action" type="462c0819:PsiDirectoryNode" />
-              <item name="api" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="app" type="462c0819:PsiDirectoryNode" />
-              <item name="action" type="462c0819:PsiDirectoryNode" />
-              <item name="index" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="app" type="462c0819:PsiDirectoryNode" />
-              <item name="action" type="462c0819:PsiDirectoryNode" />
-              <item name="manager" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="app" type="462c0819:PsiDirectoryNode" />
-              <item name="action" type="462c0819:PsiDirectoryNode" />
-              <item name="mp" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="app" type="462c0819:PsiDirectoryNode" />
-              <item name="action" type="462c0819:PsiDirectoryNode" />
-              <item name="mp" type="462c0819:PsiDirectoryNode" />
-              <item name="order" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="view" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="view" type="462c0819:PsiDirectoryNode" />
-              <item name="articles" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="dandelion" type="b2602c69:ProjectViewProjectNode" />
-              <item name="dandelion" type="462c0819:PsiDirectoryNode" />
-              <item name="view" type="462c0819:PsiDirectoryNode" />
-              <item name="sites" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
-    </panes>
-  </component>
+  <component name="ProjectId" id="1R6hLjCKVgKmcHV5zDq4cn2Y3ZT" />
   <component name="PropertiesComponent">
     <property name="DatabaseDriversLRU" value="postgresql&#10;mariadb" />
     <property name="DefaultGoTemplateProperty" value="Go File" />
@@ -381,20 +152,21 @@
     <property name="go.gopath.indexing.explicitly.defined" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/resources/poster/images" />
+    <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
+    <property name="last_opened_file_path" value="$USER_HOME$/go/src/code.aliyun.com/nbvghost/domain" />
     <property name="nodejs_package_manager_path" value="npm" />
-    <property name="settings.editor.selected.configurable" value="editor.preferences.fonts.default" />
+    <property name="settings.editor.selected.configurable" value="http.proxy" />
   </component>
   <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\work\Documents\DandelionWork\src\dandelion\app\action\sites\shop" />
+    </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\work\Documents\DandelionWork\src\dandelion\resources\poster\images" />
       <recent name="C:\Users\work\Documents\DandelionWork\src\dandelion\view\admin" />
       <recent name="C:\Users\work\Documents\DandelionWork\src\dandelion\view\sites\default\shop" />
       <recent name="C:\Users\work\Documents\DandelionWork\src\dandelion\view\sites\default\shop\resources\bootstrap" />
       <recent name="C:\Users\work\Documents\DandelionWork\src\dandelion\view\sites\default\shop\css" />
-    </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\work\Documents\DandelionWork\src\dandelion\app\action\sites\shop" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -409,41 +181,39 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Go Build.go build dandelion/">
-    <configuration name="go build dandelion/" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true">
+  <component name="RunManager" selected="Go Build.go build github.com/nbvghost/dandelion">
+    <configuration name="go build github.com/nbvghost/dandelion" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
       <module name="dandelion" />
-      <working_directory value="$PROJECT_DIR$/" />
-      <go_parameters value="-i" />
+      <working_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <filePath value="$PROJECT_DIR$/" />
-      <package value="dandelion" />
-      <directory value="$PROJECT_DIR$" />
+      <package value="github.com/nbvghost/dandelion" />
+      <directory value="$PROJECT_DIR$/" />
       <method v="2" />
     </configuration>
-    <configuration name="TestOrdersService_FindOrdersGoodsByCollageUser in dandelion/app/service" type="GoTestRunConfiguration" factoryName="Go Test" nameIsGenerated="true">
+    <configuration name="TestOrdersService_FindOrdersGoodsByCollageUser in github.com/nbvghost/dandelion/app/service" type="GoTestRunConfiguration" factoryName="Go Test" nameIsGenerated="true">
       <module name="dandelion" />
       <working_directory value="$PROJECT_DIR$" />
       <framework value="gotest" />
       <kind value="PACKAGE" />
-      <package value="dandelion/app/service" />
+      <package value="github.com/nbvghost/dandelion/app/service" />
       <pattern value="^TestOrdersService_FindOrdersGoodsByCollageUser$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestOrdersService_ListCollageRecord in dandelion/app/service" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestOrdersService_ListCollageRecord in github.com/nbvghost/dandelion/app/service" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="dandelion" />
       <working_directory value="$PROJECT_DIR$" />
       <framework value="gotest" />
       <kind value="PACKAGE" />
-      <package value="dandelion/app/service" />
+      <package value="github.com/nbvghost/dandelion/app/service" />
       <pattern value="^TestOrdersService_ListCollageRecord$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestWxService_INComeNotify in dandelion/app/service" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestWxService_INComeNotify in github.com/nbvghost/dandelion/app/service" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="dandelion" />
       <working_directory value="$PROJECT_DIR$" />
       <framework value="gotest" />
       <kind value="PACKAGE" />
-      <package value="dandelion/app/service" />
+      <package value="github.com/nbvghost/dandelion/app/service" />
       <pattern value="^TestWxService_INComeNotify$" />
       <method v="2" />
     </configuration>
@@ -456,50 +226,18 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Go Build.go build dandelion/" />
-      <item itemvalue="Go Test.TestOrdersService_FindOrdersGoodsByCollageUser in dandelion/app/service" />
-      <item itemvalue="Go Test.TestOrdersService_ListCollageRecord in dandelion/app/service" />
-      <item itemvalue="Go Test.TestWxService_INComeNotify in dandelion/app/service" />
+      <item itemvalue="Go Build.go build github.com/nbvghost/dandelion" />
+      <item itemvalue="Go Test.TestOrdersService_FindOrdersGoodsByCollageUser in github.com/nbvghost/dandelion/app/service" />
+      <item itemvalue="Go Test.TestOrdersService_ListCollageRecord in github.com/nbvghost/dandelion/app/service" />
+      <item itemvalue="Go Test.TestWxService_INComeNotify in github.com/nbvghost/dandelion/app/service" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Build.go build dandelion/" />
-        <item itemvalue="Go Test.TestOrdersService_ListCollageRecord in dandelion/app/service" />
-        <item itemvalue="Go Test.TestWxService_INComeNotify in dandelion/app/service" />
+        <item itemvalue="Go Build.go build github.com/nbvghost/dandelion" />
+        <item itemvalue="Go Test.TestOrdersService_ListCollageRecord in github.com/nbvghost/dandelion/app/service" />
+        <item itemvalue="Go Test.TestWxService_INComeNotify in github.com/nbvghost/dandelion/app/service" />
       </list>
     </recent_temporary>
-  </component>
-  <component name="TestHistory">
-    <history-entry file="TestOrdersService_ListCollageRecord_in_dandelion_app_service - 2018.11.03 at 04h 36m 55s.xml">
-      <configuration name="TestOrdersService_ListCollageRecord in dandelion/app/service" configurationId="GoTestRunConfiguration" />
-    </history-entry>
-    <history-entry file="TestOrdersService_ListCollageRecord_in_dandelion_app_service - 2018.11.03 at 04h 38m 13s.xml">
-      <configuration name="TestOrdersService_ListCollageRecord in dandelion/app/service" configurationId="GoTestRunConfiguration" />
-    </history-entry>
-    <history-entry file="TestOrdersService_ListCollageRecord_in_dandelion_app_service - 2018.11.03 at 04h 42m 50s.xml">
-      <configuration name="TestOrdersService_ListCollageRecord in dandelion/app/service" configurationId="GoTestRunConfiguration" />
-    </history-entry>
-    <history-entry file="TestOrdersService_ListCollageRecord_in_dandelion_app_service - 2018.11.03 at 04h 44m 16s.xml">
-      <configuration name="TestOrdersService_ListCollageRecord in dandelion/app/service" configurationId="GoTestRunConfiguration" />
-    </history-entry>
-    <history-entry file="TestOrdersService_ListCollageRecord_in_dandelion_app_service - 2018.11.03 at 04h 47m 14s.xml">
-      <configuration name="TestOrdersService_ListCollageRecord in dandelion/app/service" configurationId="GoTestRunConfiguration" />
-    </history-entry>
-    <history-entry file="TestOrdersService_ListCollageRecord_in_dandelion_app_service - 2018.11.03 at 04h 49m 20s.xml">
-      <configuration name="TestOrdersService_ListCollageRecord in dandelion/app/service" configurationId="GoTestRunConfiguration" />
-    </history-entry>
-    <history-entry file="TestOrdersService_ListCollageRecord_in_dandelion_app_service - 2018.11.03 at 04h 49m 46s.xml">
-      <configuration name="TestOrdersService_ListCollageRecord in dandelion/app/service" configurationId="GoTestRunConfiguration" />
-    </history-entry>
-    <history-entry file="TestOrdersService_ListCollageRecord_in_dandelion_app_service - 2018.11.03 at 04h 50m 41s.xml">
-      <configuration name="TestOrdersService_ListCollageRecord in dandelion/app/service" configurationId="GoTestRunConfiguration" />
-    </history-entry>
-    <history-entry file="TestOrdersService_ListCollageRecord_in_dandelion_app_service - 2018.11.03 at 04h 52m 08s.xml">
-      <configuration name="TestOrdersService_ListCollageRecord in dandelion/app/service" configurationId="GoTestRunConfiguration" />
-    </history-entry>
-    <history-entry file="TestOrdersService_ListCollageRecord_in_dandelion_app_service - 2018.11.03 at 04h 56m 05s.xml">
-      <configuration name="TestOrdersService_ListCollageRecord in dandelion/app/service" configurationId="GoTestRunConfiguration" />
-    </history-entry>
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -510,36 +248,21 @@
       <is-autoscroll-to-source value="true" />
     </todo-panel>
   </component>
-  <component name="ToolWindowManager">
-    <frame x="-8" y="22" width="1936" height="1066" extended-state="6" />
-    <editor active="true" />
-    <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.5018587" visible="true" weight="0.18336888" />
-      <window_info id="Structure" order="1" sideWeight="0.49814126" side_tool="true" weight="0.18017058" />
-      <window_info id="Favorites" order="2" sideWeight="0.6440281" side_tool="true" weight="0.16684435" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" sideWeight="0.7345416" weight="0.42336547" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.6759062" weight="0.40236053" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" sideWeight="0.8086354" visible="true" weight="0.39442658" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
-      <window_info anchor="bottom" id="TODO" order="6" sideWeight="0.4969743" weight="0.42903227" />
-      <window_info anchor="bottom" id="Terminal" order="7" sideWeight="0.49626866" weight="0.3762058" />
-      <window_info anchor="bottom" id="Event Log" order="8" sideWeight="0.1913646" side_tool="true" visible="true" weight="0.39442658" />
-      <window_info anchor="bottom" id="Version Control" order="9" />
-      <window_info anchor="bottom" id="Database Changes" order="10" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Statistic" order="11" sideWeight="0.82036245" weight="0.5412647" />
-      <window_info anchor="bottom" id="Docker" order="12" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Database Console" order="13" weight="0.3290461" />
-      <window_info anchor="right" id="Commander" order="0" weight="0.4" />
-      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="right" id="Database" order="3" weight="0.16684902" />
-      <window_info anchor="right" id="Coverage" order="4" side_tool="true" weight="0.34221748" />
-    </layout>
-  </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="COLUMN_ORDER" />
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
@@ -547,376 +270,25 @@
     <MESSAGE value="我的海报" />
     <option name="LAST_COMMIT_MESSAGE" value="我的海报" />
   </component>
+  <component name="VgoProject">
+    <integration-enabled>true</integration-enabled>
+    <proxy>direct</proxy>
+  </component>
   <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/app/service/Catch1688Service.go</url>
+          <line>83</line>
+          <option name="timeStamp" value="9" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
     <watches-manager>
       <configuration name="GoApplicationRunConfiguration">
         <watch expression="Brokerage" language="go" />
         <watch expression="(leveMenoy/100)" language="go" />
       </configuration>
     </watches-manager>
-  </component>
-  <component name="debuggerHistoryManager">
-    <expressions id="watch">
-      <expression>
-        <expression-string>(leveMenoy/100)</expression-string>
-        <language-id>go</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>float64(leveMenoy/100)</expression-string>
-        <language-id>go</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>Brokerage</expression-string>
-        <language-id>go</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>math.Floor(5*100+0.5)</expression-string>
-        <language-id>go</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>int(math.Floor(5*100+0.5))</expression-string>
-        <language-id>go</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-      <expression>
-        <expression-string>int(math.Floor(etfi.M*100+0.5))</expression-string>
-        <language-id>go</language-id>
-        <evaluation-mode>EXPRESSION</evaluation-mode>
-      </expression>
-    </expressions>
-  </component>
-  <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/#dandelion.go#" />
-    <entry file="file://$PROJECT_DIR$/view/sites/default/shop/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="8514">
-          <caret line="473" column="30" selection-start-line="473" selection-start-column="30" selection-end-line="473" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/sites/default/shop/product.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2250">
-          <caret line="125" selection-start-line="125" selection-end-line="125" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/sites/default/shop/products.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1854">
-          <caret line="103" column="143" selection-start-line="103" selection-start-column="133" selection-end-line="103" selection-end-column="143" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/go/src/github.com/nbvghost/gweb/tool/funcmap.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="27" column="20" selection-start-line="27" selection-start-column="9" selection-end-line="27" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/sites/default/shop/categories.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2160">
-          <caret line="120" column="16" selection-start-line="111" selection-start-column="129" selection-end-line="120" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/sites/default/shop/resources/img/svg/icons/icon-64.svg">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/admin/timesell_collage.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="234">
-          <caret line="13" column="17" selection-start-line="13" selection-start-column="17" selection-end-line="13" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/sites/default/shop/header.tp.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5832">
-          <caret line="324" column="39" selection-start-line="324" selection-start-column="39" selection-end-line="324" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/sites/default/shop/footer.tp.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="234">
-          <caret line="13" column="14" selection-start-line="13" selection-start-column="14" selection-end-line="13" selection-end-column="14" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/admin/add_collage.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="432">
-          <caret line="24" column="39" selection-start-line="24" selection-start-column="24" selection-end-line="24" selection-end-column="39" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/go/src/github.com/nbvghost/gweb/controller.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="324">
-          <caret line="33" column="5" selection-start-line="33" selection-start-column="5" selection-end-line="33" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/CollageService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1350">
-          <caret line="88" column="45" selection-start-line="88" selection-start-column="45" selection-end-line="88" selection-end-column="45" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/admin/add_store.html">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/admin/add_timesell.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="592">
-          <caret line="73" column="127" selection-start-line="73" selection-start-column="12" selection-end-line="73" selection-end-column="127" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/action/index/index.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3564">
-          <caret line="213" column="30" selection-start-line="213" selection-start-column="30" selection-end-line="213" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/dao/base.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1260">
-          <caret line="76" column="48" selection-start-line="76" selection-start-column="48" selection-end-line="76" selection-end-column="48" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/poster/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2268">
-          <caret line="126" column="55" selection-start-line="126" selection-start-column="55" selection-end-line="126" selection-end-column="55" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resources/poster/images/luckbuy_logo.jpg">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/play/key.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="900">
-          <caret line="50" column="48" selection-start-line="50" selection-start-column="48" selection-end-line="50" selection-end-column="48" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/manager/goods_type_list.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="14" column="12" selection-start-line="14" selection-start-column="12" selection-end-line="14" selection-end-column="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/admin/goods_type_child_list.html" />
-    <entry file="file://$PROJECT_DIR$/resources/manager/js/manager.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="145">
-          <caret line="137" column="47" selection-start-line="137" selection-start-column="47" selection-end-line="137" selection-end-column="47" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/admin/pub/footer.html">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/admin/pub/header.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="162">
-          <caret line="9" column="41" selection-start-line="9" selection-start-column="41" selection-end-line="9" selection-end-column="41" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/gweb.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="14" column="25" selection-start-line="14" selection-start-column="25" selection-end-line="14" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/dao/dao.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2538">
-          <caret line="155" column="5" selection-start-line="155" selection-start-column="5" selection-end-line="155" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/account/loginManagerPage.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="450">
-          <caret line="25" selection-start-line="25" selection-end-line="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/account/loginAdminPage.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="630">
-          <caret line="35" selection-start-line="35" selection-end-line="35" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/OrdersService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6894">
-          <caret line="404" column="23" selection-start-line="404" selection-start-column="23" selection-end-line="404" selection-end-column="23" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/WxService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17532">
-          <caret line="1004" column="93" selection-start-line="1004" selection-start-column="93" selection-end-line="1004" selection-end-column="93" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/action/sites/shop/Shop.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1062">
-          <caret line="66" column="40" selection-start-line="66" selection-start-column="40" selection-end-line="66" selection-end-column="40" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/action/admin/admin.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4968">
-          <caret line="291" column="34" selection-start-line="291" selection-start-column="34" selection-end-line="291" selection-end-column="34" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/action/manager/manager.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2178">
-          <caret line="135" column="31" selection-start-line="135" selection-start-column="31" selection-end-line="135" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/GoodsService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3168">
-          <caret line="185" column="20" selection-start-line="185" selection-start-column="20" selection-end-line="185" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/util/util.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1188">
-          <caret line="84" column="5" selection-start-line="84" selection-start-column="5" selection-end-line="84" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/TimeSellService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1800">
-          <caret line="112" column="41" selection-start-line="112" selection-start-column="31" selection-end-line="112" selection-end-column="51" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/resources/admin/js/admin.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="74304">
-          <caret line="4128" column="14" selection-start-line="4128" selection-start-column="14" selection-end-line="4128" selection-end-column="14" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/dao/structs.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1134">
-          <caret line="66" column="35" selection-start-line="66" selection-start-column="35" selection-end-line="66" selection-end-column="35" />
-          <folding>
-            <element signature="e#13#42#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/ShoppingCartService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1440">
-          <caret line="86" column="49" selection-start-line="86" selection-start-column="49" selection-end-line="86" selection-end-column="49" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/action/mp/order/order.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2322">
-          <caret line="146" column="41" selection-start-line="146" selection-start-column="41" selection-end-line="146" selection-end-column="41" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/dao/model.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17766">
-          <caret line="997" column="49" selection-start-line="997" selection-start-column="49" selection-end-line="997" selection-end-column="49" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/articles/content.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="72">
-          <caret line="4" column="52" selection-start-line="4" selection-start-column="52" selection-end-line="4" selection-end-column="52" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/view/articles/index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2070">
-          <caret line="115" column="33" selection-start-line="115" selection-start-column="33" selection-end-line="115" selection-end-column="33" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/FileService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="108">
-          <caret line="13" column="27" selection-start-line="13" selection-start-column="24" selection-end-line="13" selection-end-column="36" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/go/src/github.com/PuerkitoBio/goquery/type.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="756">
-          <caret line="51" column="5" selection-start-line="51" selection-start-column="5" selection-end-line="51" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/ArticleService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="774">
-          <caret line="55" column="48" selection-start-line="55" selection-start-column="48" selection-end-line="55" selection-end-column="48" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/ContentService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2286">
-          <caret line="138" selection-start-line="138" selection-end-line="138" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/data.json">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/action/mp/mp.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1206">
-          <caret line="91" column="37" selection-start-line="91" selection-start-column="37" selection-end-line="91" selection-end-column="37" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/service/SpiderService.go">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="198">
-          <caret line="27" lean-forward="true" selection-start-line="27" selection-end-line="27" />
-        </state>
-      </provider>
-    </entry>
   </component>
 </project>

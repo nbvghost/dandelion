@@ -1,7 +1,7 @@
 package service
 
 import (
-	"dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/service/dao"
 
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb/conf"
@@ -106,7 +106,7 @@ func init() {
 		}
 		if conf.Config.Debug {
 			glog.Debug("migrate:", models[index].TableName())
-			_database.AutoMigrate(models[index])
+			//_database.AutoMigrate(models[index])
 		}
 
 	}

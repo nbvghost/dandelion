@@ -1,7 +1,7 @@
 package service
 
 import (
-	"dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/service/dao"
 
 	"github.com/nbvghost/glog"
 )
