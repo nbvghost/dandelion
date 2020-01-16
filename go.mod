@@ -18,4 +18,4 @@ require (
 	golang.org/x/text v0.3.2
 )
 
-replace github.com/nbvghost/gweb v1.1.4 => C:\Users\work\go\src\github.com\nbvghost\gweb
+//replace github.com/nbvghost/gweb v1.1.4 => C:\Users\work\go\src\github.com\nbvghost\gweb
