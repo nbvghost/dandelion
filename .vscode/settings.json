@@ -1,7 +1,0 @@
-{
-    "go.useCodeSnippetsOnFunctionSuggest": true,
-    "go.gotoSymbol.includeImports": true,
-    "go.autocompleteUnimportedPackages": true,
-    "debug.allowBreakpointsEverywhere": true,
-    "go.buildOnSave": "workspace"
-}
