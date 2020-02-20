@@ -76,6 +76,7 @@ github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89 h1:5kowTqKh3Gfb63
 github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89/go.mod h1:+W4H7/2BLm99QxjF8Q+ETCBBf4l2Q0cdfWrISmXC4N4=
 github.com/nbvghost/glog v1.0.0 h1:qn4r1gjUx4COuMcHOqmCYQhBsh6aFB5VcxZsL8NiFBc=
 github.com/nbvghost/glog v1.0.0/go.mod h1:MpQrW1hH71geowXb/iED845KLTgcqEXETwLmqZH7vVE=
+github.com/nbvghost/gweb v1.1.4/go.mod h1:kEnxI4EavcVZfdjhRcIrVY5FMiWx8NzRVvf6RHDGVRE=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/gomega v1.4.3/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1CpauHY=
