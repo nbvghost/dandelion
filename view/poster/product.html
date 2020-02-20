@@ -32,26 +32,36 @@
 
         function drawImage(posterImage,headImage,qrcodeImage,bottomImage) {
 
-            var gw =750;
-            var gh =1334;
+            canvas.width=950;
+
+            var imgw = canvas.width;          //canvas与图片的宽高比
+            var imgh = (canvas.width/posterImage.width)*posterImage.height;
+
+            canvas.height=imgh+450;
+
+            var gw =canvas.width;
+            var gh =canvas.height;
 
             poster.rect(0,0,gw,gh);
             poster.fillStyle="#ffffff";
             poster.fill();
 
-            poster.fillStyle = 'red';
+            //poster.fillStyle = 'red';
 
-            var tw=gw;
-            var th=750;
+            //var tw=gw;
+            //var th=1050;
 
 
-            var w = posterImage.width
-            var h = posterImage.height
-            var dw = tw/w          //canvas与图片的宽高比
-            var dh = th/h
-            var ratio
+            //var w = posterImage.width;
+            //var h = posterImage.height;
+
             // 裁剪图片中间部分
-            if(w > tw && h > th || w < tw && h < th){
+
+            console.log("--------",imgw,imgh)
+
+            poster.drawImage(posterImage, 0, 0, posterImage.width, posterImage.height, 0, 0,imgw, imgh);
+
+            /*if(w > tw && h > th || w < tw && h < th){
                 if (dw > dh) {
                     poster.drawImage(posterImage, 0, (h - th/dw)/2, w, th/dw, 0, 0, tw, th)
                 } else {
@@ -65,10 +75,11 @@
                 }else {
                     poster.drawImage(posterImage, (w - tw/dh)/2, 0, tw/dh, h, 0, 0, tw, th)
                 }
-            }
+            }*/
 
 
             poster.drawImage(headImage,20,20, 60, 60);
+
             //写用户名称
             poster.save();
             poster.shadowColor = '#fff';
@@ -106,32 +117,35 @@
 
             var lineHeight = 0;
 
+            var maxTitleLenght = 60;
             var text = "{{.params.GoodsInfo.Goods.Title}}";
+
             if(text.length>36){
                 //text=text.substr(0,120);
-                if(text.length>120){
-                    text=text.substr(0,120);
+                if(text.length>maxTitleLenght){
+                    text=text.substr(0,maxTitleLenght)+"...";
                 }
                 poster.font = '28px bold';//字体大小也会影响的哦。bold italic
-                lineHeight=28+10
+                lineHeight=28+20
             }else{
                 poster.font = '40px bold';//字体大小也会影响的哦。bold italic
-                lineHeight=40+10
+                lineHeight=40+20
             }
-            var textY =th+lineHeight;
+            var textY =imgh+lineHeight+30;
             poster.fillStyle ="#323232";
-            var lineWidth=10;
+            var lineWidth=20;
+            var lineTotalWidth=gw*0.70;
             for(var i=0;i<text.length;i++){
-                if(lineWidth+poster.measureText(text[i]).width>gw){
+                if(lineWidth+poster.measureText(text[i]).width>lineTotalWidth){
                     textY+=lineHeight;
-                    lineWidth=10;
+                    lineWidth=20;
                 }
                 poster.fillText(text[i], lineWidth, textY);
                 lineWidth+=poster.measureText(text[i]).width;
                 console.log(text[i],lineWidth)
-                if(lineWidth>gw){
+                if(lineWidth>lineTotalWidth){
                     textY+=lineHeight;
-                    lineWidth=10;
+                    lineWidth=20;
                 }
             }
 
@@ -153,8 +167,8 @@
 
             var text = "价格：￥";
 
-            var textX =10;
-            textY+=50+20;
+            var textX =20;
+            textY+=100+20;
             //var textY =(60+22)/2+20;
             poster.strokeText(text, textX, textY);
             poster.fillStyle ="#323232";
@@ -170,13 +184,17 @@
 
             poster.restore();
 
-            poster.drawImage(qrcodeImage,(gw-250-1),750-250-1, 250, 250);
+            //poster.drawImage(qrcodeImage,(gw-250-1),750-250-1, 250, 250);
+            poster.drawImage(qrcodeImage,(gw-250-10),imgh+30, 250, 250);
+            poster.fillStyle ="#888";
+            poster.font = '25px bold';//。bold italic
+            poster.fillText("-长按或扫码购买-", (gw-250+10), imgh+30+250+40,250);
 
 
             //bottomImage
-            poster.drawImage(bottomImage,0,gh-101, 750, 101);
+            poster.drawImage(bottomImage,0,gh-60, gw, 60);
 
-            //写详细
+            /*//写详细
             poster.save();
             poster.shadowColor = '#fff';
             // 将阴影向右移动15px，向上移动10px
@@ -221,7 +239,7 @@
                 }
             }
 
-            poster.restore();
+            poster.restore();*/
 
 
 
@@ -297,7 +315,7 @@
     </script>
 </head>
 <body>
-<canvas style="display: none;visibility: hidden;border:none;" width="750" height="1334" id="canvas"></canvas>
+<canvas style="display: none;visibility: hidden;border:none;" id="canvas"></canvas>
 <img id="posterImage">
 <div id="tipbox">图片生成中，请稍候</div>
 </body>

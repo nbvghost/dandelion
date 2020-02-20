@@ -503,6 +503,7 @@ type Goods struct {
 	//TimeSellID        uint64 `gorm:"column:TimeSellID"`                          //
 	ExpressTemplateID uint64 `gorm:"column:ExpressTemplateID"` //
 	CountSale         uint64 `gorm:"column:CountSale"`         //销售量
+	Mark string `gorm:"column:Mark"`
 }
 
 func (u *Goods) BeforeCreate(scope *gorm.Scope) (err error) {

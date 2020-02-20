@@ -49,7 +49,7 @@ func (controller *Controller) Apply() {
 
 	controller.AddHandler(gweb.ALLMethod("forget", controller.forgetPage))
 	controller.AddHandler(gweb.ALLMethod("orderQuery", controller.sdfsda))
-	controller.AddHandler(gweb.ALLMethod("user", controller.sdfsda))
+	controller.AddHandler(gweb.POSMethod("user/update", controller.updateUserInfoAction))
 
 	controller.AddHandler(gweb.ALLMethod("loginAdmin", controller.loginAdminAction))
 	controller.AddHandler(gweb.ALLMethod("loginManager", controller.loginManagerAction))
@@ -71,15 +71,15 @@ func (controller *Controller) miniProgramLoginAction(context *gweb.Context) gweb
 
 	loginInfo := &struct {
 		Code     string
-		UserInfo string
+		//UserInfo string
 		ShareKey string
 	}{}
 
 	util.RequestBodyToJSON(context.Request.Body, loginInfo)
 
-	userInfo := make(map[string]interface{})
+	//userInfo := make(map[string]interface{})
 
-	util.JSONToStruct(loginInfo.UserInfo, &userInfo)
+	//util.JSONToStruct(loginInfo.UserInfo, &userInfo)
 
 	wxa := controller.Wx.MiniProgram()
 
@@ -90,11 +90,11 @@ func (controller *Controller) miniProgramLoginAction(context *gweb.Context) gweb
 		tx := dao.Orm().Begin()
 		newUser := controller.User.AddUserByOpenID(tx, OpenID)
 		newUser.OpenID = OpenID
-		newUser.Name = userInfo["nickName"].(string)
-		newUser.Portrait = userInfo["avatarUrl"].(string)
-		gender, _ := strconv.ParseInt(strconv.FormatFloat(userInfo["gender"].(float64), 'f', 0, 64), 10, 64)
+		//newUser.Name = userInfo["nickName"].(string)
+		//newUser.Portrait = userInfo["avatarUrl"].(string)
+		//gender, _ := strconv.ParseInt(strconv.FormatFloat(userInfo["gender"].(float64), 'f', 0, 64), 10, 64)
 
-		newUser.Gender = int(gender)
+		//newUser.Gender = int(gender)
 		//newUser.OID = company.ID
 		newUser.LastLoginAt = time.Now()
 
@@ -498,4 +498,35 @@ func (controller *Controller) loginUserPage(context *gweb.Context) gweb.Result {
 func (controller *Controller) sdfsda(context *gweb.Context) gweb.Result {
 
 	return &gweb.JsonResult{}
+}
+func (controller *Controller) updateUserInfoAction(context *gweb.Context) gweb.Result {
+	if context.Session.Attributes.Get(play.SessionUser)==nil{
+		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "还没有登陆", Data: nil}}
+	}
+
+	user:=context.Session.Attributes.Get(play.SessionUser).(*dao.User)
+
+
+	context.Request.ParseForm()
+
+	NickName:=context.Request.FormValue("NickName")
+	Portrait:=context.Request.FormValue("Portrait")
+	_Gender:=context.Request.FormValue("Gender")
+	Gender:=0
+	if strings.EqualFold(_Gender,"1"){
+		Gender=1
+	}else if strings.EqualFold(_Gender,"2"){
+		Gender=2
+	}
+
+	user.Name =NickName
+	user.Portrait =Portrait
+	user.Gender =Gender
+
+	err:=controller.User.ChangeModel(dao.Orm(),user.ID,&dao.User{Name:user.Name,Portrait:user.Portrait,Gender:user.Gender})
+	if glog.Error(err){
+		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}}
+	}
+
+	return &gweb.JsonResult{Data:&dao.ActionStatus{Success: true, Message: "OK", Data: user}}
 }

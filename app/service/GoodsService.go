@@ -360,6 +360,16 @@ func (service GoodsService) FindGoodsByOrganizationIDAndGoodsID(OrganizationID u
 	dao.Orm().Model(&dao.Goods{}).Where("ID=? and OID=?", GoodsID, OrganizationID).First(&Goods)
 	return Goods
 }
+func (service GoodsService) FindGoodsByTitle(Title string) dao.Goods {
+	var Goods dao.Goods
+	dao.Orm().Model(&dao.Goods{}).Where("Title=?", Title).First(&Goods)
+	return Goods
+}
+func (service GoodsService) FindGoodsLikeMark(Mark string) dao.Goods {
+	var Goods dao.Goods
+	dao.Orm().Model(&dao.Goods{}).Where("Mark like ?", "%"+Mark+"%").First(&Goods)
+	return Goods
+}
 func (service GoodsService) AllList() []dao.Goods {
 
 	Orm := dao.Orm()

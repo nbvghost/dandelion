@@ -56,7 +56,7 @@
                 <table class="ui celled blue table">
                     <thead>
                     <tr>
-                        <th>标签名</th>
+                        <th width="30%">标签名</th>
                         <th>规格</th>
                         <th>重量（Kg）</th>
                         <th>库存</th>
@@ -189,7 +189,7 @@
             <div class="ui fluid card">
                 <div class="ui images" >
                     <div class="ui grid container">
-                        <div class="four wide center aligned column" ng-repeat="m in Images">
+                        <div class="four wide center aligned column" ng-repeat="m in Images track by $index">
                             <img style="object-fit:contain;max-width: 100%;max-height:160px;width: 100%;height: 100%;"  ng-src="/file/load?path=@{m}@">
                             <div class="ui mini fluid buttons">
                                 <div ng-click="LeftMoveArr(Images,$index)" class="ui mini blue  button">左移</div>
@@ -210,12 +210,12 @@
 
         <div class="field">
             <label>产品概要</label>
-            <textarea ng-model="Goods.Summary" maxlength="120" placeholder="产品介绍" required ></textarea>
+            <textarea ng-model="Goods.Summary" minlength="0" maxlength="120" placeholder="产品介绍" ></textarea>
         </div>
 
         <div class="field">
             <label>产品介绍</label>
-            <textarea ng-model="Goods.Introduce" placeholder="产品介绍" required ></textarea>
+            <textarea ng-model="Goods.Introduce" placeholder="产品介绍" ></textarea>
         </div>
 
 
@@ -227,7 +227,7 @@
             <div class="ui fluid card">
                 <div class="ui images" >
                     <div class="ui grid container">
-                        <div class="four wide center aligned column" ng-repeat="m in Pictures">
+                        <div class="four wide center aligned column" ng-repeat="m in Pictures track by $index">
                             <img style="object-fit:contain;max-width: 100%;max-height:160px;width: 100%;height: 100%;"  ng-src="/file/load?path=@{m}@">
                             <div class="ui mini fluid buttons">
                                 <div ng-click="LeftMoveArr(Pictures,$index)" class="ui mini blue  button">左移</div>

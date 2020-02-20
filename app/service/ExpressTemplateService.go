@@ -77,6 +77,12 @@ func (b ExpressTemplateService) GetExpressTemplateByName(Name string) dao.Expres
 	Orm.Model(&dao.ExpressTemplate{}).Where("Name=?", Name).Find(&list)
 	return list
 }
+func (b ExpressTemplateService) GetExpressTemplateByOID(OID uint64) dao.ExpressTemplate {
+	Orm := dao.Orm()
+	var list dao.ExpressTemplate
+	Orm.Model(&dao.ExpressTemplate{}).Where("OID=?", OID).Find(&list)
+	return list
+}
 func (b ExpressTemplateService) SaveExpressTemplate(target *dao.ExpressTemplate) error {
 	Orm := dao.Orm()
 	have := b.GetExpressTemplateByName(target.Name)
