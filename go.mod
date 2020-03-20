@@ -9,8 +9,8 @@ require (
 	github.com/jinzhu/gorm v1.9.10
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89
-	github.com/nbvghost/glog v1.0.0
-	github.com/nbvghost/gweb v1.1.4
+	github.com/nbvghost/glog v1.0.1
+	github.com/nbvghost/gweb v1.1.8
 	github.com/pkg/errors v0.8.1
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20190110000554-dc11ecdae0a9
