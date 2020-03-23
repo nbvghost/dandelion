@@ -6,7 +6,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/aliyun/aliyun-oss-go-sdk v2.0.3+incompatible
 	github.com/baiyubin/aliyun-sts-go-sdk v0.0.0-20180326062324-cfa1a18b161f // indirect
-	github.com/jinzhu/gorm v1.9.10
+	github.com/jinzhu/gorm v1.9.11
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89
 	github.com/nbvghost/glog v1.0.1

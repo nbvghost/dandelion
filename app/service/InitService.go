@@ -106,7 +106,7 @@ func init() {
 		}
 		if conf.Config.Debug {
 			glog.Debug("migrate:", models[index].TableName())
-			//_database.AutoMigrate(models[index])
+			_database.AutoMigrate(models[index])
 		}
 
 	}
