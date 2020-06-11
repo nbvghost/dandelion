@@ -5,3 +5,5 @@
 /logs
 /.idea
 /.vscode
+/*.exe
+/dandelion

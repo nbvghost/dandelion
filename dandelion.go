@@ -1,25 +1,25 @@
 package main
 
 import (
-	"net/http"
-
-	"github.com/nbvghost/dandelion/app/action/sites"
-
-	"github.com/nbvghost/gweb"
-
 	"github.com/nbvghost/dandelion/app/action/account"
-	"github.com/nbvghost/dandelion/app/action/admin"
 	"github.com/nbvghost/dandelion/app/action/api"
 	"github.com/nbvghost/dandelion/app/action/images"
 	"github.com/nbvghost/dandelion/app/action/index"
 	"github.com/nbvghost/dandelion/app/action/manager"
 	"github.com/nbvghost/dandelion/app/action/mp"
 	"github.com/nbvghost/dandelion/app/action/payment"
+	"github.com/nbvghost/dandelion/app/action/sites"
+	"net/http"
 
+	"github.com/nbvghost/gweb"
+
+	"github.com/nbvghost/dandelion/app/action/admin"
 	"github.com/nbvghost/gweb/conf"
 )
 
 func main() {
+
+
 
 	//s := &service.Catch1688Service{}
 	//s.Run()
@@ -115,8 +115,8 @@ func main() {
 	//front := &front.Controller{}
 	//front.NewController("/front/", front)
 
-	admin := &admin.Controller{}
-	admin.NewController("/admin/", admin)
+	admina:=&admin.Controller{}
+	admina.NewController("/admin/",admina)
 
 	manager := &manager.Controller{}
 	manager.NewController("/manager/", manager)
@@ -142,6 +142,9 @@ func main() {
 	sites := &sites.Controller{}
 	sites.NewController("/sites", sites)
 
+
+
+
 	_http := &http.Server{
 		Addr:    conf.Config.HttpPort,
 		Handler: nil,
@@ -150,6 +153,5 @@ func main() {
 		Addr:    conf.Config.HttpsPort,
 		Handler: nil,
 	}
-	_https = nil
 	gweb.StartServer(http.DefaultServeMux, _http, _https)
 }
