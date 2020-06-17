@@ -20,6 +20,19 @@ import (
 	"github.com/nbvghost/gweb"
 )
 
+
+type Hashids struct {
+}
+
+func (Hashids) EncodeShareKey(UserID uint64) string {
+	return "UserID:" + strconv.Itoa(int(UserID))
+}
+func (Hashids) DecodeShareKey(ShareKey string) uint64 {
+	_ShareKey, _ := url.QueryUnescape(ShareKey)
+	SuperiorID, _ := strconv.ParseUint(strings.Split(_ShareKey, ":")[1], 10, 64)
+	return SuperiorID
+}
+
 type Map map[string]string
 type xmlMapEntry struct {
 	XMLName xml.Name

@@ -49,8 +49,12 @@ func (service StoreService) LocationList(Latitude, Longitude float64) []map[stri
 	return list
 }
 func (service StoreService) AddItem(context *gweb.Context) gweb.Result {
+
+	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+
 	Orm := dao.Orm()
 	item := &dao.Store{}
+	item.OID = company.ID
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
