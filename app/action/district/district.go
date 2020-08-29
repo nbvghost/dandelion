@@ -13,7 +13,7 @@ type Controller struct {
 	DistrictService service.DistrictService
 }
 
-func (controller *Controller) Apply() {
+func (controller *Controller) Init() {
 	controller.AddHandler(gweb.GETMethod("get", controller.getAction))
 
 }

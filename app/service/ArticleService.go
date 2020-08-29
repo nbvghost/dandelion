@@ -20,7 +20,7 @@ type ArticleService struct {
 	Journal JournalService
 }
 
-func (service ArticleService) AddSpiderArticle(OID uint64, ContentName string, ContentSubTypeName string, Author, Title string, FromUrl string, Introduce string, Thumbnail string, Content string, CreatedAt time.Time) {
+func (service ArticleService) AddSpiderArticle(OID uint64, ContentName string, ContentSubTypeName string, Author, Title string, FromUrl string, Introduce string, Picture string, Content string, CreatedAt time.Time) {
 	var article dao.Article
 	article.Title = Title
 	article.FromUrl = FromUrl
@@ -34,8 +34,8 @@ func (service ArticleService) AddSpiderArticle(OID uint64, ContentName string, C
 		article.Introduce = Introduce
 	}
 
-	//Thumbnail=tool.DownloadInternetImage(Thumbnail,"Mozilla/5.0 (Linux; Android 7.0; SLA-AL00 Build/HUAWEISLA-AL00; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044109 Mobile Safari/537.36 MicroMessenger/6.6.7.1321(0x26060739) NetType/WIFI Language/zh_CN",weixin_tmp_url)
-	article.Thumbnail = Thumbnail
+	//Picture=tool.DownloadInternetImage(Picture,"Mozilla/5.0 (Linux; Android 7.0; SLA-AL00 Build/HUAWEISLA-AL00; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/57.0.2987.132 MQQBrowser/6.2 TBS/044109 Mobile Safari/537.36 MicroMessenger/6.6.7.1321(0x26060739) NetType/WIFI Language/zh_CN",weixin_tmp_url)
+	article.Picture = Picture
 	article.Content = Content
 
 	contentType := service.Content.ListContentTypeByType(play.ContentTypeArticles)
@@ -101,11 +101,23 @@ func (service ArticleService) DeleteArticleAction(context *gweb.Context) gweb.Re
 	err := service.Delete(dao.Orm(), &dao.Article{}, ID)
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)}
 }
-func (service ArticleService) GetArticleAction(context *gweb.Context) gweb.Result {
+func (service ArticleService) GetMultiArticleAction(context *gweb.Context) gweb.Result {
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	var article dao.Article
 	err := service.Get(dao.Orm(), ID, &article)
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", article)}
+}
+func (service ArticleService) GetSingleArticleAction(context *gweb.Context) gweb.Result {
+	ContentID, _ := strconv.ParseUint(context.PathParams["ContentID"], 10, 64)
+	article := service.GetArticleByContentID(ContentID)
+	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", article)}
+}
+func (service ArticleService) GetArticleByContentID(ContentID uint64) *dao.Article {
+	article := &dao.Article{}
+	err := dao.Orm().Where("ContentID=? and ContentSubTypeID=? and ContentSubTypeChildID=?", ContentID, 0, 0).First(article).Error
+	glog.Error(err)
+	//service.ChangeMap(dao.Orm(), ID, &dao.Article{}, map[string]interface{}{"Look": article.Look + 1})
+	return article
 }
 func (service ArticleService) GetArticle(ID uint64) *dao.Article {
 	article := &dao.Article{}
@@ -166,14 +178,21 @@ func (service ArticleService) AddArticle(article *dao.Article) *dao.ActionStatus
 	as := &dao.ActionStatus{}
 	Orm := dao.Orm()
 
-	_article := &dao.Article{}
-	err := Orm.Where("ContentID=? and ContentSubTypeID=?", article.ContentID, article.ContentSubTypeID).Where("Title=?", article.Title).First(_article).Error
-	if _article.ID != 0 && _article.ID != article.ID {
+	if article.ContentID == 0 {
+		as.Success = false
+		as.Message = "必须指定ContentID"
+		return as
+	}
+
+	//_article := &dao.Article{}
+	//err := Orm.Where("ContentID=? and ContentSubTypeID=?", article.ContentID, article.ContentSubTypeID).Where("Title=?", article.Title).First(_article).Error
+	//if _article.ID != 0 && _article.ID != article.ID {
+	if false {
 		as.Success = false
 		as.Message = "添加失败，存在相同的标题"
 	} else {
 		//fmt.Println(article.Introduce)
-		err = service.Save(Orm, article) //self.dao.AddArticle(Orm, article)
+		err := service.Save(Orm, article) //self.dao.AddArticle(Orm, article)
 		if err != nil {
 			glog.Error(err)
 			as.Success = false

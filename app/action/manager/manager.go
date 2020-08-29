@@ -53,7 +53,7 @@ type Controller struct {
 	Goods         service.GoodsService
 }
 
-func (controller *Controller) Apply() {
+func (controller *Controller) Init() {
 	//Index.RequestMapping = make(map[string]mvc.Function)
 	controller.Interceptors.Add(&InterceptorManager{})
 

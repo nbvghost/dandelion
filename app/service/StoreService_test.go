@@ -8,12 +8,12 @@ import (
 
 func TestStoreStockService_ListStoreSpecifications(t *testing.T) {
 
-	ss := StoreStockService{}
+	ss := StoreService{}
 	fmt.Println(ss.ListStoreSpecifications(2009, 2005))
 }
 func TestStoreStockService_ListStoreStock(t *testing.T) {
 
-	ss := StoreStockService{}
+	ss := StoreService{}
 	fmt.Println(ss.ListStoreStock(2009))
 
 }

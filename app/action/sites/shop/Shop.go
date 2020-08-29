@@ -15,7 +15,7 @@ type Controller struct {
 	Organization service.OrganizationService
 }
 
-func (controller *Controller) Apply() {
+func (controller *Controller) Init() {
 	controller.AddHandler(gweb.ALLMethod("/resources/", controller.AddProjectdsfdsfsdAction))
 	controller.AddHandler(gweb.GETMethod("article/{ArticleID}", controller.articleAction))
 	controller.AddHandler(gweb.GETMethod("categories", controller.categoriesPage))

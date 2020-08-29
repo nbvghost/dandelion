@@ -75,9 +75,9 @@
     <tr>
         <td>缩略图：</td>
         <td>
-            <input type="file" ngf-select="uploadThumbnailFile('thumbnail_progress',$file,$invalidFiles)" accept="image/*" ngf-max-height="1000" ngf-max-size="1MB">
+            <input type="file" ngf-select="uploadPictureFile('thumbnail_progress',$file,$invalidFiles)" accept="image/*" ngf-max-height="1000" ngf-max-size="1MB">
             <span id="thumbnail_progress"></span>
-            <img width="64" height="64" ng-src="/file/load?path=@{Thumbnail}@">
+            <img width="64" height="64" ng-src="/file/load?path=@{Picture}@">
         </td>
     </tr>
     <tr>

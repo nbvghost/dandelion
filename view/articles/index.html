@@ -113,7 +113,7 @@
         <li ng-repeat="m in [articles[0]]" repeat-finish="repeatDone();">
             <a target="_blank" href="article?ID=@{m.ID}@">
                 <div class="left">
-                    <img ng-src="@{m.Thumbnail}@">
+                    <img ng-src="@{m.Picture}@">
                 </div>
                 <div class="right">
                     <div class="Title">@{m.Title}@</div>
@@ -125,7 +125,7 @@
         <li ng-show="$index!=0" ng-repeat="m in articles" repeat-finish="repeatDone();">
             <a target="_blank" href="article?ID=@{m.ID}@">
                 <div class="left">
-                    <img ng-src="@{m.Thumbnail}@">
+                    <img ng-src="@{m.Picture}@">
                 </div>
                 <div class="right">
                     <div class="Title">@{m.Title}@</div>

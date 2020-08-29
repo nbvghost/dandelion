@@ -15,7 +15,6 @@ import (
 type StoreController struct {
 	gweb.BaseController
 	Store        service.StoreService
-	StoreStock   service.StoreStockService
 	Wx           service.WxService
 	Orders       service.OrdersService
 	Journal      service.JournalService
@@ -24,7 +23,7 @@ type StoreController struct {
 	Transfers    service.TransfersService
 }
 
-func (controller *StoreController) Apply() {
+func (controller *StoreController) Init() {
 
 	controller.AddHandler(gweb.GETMethod("/location/list", controller.storeLocationListAction))
 	controller.AddHandler(gweb.GETMethod("/get", controller.storeGetAction))
@@ -166,7 +165,7 @@ func (controller *StoreController) verificationAction(context *gweb.Context) gwe
 		store := context.Session.Attributes.Get(play.SessionStore).(*dao.Store)
 		StoreStockID, _ := strconv.ParseUint(context.Request.FormValue("StoreStockID"), 10, 64)
 		Quantity, _ := strconv.ParseUint(context.Request.FormValue("Quantity"), 10, 64)
-		as := controller.StoreStock.VerificationSelf(store.ID, StoreStockID, Quantity)
+		as := controller.Store.VerificationSelf(store.ID, StoreStockID, Quantity)
 		return &gweb.JsonResult{Data: as}
 
 	}
@@ -178,7 +177,7 @@ func (controller *StoreController) listStockSpecificationsAction(context *gweb.C
 
 	store := context.Session.Attributes.Get(play.SessionStore).(*dao.Store)
 
-	list := controller.StoreStock.ListStoreSpecifications(store.ID, GoodsID)
+	list := controller.Store.ListStoreSpecifications(store.ID, GoodsID)
 	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: list}}
 
 }
@@ -186,7 +185,7 @@ func (controller *StoreController) listStockAction(context *gweb.Context) gweb.R
 
 	store := context.Session.Attributes.Get(play.SessionStore).(*dao.Store)
 
-	list := controller.StoreStock.ListStoreStock(store.ID)
+	list := controller.Store.ListStoreStock(store.ID)
 	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: list}}
 
 }

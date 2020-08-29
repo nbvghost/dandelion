@@ -2,6 +2,7 @@ package index
 
 import (
 	"fmt"
+	"github.com/nbvghost/gweb/tool/encryption"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	"github.com/nbvghost/dandelion/app/util"
 
 	"github.com/nbvghost/gweb"
-	"github.com/nbvghost/gweb/tool"
 )
 
 type InterceptorMp struct {
@@ -55,7 +55,7 @@ type Controller struct {
 	Goods         service.GoodsService
 }
 
-func (controller *Controller) Apply() {
+func (controller *Controller) Init() {
 	//Index.RequestMapping = make(map[string]mvc.Function)
 	controller.Interceptors.Add(&InterceptorMp{})
 
@@ -94,7 +94,7 @@ func (controller *Controller) newArticlePostAction(context *gweb.Context) gweb.R
 	__dataKey:=context.Request.FormValue("__dataKey")
 	__crawlUrl:=context.Request.FormValue("__crawlUrl")*/
 
-	msSign := tool.Md5ByString("274455411" + "shenjianshou.cn")
+	msSign := encryption.Md5ByString("274455411" + "shenjianshou.cn")
 	if strings.EqualFold(strings.ToUpper(__sign), msSign) {
 
 		article_title := context.Request.FormValue("article_title")
@@ -115,7 +115,7 @@ func (controller *Controller) newArticlePostAction(context *gweb.Context) gweb.R
 		ts, _ := strconv.ParseInt(article_publish_time, 10, 64)
 		createTime = time.Unix(ts, 0)
 
-		//OID,			   ContentName,ContentSubTypeName,Author,Title,          FromUrl,       Introduce,       Thumbnail,                        Content,        CreatedAt
+		//OID,			   ContentName,ContentSubTypeName,Author,Title,          FromUrl,       Introduce,       Picture,                        Content,        CreatedAt
 		controller.addArticle(organization.ID, "头条文摘", weixin_nickname, weixin_nickname, article_title, weixin_tmp_url, weixin_introduce, article_thumbnail, article_content, createTime)
 
 		return &gweb.JsonResult{Data: map[string]interface{}{"result": 1, "data": "发布成功"}}
@@ -126,9 +126,9 @@ func (controller *Controller) newArticlePostAction(context *gweb.Context) gweb.R
 
 	//
 }
-func (controller *Controller) addArticle(OID uint64, ContentName string, ContentSubTypeName string, Author, Title string, FromUrl string, Introduce string, Thumbnail string, Content string, CreatedAt time.Time) {
+func (controller *Controller) addArticle(OID uint64, ContentName string, ContentSubTypeName string, Author, Title string, FromUrl string, Introduce string, Picture string, Content string, CreatedAt time.Time) {
 
-	controller.Article.AddSpiderArticle(OID, ContentName, ContentSubTypeName, Author, Title, FromUrl, Introduce, Thumbnail, Content, CreatedAt)
+	controller.Article.AddSpiderArticle(OID, ContentName, ContentSubTypeName, Author, Title, FromUrl, Introduce, Picture, Content, CreatedAt)
 
 }
 func (controller *Controller) newArticleWebhookAction(context *gweb.Context) gweb.Result {
@@ -144,7 +144,7 @@ func (controller *Controller) newArticleWebhookAction(context *gweb.Context) gwe
 	data_key := context.Request.FormValue("data_key")
 	event_type := context.Request.FormValue("event_type")
 
-	mySign2 := tool.Md5ByString(url + "k4Mjg3NDhmYTJlYT-a1910cf788d26ec" + timestamp)
+	mySign2 := encryption.Md5ByString(url + "k4Mjg3NDhmYTJlYT-a1910cf788d26ec" + timestamp)
 	fmt.Println(data, crawl_time, data_key, event_type)
 	fmt.Println(mySign2)
 	fmt.Println(sign2)

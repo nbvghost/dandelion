@@ -21,7 +21,7 @@ type Controller struct {
 	Wx   service.WxService
 }
 
-func (controller *Controller) Apply() {
+func (controller *Controller) Init() {
 	//controller.Interceptors.DisableManagerSession = true
 	//i.Interceptors.Add(&InterceptorFile{})
 	controller.AddHandler(gweb.ALLMethod("captcha", controller.captchaAction))

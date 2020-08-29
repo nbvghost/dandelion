@@ -3,7 +3,6 @@
     <p>
         <a class="ui large red ribbon label">菜单管理</a>
     </p>
-
     <div class="">
         <form ng-submit="saveMenuInline()" class="ui form">
             <div class="inline fields">
@@ -11,9 +10,17 @@
                     <label>菜单名称</label>
                     <input type="text" ng-model="Menus.Name" required placeholder="菜单名称">
                 </div>
+
                 <div class="field">
                     <label>类型</label>
                     <select required ng-model="Menus.ContentTypeID" ng-options="m.ID as m.Label for m in MenuTypes">
+                        <option></option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label>模板名</label>
+                    <select required ng-model="Menus.TemplateName" ng-options="m.Key as m.Label for m in templateNameObjFunc(Menus.ContentTypeID)">
                         <option></option>
                     </select>
                 </div>
@@ -31,6 +38,7 @@
             <th>名称</th>
             <th>排序</th>
             <th>类型</th>
+            <th>模板名</th>
             <th>显示</th>
             <th class="center aligned">操作</th>
         </tr>
@@ -42,6 +50,7 @@
         <td>@{m.Name}@</td>
         <td>@{m.Sort}@</td>
         <td>@{m.Type}@</td>
+        <td>@{getTemplateNameObj(m.Type,m.TemplateName).Label}@</td>
         <td>
             <div class="ui checkbox">
                 <input ng-model="m.Hide" ng-change="changeHide(m)" type="checkbox">
@@ -49,11 +58,11 @@
             </div>
         </td>
         <td class="right aligned">
+            <a ng-if="getTemplateNameObj(m.Type,m.TemplateName).SubMenu" ng-click="editMenus(m)" class="ui blue button"><i class="edit icon"></i>编辑</a>
+            <a ng-if="getTemplateNameObj(m.Type,m.TemplateName).Content" href="#!/@{m.Type}@?ContentID=@{m.ID}@&Type=@{m.Type}@" class="ui green button"> <i class="edit icon"></i>内容管理</a>
             <a ng-click="upIndex($index)" class="ui button"><i class="angle up icon"></i>上移</a>
             <a ng-click="downIndex($index)" class="ui button"><i class="angle down icon"></i>下移</a>
             <a ng-click="deleteMenus(m.ID)" class="ui red button"><i class="delete icon"></i>删除</a>
-            <a ng-click="editMenus(m)" class="ui blue button"><i class="edit icon"></i>编辑</a>
-            <a href="#!/@{m.Type}@?ContentID=@{m.ID}@&Type=@{m.Type}@" class="ui green button"> <i class="edit icon"></i>内容管理</a>
         </td>
     </tr>
 
@@ -61,7 +70,7 @@
     </table>
 </div>
 <div id="editMenus" class="ui fullscreen modal">
-    <div class="header">@{Menus}@</div>
+    <div class="header">子类管理</div>
     <div class="scrolling content">
         <p><a target="_blank" href="/articles/content/@{Menus.ID}@/index">/articles/content/@{Menus.ID}@/index</a></p>
         <p>
@@ -163,8 +172,6 @@
         </div>
     </div>
     <div class="actions">
-        <div class="ui approve button">Approve</div>
-        <div class="ui button">Neutral</div>
-        <div class="ui cancel button">Cancel</div>
+        <div class="ui cancel button">确定</div>
     </div>
 </div>

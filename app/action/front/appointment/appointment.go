@@ -37,7 +37,7 @@ type Controller struct {
 	gweb.BaseController
 }
 
-func (sub *Controller) Apply() {
+func (sub *Controller) Init() {
 	//i.Interceptors.Add(&InterceptorFile{})
 	//sub.AddHandler(gweb.ALLMethod(":id/index", indexPage))
 	sub.AddHandler(gweb.ALLMethod(":id/action/add", actionAddAction))

@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/nbvghost/dandelion/app/service/dao"
+	"github.com/nbvghost/gweb/tool/encryption"
 
 	"crypto/tls"
 	"crypto/x509"
@@ -147,7 +148,7 @@ func (entity WxService) GetWXAConfig(prepay_id string, WxConfig dao.WxConfig) (o
 
 	list.SortL()
 
-	paySign := tool.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
+	paySign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
 	outData["paySign"] = paySign
 	return outData
 }
@@ -166,7 +167,7 @@ func (entity WxService) SignatureVerification(dataMap util.Map) bool {
 	}
 	list.SortL()
 
-	sign := tool.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
+	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
 
 	//fmt.Println(list.Join("&") + "&key=" + WxConfig.PayKey)
 	//fmt.Println(sign)
@@ -507,7 +508,7 @@ func (entity WxService) Order(OrderNo string, title, description string, detail,
 
 	list.SortL()
 
-	sign := tool.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
+	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
 	//fmt.Println(list.Join("&") + "&key=" + self.MiniProgram().PayKey)
 
 	mapData["sign"] = sign
@@ -709,7 +710,7 @@ func (entity WxService) OrderQuery(OrderNo string) (Success bool, Result util.Ma
 	}
 	list.SortL()
 
-	sign := tool.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
+	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
@@ -773,7 +774,7 @@ func (entity WxService) GetTransfersInfo(transfers dao.Transfers) (Success bool)
 	}
 	list.SortL()
 
-	sign := tool.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
+	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
@@ -873,7 +874,7 @@ func (entity WxService) Transfers(transfers dao.Transfers) (Success bool, Messag
 	}
 	list.SortL()
 
-	sign := tool.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
+	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
@@ -960,7 +961,7 @@ func (entity WxService) CloseOrder(OrderNo string, OID uint64) (Success bool, Me
 	}
 	list.SortL()
 
-	sign := tool.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
+	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
@@ -1043,7 +1044,7 @@ func (entity WxService) Refund(order dao.Orders, PayMoney, RefundMoney uint64, D
 	}
 	list.SortL()
 
-	sign := tool.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
+	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")

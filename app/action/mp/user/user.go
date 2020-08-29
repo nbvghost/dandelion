@@ -6,6 +6,7 @@ import (
 	"github.com/nbvghost/dandelion/app/service"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/util"
+	"github.com/nbvghost/gweb/tool/encryption"
 	"strconv"
 	"strings"
 	"time"
@@ -15,7 +16,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/nbvghost/gweb"
-	"github.com/nbvghost/gweb/tool"
 )
 
 type UserController struct {
@@ -30,7 +30,7 @@ type UserController struct {
 	Journal   service.JournalService
 }
 
-func (controller *UserController) Apply() {
+func (controller *UserController) Init() {
 	controller.AddHandler(gweb.GETMethod("/level/{UserID}", controller.levelAction))
 	controller.AddHandler(gweb.GETMethod("/info", controller.userInfoAction))
 	controller.AddHandler(gweb.POSMethod("/update", controller.updateAction))
@@ -69,7 +69,7 @@ func (controller *UserController) userShareKeyAction(context *gweb.Context) gweb
 	context.Request.ParseForm()
 	ShareKey := context.Request.FormValue("ShareKey")
 
-	UserID, _ := strconv.ParseUint(tool.CipherDecrypterData(ShareKey), 10, 64)
+	UserID, _ := strconv.ParseUint(encryption.CipherDecrypter(play.GWebSecretKey, ShareKey), 10, 64)
 
 	var user dao.User
 	controller.User.Get(dao.Orm(), UserID, &user)

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/nbvghost/dandelion/app/service/dao"
+	"github.com/nbvghost/gweb/tool/encryption"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -12,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/nbvghost/glog"
-	"github.com/nbvghost/gweb/tool"
 )
 
 type ExpressTemplateService struct {
@@ -38,7 +38,7 @@ func (b ExpressTemplateService) GetExpressInfo(OrdersID uint64, LogisticCode, Sh
 
 	requestData := "{'OrderCode':'" + strconv.Itoa(int(OrdersID)) + "','ShipperCode':'" + ShipperNameCode + "','LogisticCode':'" + LogisticCode + "'}"
 
-	DataSign := base64.StdEncoding.EncodeToString([]byte(strings.ToLower(tool.Md5ByString(requestData + "8d8ef028-000f-4f3e-8475-bc90d5772002"))))
+	DataSign := base64.StdEncoding.EncodeToString([]byte(strings.ToLower(encryption.Md5ByString(requestData + "8d8ef028-000f-4f3e-8475-bc90d5772002"))))
 
 	postData := url.Values{}
 

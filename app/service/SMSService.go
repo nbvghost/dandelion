@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"github.com/nbvghost/gweb/tool/encryption"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -144,7 +145,7 @@ func (s SMSService) SendIDCode(Code string, tel string) (bool, string) {
 
 	Secret := "1759a0c33fea083eed5c1a5df4cc496e"
 
-	sign := tool.Md5ByString(Secret + list.Join("") + Secret)
+	sign := encryption.Md5ByString(Secret + list.Join("") + Secret)
 	//fmt.Println(Secret + list.Join("") + Secret)
 
 	params.Add("sign", sign)

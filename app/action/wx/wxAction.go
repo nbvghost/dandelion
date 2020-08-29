@@ -15,7 +15,7 @@ type Controller struct {
 	gweb.BaseController
 }
 
-func (i *Controller) Apply() {
+func (i *Controller) Init() {
 	//Index.RequestMapping = make(map[string]mvc.Function)
 	//i.AddHandler("", &web.Function{Function: defaultPage})
 	i.AddHandler(gweb.ALLMethod(":CompanyID/token", tokenAction))

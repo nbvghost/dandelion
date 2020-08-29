@@ -4,11 +4,11 @@ var addModule = angular.module("addModule", ['ngRoute','ngFileUpload']).config([
 
 addModule.controller("addCtrl", function ($http, $scope, $routeParams,Upload,$timeout) {
 
-    $scope.Thumbnail = "";
+    $scope.Picture = "";
     $scope.article ={};
-    $scope.uploadThumbnailFile = function (progressID,file, errFiles) {
+    $scope.uploadPictureFile = function (progressID,file, errFiles) {
         $("#"+progressID).text(0+"%");
-        $scope.article.Thumbnail = "";
+        $scope.article.Picture = "";
         if (file) {
             var thumbnail =Upload.upload({
                 url: '/file/up',
@@ -18,7 +18,7 @@ addModule.controller("addCtrl", function ($http, $scope, $routeParams,Upload,$ti
 
                 $timeout(function () {
                     //alert(response.data);
-                    $scope.Thumbnail = response.data.Data;
+                    $scope.Picture = response.data.Data;
                 });
             }, function (response) {
 
@@ -53,7 +53,7 @@ addModule.controller("addCtrl", function ($http, $scope, $routeParams,Upload,$ti
         $scope.save = function () {
 
             $scope.article.Content = $("#editor-container .ql-editor").html();
-            $scope.article.Thumbnail = $scope.Thumbnail;
+            $scope.article.Picture = $scope.Picture;
 
             if ($scope.article.Content.length > 5000) {
                 alert("不超过5000字符！已超出：" + ($scope.article.Content.length - 5000));
@@ -92,7 +92,7 @@ addModule.controller("addCtrl", function ($http, $scope, $routeParams,Upload,$ti
     } else {
         $scope.save = function () {
             $scope.article.Content = $("#editor-container .ql-editor").html();
-            $scope.article.Thumbnail = $scope.Thumbnail;
+            $scope.article.Picture = $scope.Picture;
 
             if ($scope.article.Content.length > 5000) {
                 alert("不超过5000字符！已超出：" + ($scope.article.Content.length - 5000));
@@ -128,7 +128,7 @@ addModule.controller("addCtrl", function ($http, $scope, $routeParams,Upload,$ti
         };
         $http.get("article", {params: {action: "one", id: ID}}).then(function (response) {
             $scope.article = response.data.Data;
-            $scope.Thumbnail =$scope.article.Thumbnail;
+            $scope.Picture =$scope.article.Picture;
 
             $("#editor-container .ql-editor").html($scope.article.Content);
 

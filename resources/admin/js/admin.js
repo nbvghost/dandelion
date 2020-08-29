@@ -143,9 +143,21 @@ main.config(function($routeProvider, $locationProvider,$provide,$httpProvider,$h
         templateUrl: "content_templets/add_articles_templet",
         controller: "content_add_articles_controller"
     });
+    $routeProvider.when("/add_gallery", {
+        templateUrl: "content_templets/add_gallery_templet",
+        controller: "content_add_gallery_controller"
+    });
     $routeProvider.when("/articles", {
         templateUrl: "content_templets/articles_templet",
         controller: "content_articles_controller"
+    });
+    $routeProvider.when("/gallery", {
+        templateUrl: "content_templets/articles_templet",
+        controller: "content_articles_controller"
+    });
+    $routeProvider.when("/article", {
+        templateUrl: "content_templets/add_article_templet",
+        controller: "content_add_article_controller"
     });
 
 
@@ -173,7 +185,7 @@ main.controller("content_articles_controller", function ($http, $scope, $routePa
 
     $scope.listContentSubTypes = function(){
         //content/list
-        $http.get("content_sub_type/list/"+$routeParams.ContentID).then(function (value){
+        $http.get("content/sub_type/list/"+$routeParams.ContentID).then(function (value){
 
             $scope.ContentSubTypes = value.data.Data;
 
@@ -184,7 +196,7 @@ main.controller("content_articles_controller", function ($http, $scope, $routePa
 
     $scope.listContentSubTypeChilds = function(ContentID,ParentContentSubTypeID){
         //content/list
-        $http.get("content_sub_type/child/list/"+ContentID+"/"+ParentContentSubTypeID).then(function (value){
+        $http.get("content/sub_type/child/list/"+ContentID+"/"+ParentContentSubTypeID).then(function (value){
 
             $scope.ContentSubTypeChilds = value.data.Data;
 
@@ -325,7 +337,7 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
 
     $scope.listContentSubTypes = function(){
         //content/list
-        $http.get("content_sub_type/list/"+$routeParams.ContentID).then(function (value){
+        $http.get("content/sub_type/list/"+$routeParams.ContentID).then(function (value){
 
             $scope.ContentSubTypes = value.data.Data;
 
@@ -356,7 +368,7 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
 
     $scope.listContentSubTypeChilds = function(ContentID,ParentContentSubTypeID){
         //content/list
-        $http.get("content_sub_type/child/list/"+ContentID+"/"+ParentContentSubTypeID).then(function (value){
+        $http.get("content/sub_type/child/list/"+ContentID+"/"+ParentContentSubTypeID).then(function (value){
 
             $scope.ContentSubTypeChilds = value.data.Data;
 
@@ -364,7 +376,7 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
     }
 
 
-    $scope.UploadThumbnailImage = function (file, errFiles) {
+    $scope.UploadPictureImage = function (file, errFiles) {
         if (file) {
             var thumbnail =Upload.upload({
                 url: '/file/up',
@@ -372,7 +384,7 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
             });
             thumbnail.then(function (response) {
                 var url =response.data.Data;
-                $scope.Article.Thumbnail=url;
+                $scope.Article.Picture=url;
             }, function (response) {
                 console.log(response);
             }, function (evt) {
@@ -551,13 +563,13 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
 
         if($routeParams.ID){
             //article/get/:ID
-            $http.get("article/get/"+$routeParams.ID).then(function (responea){
+            $http.get("article/multi/get/"+$routeParams.ID).then(function (responea){
 
                 $scope.Article = responea.data.Data;
                 quill.clipboard.dangerouslyPasteHTML($scope.Article.Content);
 
                 //content_sub_type
-                $http.get("content_sub_type/"+$scope.Article.ContentSubTypeID).then(function (responeb){
+                $http.get("content/sub_type/"+$scope.Article.ContentSubTypeID).then(function (responeb){
                     var ContentSubType = responeb.data.Data.ContentSubType;
                     var ParentContentSubType = responeb.data.Data.ParentContentSubType;
 
@@ -632,14 +644,502 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
 
 
 });
+main.controller("content_add_gallery_controller", function ($http, $scope, $routeParams, $rootScope,$timeout,$location,Upload) {
+    $scope.ContentSubTypes=[];
+    $scope.ContentSubTypeChilds={};
+
+
+    $scope.ContentID=parseInt($routeParams.ContentID);
+    //$scope.Article={ContentID:$scope.ContentID};
+
+    //$scope.ContentSubTypeID;
+    $scope.MContentSubTypeID=0;
+    $scope.MContentSubTypeChildID=0;
+
+
+    $scope.articles=[];
+
+    $scope.saveArticle = async function () {
+
+        /*const upload_progress = $("#upload_article_images_progress");
+        upload_progress.progress({
+            duration : 100,
+            total    : 100,
+            text:{
+                active: '{value} of {total} done'
+            }
+        });
+
+        upload_progress.progress('update progress',50);*/
+        $("#upload_article_images_progress").progress('update progress', 50)
+
+        for (let i = 0; i < $scope.articles.length; i++) {
+
+            let article = $scope.articles[i];
+            if (article.PictureBlob) {
+
+                let p = await new Promise((resolve, reject) => {
+
+                    Upload.upload({url: '/file/up', data: {file: article.PictureBlob}}).then(function (response) {
+                        const url = response.data.Data;
+                        //$scope.articles.push({Picture:url})
+                        resolve(url)
+
+                    }, function (response) {
+
+                    }, function (evt) {
+
+                        //const progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                        //upload_progress.progress('update progress',progress);
+
+                    });
+
+                })
+                console.log(p)
+                article.Picture =p
+                delete article["PictureBlob"]
+
+            }
+
+
+            $http.post("article/save",JSON.stringify(article), {
+                transformRequest: angular.identity,
+                headers: {"Content-Type": "application/json"}
+            }).then(function (data, status, headers, config) {
+                console.log(data);
+            });
+
+
+        }
+
+
+    }
+
+    $scope.listContentSubTypes = function(){
+        //content/list
+        $http.get("content/sub_type/list/"+$routeParams.ContentID).then(function (value){
+
+            $scope.ContentSubTypes = value.data.Data;
+
+        });
+    }
+    $scope.listContentSubTypes();
+
+
+    $scope.changeArticleContentSubTypes = function(m){
+
+
+        m.ContentSubTypeChildID=0;
+
+        $scope.listContentSubTypeChilds($scope.ContentID,m.ContentSubTypeID);
+    }
+
+    $scope.changeContentSubTypes = function(ContentSubTypeID){
+        //$scope.ContentSubTypeChildID=undefined;
+        //$scope.Article.ContentSubTypeID=$scope.MContentSubTypeID;
+        //$scope.ContentSubTypeChilds=[];
+        //console.log($scope.ContentSubTypeID);
+
+        for(let i=0;i<$scope.articles.length;i++){
+            $scope.articles[i].ContentSubTypeID=ContentSubTypeID;
+            $scope.articles[i].ContentSubTypeChildID=0;
+        }
+
+        $scope.listContentSubTypeChilds($routeParams.ContentID,ContentSubTypeID);
+    }
+    $scope.changeContentSubTypeChilds = function(){
+        //alert($scope.MContentSubTypeChildID);
+        // if($scope.MContentSubTypeChildID){
+        //     $scope.Article.ContentSubTypeID=$scope.MContentSubTypeChildID;
+        // }else{
+        //     $scope.Article.ContentSubTypeID=$scope.MContentSubTypeID;
+        // }
+
+        //$scope.Article.;
+
+        //alert($scope.MContentSubTypeChildID)
+
+        for(let i=0;i<$scope.articles.length;i++){
+            $scope.articles[i].ContentSubTypeChildID=$scope.MContentSubTypeChildID;
+        }
+
+    }
+
+    //content_sub_type/child/list/:ParentContentSubTypeID
+
+    $scope.listContentSubTypeChilds = function(ContentID,ParentContentSubTypeID){
+        //content/list
+        $http.get("content/sub_type/child/list/"+ContentID+"/"+ParentContentSubTypeID).then(function (value){
+
+            $scope.ContentSubTypeChilds[ParentContentSubTypeID] = value.data.Data;
+
+        });
+    }
+
+
+
+
+    $scope.UploadImages = function (progressID,files, errFiles) {
+
+      /*  const upload_progress = $(progressID);
+        upload_progress.progress({
+            duration : 100,
+            total    : 100,
+            text:{
+                active: '{value} of {total} done'
+            }
+        });*/
+
+        //upload_progress.progress('reset');
+        //upload_progress.progress('update progress',50);
+
+        if (files && files.length) {
+            for (let i = 0; i < files.length; i++) {
+//PictureBlob
+                $scope.articles.push({PictureBlob:files[i],ContentID:$scope.ContentID,ContentSubTypeChildID:$scope.MContentSubTypeChildID,ContentSubTypeID:$scope.MContentSubTypeID})
+                /*Upload.upload({url: '/file/up',data:{file: files[i]}}).then(function (response) {
+                    const url = response.data.Data;
+                    $scope.articles.push({Picture:url})
+
+                },function (response) {
+
+                },function (evt) {
+
+                    const progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                    upload_progress.progress('update progress',progress);
+
+                });*/
+
+            }
+        }else{
+            UpImageError(errFiles);
+        }
+    }
+
+
+});
+main.controller("content_add_article_controller", function ($http, $scope, $routeParams, $rootScope,$timeout,$location,Upload) {
+
+
+    $scope.ContentID = $routeParams.ContentID
+    //$scope.ID = $routeParams.ID
+
+    $scope.Article={ContentID:$scope.ContentID};
+
+
+
+
+
+    $scope.saveArticle = function(){
+
+        //$scope.ContentSubTypeID;
+        //$scope.ContentSubTypeChildID;
+        //console.log(quill.container.firstChild.innerHTML)
+        $scope.Article.ContentID=parseInt($scope.ContentID);
+
+        $scope.Article.Content=quill.container.firstChild.innerHTML;
+        $scope.Article.ContentSubTypeID=0
+
+        $http.post("article/save",JSON.stringify($scope.Article), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json"}
+        }).then(function (data, status, headers, config) {
+            console.log(data);
+            alert(data.data.Message);
+            if(data.data.Success){
+                window.history.back();
+            }
+        });
+    }
+
+
+    $scope.UploadPictureImage = function (file, errFiles) {
+        if (file) {
+            var thumbnail =Upload.upload({
+                url: '/file/up',
+                data: {file: file},
+            });
+            thumbnail.then(function (response) {
+                var url =response.data.Data;
+                $scope.Article.Picture=url;
+            }, function (response) {
+                console.log(response);
+            }, function (evt) {
+                // Math.min is to fix IE which reports 200% sometimes
+                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                //upload_progress.progress('update progress',progress);
+                //$("."+progressID).text(progress+"%");
+                //$("."+progressID).css("width",progress+"%");
+            });
+        }else{
+            if(errFiles.length>0){
+                alert(JSON.stringify(errFiles));
+            }
+
+        }
+    }
+
+    $scope.EditImages=[];
+    $scope.UploadImages = function (progressID,files, errFiles) {
+
+        var upload_progress = $(progressID);
+        upload_progress.progress({
+            duration : 100,
+            total    : 100,
+            text:{
+                active: '{value} of {total} done'
+            }
+        });
+
+        upload_progress.progress('reset');
+        //upload_progress.progress('update progress',50);
+
+        if (files && files.length) {
+            for (var i = 0; i < files.length; i++) {
+                Upload.upload({url: '/file/up',data:{file: files[i]}}).then(function (response) {
+                    var url =response.data.Data;
+
+                    if($scope.EditImages.indexOf(url)==-1){
+                        $scope.EditImages.push(url);
+                    }
+
+                },function (response) {
+
+                },function (evt) {
+
+                    var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                    upload_progress.progress('update progress',progress);
+
+                });
+            }
+        }else{
+            UpImageError(errFiles);
+        }
+    }
+    var quill;
+    $timeout(function () {
+
+        var Inline = Quill.import('blots/inline');
+        var Block = Quill.import('blots/block');
+        var BlockEmbed = Quill.import('blots/block/embed');
+
+        class BoldBlot extends Inline { }
+        BoldBlot.blotName = 'bold';
+        BoldBlot.tagName = 'strong';
+
+        class ItalicBlot extends Inline { }
+        ItalicBlot.blotName = 'italic';
+        ItalicBlot.tagName = 'em';
+
+        class LinkBlot extends Inline {
+            static create(url) {
+                var node = super.create();
+                node.setAttribute('href', url);
+                node.setAttribute('target', '_blank');
+                return node;
+            }
+
+            static formats(node) {
+                return node.getAttribute('href');
+            }
+        }
+        LinkBlot.blotName = 'link';
+        LinkBlot.tagName = 'a';
+
+        class BlockquoteBlot extends Block { }
+        BlockquoteBlot.blotName = 'blockquote';
+        BlockquoteBlot.tagName = 'blockquote';
+
+        class HeaderBlot extends Block {
+            static formats(node) {
+                return HeaderBlot.tagName.indexOf(node.tagName) + 1;
+            }
+        }
+        HeaderBlot.blotName = 'header';
+        HeaderBlot.tagName = ['H1', 'H2'];
+
+        class DividerBlot extends BlockEmbed { }
+        DividerBlot.blotName = 'divider';
+        DividerBlot.tagName = 'hr';
+
+        class ImageBlot extends BlockEmbed {
+            static create(value) {
+                var node = super.create();
+                node.setAttribute('alt', value.alt);
+                node.setAttribute('src', value.url);
+                return node;
+            }
+
+            static value(node) {
+                return {
+                    alt: node.getAttribute('alt'),
+                    url: node.getAttribute('src')
+                };
+            }
+        }
+        ImageBlot.blotName = 'image';
+        ImageBlot.tagName = 'img';
+
+        class VideoBlot extends BlockEmbed {
+            static create(url) {
+                var node = super.create();
+                node.setAttribute('src', url);
+                node.setAttribute('frameborder', '0');
+                node.setAttribute('allowfullscreen', true);
+                return node;
+            }
+
+            static formats(node) {
+                var format = {};
+                if (node.hasAttribute('height')) {
+                    format.height = node.getAttribute('height');
+                }
+                if (node.hasAttribute('width')) {
+                    format.width = node.getAttribute('width');
+                }
+                return format;
+            }
+
+            static value(node) {
+                return node.getAttribute('src');
+            }
+
+            format(name, value) {
+                if (name === 'height' || name === 'width') {
+                    if (value) {
+                        this.domNode.setAttribute(name, value);
+                    } else {
+                        this.domNode.removeAttribute(name, value);
+                    }
+                } else {
+                    super.format(name, value);
+                }
+            }
+        }
+        VideoBlot.blotName = 'video';
+        VideoBlot.tagName = 'iframe';
+
+        Quill.register(BoldBlot);
+        Quill.register(ItalicBlot);
+        Quill.register(LinkBlot);
+        Quill.register(BlockquoteBlot);
+        Quill.register(HeaderBlot);
+        Quill.register(DividerBlot);
+        Quill.register(ImageBlot);
+        Quill.register(VideoBlot);
+
+        quill = new Quill('#editor-container', {
+            modules: {
+                formula: true,
+                syntax: true,
+                toolbar: '#toolbar-container'
+            },
+            placeholder: 'Compose an epic...',
+            theme: 'snow'
+        });
+
+        if($scope.ContentID){
+            //article/get/:ID
+            $http.get("article/single/get/"+$scope.ContentID).then(function (responea){
+
+                $scope.Article = responea.data.Data;
+                quill.clipboard.dangerouslyPasteHTML($scope.Article.Content);
+
+            });
+        }
+
+        quill.getModule("toolbar").addHandler("image", function (e) {
+
+            //var baseUrl ="//"+$location.host()+":"+$location.port();
+
+            $("#SelectImageModal").modal({onApprove:function (e) {
+
+
+                    if($scope.EditImages.length>0){
+
+
+                        for(var ii=0;ii<$scope.EditImages.length;ii++){
+
+                            var range = quill.getSelection(true);
+                            quill.insertText(range.index, '\n', Quill.sources.USER);
+                            quill.insertEmbed(range.index + 1, 'image', {
+                                alt: '软件定制开发，QQ/微信：274455411',
+                                url: $scope.EditImages[ii]
+                            }, Quill.sources.USER);
+                            quill.setSelection(range.index + 2, Quill.sources.SILENT);
+                        }
+
+
+                            /*for(var ii=0;ii<$scope.EditImages.length;ii++){
+
+                                quill.insertEmbed(range.index, 'image',);
+                                range = quill.getSelection();
+                            }*/
+
+                            $scope.$apply(function () {
+                                $scope.EditImages=[];
+                            });
+                            return true;
+
+
+
+                    }else{
+                        return false;
+                    }
+                },closable:false}).modal("show");
+        });
+
+    });
+
+
+});
 main.controller('content_list_controller', function ($http, $scope, $rootScope, $routeParams,$document,$interval) {
 
     $scope.MenuTypes=[];
     $scope.Menus;
 
-    var ActionTarget={method:'POST',url:'menus',title:'添加菜单'};
+    $scope.templateNameObj = {
+        "articles":[
+            {Key:"services",Label:"服务",SubMenu:true,Content:true}
+            ],
+        "article":[
+            {Key:"about",Label:"关于我们",SubMenu:false,Content:true}
+        ],
+        "index":[
+            {Key:"index",Label:"首页",SubMenu:false,Content:false}
+        ],
+        "gallery":[
+            {Key:"gallery",Label:"媒体",SubMenu:true,Content:true}
+        ],
+        "products":[
+            {Key:"products",Label:"产品",SubMenu:false,Content:false}
+        ],
+    };
 
-    $http.get("content_type/list").then(function (value){
+    $scope.getTemplateNameObj = function(type,templateName){
+        let tns =$scope.templateNameObj[type];
+        for(let i=0;i<tns.length;i++){
+            if(tns[i].Key===templateName){
+                return tns[i]
+            }
+        }
+
+    }
+    $scope.templateNameObjFunc = function(contentTypeID){
+
+        for(let i=0;i<$scope.MenuTypes.length;i++){
+            if($scope.MenuTypes[i].ID===contentTypeID){
+                return $scope.templateNameObj[$scope.MenuTypes[i].Type];
+
+            }
+        }
+
+        return [];
+
+    }
+    let ActionTarget = {method: 'POST', url: 'menus', title: '添加菜单'};
+
+    $http.get("content/type/list").then(function (value){
 
         $scope.MenuTypes = value.data.Data;
 
@@ -654,7 +1154,7 @@ main.controller('content_list_controller', function ($http, $scope, $rootScope, 
     }
     $scope.listClassify = function(){
         //content/list
-        $http.get("content_sub_type/list/"+$scope.Menus.ID).then(function (value){
+        $http.get("content/sub_type/list/"+$scope.Menus.ID).then(function (value){
 
             $scope.ClassifyList = value.data.Data;
 
@@ -662,7 +1162,7 @@ main.controller('content_list_controller', function ($http, $scope, $rootScope, 
     }
     $scope.listChildClassify = function(ContentID,ParentID){
         //content/list
-        $http.get("content_sub_type/child/list/"+ContentID+"/"+ParentID).then(function (value){
+        $http.get("content/sub_type/child/list/"+ContentID+"/"+ParentID).then(function (value){
 
             $scope.ClassifyChildList = value.data.Data;
 
@@ -790,7 +1290,7 @@ main.controller('content_list_controller', function ($http, $scope, $rootScope, 
 
     }
     $scope.saveMenuInline = function(){
-        ActionTarget={method:'POST',url:'content',title:'添加菜单'};
+        ActionTarget={method:'POST',url:'content/add',title:'添加菜单'};
         $scope.saveMenu();
     }
     //{method:'PUT',url:''}
@@ -824,11 +1324,11 @@ main.controller('content_list_controller', function ($http, $scope, $rootScope, 
 
     $scope.classify=null;
 
-    $scope.ActionClassifyTarget={method:'POST',url:'content_sub_type',title:'添加分类'};
+    $scope.ActionClassifyTarget={method:'POST',url:'content/sub_type',title:'添加分类'};
 
     $scope.deleteClassify = function(m){
 
-        $http.delete("content_sub_type/"+m.ID,{transformRequest:angular.identity,headers:{"Content-Type":"application/json;charset=utf-8"}}).then(function(data){
+        $http.delete("content/sub_type/"+m.ID,{transformRequest:angular.identity,headers:{"Content-Type":"application/json;charset=utf-8"}}).then(function(data){
 
             alert(data.data.Message);
             $scope.listClassify();
@@ -839,7 +1339,7 @@ main.controller('content_list_controller', function ($http, $scope, $rootScope, 
     $scope.editClassify = function(m){
 
         $scope.classify=m;
-        $scope.ActionClassifyTarget={method:'PUT',url:'content_sub_type/'+m.ID,title:'修改分类'};
+        $scope.ActionClassifyTarget={method:'PUT',url:'content/sub_type/'+m.ID,title:'修改分类'};
         //$scope.saveClassify();
     }
     $scope.saveClassify = function () {
@@ -855,7 +1355,7 @@ main.controller('content_list_controller', function ($http, $scope, $rootScope, 
             $scope.listClassify();
             $scope.classify.Name='';
             $scope.classify.ID=null;
-            $scope.ActionClassifyTarget={method:'POST',url:'content_sub_type',title:'添加分类'};
+            $scope.ActionClassifyTarget={method:'POST',url:'content/sub_type',title:'添加分类'};
             alert(data.data.Message);
         });
 
@@ -876,7 +1376,7 @@ main.controller('content_list_controller', function ($http, $scope, $rootScope, 
     $scope.selectClassify=null;
     $scope.classifyChild=null;
 
-    $scope.ActionClassifyChildTarget={method:'POST',url:'content_sub_type',title:'添加子分类'};
+    $scope.ActionClassifyChildTarget={method:'POST',url:'content/sub_type',title:'添加子分类'};
 
     //saveClassifyChild
     $scope.saveClassifyChild = function () {
@@ -909,14 +1409,14 @@ main.controller('content_list_controller', function ($http, $scope, $rootScope, 
 
             $scope.classifyChild.Name='';
             $scope.classifyChild.ID=null;
-            $scope.ActionClassifyChildTarget={method:'POST',url:'content_sub_type',title:'添加分类'};
+            $scope.ActionClassifyChildTarget={method:'POST',url:'content/sub_type',title:'添加分类'};
         });
 
 
     }
     $scope.deleteClassifyChild = function(m){
 
-        $http.delete("content_sub_type/"+m.ID,{transformRequest:angular.identity,headers:{"Content-Type":"application/json;charset=utf-8"}}).then(function(data){
+        $http.delete("content/sub_type/"+m.ID,{transformRequest:angular.identity,headers:{"Content-Type":"application/json;charset=utf-8"}}).then(function(data){
 
             alert(data.data.Message);
             $scope.listChildClassify($scope.selectClassify.ContentID,$scope.selectClassify.ID);
@@ -926,7 +1426,7 @@ main.controller('content_list_controller', function ($http, $scope, $rootScope, 
     }
     $scope.editClassifyChild = function(m){
         $scope.classifyChild=m;
-        $scope.ActionClassifyChildTarget={method:'PUT',url:'content_sub_type/'+m.ID,title:'修改分类'};
+        $scope.ActionClassifyChildTarget={method:'PUT',url:'content/sub_type/'+m.ID,title:'修改分类'};
         //$scope.saveClassify();
     }
 
@@ -2567,7 +3067,7 @@ main.controller("store_stock_manager_controller",function ($http,$filter,$scope,
     $scope.TargetAction={method:"",url:"",title:""};
     $scope.cancelStoreStock = function(){
         $scope.StoreStock={};
-        $scope.TargetAction={method:"POST",url:"store_stock",title:"添加产品规格数量"}
+        $scope.TargetAction={method:"POST",url:"store/stock",title:"添加产品规格数量"}
 
     }
     $scope.AddStoreStockStock=0;
@@ -2670,13 +3170,13 @@ main.controller("store_stock_manager_controller",function ($http,$filter,$scope,
             //$scope.StoreStock=row.data();
             $scope.SelectGoods=data.data.Data.Goods;
             $scope.Specifications=data.data.Data.Specifications;
-            // $scope.StoreStockModal({method:"PUT",url:"store_stock/"+$scope.StoreStock.ID,title:"修改门店库存"});
+            // $scope.StoreStockModal({method:"PUT",url:"store/stock/"+$scope.StoreStock.ID,title:"修改门店库存"});
 
 
 
             if(table_store_stock!=null){
 
-                table_store_stock.ajax.url("store_stock/list/"+$scope.Store.ID+"/"+GoodsID).load(null,false);
+                table_store_stock.ajax.url("store/stock/list/"+$scope.Store.ID+"/"+GoodsID).load(null,false);
                 return
             }
             table_store_stock = $('#table_store_stock').DataTable({
@@ -2702,7 +3202,7 @@ main.controller("store_stock_manager_controller",function ($http,$filter,$scope,
                         }}
                 ],
                 "ajax": {
-                    "url": "store_stock/list/"+$scope.Store.ID+"/"+GoodsID,
+                    "url": "store/stock/list/"+$scope.Store.ID+"/"+GoodsID,
                     "type": "POST",
                     "contentType": "application/json",
                     "data": function ( d ) {
@@ -2723,7 +3223,7 @@ main.controller("store_stock_manager_controller",function ($http,$filter,$scope,
 
 
                 //$scope.TargetAction={method:"PUT",url:"store_stock/"+row.data().StoreStock.ID,title:"修改产品规格数量"}
-                $scope.TargetAction={method:"PUT",url:"store_stock",title:"修改产品规格数量"}
+                $scope.TargetAction={method:"PUT",url:"store/stock",title:"修改产品规格数量"}
                 $scope.ListGoodsSpecification(row.data().StoreStock.GoodsID);
 
             });
@@ -2734,7 +3234,7 @@ main.controller("store_stock_manager_controller",function ($http,$filter,$scope,
 
                 if(confirm("确定删除？")){
                     $scope.SpecificationsDisable=[];
-                    $http.delete("store_stock/"+row.data().StoreStock.ID,{}).then(function (data) {
+                    $http.delete("store/stock/"+row.data().StoreStock.ID,{}).then(function (data) {
                         alert(data.data.Message);
                         table_store_stock.ajax.reload(null,false);
 
@@ -2794,8 +3294,8 @@ main.controller("store_stock_manager_controller",function ($http,$filter,$scope,
                 $scope.SelectGoods=row.data();
                 $scope.StoreStock=null;
 
-                $scope.TargetAction={method:"POST",url:"store_stock",title:"添加产品规格数量"}
-                //$scope.StoreStockModal({method:"POST",url:"store_stock",title:"添加门店库存"});
+                $scope.TargetAction={method:"POST",url:"store/stock",title:"添加产品规格数量"}
+                //$scope.StoreStockModal({method:"POST",url:"store/stock",title:"添加门店库存"});
 
                 //$scope.TargetAction={method:"POST",url:"store_stock",title:"产品规格数量"}
 
@@ -2828,7 +3328,7 @@ main.controller("store_stock_manager_controller",function ($http,$filter,$scope,
 
                 //store_stock/able/goods/:StoreID
 
-                $http.get("store_stock/exist/goods/"+$scope.Store.ID).then(function (data) {
+                $http.get("store/stock/exist/goods/"+$scope.Store.ID).then(function (data) {
                     console.log(data.data.Data);
                     var list = data.data.Data;
                     var StoreGoodsExist = {};
@@ -2841,7 +3341,7 @@ main.controller("store_stock_manager_controller",function ($http,$filter,$scope,
                 })
             },
             "ajax": {
-                "url": "store_stock/list",
+                "url": "store/stock/list",
                 "type": "POST",
                 "contentType": "application/json",
                 "data": function ( d ) {
@@ -2859,7 +3359,7 @@ main.controller("store_stock_manager_controller",function ($http,$filter,$scope,
             //$scope.StoreStock=null;
             //$scope.selectGoods=null;
 
-            $scope.TargetAction={method:"POST",url:"store_stock",title:"添加产品规格数量"}
+            $scope.TargetAction={method:"POST",url:"store/stock",title:"添加产品规格数量"}
             //$scope.TargetAction={method:"PUT",url:"store_stock/"+$scope.StoreStock.ID,title:"修改产品规格数量"}
             $scope.ListGoodsSpecification(row.data().GoodsID);
 
@@ -2954,7 +3454,7 @@ main.controller("add_store_controller",function ($http,$filter,$scope, $rootScop
     $scope.Store ={ID:$routeParams.ID};
 
 
-    $scope.TargetAction={method:"POST",url:"store",title:"添加门店"};
+    $scope.TargetAction={method:"POST",url:"store/add",title:"添加门店"};
 
     if($scope.Store.ID!=undefined){
 
@@ -3003,14 +3503,17 @@ main.controller("add_store_controller",function ($http,$filter,$scope, $rootScop
                 }
 
                 $timeout(function () {
+                    console.log("currentPositionResult",currentPositionResult)
                    // $scope.Store.Latitude=currentPositionResult.lat;
                     //$scope.Store.Longitude=currentPositionResult.lng;
-                    $scope.Store.Latitude=currentPositionResult.P;
-                    $scope.Store.Longitude=currentPositionResult.O;
+                    $scope.Store.Latitude=currentPositionResult.lat;
+                    $scope.Store.Longitude=currentPositionResult.lng;
 
                 });
 
             }}).modal("show");
+
+
 
 
         AMapUI.loadUI(['misc/PositionPicker'], function(PositionPicker) {
@@ -3076,36 +3579,7 @@ main.controller("add_store_controller",function ($http,$filter,$scope, $rootScop
             });
 
 
-            /*AMap.service(["AMap.PlaceSearch"], function() {
-                var placeSearch = new AMap.PlaceSearch({ //构造地点查询类
-                    pageSize: 1,
-                    pageIndex: 1,
-                    //city: "010", //城市
-                    //map: map,
-                    //panel: "panel"
-                });
 
-                console.log($scope.address.ProvinceName+$scope.address.CityName+$scope.address.CountyName+$scope.address.Detail);
-                //关键字查询
-                placeSearch.search($scope.address.ProvinceName+$scope.address.CityName+$scope.address.CountyName+$scope.address.Detail,function(status,result){
-                    if(status=="complete"){
-                        if(result.poiList.pois.length>0){
-                            positionPicker.start(result.poiList.pois[0].location);
-                            currentPositionResult=result.poiList.pois[0].location;
-                        }else {
-                            currentPositionResult=null;
-                        }
-                    }else{
-                        alert(status);
-                    }
-
-                });
-            });*/
-
-
-            /*var onModeChange = function(e) {
-                positionPicker.setMode(e.target.value)
-            }*/
             var startButton = document.getElementById('start');
             var stopButton = document.getElementById('stop');
             var dragMapMode = document.getElementsByName('mode')[0];
@@ -3118,6 +3592,8 @@ main.controller("add_store_controller",function ($http,$filter,$scope, $rootScop
 
 
 
+
+
             function PlaceSearch() {
                 var serachTxt = $(serachValue).val();
                 if(serachTxt==""){
@@ -3126,7 +3602,8 @@ main.controller("add_store_controller",function ($http,$filter,$scope, $rootScop
                 }
                 //console.log($(serachValue).val());
 
-                AMap.service(["AMap.PlaceSearch"], function() {
+                AMap.plugin('AMap.PlaceSearch', function(){
+                //AMap.service(["AMap.PlaceSearch"], function() {
                     var placeSearch = new AMap.PlaceSearch({ //构造地点查询类
                         pageSize: 1,
                         pageIndex: 1,
@@ -3151,22 +3628,22 @@ main.controller("add_store_controller",function ($http,$filter,$scope, $rootScop
                     });
                 });
             }
-            AMap.event.addDomListener(serachBtn, 'click',PlaceSearch);
-            AMap.event.addDomListener(serachValue, 'keypress',PlaceSearch);
 
 
-            AMap.event.addDomListener(startButton, 'click', function() {
-                //positionPicker.start(map.getBounds().getSouthWest())
-                map.panTo(currentPositionResult);
+            serachBtn.addEventListener("click",PlaceSearch)
+            serachValue.addEventListener("keypress",PlaceSearch)
+            startButton.addEventListener("click",function () {
+                if(currentPositionResult){
+
+                    map.panTo(currentPositionResult);
+                }
             })
-            /*AMap.event.addDomListener(stopButton, 'click', function() {
-               // positionPicker.stop();
-            })*/
-            //AMap.event.addDomListener(dragMapMode, 'change', onModeChange)
-            //AMap.event.addDomListener(dragMarkerMode, 'change', onModeChange);
-            //positionPicker.start();
 
-            //map.panBy(0, 1);
+
+
+
+            positionPicker.start();
+            map.panBy(0, 1);
 
             map.addControl(new AMap.ToolBar({
                 liteStyle: true

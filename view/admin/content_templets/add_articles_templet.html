@@ -55,9 +55,9 @@
             <label>缩略图预览</label>
             <div class="ui card">
                 <div class="image">
-                    <img ng-src="@{Article.Thumbnail}@">
+                    <img ng-src="@{Article.Picture}@">
                 </div>
-                <button type="file"  class="ui green bottom attached button" ngf-select="UploadThumbnailImage($file,$invalidFiles)" accept="image/*" ngf-max-size="1MB"><i class="add icon"></i>添加缩略图</button>
+                <button type="file"  class="ui green bottom attached button" ngf-select="UploadPictureImage($file,$invalidFiles)" accept="image/*" ngf-max-size="1MB"><i class="add icon"></i>添加缩略图</button>
             </div>
         </div>
 

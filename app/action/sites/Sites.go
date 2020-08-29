@@ -12,7 +12,7 @@ type Controller struct {
 	Dao dao.BaseDao
 }
 
-func (controller *Controller) Apply() {
+func (controller *Controller) Init() {
 	controller.AddHandler(gweb.ALLMethod("index", controller.AddProjectAction))
 	controller.AddHandler(gweb.ALLMethod("/{siteName}/js/", controller.AddProjectdsfdsfsdAction))
 	controller.AddHandler(gweb.ALLMethod("/{siteName}/css/", controller.AddProjectdsfdsfsdAction))

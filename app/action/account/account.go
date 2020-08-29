@@ -6,6 +6,7 @@ import (
 	"github.com/nbvghost/dandelion/app/service"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/util"
+	"github.com/nbvghost/gweb/tool/encryption"
 	"time"
 
 	"github.com/nbvghost/glog"
@@ -16,7 +17,6 @@ import (
 	"strconv"
 
 	"github.com/nbvghost/gweb"
-	"github.com/nbvghost/gweb/tool"
 
 	"net/http"
 
@@ -37,7 +37,7 @@ type Controller struct {
 	Journal      service.JournalService
 }
 
-func (controller *Controller) Apply() {
+func (controller *Controller) Init() {
 	//controller.Interceptors.Add(&InterceptorManager{})
 	//Index.RequestMapping = make(map[string]mvc.Function)
 
@@ -70,7 +70,7 @@ func (controller *Controller) Apply() {
 func (controller *Controller) miniProgramLoginAction(context *gweb.Context) gweb.Result {
 
 	loginInfo := &struct {
-		Code     string
+		Code string
 		//UserInfo string
 		ShareKey string
 	}{}
@@ -256,7 +256,7 @@ func (controller *Controller) loginAction(context *gweb.Context) gweb.Result {
 		as.Success = false
 		as.Message = "手机/邮箱/密码不正确！"
 	} else {
-		md5Password := tool.Md5ByString(password)
+		md5Password := encryption.Md5ByString(password)
 		if strings.EqualFold(admin.PassWord, md5Password) {
 			as.Success = true
 			as.Message = ""
@@ -299,7 +299,7 @@ func (controller *Controller) loginManagerAction(context *gweb.Context) gweb.Res
 		as.Success = false
 		as.Message = "密码不正确"
 	} else {
-		md5Password := tool.Md5ByString(password)
+		md5Password := encryption.Md5ByString(password)
 		if strings.EqualFold(admin.PassWord, md5Password) {
 			as.Success = true
 			as.Message = "登陆成功"
@@ -329,7 +329,7 @@ func (controller *Controller) loginAdminAction(context *gweb.Context) gweb.Resul
 		as.Success = false
 		as.Message = "密码不正确"
 	} else {
-		md5Password := tool.Md5ByString(password)
+		md5Password := encryption.Md5ByString(password)
 		if strings.EqualFold(admin.PassWord, md5Password) {
 			as.Success = true
 			as.Message = "登陆成功"
@@ -500,33 +500,32 @@ func (controller *Controller) sdfsda(context *gweb.Context) gweb.Result {
 	return &gweb.JsonResult{}
 }
 func (controller *Controller) updateUserInfoAction(context *gweb.Context) gweb.Result {
-	if context.Session.Attributes.Get(play.SessionUser)==nil{
+	if context.Session.Attributes.Get(play.SessionUser) == nil {
 		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "还没有登陆", Data: nil}}
 	}
 
-	user:=context.Session.Attributes.Get(play.SessionUser).(*dao.User)
-
+	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
 
 	context.Request.ParseForm()
 
-	NickName:=context.Request.FormValue("NickName")
-	Portrait:=context.Request.FormValue("Portrait")
-	_Gender:=context.Request.FormValue("Gender")
-	Gender:=0
-	if strings.EqualFold(_Gender,"1"){
-		Gender=1
-	}else if strings.EqualFold(_Gender,"2"){
-		Gender=2
+	NickName := context.Request.FormValue("NickName")
+	Portrait := context.Request.FormValue("Portrait")
+	_Gender := context.Request.FormValue("Gender")
+	Gender := 0
+	if strings.EqualFold(_Gender, "1") {
+		Gender = 1
+	} else if strings.EqualFold(_Gender, "2") {
+		Gender = 2
 	}
 
-	user.Name =NickName
-	user.Portrait =Portrait
-	user.Gender =Gender
+	user.Name = NickName
+	user.Portrait = Portrait
+	user.Gender = Gender
 
-	err:=controller.User.ChangeModel(dao.Orm(),user.ID,&dao.User{Name:user.Name,Portrait:user.Portrait,Gender:user.Gender})
-	if glog.Error(err){
+	err := controller.User.ChangeModel(dao.Orm(), user.ID, &dao.User{Name: user.Name, Portrait: user.Portrait, Gender: user.Gender})
+	if glog.Error(err) {
 		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}}
 	}
 
-	return &gweb.JsonResult{Data:&dao.ActionStatus{Success: true, Message: "OK", Data: user}}
+	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: user}}
 }

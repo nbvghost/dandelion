@@ -1,0 +1,101 @@
+<style>
+    body > #standalone-container {
+        margin: 50px auto;
+        max-width: 720px;
+    }
+
+    #editor-container {
+        height: 350px;
+    }
+</style>
+
+<div id="articlePage">
+    <p>
+        <a class="ui large red ribbon label">添加媒体</a>
+    </p>
+
+
+
+    <form class="ui form">
+
+        <div class="fields">
+            <div class="four wide field">
+                <label>分类</label>
+                <select ng-model="MContentSubTypeID" ng-change="changeContentSubTypes(MContentSubTypeID)"
+                        ng-options="m.ID as m.Name for m in ContentSubTypes" required>
+
+                </select>
+            </div>
+            <div class="four wide field">
+                <label>子类</label>
+                <select ng-model="MContentSubTypeChildID" ng-change="changeContentSubTypeChilds()"
+                        ng-options="m.ID as m.Name for m in ContentSubTypeChilds[MContentSubTypeID]">
+                    <option></option>
+                </select>
+            </div>
+        </div>
+
+    </form>
+
+    <div>
+        <button type="file" class="ui button" style="width: 100%"
+                ngf-select="UploadImages('#upload_edit_images_progress',$files,$invalidFiles)" multiple="multiple"
+                accept="image/*" ngf-max-size="1MB"><i class="add icon"></i> 添加图片
+        </button>
+        <div class="ui tiny progress" data-value="0" data-total="100" id="upload_edit_images_progress">
+            <div class="bar">
+                <div class="progress"></div>
+            </div>
+            <div class="label">Waiting for you to press button</div>
+        </div>
+    </div>
+
+
+    <div class="ui cards">
+
+        <div ng-repeat="m in articles" class="card">
+            @{m}@
+            <div class="image">
+                <img width="100%" ng-if="m.Picture" style="object-fit:contain;object-position: center;width: 100%;height: 128px;" height="128" ng-src="@{m.Picture}@">
+                <img width="100%" ng-if="!m.Picture" style="object-fit:contain;object-position: center;width: 100%;height: 128px;" height="128" ngf-src="m.PictureBlob">
+            </div>
+            <div class="extra content">
+                <div class="header">名称</div>
+                <div class="ui fluid input focus">
+                    <input ng-model="m.Title" type="text" placeholder="搜索...">
+                </div>
+            </div>
+            <div class="extra content">
+                <div class="header">说明</div>
+                <div class="ui fluid input focus">
+                    <textarea ng-model="m.Introduce" style="width: 100%;height: 128px;border-radius: 4px;" maxlength="120"
+                              placeholder="说明..."></textarea>
+                </div>
+            </div>
+            <div class="extra content">
+                <div class="header">类别</div>
+                <select ng-model="m.ContentSubTypeID" ng-change="changeArticleContentSubTypes(m)"
+                        ng-options="m.ID as m.Name for m in ContentSubTypes" required>
+
+                </select>
+                <select ng-model="m.ContentSubTypeChildID"
+                        ng-options="mm.ID as mm.Name for mm in ContentSubTypeChilds[m.ContentSubTypeID]">
+                    <option></option>
+                </select>
+            </div>
+            <div class="extra content">
+                <div class="ui two buttons">
+                    <div class="ui basic green button">保存</div>
+                    <div class="ui basic red button">删除</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <button style="width: 100%;margin-top: 30px;" ng-click="saveArticle()" class="ui blue button"><i class="add icon"></i>全部保存</button>
+    <div class="ui progress success" data-value="0" data-total="100" id="upload_article_images_progress">
+        <div class="bar">
+            <div class="progress"></div>
+        </div>
+        <div class="label">Waiting for you to save</div>
+    </div>
+</div>

@@ -16,7 +16,7 @@ type JournalController struct {
 	User    service.UserService
 }
 
-func (controller *JournalController) Apply() {
+func (controller *JournalController) Init() {
 
 	controller.AddHandler(gweb.GETMethod("/list/leve", controller.listLeveAction))
 	controller.AddHandler(gweb.GETMethod("/list/journal", controller.listJournalAction))

@@ -5,6 +5,7 @@ import (
 	"github.com/nbvghost/dandelion/app/play"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/util"
+	"github.com/nbvghost/gweb/tool/encryption"
 	"strconv"
 	"strings"
 
@@ -14,7 +15,6 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/nbvghost/gweb"
-	"github.com/nbvghost/gweb/tool"
 )
 
 type AdminService struct {
@@ -35,7 +35,7 @@ func (service AdminService) AddItem(context *gweb.Context) gweb.Result {
 	}
 
 	item.Account = strings.ToLower(item.Account)
-	item.PassWord = tool.Md5ByString(item.PassWord)
+	item.PassWord = encryption.Md5ByString(item.PassWord)
 
 	if strings.EqualFold(item.Account, "admin") || strings.EqualFold(item.Account, "manager") || strings.EqualFold(item.Account, "administrator") {
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("此账号不允许注册"), "", nil)}
@@ -119,7 +119,7 @@ func (service AdminService) ChangePassWork(context *gweb.Context) gweb.Result {
 		}
 	}
 
-	item.PassWord = tool.Md5ByString(item.PassWord)
+	item.PassWord = encryption.Md5ByString(item.PassWord)
 
 	err = service.ChangeModel(Orm, ID, item)
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
@@ -158,7 +158,7 @@ func (self AdminService) AddAdmin(Name, Password, Domain string) *dao.ActionStat
 		return as
 	}
 
-	admin.PassWord = tool.Md5ByString(Password)
+	admin.PassWord = encryption.Md5ByString(Password)
 
 	_org := self.Organization.FindByDomain(tx, Domain)
 	if _org.ID != 0 {
@@ -283,7 +283,7 @@ func (service AdminService) ManagerAction(context *gweb.Context) gweb.Result {
 		dts := &dao.Admin{}
 		util.RequestBodyToJSON(context.Request.Body, dts)
 
-		service.ChangeModel(Orm, dts.ID, &dao.Admin{PassWord: tool.Md5ByString(dts.PassWord)})
+		service.ChangeModel(Orm, dts.ID, &dao.Admin{PassWord: encryption.Md5ByString(dts.PassWord)})
 		return &gweb.JsonResult{Data: dao.ActionStatus{Success: true, Message: "修改成功", Data: nil}}
 
 	case play.ActionKey_add:
@@ -314,5 +314,5 @@ func (service AdminService) ManagerAction(context *gweb.Context) gweb.Result {
 }
 func (service AdminService) ChangeAdmin(Name, Password string, ID uint64) error {
 	Orm := dao.Orm()
-	return service.ChangeModel(Orm, ID, dao.Admin{Account: Name, PassWord: tool.Md5ByString(Password)})
+	return service.ChangeModel(Orm, ID, dao.Admin{Account: Name, PassWord: encryption.Md5ByString(Password)})
 }

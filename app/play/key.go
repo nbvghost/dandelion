@@ -1,5 +1,7 @@
 package play
 
+import "github.com/nbvghost/gweb/tool/encryption"
+
 const (
 	SessionAdmin          string = "ADMIN"        //商家后台
 	SessionManager        string = "MANAGER"      //系统管理
@@ -112,3 +114,5 @@ const (
 const (
 	ContentTypeArticles = "articles"
 )
+
+var GWebSecretKey encryption.SecretKey = encryption.SecretKey(encryption.Md5ByString("ds1f4ds524f52ds4f5ds4"))

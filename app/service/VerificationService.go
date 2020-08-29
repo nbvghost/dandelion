@@ -24,7 +24,7 @@ type VerificationService struct {
 	ScoreGoods ScoreGoodsService
 	Voucher    VoucherService
 	User       UserService
-	StoreStock StoreStockService
+	Store      StoreService
 	Goods      GoodsService
 }
 
@@ -119,7 +119,7 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 				return err
 			}
 			//要减掉门店的库存
-			storeStock := service.StoreStock.GetByGoodsIDAndSpecificationIDAndStoreID(goods.ID, specification.ID, store.ID)
+			storeStock := service.Store.GetByGoodsIDAndSpecificationIDAndStoreID(goods.ID, specification.ID, store.ID)
 			if int64(storeStock.Stock-storeStock.UseStock-uint64(Quantity)) < 0 {
 				return errors.New("门店库存不足，无法核销")
 			} else {

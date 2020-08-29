@@ -36,7 +36,7 @@ func (this InterceptorData) Execute(context *gweb.Context) bool {
 	}
 
 }
-func (i *Controller) Apply() {
+func (i *Controller) Init() {
 	fmt.Println(i)
 	//i.Interceptors.Add(&InterceptorData{})
 	//i.AddSubController("/appointment/", &appointment.Controller{})

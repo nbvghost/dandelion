@@ -503,7 +503,7 @@ type Goods struct {
 	//TimeSellID        uint64 `gorm:"column:TimeSellID"`                          //
 	ExpressTemplateID uint64 `gorm:"column:ExpressTemplateID"` //
 	CountSale         uint64 `gorm:"column:CountSale"`         //销售量
-	Mark string `gorm:"column:Mark"`
+	Mark              string `gorm:"column:Mark"`
 }
 
 func (u *Goods) BeforeCreate(scope *gorm.Scope) (err error) {
@@ -955,6 +955,7 @@ type Content struct {
 	Name          string `gorm:"column:Name"`
 	Sort          int    `gorm:"column:Sort"`
 	ContentTypeID uint64 `gorm:"column:ContentTypeID"`
+	TemplateName  string `gorm:"column:TemplateName"` //使用模板的文件名，如多文章列表，
 	Type          string `gorm:"column:Type"`
 	Hide          bool   `gorm:"column:Hide"`
 }
@@ -989,16 +990,16 @@ func (ContentSubType) TableName() string {
 
 type Article struct {
 	BaseModel
-	Title            string `gorm:"column:Title"`
-	Content          string `gorm:"column:Content;type:LONGTEXT"`
-	Introduce        string `gorm:"column:Introduce"`
-	Thumbnail        string `gorm:"column:Thumbnail"`
-	ContentID        uint64 `gorm:"column:ContentID"`
-	ContentSubTypeID uint64 `gorm:"column:ContentSubTypeID"`
-	//ContentSubTypeChildID uint64 `gorm:"column:ContentSubTypeChildID"`
-	FromUrl string `gorm:"column:FromUrl"`
-	Author  string `gorm:"column:Author"`
-	Look    int    `gorm:"column:Look"`
+	Title                 string `gorm:"column:Title"`
+	Content               string `gorm:"column:Content;type:LONGTEXT"`
+	Introduce             string `gorm:"column:Introduce"`
+	Picture               string `gorm:"column:Picture"`
+	ContentID             uint64 `gorm:"column:ContentID"`
+	ContentSubTypeID      uint64 `gorm:"column:ContentSubTypeID"`
+	ContentSubTypeChildID uint64 `gorm:"column:ContentSubTypeChildID"`
+	FromUrl               string `gorm:"column:FromUrl"`
+	Author                string `gorm:"column:Author"`
+	Look                  int    `gorm:"column:Look"`
 }
 
 func (Article) TableName() string {

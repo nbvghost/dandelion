@@ -61,7 +61,7 @@ type Controller struct {
 	Journal       service.JournalService
 }
 
-func (controller *Controller) Apply() {
+func (controller *Controller) Init() {
 	controller.Interceptors.Add(&InterceptorMp{})
 
 	controller.AddHandler(gweb.ALLMethod("index", controller.indexPage))

@@ -19,7 +19,7 @@ type Controller struct {
 	gweb.BaseController
 }
 
-func (controller *Controller) Apply() {
+func (controller *Controller) Init() {
 
 	controller.AddSubController("/question/", &question.Controller{})
 }

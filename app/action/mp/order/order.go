@@ -30,7 +30,7 @@ type OrderController struct {
 	Collage         service.CollageService
 }
 
-func (controller *OrderController) Apply() {
+func (controller *OrderController) Init() {
 
 	controller.AddHandler(gweb.POSMethod("/add", controller.ordersAddAction))
 	controller.AddHandler(gweb.POSMethod("/buy", controller.ordersBuyAction))

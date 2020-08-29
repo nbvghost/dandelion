@@ -2,10 +2,10 @@ package service
 
 import (
 	"github.com/nbvghost/dandelion/app/service/dao"
+	"github.com/nbvghost/gweb/tool/encryption"
 
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb/conf"
-	"github.com/nbvghost/gweb/tool"
 )
 
 //var GlobalGoodsService = GoodsService{}
@@ -18,14 +18,12 @@ type GlobalServiceStruct struct {
 
 func init() {
 
-	glog.StartLogger(&glog.ParamValue{
-		ServerAddr:  conf.Config.LogServer,
-		ServerName:  "dandelion",
-		LogFilePath: conf.Config.LogDir,
-		Debug:       conf.Config.Debug,
-		PrintStack:  true,
-		FileStorage: true,
-	})
+	glog.Param.PushAddr = conf.Config.LogServer
+	glog.Param.Name = "dandelion"
+	glog.Param.LogFilePath = conf.Config.LogDir
+	glog.Param.StandardOut = conf.Config.Debug
+	glog.Param.FileStorage = true
+	glog.Start()
 
 	//var err error
 	//_db, err := sql.Open("mysql", "tcp:localhost:3306*dandelion/root/123456")
@@ -114,18 +112,26 @@ func init() {
 	var _manager dao.Manager
 	_database.Where(&dao.Manager{Account: "manager"}).First(&_manager)
 	if _manager.ID == 0 {
-		a := dao.Manager{Account: "manager", PassWord: tool.Md5ByString("274455411")}
+		a := dao.Manager{Account: "manager", PassWord: encryption.Md5ByString("274455411")}
 		_database.Create(&a)
 	}
 
 	//this.Admin.AddAdmin(Name, Password)
 	AdminService{}.AddAdmin("admin", "274455411", "")
 
-	var _contenttype dao.ContentType
-	_database.Where(&dao.ContentType{Type: "articles"}).First(&_contenttype)
-	if _contenttype.ID == 0 {
-		a := dao.ContentType{Label: "文章列表", Type: "articles"}
-		_database.Create(&a)
+	contentTypeList := []dao.ContentType{
+		{Type: "articles", Label: "文章列表"},
+		{Type: "article", Label: "独立文章"},
+		{Type: "index", Label: "首页"},
+		{Type: "gallery", Label: "画廊"},
+		{Type: "products", Label: "产品"},
+	}
+	for index := range contentTypeList {
+		var _contenttype = contentTypeList[index]
+		_database.Where(&dao.ContentType{Type: _contenttype.Type}).First(&_contenttype)
+		if _contenttype.ID == 0 {
+			_database.Create(&_contenttype)
+		}
 	}
 
 }

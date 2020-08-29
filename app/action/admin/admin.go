@@ -45,12 +45,11 @@ func (this InterceptorManager) Execute(context *gweb.Context) (bool, gweb.Result
 
 type Controller struct {
 	gweb.BaseController
-	Admin           service.AdminService
-	Goods           service.GoodsService
-	ScoreGoods      service.ScoreGoodsService
-	Voucher         service.VoucherService
-	Store           service.StoreService
-	StoreStock      service.StoreStockService
+	Admin      service.AdminService
+	Goods      service.GoodsService
+	ScoreGoods service.ScoreGoodsService
+	Voucher    service.VoucherService
+
 	ExpressTemplate service.ExpressTemplateService
 	FullCut         service.FullCutService
 	TimeSell        service.TimeSellService
@@ -60,12 +59,12 @@ type Controller struct {
 	GiveVoucher   service.GiveVoucherService
 	User          service.UserService
 	CardItem      service.CardItemService
-	Content       service.ContentService
-	Article       service.ArticleService
-	Collage       service.CollageService
+
+	Article service.ArticleService
+	Collage service.CollageService
 }
 
-func (controller *Controller) Apply() {
+func (controller *Controller) Init() {
 	controller.Interceptors.Add(&InterceptorManager{})
 	controller.AddHandler(gweb.ALLMethod("index", controller.indexPage))
 	controller.AddHandler(gweb.ALLMethod("goods", controller.GoodsAction))
@@ -94,18 +93,7 @@ func (controller *Controller) Apply() {
 	controller.AddHandler(gweb.DELMethod("collage/goods/{GoodsID}", controller.Collage.DeleteGoods))
 	controller.AddHandler(gweb.POSMethod("collage/goods/add", controller.Collage.AddCollageGoodsAction))
 	controller.AddHandler(gweb.DELMethod("collage/{ID}", controller.Collage.DeleteItem))
-	controller.AddHandler(gweb.POSMethod("store", controller.Store.AddItem))
-	controller.AddHandler(gweb.GETMethod("store/{ID}", controller.Store.GetItem))
-	controller.AddHandler(gweb.POSMethod("store/list", controller.Store.ListItem))
-	controller.AddHandler(gweb.DELMethod("store/{ID}", controller.Store.DeleteItem))
-	controller.AddHandler(gweb.PUTMethod("store/{ID}", controller.Store.ChangeItem))
-	controller.AddHandler(gweb.POSMethod("store_stock", controller.StoreStock.SaveItem))
-	controller.AddHandler(gweb.PUTMethod("store_stock", controller.StoreStock.SaveItem))
-	controller.AddHandler(gweb.GETMethod("store_stock/{ID}", controller.StoreStock.GetItem))
-	controller.AddHandler(gweb.GETMethod("store_stock/exist/goods/{StoreID}", controller.StoreStock.ListExistGoodsIDS))
-	controller.AddHandler(gweb.POSMethod("store_stock/list/{StoreID}/{GoodsID}", controller.StoreStock.ListByGoods))
-	controller.AddHandler(gweb.POSMethod("store_stock/list", controller.StoreStock.ListItem))
-	controller.AddHandler(gweb.DELMethod("store_stock/{ID}", controller.StoreStock.DeleteItem))
+
 	controller.AddHandler(gweb.POSMethod("express_template/save", controller.saveExpressTemplate))
 	controller.AddHandler(gweb.DELMethod("express_template/{ID}", controller.deleteExpressTemplate))
 	controller.AddHandler(gweb.GETMethod("express_template/{ID}", controller.getExpressTemplate))
@@ -128,30 +116,26 @@ func (controller *Controller) Apply() {
 	controller.AddHandler(gweb.PUTMethod("admin/authority/{ID}", controller.Admin.ChangeAuthority))
 	controller.AddHandler(gweb.ALLMethod("loginOut", controller.loginOutAction))
 	//--------------content------------------
-	controller.AddHandler(gweb.GETMethod("content_type/list", controller.Content.ListContentTypeAction))
-	controller.AddHandler(gweb.POSMethod("content", controller.Content.AddContentAction))
-	controller.AddHandler(gweb.GETMethod("content/{ID}", controller.Content.GetContentAction))
-	controller.AddHandler(gweb.GETMethod("content/list", controller.Content.ListContentsAction))
-	controller.AddHandler(gweb.DELMethod("content/{ID}", controller.Content.DeleteContentAction))
-	controller.AddHandler(gweb.PUTMethod("content/{ID}", controller.Content.ChangeContentAction))
-	controller.AddHandler(gweb.PUTMethod("content/index/{ID}", controller.Content.ChangeContentIndexAction))
-	controller.AddHandler(gweb.PUTMethod("content/hide/{ID}", controller.Content.ChangeHideContentAction))
-	controller.AddHandler(gweb.POSMethod("content_sub_type", controller.Content.AddClassify))
-	controller.AddHandler(gweb.GETMethod("content_sub_type/list/{ContentID}", controller.Content.ListClassify))
-	controller.AddHandler(gweb.GETMethod("content_sub_type/child/list/{ContentID}/{ParentContentSubTypeID}", controller.Content.ListChildClassify))
-	controller.AddHandler(gweb.DELMethod("content_sub_type/{ID}", controller.Content.DeleteClassify))
-	controller.AddHandler(gweb.PUTMethod("content_sub_type/{ID}", controller.Content.ChangeClassify))
-	controller.AddHandler(gweb.GETMethod("content_sub_type/{ID}", controller.Content.GetContentSubTypeAction))
+
 	//------------------ArticleService.go-datatables------------------------
 	controller.AddHandler(gweb.POSMethod("article/datatables/list", controller.Article.DataTablesAction))
 	controller.AddHandler(gweb.POSMethod("article/save", controller.Article.SaveArticleAction))
+	controller.AddHandler(gweb.GETMethod("article/multi/get/{ID}", controller.Article.GetMultiArticleAction))
+	controller.AddHandler(gweb.GETMethod("article/single/get/{ContentID}", controller.Article.GetSingleArticleAction))
 	controller.AddHandler(gweb.POSMethod("article/delete", controller.Article.DeleteArticleAction))
-	controller.AddHandler(gweb.GETMethod("article/get/{ID}", controller.Article.GetArticleAction))
+	//------------------ArticleService.go-datatables------------------------
+
 	controller.AddHandler(gweb.POSMethod("voucher", controller.Voucher.AddItem))
 	controller.AddHandler(gweb.GETMethod("voucher/{ID}", controller.Voucher.GetItem))
 	controller.AddHandler(gweb.POSMethod("voucher/list", controller.Voucher.ListItem))
 	controller.AddHandler(gweb.DELMethod("voucher/{ID}", controller.Voucher.DeleteItem))
 	controller.AddHandler(gweb.PUTMethod("voucher/{ID}", controller.Voucher.ChangeItem))
+
+	store := &StoreController{}
+	controller.AddSubController("/store/", store)
+
+	content := &ContentController{}
+	controller.AddSubController("/content/", content)
 
 }
 

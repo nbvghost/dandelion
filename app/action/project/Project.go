@@ -11,7 +11,7 @@ type Controller struct {
 	Dao dao.BaseDao
 }
 
-func (controller *Controller) Apply() {
+func (controller *Controller) Init() {
 	controller.AddHandler(gweb.ALLMethod("add", controller.AddProjectAction))
 
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/nbvghost/dandelion/app/action/account"
 	"github.com/nbvghost/dandelion/app/action/api"
+	"github.com/nbvghost/dandelion/app/action/file"
 	"github.com/nbvghost/dandelion/app/action/images"
 	"github.com/nbvghost/dandelion/app/action/index"
 	"github.com/nbvghost/dandelion/app/action/manager"
@@ -19,11 +20,8 @@ import (
 
 func main() {
 
-
-
-
-	admina:=&admin.Controller{}
-	admina.NewController("/admin/",admina)
+	admina := &admin.Controller{}
+	admina.NewController("/admin/", admina)
 
 	manager := &manager.Controller{}
 	manager.NewController("/manager/", manager)
@@ -49,8 +47,8 @@ func main() {
 	sites := &sites.Controller{}
 	sites.NewController("/sites", sites)
 
-
-
+	file := &file.Controller{}
+	file.NewController("/file", file)
 
 	_http := &http.Server{
 		Addr:    conf.Config.HttpPort,

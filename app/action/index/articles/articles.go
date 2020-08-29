@@ -33,7 +33,7 @@ type Controller struct {
 	User    service.UserService
 }
 
-func (controller *Controller) Apply() {
+func (controller *Controller) Init() {
 	//Index.RequestMapping = make(map[string]mvc.Function)
 	controller.Interceptors.Add(&InterceptorMp{})
 
@@ -66,7 +66,7 @@ func (controller *Controller) listNewAction(context *gweb.Context) gweb.Result {
 
 	var articles []dao.Article
 	//controller.Content.FindOrderWhereLength(service.Orm(),"Look desc",&articles,)
-	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Thumbnail,ContentID,ContentSubTypeID,ContentSubTypeChildID,Author,Look,FromUrl", "CreatedAt desc", &articles, int(Offset), "ContentID in (?)", ContentIDs)
+	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,ContentID,ContentSubTypeID,ContentSubTypeChildID,Author,Look,FromUrl", "CreatedAt desc", &articles, int(Offset), "ContentID in (?)", ContentIDs)
 	return &gweb.JsonResult{Data: &dao.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
 }
 func (controller *Controller) articlePage(context *gweb.Context) gweb.Result {
@@ -145,7 +145,7 @@ func (controller *Controller) listSubContentNewAction(context *gweb.Context) gwe
 
 	var articles []dao.Article
 	//controller.Content.FindOrderWhereLength(dao.Orm(),"Look desc",&articles,)
-	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Thumbnail,Introduce,ContentID,ContentSubTypeID,Author,Look,FromUrl,CreatedAt", "CreatedAt desc", &articles, int(Offset), "ContentID=? and ContentSubTypeID=?", ContentID, ContentSubTypeID)
+	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,Introduce,ContentID,ContentSubTypeID,Author,Look,FromUrl,CreatedAt", "CreatedAt desc", &articles, int(Offset), "ContentID=? and ContentSubTypeID=?", ContentID, ContentSubTypeID)
 	return &gweb.JsonResult{Data: &dao.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
 }
 func (controller *Controller) listContentNewAction(context *gweb.Context) gweb.Result {
@@ -156,7 +156,7 @@ func (controller *Controller) listContentNewAction(context *gweb.Context) gweb.R
 	//ContentIDs:=controller.Content.GetContentIDs(Organization.ID)
 	var articles []dao.Article
 	//controller.Content.FindOrderWhereLength(dao.Orm(),"Look desc",&articles,)
-	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Thumbnail,Introduce,ContentID,ContentSubTypeID,Author,Look,FromUrl,CreatedAt", "CreatedAt desc", &articles, int(Offset), "ContentID=?", ContentID)
+	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,Introduce,ContentID,ContentSubTypeID,Author,Look,FromUrl,CreatedAt", "CreatedAt desc", &articles, int(Offset), "ContentID=?", ContentID)
 	return &gweb.JsonResult{Data: &dao.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
 }
 func (controller *Controller) listContentHotAction(context *gweb.Context) gweb.Result {
@@ -167,7 +167,7 @@ func (controller *Controller) listContentHotAction(context *gweb.Context) gweb.R
 	//ContentIDs:=controller.Content.GetContentIDs(Organization.ID)
 	var articles []dao.Article
 	//controller.Content.FindOrderWhereLength(dao.Orm(),"Look desc",&articles,)
-	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Thumbnail,Introduce,ContentID,ContentSubTypeID,Author,Look,FromUrl,CreatedAt", "Look desc", &articles, int(Offset), "ContentID=?", ContentID)
+	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,Introduce,ContentID,ContentSubTypeID,Author,Look,FromUrl,CreatedAt", "Look desc", &articles, int(Offset), "ContentID=?", ContentID)
 	return &gweb.JsonResult{Data: &dao.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
 }
 func (controller *Controller) defaultPage(context *gweb.Context) gweb.Result {

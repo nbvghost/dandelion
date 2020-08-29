@@ -11,7 +11,7 @@ type Controller struct {
 	Question service.QuestionService
 }
 
-func (controller *Controller) Apply() {
+func (controller *Controller) Init() {
 	controller.AddHandler(gweb.ALLMethod("list_question", controller.listQuestionAction))
 
 }

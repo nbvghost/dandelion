@@ -154,10 +154,10 @@ type IDataBaseFace interface {
 	TableName() string
 }
 type BaseModel struct {
-	ID        uint64     `gorm:"column:ID;primary_key;unique"` //条目ID
-	CreatedAt time.Time  `gorm:"column:CreatedAt"`             //登陆日期
-	UpdatedAt time.Time  `gorm:"column:UpdatedAt"`             //修改日期
-	DeletedAt *time.Time `gorm:"column:DeletedAt"`             //删除日期
+	ID        uint64    `gorm:"column:ID;primary_key;unique"` //条目ID
+	CreatedAt time.Time `gorm:"column:CreatedAt"`             //登陆日期
+	UpdatedAt time.Time `gorm:"column:UpdatedAt"`             //修改日期
+	//DeletedAt *time.Time `gorm:"column:DeletedAt"`             //删除日期
 }
 
 func SelectPaging(Index int, p *gorm.DB, target interface{}) (Total int) {

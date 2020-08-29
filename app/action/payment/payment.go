@@ -22,7 +22,7 @@ type Controller struct {
 	Wx     service.WxService
 }
 
-func (controller *Controller) Apply() {
+func (controller *Controller) Init() {
 	//controller.AddHandler(gweb.POSMethod("wxpay", controller.wxpayAction))
 	controller.AddHandler(gweb.ALLMethod("notify", controller.notifyAction))
 }
