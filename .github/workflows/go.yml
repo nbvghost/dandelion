@@ -29,7 +29,7 @@ jobs:
         fi
 
     - name: Build
-      run: go build -v .
+      run: CGO_ENABLED=0 go build -v .
 
     - name: Set version code
       run: echo "::set-env name=APPVERSION::$(cat version)"
