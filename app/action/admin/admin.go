@@ -59,9 +59,8 @@ type Controller struct {
 	GiveVoucher   service.GiveVoucherService
 	User          service.UserService
 	CardItem      service.CardItemService
-
-	Article service.ArticleService
-	Collage service.CollageService
+	Content       service.ContentService
+	Collage       service.CollageService
 }
 
 func (controller *Controller) Init() {
@@ -116,14 +115,6 @@ func (controller *Controller) Init() {
 	controller.AddHandler(gweb.PUTMethod("admin/authority/{ID}", controller.Admin.ChangeAuthority))
 	controller.AddHandler(gweb.ALLMethod("loginOut", controller.loginOutAction))
 	//--------------content------------------
-
-	//------------------ArticleService.go-datatables------------------------
-	controller.AddHandler(gweb.POSMethod("article/datatables/list", controller.Article.DataTablesAction))
-	controller.AddHandler(gweb.POSMethod("article/save", controller.Article.SaveArticleAction))
-	controller.AddHandler(gweb.GETMethod("article/multi/get/{ID}", controller.Article.GetMultiArticleAction))
-	controller.AddHandler(gweb.GETMethod("article/single/get/{ContentID}", controller.Article.GetSingleArticleAction))
-	controller.AddHandler(gweb.POSMethod("article/delete", controller.Article.DeleteArticleAction))
-	//------------------ArticleService.go-datatables------------------------
 
 	controller.AddHandler(gweb.POSMethod("voucher", controller.Voucher.AddItem))
 	controller.AddHandler(gweb.GETMethod("voucher/{ID}", controller.Voucher.GetItem))

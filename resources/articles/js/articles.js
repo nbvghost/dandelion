@@ -179,8 +179,6 @@ app.controller("new_list_controller", function ($http, $scope, $rootScope, $rout
     $scope.selectTab=function(tabIndex,ContentSubTypeID){
         $scope.tabIndex =tabIndex;
         $scope.articles=[];
-        //console.log(ContentID,ContentSubTypeID);
-        //content/:ContentID/list/sub/content/new/:ContentSubTypeID
         ActionUrl ="list/sub/new/"+ContentSubTypeID;
         window.localStorage.setItem("TabIndex",tabIndex+"");
         window.localStorage.setItem("ActionUrl",ActionUrl);

@@ -10,17 +10,17 @@
                 <label>分类</label>
             </div>
             <div class="four wide field">
-                <select ng-model="MContentSubTypeID" ng-change="changeContentSubTypes()" ng-options="m.ID as m.Name for m in ContentSubTypes" required >
+                <select ng-model="MContentSubTypeID" ng-change="changeContentSubTypes()" ng-options="key as value.SubType.Name for (key , value) in ContentSubTypes" required >
                     <option></option>
                 </select>
             </div>
             <div class="four wide field">
-                <select ng-model="MContentSubTypeChildID" ng-change="changeContentSubTypeChilds()" ng-options="m.ID as m.Name for m in ContentSubTypeChilds" required>
+                <select ng-model="MContentSubTypeChildID" ng-change="changeContentSubTypeChilds()" ng-options="key as value.Name for (key , value) in ContentSubTypes[MContentSubTypeID].SubTypeChildren" required>
                     <option></option>
                 </select>
             </div>
             <div class="five wide field right aligned">
-                <a href="#!/add_@{Type}@?ContentID=@{ContentID}@" class="ui green button"> <i class="add icon"></i>添加文章</a>
+                <a href="#!/add_@{Type}@?ContentItemID=@{ContentItemID}@" class="ui green button"> <i class="add icon"></i>添加文章</a>
             </div>
         </div>
     </div>

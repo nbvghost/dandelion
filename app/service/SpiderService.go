@@ -20,7 +20,7 @@ import (
 type SpiderService struct {
 	dao.BaseDao
 	File    FileService
-	Article ArticleService
+	Content ContentService
 	Admin   AdminService
 	OID     uint64
 }
@@ -222,7 +222,7 @@ func (spider SpiderService) GetArticleQueryDataAndAdd(body io.ReadCloser, Conten
 			}
 			//fmt.Println(timedate)
 			//fmt.Println(df)
-			spider.Article.AddSpiderArticle(spider.OID, "热点文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
+			spider.Content.AddSpiderArticle(spider.OID, "热点文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
 
 		}
 
@@ -280,7 +280,7 @@ func (spider SpiderService) GetArticleDataAndAdd(body io.ReadCloser, ContentSubT
 			}
 			//fmt.Println(timedate)
 			//fmt.Println(df)
-			spider.Article.AddSpiderArticle(spider.OID, "热点文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
+			spider.Content.AddSpiderArticle(spider.OID, "热点文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
 
 		}
 

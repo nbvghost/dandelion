@@ -59,7 +59,7 @@
         </td>
         <td class="right aligned">
             <a ng-if="getTemplateNameObj(m.Type,m.TemplateName).SubMenu" ng-click="editMenus(m)" class="ui blue button"><i class="edit icon"></i>编辑</a>
-            <a ng-if="getTemplateNameObj(m.Type,m.TemplateName).Content" href="#!/@{m.Type}@?ContentID=@{m.ID}@&Type=@{m.Type}@" class="ui green button"> <i class="edit icon"></i>内容管理</a>
+            <a ng-if="getTemplateNameObj(m.Type,m.TemplateName).Content" href="#!/@{m.Type}@?ContentItemID=@{m.ID}@&Type=@{m.Type}@" class="ui green button"> <i class="edit icon"></i>内容管理</a>
             <a ng-click="upIndex($index)" class="ui button"><i class="angle up icon"></i>上移</a>
             <a ng-click="downIndex($index)" class="ui button"><i class="angle down icon"></i>下移</a>
             <a ng-click="deleteMenus(m.ID)" class="ui red button"><i class="delete icon"></i>删除</a>

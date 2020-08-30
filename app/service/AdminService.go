@@ -24,7 +24,10 @@ type AdminService struct {
 }
 
 func (service AdminService) AddItem(context *gweb.Context) gweb.Result {
+	admin := context.Session.Attributes.Get(play.SessionAdmin).(*dao.Admin)
+
 	item := &dao.Admin{}
+	item.OID = admin.OID
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}

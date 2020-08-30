@@ -28,7 +28,6 @@ func (controller InterceptorMp) Execute(Context *gweb.Context) (bool, gweb.Resul
 type Controller struct {
 	gweb.BaseController
 	Content service.ContentService
-	Article service.ArticleService
 	Wx      service.WxService
 	User    service.UserService
 }
@@ -40,21 +39,32 @@ func (controller *Controller) Init() {
 	controller.AddHandler(gweb.GETMethod("list/{OID}/new", controller.listNewAction))
 	controller.AddHandler(gweb.GETMethod("article", controller.articleSeftPage))
 
-	//csts := controller.Content.FindContentSubTypesByContentID(content.ID)
 	controller.AddHandler(gweb.GETMethod("index", controller.indexPage))
-	controller.AddHandler(gweb.GETMethod("content/{ContentID}/index", controller.contentPage))
-	controller.AddHandler(gweb.GETMethod("content/{ContentID}/article/{ArticleID}", controller.articlePage))
-	controller.AddHandler(gweb.GETMethod("content/{ContentID}/list/sub/new/{ContentSubTypeID}", controller.listSubContentNewAction))
-	controller.AddHandler(gweb.GETMethod("content/{ContentID}/list/hot", controller.listContentHotAction))
-	controller.AddHandler(gweb.GETMethod("content/{ContentID}/list/new", controller.listContentNewAction))
-	controller.AddHandler(gweb.GETMethod("content/{ContentID}/list/subtype", controller.Content.ListContentSubTypeAction))
+	controller.AddHandler(gweb.GETMethod("content/{ContentItemID}/index", controller.contentPage))
+	controller.AddHandler(gweb.GETMethod("content/{ContentItemID}/article/{ArticleID}", controller.articlePage))
+	controller.AddHandler(gweb.GETMethod("content/{ContentItemID}/list/sub/new/{ContentSubTypeID}", controller.listSubContentNewAction))
+	controller.AddHandler(gweb.GETMethod("content/{ContentItemID}/list/hot", controller.listContentHotAction))
+	controller.AddHandler(gweb.GETMethod("content/{ContentItemID}/list/new", controller.listContentNewAction))
+	controller.AddHandler(gweb.GETMethod("content/{ContentItemID}/list/subtype", controller.ListContentSubTypeAction))
 
 	controller.AddHandler(gweb.GETMethod("get/{ArticleID}", controller.getArticleAction))
 	controller.AddHandler(gweb.GETMethod("new_list", controller.listNewPage))
 }
+func (controller *Controller) ListContentSubTypeAction(context *gweb.Context) gweb.Result {
+	//Organization := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+
+	ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
+	PID, _ := strconv.ParseUint(context.Request.URL.Query().Get("PID"), 10, 64)
+
+	content := controller.Content.GetContentItemByID(ContentItemID)
+
+	csts := controller.Content.FindContentSubTypesByContentItemIDAndParentContentSubTypeID(content.ID, PID)
+
+	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: csts}}
+}
 func (controller *Controller) articleSeftPage(context *gweb.Context) gweb.Result {
 	ArticleID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
-	article := controller.Article.GetArticle(ArticleID)
+	article := controller.Content.GetArticle(ArticleID)
 	//article.Content=template.HTML(article.Content)
 	return &gweb.HTMLResult{Params: map[string]interface{}{"Article": article}}
 }
@@ -62,18 +72,18 @@ func (controller *Controller) listNewAction(context *gweb.Context) gweb.Result {
 	Offset, _ := strconv.ParseInt(context.Request.URL.Query().Get("Offset"), 10, 64)
 	//Organization := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	OID, _ := strconv.ParseUint(context.PathParams["OID"], 10, 64)
-	ContentIDs := controller.Content.GetContentIDs(OID)
+	ContentItemIDs := controller.Content.GetContentItemIDs(OID)
 
-	var articles []dao.Article
+	var articles []dao.Content
 	//controller.Content.FindOrderWhereLength(service.Orm(),"Look desc",&articles,)
-	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,ContentID,ContentSubTypeID,ContentSubTypeChildID,Author,Look,FromUrl", "CreatedAt desc", &articles, int(Offset), "ContentID in (?)", ContentIDs)
+	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "CreatedAt desc", &articles, int(Offset), "ContentItemID in (?)", ContentItemIDs)
 	return &gweb.JsonResult{Data: &dao.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
 }
 func (controller *Controller) articlePage(context *gweb.Context) gweb.Result {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 
 	ArticleID, _ := strconv.ParseUint(context.PathParams["ArticleID"], 10, 64)
-	article := controller.Article.GetArticleAndAddLook(context, ArticleID)
+	article := controller.Content.GetArticleAndAddLook(context, ArticleID)
 	//article.Content=template.HTML(article.Content)
 
 	//fmt.Println(controller.Wx.MWQRCodeTemp(company.ID, 145, play.QRCodeCreateType_Article, strconv.Itoa(int(ArticleID))))
@@ -131,43 +141,40 @@ func (controller *Controller) listNewPage(context *gweb.Context) gweb.Result {
 }
 func (controller *Controller) getArticleAction(context *gweb.Context) gweb.Result {
 	ArticleID, _ := strconv.ParseUint(context.PathParams["ArticleID"], 10, 64)
-	article := controller.Article.GetArticle(ArticleID)
+	article := controller.Content.GetArticle(ArticleID)
 	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: article}}
 }
 func (controller *Controller) listSubContentNewAction(context *gweb.Context) gweb.Result {
 	//ContentSubTypeID
 	ContentSubTypeID, _ := strconv.ParseUint(context.PathParams["ContentSubTypeID"], 10, 64)
-	ContentID, _ := strconv.ParseUint(context.PathParams["ContentID"], 10, 64)
+	ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 
 	Offset, _ := strconv.ParseInt(context.Request.URL.Query().Get("Offset"), 10, 64)
 	//Organization := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
-	//ContentIDs:=controller.Content.GetContentIDs(Organization.ID)
 
-	var articles []dao.Article
+	var articles []dao.Content
 	//controller.Content.FindOrderWhereLength(dao.Orm(),"Look desc",&articles,)
-	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,Introduce,ContentID,ContentSubTypeID,Author,Look,FromUrl,CreatedAt", "CreatedAt desc", &articles, int(Offset), "ContentID=? and ContentSubTypeID=?", ContentID, ContentSubTypeID)
+	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,Introduce,ContentItemID,ContentSubTypeID,Author,Look,FromUrl,CreatedAt", "CreatedAt desc", &articles, int(Offset), "ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeID)
 	return &gweb.JsonResult{Data: &dao.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
 }
 func (controller *Controller) listContentNewAction(context *gweb.Context) gweb.Result {
-	//ContentID
-	ContentID, _ := strconv.ParseUint(context.PathParams["ContentID"], 10, 64)
+
+	ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	Offset, _ := strconv.ParseInt(context.Request.URL.Query().Get("Offset"), 10, 64)
 	//Organization := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
-	//ContentIDs:=controller.Content.GetContentIDs(Organization.ID)
-	var articles []dao.Article
+	var articles []dao.Content
 	//controller.Content.FindOrderWhereLength(dao.Orm(),"Look desc",&articles,)
-	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,Introduce,ContentID,ContentSubTypeID,Author,Look,FromUrl,CreatedAt", "CreatedAt desc", &articles, int(Offset), "ContentID=?", ContentID)
+	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,Introduce,ContentItemID,ContentSubTypeID,Author,Look,FromUrl,CreatedAt", "CreatedAt desc", &articles, int(Offset), "ContentItemID=?", ContentItemID)
 	return &gweb.JsonResult{Data: &dao.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
 }
 func (controller *Controller) listContentHotAction(context *gweb.Context) gweb.Result {
-	//ContentID
-	ContentID, _ := strconv.ParseUint(context.PathParams["ContentID"], 10, 64)
+	ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	Offset, _ := strconv.ParseInt(context.Request.URL.Query().Get("Offset"), 10, 64)
 	//Organization := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
-	//ContentIDs:=controller.Content.GetContentIDs(Organization.ID)
-	var articles []dao.Article
+
+	var articles []dao.Content
 	//controller.Content.FindOrderWhereLength(dao.Orm(),"Look desc",&articles,)
-	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,Introduce,ContentID,ContentSubTypeID,Author,Look,FromUrl,CreatedAt", "Look desc", &articles, int(Offset), "ContentID=?", ContentID)
+	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,Introduce,ContentItemID,ContentSubTypeID,Author,Look,FromUrl,CreatedAt", "Look desc", &articles, int(Offset), "ContentItemID=?", ContentItemID)
 	return &gweb.JsonResult{Data: &dao.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
 }
 func (controller *Controller) defaultPage(context *gweb.Context) gweb.Result {
@@ -182,11 +189,11 @@ func (controller *Controller) indexPage(context *gweb.Context) gweb.Result {
 func (controller *Controller) contentPage(context *gweb.Context) gweb.Result {
 	//Organization := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 
-	ContentID, _ := strconv.ParseUint(context.PathParams["ContentID"], 10, 64)
+	ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 
-	content := controller.Content.GetContentByID(ContentID)
+	content := controller.Content.GetContentItemByID(ContentItemID)
 
-	csts := controller.Content.FindContentSubTypesByContentID(content.ID)
+	csts := controller.Content.FindContentSubTypesByContentItemID(content.ID)
 
 	result := make(map[string]interface{})
 	result["ContentSubTypes"] = csts

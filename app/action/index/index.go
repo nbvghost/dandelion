@@ -49,7 +49,6 @@ func (controller InterceptorMp) Execute(context *gweb.Context) (bool, gweb.Resul
 type Controller struct {
 	gweb.BaseController
 	Content       service.ContentService
-	Article       service.ArticleService
 	Configuration service.ConfigurationService
 	User          service.UserService
 	Goods         service.GoodsService
@@ -80,7 +79,6 @@ func (controller *Controller) configurationListAction(context *gweb.Context) gwe
 	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", list)}
 }
 func (controller *Controller) newArticlePostAction(context *gweb.Context) gweb.Result {
-	//ContentID,_:=strconv.ParseUint(context.PathParams["ContentID"],10,64)
 	organization := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	context.Request.ParseForm()
 	__sign := context.Request.FormValue("__sign")
@@ -128,11 +126,10 @@ func (controller *Controller) newArticlePostAction(context *gweb.Context) gweb.R
 }
 func (controller *Controller) addArticle(OID uint64, ContentName string, ContentSubTypeName string, Author, Title string, FromUrl string, Introduce string, Picture string, Content string, CreatedAt time.Time) {
 
-	controller.Article.AddSpiderArticle(OID, ContentName, ContentSubTypeName, Author, Title, FromUrl, Introduce, Picture, Content, CreatedAt)
+	controller.Content.AddSpiderArticle(OID, ContentName, ContentSubTypeName, Author, Title, FromUrl, Introduce, Picture, Content, CreatedAt)
 
 }
 func (controller *Controller) newArticleWebhookAction(context *gweb.Context) gweb.Result {
-	//ContentID,_:=strconv.ParseUint(context.PathParams["ContentID"],10,64)
 	organization := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 
 	context.Request.ParseForm()

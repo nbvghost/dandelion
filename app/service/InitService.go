@@ -86,9 +86,9 @@ func init() {
 	models = append(models, dao.OrdersPackage{})
 	models = append(models, dao.Manager{})
 	models = append(models, dao.Collage{})
-	models = append(models, dao.Article{})
-	models = append(models, dao.UserFormIds{})
 	models = append(models, dao.Content{})
+	models = append(models, dao.UserFormIds{})
+	models = append(models, dao.ContentItem{})
 	models = append(models, dao.ContentType{})
 	models = append(models, dao.ContentSubType{})
 	models = append(models, dao.Question{})
@@ -120,8 +120,8 @@ func init() {
 	AdminService{}.AddAdmin("admin", "274455411", "")
 
 	contentTypeList := []dao.ContentType{
-		{Type: "articles", Label: "文章列表"},
-		{Type: "article", Label: "独立文章"},
+		{Type: "contents", Label: "文章列表"},
+		{Type: "content", Label: "独立文章"},
 		{Type: "index", Label: "首页"},
 		{Type: "gallery", Label: "画廊"},
 		{Type: "products", Label: "产品"},

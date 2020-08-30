@@ -14,7 +14,6 @@
         <a class="ui large red ribbon label">菜单管理</a>
     </p>
 
-
     <form class="ui form" ng-submit="saveArticle()">
         <div class="field">
             <label>标题</label>
@@ -32,14 +31,14 @@
         <div class="fields">
             <div class="four wide field">
                 <label>分类</label>
-                <select ng-model="MContentSubTypeID" ng-change="changeContentSubTypes()" ng-options="m.ID as m.Name for m in ContentSubTypes" required >
+                <select ng-model="Article.ContentSubTypeID" ng-change="changeContentSubTypes()" ng-options="key as value.SubType.Name for (key , value) in ContentSubTypes" required >
 
                 </select>
             </div>
             <div class="four wide field">
                 <label>子类</label>
-                <select ng-model="MContentSubTypeChildID" ng-change="changeContentSubTypeChilds()" ng-options="m.ID as m.Name for m in ContentSubTypeChilds">
-                    <option></option>
+                <select ng-model="Article.ContentSubTypeChildID" ng-change="changeContentSubTypeChilds()" ng-options="key as value.Name for (key , value) in ContentSubTypes[Article.ContentSubTypeID].SubTypeChildren">
+
                 </select>
             </div>
         </div>
@@ -55,7 +54,7 @@
             <label>缩略图预览</label>
             <div class="ui card">
                 <div class="image">
-                    <img ng-src="@{Article.Picture}@">
+                    <img ng-if="Article.Picture" ng-src="/file/load?path=@{Article.Picture}@">
                 </div>
                 <button type="file"  class="ui green bottom attached button" ngf-select="UploadPictureImage($file,$invalidFiles)" accept="image/*" ngf-max-size="1MB"><i class="add icon"></i>添加缩略图</button>
             </div>

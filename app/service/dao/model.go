@@ -946,66 +946,6 @@ type KV struct {
 	Value interface{} //
 }
 
-//Content   ContentType  ContentSubType
-
-//Menus
-type Content struct {
-	BaseModel
-	OID           uint64 `gorm:"column:OID"`
-	Name          string `gorm:"column:Name"`
-	Sort          int    `gorm:"column:Sort"`
-	ContentTypeID uint64 `gorm:"column:ContentTypeID"`
-	TemplateName  string `gorm:"column:TemplateName"` //使用模板的文件名，如多文章列表，
-	Type          string `gorm:"column:Type"`
-	Hide          bool   `gorm:"column:Hide"`
-}
-
-func (Content) TableName() string {
-	return "Content"
-}
-
-//MenuType
-type ContentType struct {
-	BaseModel
-	Label string `gorm:"column:Label"`
-	Type  string `gorm:"column:Type;unique"`
-}
-
-func (ContentType) TableName() string {
-	return "ContentType"
-}
-
-//Classify
-type ContentSubType struct {
-	BaseModel
-	Name                   string `gorm:"column:Name"`
-	ContentID              uint64 `gorm:"column:ContentID"`
-	ParentContentSubTypeID uint64 `gorm:"column:ParentContentSubTypeID"`
-	Sort                   int    `gorm:"column:Sort"`
-}
-
-func (ContentSubType) TableName() string {
-	return "ContentSubType"
-}
-
-type Article struct {
-	BaseModel
-	Title                 string `gorm:"column:Title"`
-	Content               string `gorm:"column:Content;type:LONGTEXT"`
-	Introduce             string `gorm:"column:Introduce"`
-	Picture               string `gorm:"column:Picture"`
-	ContentID             uint64 `gorm:"column:ContentID"`
-	ContentSubTypeID      uint64 `gorm:"column:ContentSubTypeID"`
-	ContentSubTypeChildID uint64 `gorm:"column:ContentSubTypeChildID"`
-	FromUrl               string `gorm:"column:FromUrl"`
-	Author                string `gorm:"column:Author"`
-	Look                  int    `gorm:"column:Look"`
-}
-
-func (Article) TableName() string {
-	return "Article"
-}
-
 //helpful
 type GoodsReview struct {
 	BaseModel

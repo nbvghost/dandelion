@@ -43,7 +43,7 @@ func (this InterceptorManager) Execute(context *gweb.Context) (bool, gweb.Result
 
 type Controller struct {
 	gweb.BaseController
-	Article       service.ArticleService
+	Content       service.ContentService
 	Admin         service.AdminService
 	User          service.UserService
 	Rank          service.RankService
@@ -278,31 +278,31 @@ func (controller *Controller) articleAction(context *gweb.Context) gweb.Result {
 	switch action {
 	case "listByCategory":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("id"), 10, 64)
-		d := controller.Article.FindArticleByContentSubTypeID(ID)
+		d := controller.Content.FindArticleByContentSubTypeID(ID)
 		result.Data = &dao.ActionStatus{Success: true, Message: "SUCCESS", Data: d}
 	case "add":
 		context.Request.ParseForm()
 		jsonText := context.Request.Form.Get("json")
-		article := &dao.Article{}
+		article := &dao.Content{}
 		err := json.Unmarshal([]byte(jsonText), article)
 		glog.Error(err)
-		result.Data = controller.Article.AddArticle(article)
+		result.Data = controller.Content.AddArticle(article)
 	case "change":
 		context.Request.ParseForm()
 		jsonText := context.Request.Form.Get("json")
-		article := &dao.Article{}
+		article := &dao.Content{}
 		err := json.Unmarshal([]byte(jsonText), article)
 		glog.Error(err)
-		controller.Article.ChangeArticle(article)
+		controller.Content.ChangeArticle(article)
 		result.Data = &dao.ActionStatus{true, "SUCCESS", article}
 	case "one":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("id"), 10, 64)
-		article := controller.Article.GetArticle(ID)
+		article := controller.Content.GetArticle(ID)
 		result.Data = &dao.ActionStatus{true, "SUCCESS", article}
 	case "del":
 		context.Request.ParseForm()
 		id, _ := strconv.ParseUint(context.Request.Form.Get("id"), 10, 64)
-		controller.Article.DelArticle(id)
+		controller.Content.DelArticle(id)
 		result.Data = &dao.ActionStatus{true, "删除成功", nil}
 	}
 
