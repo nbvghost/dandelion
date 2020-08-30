@@ -18,13 +18,6 @@ type GlobalServiceStruct struct {
 
 func init() {
 
-	glog.Param.PushAddr = conf.Config.LogServer
-	glog.Param.Name = "dandelion"
-	glog.Param.LogFilePath = conf.Config.LogDir
-	glog.Param.StandardOut = conf.Config.Debug
-	glog.Param.FileStorage = true
-	glog.Start()
-
 	//var err error
 	//_db, err := sql.Open("mysql", "tcp:localhost:3306*dandelion/root/123456")
 	//_db, err := sql.Open("mysql", "root:123456@tcp(localhost:3306)/dandelion?charset=utf8mb4&parseTime=True")

@@ -45,7 +45,9 @@ type Profiling struct {
 
 func init() {
 	var err error
-	//open:=make(chan bool,1)
+
+	glog.Param.StandardOut = true
+	glog.Trace("DSN", conf.Config.DBUrl)
 	_database, err = gorm.Open("mysql", conf.Config.DBUrl)
 	glog.Error(err)
 

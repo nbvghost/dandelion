@@ -10,6 +10,7 @@ import (
 	"github.com/nbvghost/dandelion/app/action/mp"
 	"github.com/nbvghost/dandelion/app/action/payment"
 	"github.com/nbvghost/dandelion/app/action/sites"
+	"github.com/nbvghost/glog"
 	"net/http"
 
 	"github.com/nbvghost/gweb"
@@ -18,6 +19,14 @@ import (
 	"github.com/nbvghost/gweb/conf"
 )
 
+func init() {
+	glog.Param.PushAddr = conf.Config.LogServer
+	glog.Param.Name = "dandelion"
+	glog.Param.LogFilePath = conf.Config.LogDir
+	glog.Param.StandardOut = true
+	glog.Param.FileStorage = false
+	glog.Start()
+}
 func main() {
 
 	admina := &admin.Controller{}
