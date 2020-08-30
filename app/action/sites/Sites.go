@@ -3,6 +3,7 @@ package sites
 import (
 	"github.com/nbvghost/dandelion/app/action/sites/shop"
 	"github.com/nbvghost/dandelion/app/service/dao"
+	"github.com/nbvghost/glog"
 
 	"github.com/nbvghost/gweb"
 )
@@ -30,6 +31,7 @@ func (controller *Controller) AddProjectdsfdsfsdAction(context *gweb.Context) gw
 }
 func (controller *Controller) AddProjectAction(context *gweb.Context) gweb.Result {
 
+	glog.Trace(context.Request.URL)
 	//var project dao.Project
 
 	//util.RequestBodyToJSON(context.Request.Body, &project)
