@@ -9,7 +9,7 @@
   "JsonDataPath": "data.json",
   "HttpPort": ":8080",
   "Debug":true,
-  "HttpsPort": ":4433",
+  "HttpsPort": ":443",
   "Domain":"192.168.1.104:8080",
   "ViewSuffix": ".html",
   "ViewActionMapping":[],
