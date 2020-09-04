@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/nbvghost/dandelion/app/action/account"
 	"github.com/nbvghost/dandelion/app/action/api"
 	"github.com/nbvghost/dandelion/app/action/file"
@@ -11,9 +12,9 @@ import (
 	"github.com/nbvghost/dandelion/app/action/payment"
 	"github.com/nbvghost/dandelion/app/action/sites"
 	"github.com/nbvghost/glog"
-	"net/http"
-
 	"github.com/nbvghost/gweb"
+	"net/http"
+	"path/filepath"
 
 	"github.com/nbvghost/dandelion/app/action/admin"
 	"github.com/nbvghost/gweb/conf"
@@ -21,7 +22,7 @@ import (
 
 func init() {
 	glog.Param.PushAddr = conf.Config.LogServer
-	glog.Param.Name = "dandelion"
+	glog.Param.AppName = "dandelion"
 	glog.Param.LogFilePath = conf.Config.LogDir
 	glog.Param.StandardOut = true
 	glog.Param.FileStorage = false
@@ -29,8 +30,10 @@ func init() {
 }
 func main() {
 
-	admina := &admin.Controller{}
-	admina.NewController("/admin/", admina)
+	fmt.Println(filepath.Split("/sdf/ds/f/sd/fsd/f/sd/f/ds/fdsfsdfds/"))
+
+	admin := &admin.Controller{}
+	admin.NewController("/admin/", admin)
 
 	manager := &manager.Controller{}
 	manager.NewController("/manager/", manager)
@@ -54,7 +57,7 @@ func main() {
 	api.NewController("/api", api)
 
 	sites := &sites.Controller{}
-	sites.NewController("/sites", sites)
+	sites.NewController("/sites/", sites)
 
 	file := &file.Controller{}
 	file.NewController("/file", file)

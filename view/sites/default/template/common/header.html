@@ -1,0 +1,38 @@
+{{- define "header" -}}
+<!-- Navigation -->
+<div class="container">
+    <!-- header top -->
+    <div class="head-wl d-md-flex py-3">
+        <div class="headder-w3 text-uppercase p-1 text-center">
+            <h1><a href="index.html">Indus Fact</a></h1>
+        </div>
+
+        <div class="w3-header-top-right-text text-center">
+            <h6 class="caption p-1"> Contact Us</h6>
+            <p>(111)+245 245 66</p>
+        </div>
+
+        <div class="email-right text-center">
+            <h6 class="caption p-1">Email Us</h6>
+            <p><a href="mailto:mail@example.com" class="info"> info@example.com</a></p>
+
+        </div>
+
+        <div class="agileinfo-social-grids text-center">
+            <h6 class="caption p-1">Follow Us</h6>
+            <ul class="d-flex justify-content-center">
+                <li><a href="#"><span class="fab fa-facebook-f"></span></a></li>
+                <li><a href="#"><span class="fab fa-twitter"></span></a></li>
+                <li><a href="#"><span class="fas fa-rss"></span></a></li>
+                <li><a href="#"><span class="fab fa-vk"></span></a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- //header top -->
+
+    <!-- Nav bar -->
+    {{template "Menus" .}}
+    <!-- Nav bar -->
+</div>
+<!-- //Navigation -->
+{{- end -}}

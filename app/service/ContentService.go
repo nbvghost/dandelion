@@ -35,12 +35,37 @@ func (service ContentService) GetClassifyByName(Name string, ContentItemID, Pare
 	return menus
 
 }
+func (service ContentService) FindAllContentSubType(OID uint64) []dao.ContentItemContentSubType {
+	Orm := dao.Orm()
+	var menus []dao.ContentItemContentSubType
+	rows, err := Orm.Raw("SELECT Item.*,SubType.* FROM ContentSubType AS SubType RIGHT JOIN ContentItem AS Item ON (Item.ID=SubType.ContentItemID) WHERE Item.OID=? and Item.Hide=0 order by Item.Sort", OID).Rows()
+	if glog.Error(err) {
+		return menus
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+
+		var cc dao.ContentItemContentSubType
+		glog.Error(Orm.ScanRows(rows, &cc))
+		menus = append(menus, cc)
+
+	}
+
+	return menus
+
+}
+func (service ContentService) FindContentSubTypesByContentItemIDs(ContentItemIDs []uint64) []dao.ContentSubType {
+	Orm := dao.Orm()
+	var menus []dao.ContentSubType
+	Orm.Model(dao.ContentSubType{}).Where("ContentItemID in (?)", ContentItemIDs).Order("Sort asc").Find(&menus)
+	return menus
+}
 func (service ContentService) FindContentSubTypesByContentItemID(ContentItemID uint64) []dao.ContentSubType {
 	Orm := dao.Orm()
 	var menus []dao.ContentSubType
 	Orm.Model(dao.ContentSubType{}).Where("ContentItemID=? and ParentContentSubTypeID=0", ContentItemID).Order("Sort asc").Find(&menus)
 	return menus
-
 }
 func (service ContentService) FindContentSubTypesByParentContentSubTypeID(ParentContentSubTypeID uint64) []dao.ContentSubType {
 	Orm := dao.Orm()
@@ -69,6 +94,12 @@ func (service ContentService) GetContentItemByID(ID uint64) dao.ContentItem {
 	Orm := dao.Orm()
 	var menus dao.ContentItem
 	Orm.Where("ID=?", ID).First(&menus)
+	return menus
+}
+func (service ContentService) GetContentItemByOID(OID uint64) []dao.ContentItem {
+	Orm := dao.Orm()
+	var menus []dao.ContentItem
+	Orm.Where("OID=?", OID).Find(&menus)
 	return menus
 }
 func (service ContentService) GetContentItemByNameAndOID(Name string, OID uint64) dao.ContentItem {

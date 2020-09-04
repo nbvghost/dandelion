@@ -1,0 +1,56 @@
+{{- define "Menus" -}}
+    <nav class="navbar navbar-expand-lg navbar-light bg-faded">
+        <button class="navbar-toggler mx-auto" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
+                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-center" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+
+
+                {{- range $k, $v := .params.Menus -}}
+                    {{- if gt (len $v.SubType) 0 -}}
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink"
+                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                {{$v.Item.Name}}
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                {{range $sk, $sv := $v.SubType}}
+                                    <a class="dropdown-item"
+                                       href="{{$v.Item.Type}}?id={{$v.Item.ID}}&sid={{$sv.Item.ID}}">{{$sv.Item.Name}}</a>
+                                {{end}}
+
+                            </div>
+
+                        </li>
+
+                    {{else}}
+
+
+                        {{if eq $v.Item.Type "index"}}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{$v.Item.Type}}">{{$v.Item.Name}}<span class="sr-only">(current)</span></a>
+                            </li>
+                        {{else}}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{$v.Item.Type}}?id={{$v.Item.ID}}">{{$v.Item.Name}}<span
+                                            class="sr-only">(current)</span></a>
+                            </li>
+                        {{end}}
+
+
+
+
+                    {{end}}
+
+
+
+                {{end}}
+
+            </ul>
+        </div>
+    </nav>
+{{- end -}}
+

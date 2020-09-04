@@ -5,12 +5,13 @@
     <title>Home</title>
     <meta name="keywords" content="" />
 
-    {{IncludeHTML "sites/default/asset.tp.html" .}}
+    {{template "import_asset"}}
 
 </head>
 <body>
+{{template "header" .}}
 
-{{IncludeHTML "sites/default/header.tp.html" .}}
+
 
 <!-- banner slider-->
 <div class="banner-silder">
@@ -537,7 +538,7 @@
 </section>
 <!-- //Newsletter  -->
 
-{{IncludeHTML "sites/default/footer.tp.html" .}}
+{{/*{{IncludeHTML "sites/default/footer.tp.html" .}}*/}}
 
 <!-- Vertically centered Modal -->
 <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
