@@ -39,23 +39,83 @@ label{
 img{
 	width:100%;
 }
-/*--header--*/
 
+/*--header--*/
+#topbar{
+    background: #f85a40;
+    height: 40px;
+    font-size: 14px;
+    transition: all 0.5s;
+    color: #fff;
+}
+#topbar .contact-info a:hover {
+    text-decoration: underline;
+}
+#topbar .contact-info a {
+    line-height: 1;
+    color: #fff;
+    transition: 0.3s;
+}
+#topbar .contact-info i {
+    padding-right: 4px;
+    margin-left: 15px;
+}
+#topbar .social-links a {
+    color: rgba(255, 255, 255, 0.6);
+    padding-left: 15px;
+    display: inline-block;
+    line-height: 1px;
+    transition: 0.3s;
+}
+
+
+#menus{
+    background: #fff;
+    transition: all 0.5s;
+    z-index: 997;
+    padding: 15px 0;
+    box-shadow: 0px 2px 15px rgba(0, 0, 0, 0.3);
+}
 
 /*-- navbar --*/
 .bg-faded {
     background: #f85a40;
 }
-.navbar-light .navbar-nav .active>.nav-link, .navbar-light .navbar-nav .nav-link.active, .navbar-light .navbar-nav .nav-link.open, .navbar-light .navbar-nav .open>.nav-link {
-    color: #eee;
+.navbar-light .navbar-nav .active>.nav-link,
+.navbar-light .navbar-nav .nav-link.active,
+.navbar-light .navbar-nav .nav-link.open,
+.navbar-light .navbar-nav .open>.nav-link {
+    color: #f85a40;
 }
 .navbar-light .navbar-nav .nav-link {
-    color: #eee;
+    color: #333;
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 14px;
+    font-size: 15px;
     letter-spacing: 1px;
+    height: 40px;
 }
+#menus .navbar-light .navbar-nav .nav-item a.nav-link::before{
+    color: #f85a40;
+    content: "";
+    position: relative;
+    display: block;
+    height: 2px;
+    top:26px;
+    background-color: #f85a40;
+    visibility: visible;
+    opacity: 0;
+    width: 0;
+    transition: all 0.3s ease-in-out 0s;
+}
+#menus .navbar-light .navbar-nav .nav-item.active a.nav-link::before,
+#menus .navbar-light .navbar-nav .nav-item:hover a.nav-link::before {
+    opacity: 1;
+    width: 100%;
+}
+
+
+
 .dropdown-item {
     text-transform: uppercase;
     font-weight: 600;
@@ -68,44 +128,7 @@ li.nav-item {
 }
 /*-- //navbar --*/
 
-/*-- header top --*/
-.headder-w3, .w3-header-top-right-text, .email-right, .agileinfo-social-grids {
-    -webkit-flex: 1;
-    -ms-flex: 1;
-    flex: 1;
-}
-.headder-w3 a {
-    color: #1b1b1b;
-    font-weight: 800;
-    font-size: 40px;
-}
-h6.caption {
-    font-size: 20px;
-    color: #333;
-}
-.email-right p a, .w3-header-top-right-text p, .agileinfo-social-grids ul li a {
-    font-size: 14px;
-    color: #7b7b7b;
-    letter-spacing: 2px;
-}
-.agileinfo-social-grids ul li a {
-    font-size: 13px;
-    border: 1px dashed #6b6b6b;
-    margin: 0 2px;
-    width: 30px;
-    height: 30px;
-    line-height: 30px;
-    display: block;
-    color: #6b6b6b;
-}
-.email-right p a:hover, .w3-header-top-right-text p:hover, .agileinfo-social-grids ul li a:hover{
-    color: #f14156;
-}
-.agileinfo-social-grids ul li a:hover {
-    color: #f14156;
-    border: 1px dashed #f14156;
-}
-/*-- //header top --*/
+
 .tlinks{text-indent:-9999px;height:0;line-height:0;font-size:0;overflow:hidden;}
 /*-- modal --*/
 .modal-body {
@@ -119,113 +142,6 @@ h6.caption {
     color: #333;
 }
 /*-- //modal --*/
-
-/*-- banner-slider --*/
-.w3layouts-banner-top{
-    background: url(../img/3.jpg) no-repeat 0px 0px;
-    background-size: cover;	
-	-webkit-background-size: cover;	
-	-moz-background-size: cover;
-	-o-background-size: cover;		
-	-moz-background-size: cover;
-	min-height:650px;
-}
-.w3layouts-banner-top1{
-    background: url(../img/2.jpg) no-repeat 0px 0px;
-    background-size: cover;	
-	-webkit-background-size: cover;	
-	-moz-background-size: cover;
-	-o-background-size: cover;		
-	-moz-background-size: cover;
-}
-.w3layouts-banner-top2{
-    background: url(../img/1.jpg) no-repeat 0px 0px;
-    background-size: cover;	
-	-webkit-background-size: cover;	
-	-moz-background-size: cover;
-	-o-background-size: cover;		
-	-moz-background-size: cover;
-}
-.w3layouts-banner-top3{
-    background: url(../img/5.jpg) no-repeat 0px 0px;
-    background-size: cover;	
-	-webkit-background-size: cover;	
-	-moz-background-size: cover;
-	-o-background-size: cover;		
-	-moz-background-size: cover;
-}
-.w3layouts-banner-top4{
-    background: url(../img/4.jpg) no-repeat 0px 0px;
-    background-size: cover;	
-	-webkit-background-size: cover;	
-	-moz-background-size: cover;
-	-o-background-size: cover;		
-	-moz-background-size: cover;
-}
-.bs-slider-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%; 
-	background: url(../img/dott.png)repeat 0px 0px;
-    background-size: 2px;
-    -webkit-background-size: 2px;
-    -moz-background-size: 2px;
-    -o-background-size: 2px;
-    -ms-background-size: 2px;
-}
-.w3l-slide-text {
-    margin-top: 13em;
-}
-.w3l-slide-text h3 {
-    color: #fff;
-    font-size: 55px;
-	font-weight: 600;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    text-shadow: 2px 2px 3px #292828;
-    -webkit-animation-delay: 0.7s;
-    animation-delay: 0.7s;
-}
-.w3l-slide-text p {
-    color: #d6d6d6;
-    letter-spacing: 3px;
-    text-shadow: 1px 1px 4.8px rgba(3,3,3,.3);
-    -webkit-animation-delay: 1.1s;
-    animation-delay: 1.1s;
-    font-weight: 600;
-    font-size: 15px;
-    border: 1px solid #fff;
-    text-transform: capitalize;
-}
-.w3l-slide-text p.heading_bottom{
-	border: none;
-	color: #eee;
-	font-size: 15px;
-	letter-spacing: 1px;
-	font-weight: 100;
-	line-height: 28px;
-	width: 70%;
-	margin: 0 auto;
-    text-transform: lowercase;
-}
- a.button-style {
-    color: #d6d6d6;
-    letter-spacing: 2px;
-    text-shadow: 1px 1px 4.8px rgba(3,3,3,.3);
-    -webkit-animation-delay: 1.1s;
-    animation-delay: 1.1s;
-    font-size: 15px;
-    border: 1px solid #fff;
-    text-transform: capitalize;
-	padding: 10px 30px;
- }
- a.button-style:hover{
-	background: #f85a40;
-    border: 1px solid #f85a40;
- }
-/*-- //banner-slider --*/
 
 /*-- Welcome section --*/
 h2.heading,h3.heading {
@@ -647,7 +563,7 @@ iframe {
 .inner_page_banner{
 	background: url(../img/test.jpg) no-repeat 0px 0px;
 	background-size: cover;
-	min-height: 250px;
+	min-height: 120px;
 }
 .inner_page_banner h4,.inner_page_banner h4 a{
     font-size: 17px;
@@ -660,11 +576,17 @@ iframe {
 }
 
 h2.page_heading {
-    font-size: 45px;
+    font-size: 36px;
     font-weight: 700;
     color: #fff;
     text-shadow: 2px 2px 3px #292828;
 }
+@media (max-width: 576px){
+    .pt-sm-4, .py-sm-4 {
+        padding-top: 1.5rem!important;
+    }
+}
+
 /*-- //inner_page_banner --*/
 
 /*-- about page --*/
@@ -1399,6 +1321,9 @@ a.home:hover,button.btn1:hover{
 	}
 }
 @media(max-width: 991px){
+    #menus{
+        padding: 5px 0;
+    }
 	.w3l-slide-text h3 {
 		font-size: 42px;
 		letter-spacing: 1px;
@@ -1466,23 +1391,19 @@ a.home:hover,button.btn1:hover{
 		background-color: transparent;
 	}
 	.dropdown-item {
-		color: #fff;
+		color: #888;
 		text-align: center;
 	}
 	.dropdown-item:hover, .dropdown-item:focus {
-		background-color: transparent;
+
 	}
 	.headder-w3 a {
 		font-size: 26px;
 	}
 }
 @media(max-width: 800px){
-	.inner_page_banner {
-		min-height: 200px;
-	}
-	h2.page_heading {
-		font-size: 35px;
-	}
+
+
 	h6.caption {
 		font-size: 17px;
 	}
@@ -1540,9 +1461,7 @@ a.home:hover,button.btn1:hover{
 	.contact-right {
 		padding: 0;
 	}
-	.inner_page_banner {
-		min-height: 170px;
-	}
+
 	.headder-w3, .w3-header-top-right-text, .email-right, .agileinfo-social-grids {
 		width: 50%;
 		padding-bottom: 10px;
@@ -1559,12 +1478,8 @@ a.home:hover,button.btn1:hover{
 	}
 }
 @media(max-width: 600px){
-	h2.page_heading {
-		font-size: 30px;
-	}
-	.inner_page_banner h4, .inner_page_banner h4 a {
-		font-size: 14px;
-	}
+
+
 	p.para-w3-agile {
 		line-height: 28px;
 		width: 100%;
@@ -1580,18 +1495,14 @@ a.home:hover,button.btn1:hover{
 	.w3layouts-banner-top {
 		min-height: 450px;
 	}
-	h2.page_heading {
-		font-size: 28px;
-	}
+
 	.w3l-slide-text {
 		margin-top: 6em;
 	}
 	.w3l-slide-text p.heading_bottom {
 		width: 90%;
 	}
-	.inner_page_banner {
-		min-height: 120px;
-	}
+
 	.error h3 {
 		font-size: 24px;
 	}
@@ -1735,12 +1646,8 @@ a.home:hover,button.btn1:hover{
 	.gallery1 h3 {
 		font-size: 23px;
 	}
-	h2.page_heading {
-		font-size: 24px;
-	}
-	.inner_page_banner h4, .inner_page_banner h4 a {
-		font-size: 13px;
-	}
+
+
 	.error h3 {
 		font-size: 22px;
 	}

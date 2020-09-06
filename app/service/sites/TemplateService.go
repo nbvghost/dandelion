@@ -25,7 +25,7 @@ func (service TemplateService) IndexTemplate(context *gweb.Context) (map[string]
 
 	return nil, allTemplates
 }
-func (service TemplateService) MenusTemplate(context *gweb.Context, params map[string]interface{}) string {
+func (service TemplateService) MenusTemplate(context *gweb.Context, ContentItemID uint64, ContentSubTypeID uint64, params map[string]interface{}) (dao.ContentItem, string) {
 	siteName := context.PathParams["siteName"]
 
 	org := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
@@ -33,17 +33,13 @@ func (service TemplateService) MenusTemplate(context *gweb.Context, params map[s
 	subTypes := service.Content.FindAllContentSubType(org.ID)
 
 	menus := make([]map[string]interface{}, 0)
+	menusSub := make([]map[string]interface{}, 0)
+	var contentItem dao.ContentItem
+	var currentSubType dao.ContentSubType
+
 	for index := range subTypes {
 
 		item := subTypes[index]
-
-		/*_, ok := menus[item.ContentItem.ID]
-		if ok == false {
-			menus[item.ContentItem.ID] = map[string]interface{}{
-				"Item":    item.ContentItem,
-				"SubType": make(map[uint64]interface{}),
-			}
-		}*/
 
 		var topMenus map[string]interface{}
 
@@ -65,6 +61,17 @@ func (service TemplateService) MenusTemplate(context *gweb.Context, params map[s
 			}
 
 			menus = append(menus, topMenus)
+
+			if item.ContentItem.ID == ContentItemID {
+				menusSub = []map[string]interface{}{topMenus}
+				contentItem = item.ContentItem
+			}
+
+			//ContentSubTypeID
+		}
+
+		if item.ContentSubType.ID == ContentSubTypeID {
+			currentSubType = item.ContentSubType
 		}
 
 		if item.ContentSubType.ParentContentSubTypeID == 0 && item.ContentSubType.ID > 0 {
@@ -92,11 +99,31 @@ func (service TemplateService) MenusTemplate(context *gweb.Context, params map[s
 	}
 
 	key := "Menus"
+	keySub := "MenusSub"
+	keyItem := "Item"
+	keyCurrentSubType := "CurrentSubType"
 	if _, ok := params[key]; !ok {
 		params[key] = menus
 	} else {
 		panic(errors.New("参数名冲突:" + key))
 	}
+	if _, ok := params[keySub]; !ok {
+		params[keySub] = menusSub
+	} else {
+		panic(errors.New("参数名冲突:" + keySub))
+	}
 
-	return "/sites/" + siteName + "/template/Menus.html"
+	if _, ok := params[keyItem]; !ok {
+		params[keyItem] = contentItem
+	} else {
+		panic(errors.New("参数名冲突:" + keyItem))
+	}
+
+	if _, ok := params[keyCurrentSubType]; !ok {
+		params[keyCurrentSubType] = currentSubType
+	} else {
+		panic(errors.New("参数名冲突:" + keyCurrentSubType))
+	}
+
+	return contentItem, "/sites/" + siteName + "/template/menus.html"
 }

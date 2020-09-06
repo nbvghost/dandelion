@@ -1,38 +1,41 @@
 {{- define "header" -}}
+    <header>
+        <div id="topbar" class="d-none d-lg-flex align-items-center  bg-faded">
+            <div class="container d-flex">
+                <div class="contact-info mr-auto">
+                   <a href="mailto:contact@example.com"> <i class="fas fa-envelope"></i>contact@example.com</a>
+                   <a href="tel:+155895548855"><i class="fas fa-phone-alt"></i>+1 5589 55488 55</a>
+                </div>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-skype"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div id="menus">
+
+            <div class="container">
+                {{template "menus" .}}
+            </div>
+
+            {{/*
+            <div  class="container d-flex align-items-center">
+
+                <div class="logo mr-auto"><a href="index.html">BizLand<span>.</span></a></div>
+
+
+
+            </div>*/}}
+
+
+        </div>
+
+    </header>
 <!-- Navigation -->
-<div class="container">
-    <!-- header top -->
-    <div class="head-wl d-md-flex py-3">
-        <div class="headder-w3 text-uppercase p-1 text-center">
-            <h1><a href="index.html">Indus Fact</a></h1>
-        </div>
 
-        <div class="w3-header-top-right-text text-center">
-            <h6 class="caption p-1"> Contact Us</h6>
-            <p>(111)+245 245 66</p>
-        </div>
-
-        <div class="email-right text-center">
-            <h6 class="caption p-1">Email Us</h6>
-            <p><a href="mailto:mail@example.com" class="info"> info@example.com</a></p>
-
-        </div>
-
-        <div class="agileinfo-social-grids text-center">
-            <h6 class="caption p-1">Follow Us</h6>
-            <ul class="d-flex justify-content-center">
-                <li><a href="#"><span class="fab fa-facebook-f"></span></a></li>
-                <li><a href="#"><span class="fab fa-twitter"></span></a></li>
-                <li><a href="#"><span class="fas fa-rss"></span></a></li>
-                <li><a href="#"><span class="fab fa-vk"></span></a></li>
-            </ul>
-        </div>
-    </div>
-    <!-- //header top -->
-
-    <!-- Nav bar -->
-    {{template "Menus" .}}
-    <!-- Nav bar -->
-</div>
 <!-- //Navigation -->
 {{- end -}}

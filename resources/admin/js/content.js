@@ -1,4 +1,4 @@
-main.config(function($routeProvider, $locationProvider,$provide,$httpProvider,$httpParamSerializerJQLikeProvider,$interpolateProvider) {
+main.config(function ($routeProvider, $locationProvider, $provide, $httpProvider, $httpParamSerializerJQLikeProvider, $interpolateProvider) {
 
     $routeProvider.when("/content_item_list", {
         templateUrl: "content_templets/content_list_templet",
@@ -26,26 +26,25 @@ main.config(function($routeProvider, $locationProvider,$provide,$httpProvider,$h
     });
 
 
-
 });
 
 
-main.controller("content_articles_controller", function ($http, $scope, $routeParams, $rootScope,$timeout,$location,Upload) {
-    $scope.ContentSubTypes={};
+main.controller("content_articles_controller", function ($http, $scope, $routeParams, $rootScope, $timeout, $location, Upload) {
+    $scope.ContentSubTypes = {};
 
 
     $scope.ContentSubTypeID;
     $scope.MContentSubTypeID;
     $scope.MContentSubTypeChildID;
 
-    $scope.ContentItemID=$routeParams.ContentItemID;
-    $scope.Type=$routeParams.Type;
+    $scope.ContentItemID = $routeParams.ContentItemID;
+    $scope.Type = $routeParams.Type;
 
     let table;
 
-    $scope.listContentSubTypes = function(){
+    $scope.listContentSubTypes = function () {
         //content/list
-        $http.get("content/sub_type/list/all/"+$scope.ContentItemID).then(function (value){
+        $http.get("content/sub_type/list/all/" + $scope.ContentItemID).then(function (value) {
 
             $scope.ContentSubTypes = value.data.Data;
 
@@ -54,14 +53,12 @@ main.controller("content_articles_controller", function ($http, $scope, $routePa
     $scope.listContentSubTypes();
 
 
-
-
-    $scope.changeContentSubTypes = function(){
-        $scope.ContentSubTypeID=$scope.MContentSubTypeID;
+    $scope.changeContentSubTypes = function () {
+        $scope.ContentSubTypeID = $scope.MContentSubTypeID;
         table.ajax.reload();
     }
-    $scope.changeContentSubTypeChilds = function(){
-        $scope.ContentSubTypeID=$scope.MContentSubTypeChildID;
+    $scope.changeContentSubTypeChilds = function () {
+        $scope.ContentSubTypeID = $scope.MContentSubTypeChildID;
         table.ajax.reload();
 
     }
@@ -70,17 +67,19 @@ main.controller("content_articles_controller", function ($http, $scope, $routePa
 
         table = $('#table_local').DataTable({
             "columns": [
-                {data:"ID"},
-                {data:"Title"},
-                {data:"Author"},
-                {data:"Look"},
-                {data:"ContentItemID",visible:false},
-                {data:"ContentSubTypeID",visible:false},
-                {data:null,className:"opera",orderable:false,render:function (data, type, row) {
-                        return '<button  class="ui edit blue mini button">修改</button>'+
+                {data: "ID"},
+                {data: "Title"},
+                {data: "Author"},
+                {data: "Look"},
+                {data: "ContentItemID", visible: false},
+                {data: "ContentSubTypeID", visible: false},
+                {
+                    data: null, className: "opera", orderable: false, render: function (data, type, row) {
+                        return '<button  class="ui edit blue mini button">修改</button>' +
                             '<button class="ui delete red mini button">删除</button>';
 
-                    }}
+                    }
+                }
             ],
             paging: true,
             //"dom": '<"toolbar">frtip',
@@ -88,17 +87,17 @@ main.controller("content_articles_controller", function ($http, $scope, $routePa
             searching: true,
             "processing": true,
             "serverSide": true,
-            "order":[[1,"asc"]],
+            "order": [[1, "asc"]],
             "ajax": {
                 "url": "content/datatables/list",
                 "type": "POST",
                 "contentType": "application/json",
-                "data": function (d){
-                    d.columns[4].search.value=parseInt($scope.ContentItemID).toString();
+                "data": function (d) {
+                    d.columns[4].search.value = parseInt($scope.ContentItemID).toString();
 
 
-                    if($scope.ContentSubTypeID){
-                        d.columns[5].search.value=parseInt($scope.ContentSubTypeID).toString();
+                    if ($scope.ContentSubTypeID) {
+                        d.columns[5].search.value = parseInt($scope.ContentSubTypeID).toString();
                     }
                     return JSON.stringify(d);
                 }
@@ -106,23 +105,23 @@ main.controller("content_articles_controller", function ($http, $scope, $routePa
         });
 
 
-        $('#table_local').on('click','td.opera .edit', function () {
+        $('#table_local').on('click', 'td.opera .edit', function () {
             var tr = $(this).closest('tr');
-            var row = table.row( tr );
+            var row = table.row(tr);
             console.log(row.data());
-            window.location.href="#!/add_contents?ContentItemID="+row.data().ContentItemID+"&ID="+row.data().ID;
+            window.location.href = "#!/add_contents?ContentItemID=" + row.data().ContentItemID + "&ID=" + row.data().ID;
         });
 
-        $('#table_local').on('click','td.opera .delete', function () {
+        $('#table_local').on('click', 'td.opera .delete', function () {
                 var tr = $(this).closest('tr');
                 var row = table.row(tr);
                 console.log(row.data());
 
                 if (confirm("确定删除？")) {
 
-                    var form ={};
-                    form.ID =row.data().ID;
-                    $http.post("content/delete",$.param(form), {
+                    var form = {};
+                    form.ID = row.data().ID;
+                    $http.post("content/delete", $.param(form), {
                         transformRequest: angular.identity,
                         headers: {"Content-Type": "application/x-www-form-urlencoded"}
                     }).then(function (data, status, headers, config) {
@@ -140,69 +139,67 @@ main.controller("content_articles_controller", function ($http, $scope, $routePa
 
 });
 
-main.controller("content_add_articles_controller",function ($http, $scope, $routeParams, $rootScope,$timeout,$location,Upload) {
-    $scope.ContentSubTypes={};
+main.controller("content_add_articles_controller", function ($http, $scope, $routeParams, $rootScope, $timeout, $location, Upload) {
+    $scope.ContentSubTypes = {};
 
-    $scope.Article={ContentItemID:parseInt($routeParams.ContentItemID)};
+    $scope.Article = {ContentItemID: parseInt($routeParams.ContentItemID)};
 
 
-    $scope.saveArticle = function(){
+    $scope.saveArticle = function () {
 
         //$scope.ContentSubTypeID;
         //$scope.ContentSubTypeChildID;
         //console.log(quill.container.firstChild.innerHTML)
-        $scope.Article.ContentItemID=parseInt($routeParams.ContentItemID);
-        $scope.Article.Content=quill.container.firstChild.innerHTML;
+        $scope.Article.ContentItemID = parseInt($routeParams.ContentItemID);
+        $scope.Article.Content = quill.container.firstChild.innerHTML;
 
 
+        $scope.Article.ContentSubTypeID = parseInt($scope.Article.ContentSubTypeID)
 
-        $scope.Article.ContentSubTypeID=parseInt($scope.Article.ContentSubTypeID)
-
-        if(parseInt($scope.Article.ContentSubTypeChildID)>0){
-            $scope.Article.ContentSubTypeID=parseInt($scope.Article.ContentSubTypeChildID)
+        if (parseInt($scope.Article.ContentSubTypeChildID) > 0) {
+            $scope.Article.ContentSubTypeID = parseInt($scope.Article.ContentSubTypeChildID)
         }
 
-        if(!$scope.Article.ContentSubTypeID){
+        if (!$scope.Article.ContentSubTypeID) {
             //$scope.Article.ContentSubTypeID=$scope.ContentSubTypeID;
             //$scope.Article.ContentSubTypeChildID=$scope.ContentSubTypeChildID;
             //}else{
             alert("请选择分类");
             return
         }
-        $http.post("content/save",JSON.stringify($scope.Article), {
+        $http.post("content/save", JSON.stringify($scope.Article), {
             transformRequest: angular.identity,
             headers: {"Content-Type": "application/json"}
         }).then(function (data, status, headers, config) {
             console.log(data);
             alert(data.data.Message);
-            if(data.data.Success){
+            if (data.data.Success) {
                 window.history.back();
             }
         });
     }
 
 
+    $http.get("content/sub_type/list/all/" + $routeParams.ContentItemID).then(function (value) {
 
-    $http.get("content/sub_type/list/all/"+$routeParams.ContentItemID).then(function (value){
-
-        $scope.ContentSubTypes = value.data.Data||[];
+        $scope.ContentSubTypes = value.data.Data || [];
     });
 
 
-    $scope.changeContentSubTypes = function(){
+    $scope.changeContentSubTypes = function () {
         //$scope.ContentSubTypeChildID=undefined;
         //$scope.Article.ContentSubTypeID=$scope.MContentSubTypeID;
         //$scope.ContentSubTypeChilds=[];
         //console.log($scope.ContentSubTypeID);
         //$scope.listContentSubTypeChilds($routeParams.ContentItemID,$scope.Article.ContentSubTypeID);
     }
-    $scope.changeContentSubTypeChilds = function(){
+    $scope.changeContentSubTypeChilds = function () {
         //alert($scope.MContentSubTypeChildID);
-       /* if(parseInt($scope.MContentSubTypeChildID)>0){
-            $scope.Article.ContentSubTypeID=parseInt($scope.MContentSubTypeChildID)
-        }else{
-            $scope.Article.ContentSubTypeID=parseInt($scope.MContentSubTypeID);
-        }*/
+        /* if(parseInt($scope.MContentSubTypeChildID)>0){
+             $scope.Article.ContentSubTypeID=parseInt($scope.MContentSubTypeChildID)
+         }else{
+             $scope.Article.ContentSubTypeID=parseInt($scope.MContentSubTypeID);
+         }*/
 
         //$scope.Article.;
     }
@@ -216,7 +213,7 @@ main.controller("content_add_articles_controller",function ($http, $scope, $rout
             });
             thumbnail.then(function (response) {
                 const url = response.data.Path;
-                $scope.Article.Picture=url;
+                $scope.Article.Picture = url;
             }, function (response) {
                 console.log(response);
             }, function (evt) {
@@ -226,22 +223,22 @@ main.controller("content_add_articles_controller",function ($http, $scope, $rout
                 //$("."+progressID).text(progress+"%");
                 //$("."+progressID).css("width",progress+"%");
             });
-        }else{
-            if(errFiles.length>0){
+        } else {
+            if (errFiles.length > 0) {
                 alert(JSON.stringify(errFiles));
             }
 
         }
     }
 
-    $scope.EditImages=[];
-    $scope.UploadImages = function (progressID,files, errFiles) {
+    $scope.EditImages = [];
+    $scope.UploadImages = function (progressID, files, errFiles) {
 
         const upload_progress = $(progressID);
         upload_progress.progress({
-            duration : 100,
-            total    : 100,
-            text:{
+            duration: 100,
+            total: 100,
+            text: {
                 active: '{value} of {total} done'
             }
         });
@@ -251,23 +248,23 @@ main.controller("content_add_articles_controller",function ($http, $scope, $rout
 
         if (files && files.length) {
             for (let i = 0; i < files.length; i++) {
-                Upload.upload({url: '/file/up',data:{file: files[i]}}).then(function (response) {
+                Upload.upload({url: '/file/up', data: {file: files[i]}}).then(function (response) {
                     const url = response.data.Path;
 
-                    if($scope.EditImages.indexOf(url)==-1){
+                    if ($scope.EditImages.indexOf(url) == -1) {
                         $scope.EditImages.push(url);
                     }
 
-                },function (response) {
+                }, function (response) {
 
-                },function (evt) {
+                }, function (evt) {
 
                     const progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
-                    upload_progress.progress('update progress',progress);
+                    upload_progress.progress('update progress', progress);
 
                 });
             }
-        }else{
+        } else {
             UpImageError(errFiles);
         }
     }
@@ -278,11 +275,15 @@ main.controller("content_add_articles_controller",function ($http, $scope, $rout
         const Block = Quill.import('blots/block');
         const BlockEmbed = Quill.import('blots/block/embed');
 
-        class BoldBlot extends Inline { }
+        class BoldBlot extends Inline {
+        }
+
         BoldBlot.blotName = 'bold';
         BoldBlot.tagName = 'strong';
 
-        class ItalicBlot extends Inline { }
+        class ItalicBlot extends Inline {
+        }
+
         ItalicBlot.blotName = 'italic';
         ItalicBlot.tagName = 'em';
 
@@ -298,10 +299,13 @@ main.controller("content_add_articles_controller",function ($http, $scope, $rout
                 return node.getAttribute('href');
             }
         }
+
         LinkBlot.blotName = 'link';
         LinkBlot.tagName = 'a';
 
-        class BlockquoteBlot extends Block { }
+        class BlockquoteBlot extends Block {
+        }
+
         BlockquoteBlot.blotName = 'blockquote';
         BlockquoteBlot.tagName = 'blockquote';
 
@@ -310,10 +314,13 @@ main.controller("content_add_articles_controller",function ($http, $scope, $rout
                 return HeaderBlot.tagName.indexOf(node.tagName) + 1;
             }
         }
+
         HeaderBlot.blotName = 'header';
         HeaderBlot.tagName = ['H1', 'H2'];
 
-        class DividerBlot extends BlockEmbed { }
+        class DividerBlot extends BlockEmbed {
+        }
+
         DividerBlot.blotName = 'divider';
         DividerBlot.tagName = 'hr';
 
@@ -332,6 +339,7 @@ main.controller("content_add_articles_controller",function ($http, $scope, $rout
                 };
             }
         }
+
         ImageBlot.blotName = 'image';
         ImageBlot.tagName = 'img';
 
@@ -371,6 +379,7 @@ main.controller("content_add_articles_controller",function ($http, $scope, $rout
                 }
             }
         }
+
         VideoBlot.blotName = 'video';
         VideoBlot.tagName = 'iframe';
 
@@ -393,33 +402,32 @@ main.controller("content_add_articles_controller",function ($http, $scope, $rout
             theme: 'snow'
         });
 
-        if($routeParams.ID){
-            $http.get("content/multi/get/"+$routeParams.ID).then(function (responea){
+        if ($routeParams.ID) {
+            $http.get("content/multi/get/" + $routeParams.ID).then(function (responea) {
 
                 $scope.Article = responea.data.Data;
                 quill.clipboard.dangerouslyPasteHTML($scope.Article.Content);
 
 
-                if($scope.Article.ContentSubTypeID>0){
-                    $http.get("content/sub_type/"+$scope.Article.ContentSubTypeID).then(function (responeb){
-                        const ContentSubType = responeb.data.Data.ContentSubType||{};
-                        const ParentContentSubType = responeb.data.Data.ParentContentSubType||{};
+                if ($scope.Article.ContentSubTypeID > 0) {
+                    $http.get("content/sub_type/" + $scope.Article.ContentSubTypeID).then(function (responeb) {
+                        const ContentSubType = responeb.data.Data.ContentSubType || {};
+                        const ParentContentSubType = responeb.data.Data.ParentContentSubType || {};
 
                         $timeout(function () {
 
 
-                             if(parseInt(ContentSubType.ParentContentSubTypeID)>0){
-                                 $scope.Article.ContentSubTypeID=ContentSubType.ParentContentSubTypeID+"";
-                                 $scope.Article.ContentSubTypeChildID=ContentSubType.ID+"";
+                            if (parseInt(ContentSubType.ParentContentSubTypeID) > 0) {
+                                $scope.Article.ContentSubTypeID = ContentSubType.ParentContentSubTypeID + "";
+                                $scope.Article.ContentSubTypeChildID = ContentSubType.ID + "";
                                 // $scope.listContentSubTypeChilds($scope.Article.ContentItemID,$scope.MContentSubTypeID);
-                             }else{
-                                 $scope.Article.ContentSubTypeID=ContentSubType.ID+"";
-                                 $scope.Article.ContentSubTypeChildID=0;
+                            } else {
+                                $scope.Article.ContentSubTypeID = ContentSubType.ID + "";
+                                $scope.Article.ContentSubTypeChildID = 0;
                                 // $scope.listContentSubTypeChilds($scope.Article.ContentItemID,$scope.MContentSubTypeID);
-                             }
+                            }
 
                         });
-
 
 
                     });
@@ -433,13 +441,14 @@ main.controller("content_add_articles_controller",function ($http, $scope, $rout
 
             //var baseUrl ="//"+$location.host()+":"+$location.port();
 
-            $("#SelectImageModal").modal({onApprove:function (e) {
+            $("#SelectImageModal").modal({
+                onApprove: function (e) {
 
 
-                    if($scope.EditImages.length>0){
+                    if ($scope.EditImages.length > 0) {
 
 
-                        for(let ii=0; ii<$scope.EditImages.length; ii++){
+                        for (let ii = 0; ii < $scope.EditImages.length; ii++) {
 
                             const range = quill.getSelection(true);
                             quill.insertText(range.index, '\n', Quill.sources.USER);
@@ -458,16 +467,16 @@ main.controller("content_add_articles_controller",function ($http, $scope, $rout
                         }*/
 
                         $scope.$apply(function () {
-                            $scope.EditImages=[];
+                            $scope.EditImages = [];
                         });
                         return true;
 
 
-
-                    }else{
+                    } else {
                         return false;
                     }
-                },closable:false}).modal("show");
+                }, closable: false
+            }).modal("show");
         });
 
     });
@@ -475,19 +484,19 @@ main.controller("content_add_articles_controller",function ($http, $scope, $rout
 
 });
 
-main.controller("content_add_gallery_controller", function ($http, $scope, $routeParams, $rootScope,$timeout,$location,Upload) {
-    $scope.ContentSubTypes={};
+main.controller("content_add_gallery_controller", function ($http, $scope, $routeParams, $rootScope, $timeout, $location, Upload) {
+    $scope.ContentSubTypes = {};
 
 
-    $scope.ContentItemID=parseInt($routeParams.ContentItemID);
+    $scope.ContentItemID = parseInt($routeParams.ContentItemID);
     //$scope.Article={ContentItemID:$scope.ContentItemID};
 
     //$scope.ContentSubTypeID;
-    $scope.MContentSubTypeID=0;
-    $scope.MContentSubTypeChildID=0;
+    $scope.MContentSubTypeID = 0;
+    $scope.MContentSubTypeChildID = 0;
 
 
-    $scope.articles=[];
+    $scope.articles = [];
 
     $scope.saveArticle = async function () {
 
@@ -525,41 +534,41 @@ main.controller("content_add_gallery_controller", function ($http, $scope, $rout
                     });
 
                 })
-                article.Picture =p
+                article.Picture = p
                 delete article["PictureBlob"]
 
             }
 
             article.ContentSubTypeID = parseInt(article.ContentSubTypeID)
 
-            if(parseInt(article.ContentSubTypeChildID)>0){
-                article.ContentSubTypeID=parseInt(article.ContentSubTypeChildID)
+            if (parseInt(article.ContentSubTypeChildID) > 0) {
+                article.ContentSubTypeID = parseInt(article.ContentSubTypeChildID)
             }
 
-           let p = await new Promise((resolve, reject) => {
-               $http.post("content/save",JSON.stringify(article), {
-                   transformRequest: angular.identity,
-                   headers: {"Content-Type": "application/json"}
-               }).then(function (data, status, headers, config) {
-                   resolve()
-               });
-           })
+            let p = await new Promise((resolve, reject) => {
+                $http.post("content/save", JSON.stringify(article), {
+                    transformRequest: angular.identity,
+                    headers: {"Content-Type": "application/json"}
+                }).then(function (data, status, headers, config) {
+                    resolve()
+                });
+            })
 
-            $("#upload_article_images_progress").progress('update progress', parseInt((i/$scope.articles.length)*100))
+            $("#upload_article_images_progress").progress('update progress', parseInt((i / $scope.articles.length) * 100))
 
 
         }
 
         $("#upload_article_images_progress").progress('update progress', 100)
 
-        $timeout(function (){
-            $scope.articles=[];
+        $timeout(function () {
+            $scope.articles = [];
         })
     }
 
-    $scope.listContentSubTypes = function(){
+    $scope.listContentSubTypes = function () {
         //content/list
-        $http.get("content/sub_type/list/all/"+$routeParams.ContentItemID).then(function (value){
+        $http.get("content/sub_type/list/all/" + $routeParams.ContentItemID).then(function (value) {
 
             $scope.ContentSubTypes = value.data.Data;
 
@@ -567,20 +576,20 @@ main.controller("content_add_gallery_controller", function ($http, $scope, $rout
     }
     $scope.listContentSubTypes();
 
-    $scope.changeContentSubTypes = function(ContentSubTypeID){
+    $scope.changeContentSubTypes = function (ContentSubTypeID) {
         //$scope.ContentSubTypeChildID=undefined;
         //$scope.Article.ContentSubTypeID=$scope.MContentSubTypeID;
         //$scope.ContentSubTypeChilds=[];
         //console.log($scope.ContentSubTypeID);
 
-        for(let i=0;i<$scope.articles.length;i++){
-            $scope.articles[i].ContentSubTypeID=ContentSubTypeID;
-            $scope.articles[i].ContentSubTypeChildID=0;
+        for (let i = 0; i < $scope.articles.length; i++) {
+            $scope.articles[i].ContentSubTypeID = ContentSubTypeID;
+            $scope.articles[i].ContentSubTypeChildID = 0;
         }
 
 
     }
-    $scope.changeContentSubTypeChilds = function(){
+    $scope.changeContentSubTypeChilds = function () {
         //alert($scope.MContentSubTypeChildID);
         // if($scope.MContentSubTypeChildID){
         //     $scope.Article.ContentSubTypeID=$scope.MContentSubTypeChildID;
@@ -592,23 +601,22 @@ main.controller("content_add_gallery_controller", function ($http, $scope, $rout
 
         //alert($scope.MContentSubTypeChildID)
 
-        for(let i=0;i<$scope.articles.length;i++){
-            $scope.articles[i].ContentSubTypeChildID=$scope.MContentSubTypeChildID;
+        for (let i = 0; i < $scope.articles.length; i++) {
+            $scope.articles[i].ContentSubTypeChildID = $scope.MContentSubTypeChildID;
         }
 
     }
 
 
-    $scope.changeArticleContentSubTypes = function(m){
+    $scope.changeArticleContentSubTypes = function (m) {
 
 
-        m.ContentSubTypeChildID=0;
+        m.ContentSubTypeChildID = 0;
 
     }
 
 
-
-    $scope.UploadImages = function (progressID,files, errFiles) {
+    $scope.UploadImages = function (progressID, files, errFiles) {
 
         /*  const upload_progress = $(progressID);
           upload_progress.progress({
@@ -626,7 +634,14 @@ main.controller("content_add_gallery_controller", function ($http, $scope, $rout
             for (let i = 0; i < files.length; i++) {
 //PictureBlob
                 console.log(files[i])
-                $scope.articles.push({Content:files[i].type,Title:files[i].name,PictureBlob:files[i],ContentItemID:$scope.ContentItemID,ContentSubTypeChildID:$scope.MContentSubTypeChildID,ContentSubTypeID:$scope.MContentSubTypeID})
+                $scope.articles.push({
+                    Content: files[i].type,
+                    Title: files[i].name,
+                    PictureBlob: files[i],
+                    ContentItemID: $scope.ContentItemID,
+                    ContentSubTypeChildID: $scope.MContentSubTypeChildID,
+                    ContentSubTypeID: $scope.MContentSubTypeID
+                })
                 /*Upload.upload({url: '/file/up',data:{file: files[i]}}).then(function (response) {
                     const url = response.data.Data;
                     $scope.articles.push({Picture:url})
@@ -641,42 +656,39 @@ main.controller("content_add_gallery_controller", function ($http, $scope, $rout
                 });*/
 
             }
-        }else{
+        } else {
             UpImageError(errFiles);
         }
     }
 
 
 });
-main.controller("content_add_article_controller", function ($http, $scope, $routeParams, $rootScope,$timeout,$location,Upload) {
+main.controller("content_add_article_controller", function ($http, $scope, $routeParams, $rootScope, $timeout, $location, Upload) {
 
 
     $scope.ContentItemID = $routeParams.ContentItemID
     //$scope.ID = $routeParams.ID
 
-    $scope.Article={ContentItemID:$scope.ContentItemID};
+    $scope.Article = {ContentItemID: $scope.ContentItemID};
 
 
-
-
-
-    $scope.saveArticle = function(){
+    $scope.saveArticle = function () {
 
         //$scope.ContentSubTypeID;
         //$scope.ContentSubTypeChildID;
         //console.log(quill.container.firstChild.innerHTML)
-        $scope.Article.ContentItemID=parseInt($scope.ContentItemID);
+        $scope.Article.ContentItemID = parseInt($scope.ContentItemID);
 
-        $scope.Article.Content=quill.container.firstChild.innerHTML;
-        $scope.Article.ContentSubTypeID=0
+        $scope.Article.Content = quill.container.firstChild.innerHTML;
+        $scope.Article.ContentSubTypeID = 0
 
-        $http.post("content/save",JSON.stringify($scope.Article), {
+        $http.post("content/save", JSON.stringify($scope.Article), {
             transformRequest: angular.identity,
             headers: {"Content-Type": "application/json"}
         }).then(function (data, status, headers, config) {
             console.log(data);
             alert(data.data.Message);
-            if(data.data.Success){
+            if (data.data.Success) {
                 window.history.back();
             }
         });
@@ -685,13 +697,13 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
 
     $scope.UploadPictureImage = function (file, errFiles) {
         if (file) {
-            var thumbnail =Upload.upload({
+            var thumbnail = Upload.upload({
                 url: '/file/up',
                 data: {file: file},
             });
             thumbnail.then(function (response) {
-                var url =response.data.Path;
-                $scope.Article.Picture=url;
+                var url = response.data.Path;
+                $scope.Article.Picture = url;
             }, function (response) {
                 console.log(response);
             }, function (evt) {
@@ -701,22 +713,22 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
                 //$("."+progressID).text(progress+"%");
                 //$("."+progressID).css("width",progress+"%");
             });
-        }else{
-            if(errFiles.length>0){
+        } else {
+            if (errFiles.length > 0) {
                 alert(JSON.stringify(errFiles));
             }
 
         }
     }
 
-    $scope.EditImages=[];
-    $scope.UploadImages = function (progressID,files, errFiles) {
+    $scope.EditImages = [];
+    $scope.UploadImages = function (progressID, files, errFiles) {
 
         var upload_progress = $(progressID);
         upload_progress.progress({
-            duration : 100,
-            total    : 100,
-            text:{
+            duration: 100,
+            total: 100,
+            text: {
                 active: '{value} of {total} done'
             }
         });
@@ -726,23 +738,23 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
 
         if (files && files.length) {
             for (var i = 0; i < files.length; i++) {
-                Upload.upload({url: '/file/up',data:{file: files[i]}}).then(function (response) {
-                    var url =response.data.Path;
+                Upload.upload({url: '/file/up', data: {file: files[i]}}).then(function (response) {
+                    var url = response.data.Path;
 
-                    if($scope.EditImages.indexOf(url)==-1){
+                    if ($scope.EditImages.indexOf(url) == -1) {
                         $scope.EditImages.push(url);
                     }
 
-                },function (response) {
+                }, function (response) {
 
-                },function (evt) {
+                }, function (evt) {
 
                     var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
-                    upload_progress.progress('update progress',progress);
+                    upload_progress.progress('update progress', progress);
 
                 });
             }
-        }else{
+        } else {
             UpImageError(errFiles);
         }
     }
@@ -753,11 +765,15 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
         var Block = Quill.import('blots/block');
         var BlockEmbed = Quill.import('blots/block/embed');
 
-        class BoldBlot extends Inline { }
+        class BoldBlot extends Inline {
+        }
+
         BoldBlot.blotName = 'bold';
         BoldBlot.tagName = 'strong';
 
-        class ItalicBlot extends Inline { }
+        class ItalicBlot extends Inline {
+        }
+
         ItalicBlot.blotName = 'italic';
         ItalicBlot.tagName = 'em';
 
@@ -773,10 +789,13 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
                 return node.getAttribute('href');
             }
         }
+
         LinkBlot.blotName = 'link';
         LinkBlot.tagName = 'a';
 
-        class BlockquoteBlot extends Block { }
+        class BlockquoteBlot extends Block {
+        }
+
         BlockquoteBlot.blotName = 'blockquote';
         BlockquoteBlot.tagName = 'blockquote';
 
@@ -785,10 +804,13 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
                 return HeaderBlot.tagName.indexOf(node.tagName) + 1;
             }
         }
+
         HeaderBlot.blotName = 'header';
         HeaderBlot.tagName = ['H1', 'H2'];
 
-        class DividerBlot extends BlockEmbed { }
+        class DividerBlot extends BlockEmbed {
+        }
+
         DividerBlot.blotName = 'divider';
         DividerBlot.tagName = 'hr';
 
@@ -807,6 +829,7 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
                 };
             }
         }
+
         ImageBlot.blotName = 'image';
         ImageBlot.tagName = 'img';
 
@@ -846,6 +869,7 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
                 }
             }
         }
+
         VideoBlot.blotName = 'video';
         VideoBlot.tagName = 'iframe';
 
@@ -868,8 +892,8 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
             theme: 'snow'
         });
 
-        if($scope.ContentItemID){
-            $http.get("content/single/get/"+$scope.ContentItemID).then(function (responea){
+        if ($scope.ContentItemID) {
+            $http.get("content/single/get/" + $scope.ContentItemID).then(function (responea) {
 
                 $scope.Article = responea.data.Data;
                 quill.clipboard.dangerouslyPasteHTML($scope.Article.Content);
@@ -881,13 +905,14 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
 
             //var baseUrl ="//"+$location.host()+":"+$location.port();
 
-            $("#SelectImageModal").modal({onApprove:function (e) {
+            $("#SelectImageModal").modal({
+                onApprove: function (e) {
 
 
-                    if($scope.EditImages.length>0){
+                    if ($scope.EditImages.length > 0) {
 
 
-                        for(var ii=0;ii<$scope.EditImages.length;ii++){
+                        for (var ii = 0; ii < $scope.EditImages.length; ii++) {
 
                             var range = quill.getSelection(true);
                             quill.insertText(range.index, '\n', Quill.sources.USER);
@@ -906,16 +931,16 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
                         }*/
 
                         $scope.$apply(function () {
-                            $scope.EditImages=[];
+                            $scope.EditImages = [];
                         });
                         return true;
 
 
-
-                    }else{
+                    } else {
                         return false;
                     }
-                },closable:false}).modal("show");
+                }, closable: false
+            }).modal("show");
         });
 
     });
@@ -923,42 +948,44 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
 
 });
 
-main.controller('content_list_controller', function ($http, $scope, $rootScope, $routeParams,$document,$interval) {
+main.controller('content_list_controller', function ($http, $scope, $rootScope, $routeParams, $document, $interval) {
 
-    $scope.MenuTypes=[];
+    $scope.MenuTypes = [];
     $scope.Menus;
 
     $scope.templateNameObj = {
-        "contents":[
-            {Key:"services",Label:"服务",SubMenu:true,Content:true}
+        "contents": [
+            {Key: "services", Label: "服务", SubMenu: true, Content: true},
+            {Key: "news", Label: "新闻中心", SubMenu: true, Content: true}
+
         ],
-        "content":[
-            {Key:"about",Label:"关于我们",SubMenu:false,Content:true}
+        "content": [
+            {Key: "about", Label: "关于我们", SubMenu: false, Content: true}
         ],
-        "index":[
-            {Key:"index",Label:"首页",SubMenu:false,Content:false}
+        "index": [
+            {Key: "index", Label: "首页", SubMenu: false, Content: false}
         ],
-        "gallery":[
-            {Key:"gallery",Label:"媒体",SubMenu:true,Content:true}
+        "gallery": [
+            {Key: "gallery", Label: "媒体", SubMenu: true, Content: true}
         ],
-        "products":[
-            {Key:"products",Label:"产品",SubMenu:false,Content:false}
+        "products": [
+            {Key: "products", Label: "产品", SubMenu: false, Content: false}
         ],
     };
 
-    $scope.getTemplateNameObj = function(type,templateName){
-        let tns =$scope.templateNameObj[type];
-        for(let i=0;i<tns.length;i++){
-            if(tns[i].Key===templateName){
+    $scope.getTemplateNameObj = function (type, templateName) {
+        let tns = $scope.templateNameObj[type];
+        for (let i = 0; i < tns.length; i++) {
+            if (tns[i].Key === templateName) {
                 return tns[i]
             }
         }
 
     }
-    $scope.templateNameObjFunc = function(contentTypeID){
+    $scope.templateNameObjFunc = function (contentTypeID) {
 
-        for(let i=0;i<$scope.MenuTypes.length;i++){
-            if($scope.MenuTypes[i].ID===contentTypeID){
+        for (let i = 0; i < $scope.MenuTypes.length; i++) {
+            if ($scope.MenuTypes[i].ID === contentTypeID) {
                 return $scope.templateNameObj[$scope.MenuTypes[i].Type];
 
             }
@@ -969,196 +996,199 @@ main.controller('content_list_controller', function ($http, $scope, $rootScope, 
     }
     let ActionTarget = {method: 'POST', url: 'menus', title: '添加菜单'};
 
-    $http.get("content/type/list").then(function (value){
+    $http.get("content/type/list").then(function (value) {
 
         $scope.MenuTypes = value.data.Data;
 
     });
-    $scope.listMenus = function(){
+    $scope.listMenus = function () {
         //content/list
-        $http.get("content/item/list").then(function (value){
+        $http.get("content/item/list").then(function (value) {
 
             $scope.MenusList = value.data.Data;
 
         });
     }
-    $scope.listClassify = function(){
+    $scope.listClassify = function () {
         //content/list
-        $http.get("content/sub_type/list/"+$scope.Menus.ID).then(function (value){
+        $http.get("content/sub_type/list/" + $scope.Menus.ID).then(function (value) {
 
             $scope.ClassifyList = value.data.Data;
 
         });
     }
-    $scope.listChildClassify = function(ContentItemID,ParentID){
+    $scope.listChildClassify = function (ContentItemID, ParentID) {
         //content/list
-        $http.get("content/sub_type/child/list/"+ContentItemID+"/"+ParentID).then(function (value){
+        $http.get("content/sub_type/child/list/" + ContentItemID + "/" + ParentID).then(function (value) {
 
             $scope.ClassifyChildList = value.data.Data;
 
         });
     }
-    $scope.saveMenu = function(){
+    $scope.saveMenu = function () {
 
         $http({
-            method:ActionTarget.method,
-            url:ActionTarget.url,
-            data:JSON.stringify($scope.Menus),
-            transformRequest:angular.identity,
-            headers:{"Content-Type":"application/json;charset=utf-8"}
-        }).then(function(data){
+            method: ActionTarget.method,
+            url: ActionTarget.url,
+            data: JSON.stringify($scope.Menus),
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json;charset=utf-8"}
+        }).then(function (data) {
 
 
             $scope.listMenus();
-            $scope.Menus=null;
+            $scope.Menus = null;
             alert(data.data.Message);
 
         });
 
     }
-    $scope.upIndex = function(index){
-        if(index==0){
+    $scope.upIndex = function (index) {
+        if (index == 0) {
             return
         }
         var current = angular.copy($scope.MenusList[index]);//1
-        var targetIndex = (index-1)<=0?0:(index-1);
+        var targetIndex = (index - 1) <= 0 ? 0 : (index - 1);
         var target = angular.copy($scope.MenusList[targetIndex]);//0
 
 
-        $scope.MenusList[targetIndex]=current;
-        $scope.MenusList[index]=target;
+        $scope.MenusList[targetIndex] = current;
+        $scope.MenusList[index] = target;
 
-        current.Sort=targetIndex;
-        target.Sort=index;
+        current.Sort = targetIndex;
+        target.Sort = index;
 
-        ActionTarget={method:'PUT',url:'content/item/index/'+target.ID,title:'修改菜单'};
+        ActionTarget = {method: 'PUT', url: 'content/item/index/' + target.ID, title: '修改菜单'};
         $http({
-            method:ActionTarget.method,
-            url:ActionTarget.url,
-            data:JSON.stringify(target),
-            transformRequest:angular.identity,
-            headers:{"Content-Type":"application/json;charset=utf-8"}
-        }).then(function(data){
-            ActionTarget={method:'PUT',url:'content/item/index/'+current.ID,title:'修改菜单'};
+            method: ActionTarget.method,
+            url: ActionTarget.url,
+            data: JSON.stringify(target),
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json;charset=utf-8"}
+        }).then(function (data) {
+            ActionTarget = {method: 'PUT', url: 'content/item/index/' + current.ID, title: '修改菜单'};
             $http({
-                method:ActionTarget.method,
-                url:ActionTarget.url,
-                data:JSON.stringify(current),
-                transformRequest:angular.identity,
-                headers:{"Content-Type":"application/json;charset=utf-8"}
-            }).then(function(data){
+                method: ActionTarget.method,
+                url: ActionTarget.url,
+                data: JSON.stringify(current),
+                transformRequest: angular.identity,
+                headers: {"Content-Type": "application/json;charset=utf-8"}
+            }).then(function (data) {
 
                 $scope.listMenus();
-                $scope.Menus=null;
+                $scope.Menus = null;
 
             });
         });
 
 
-
-
     }
 
 
+    $scope.changeHide = function (m) {
 
-    $scope.changeHide = function(m){
-
-        ActionTarget={method:'PUT',url:'content/item/hide/'+m.ID,title:'修改显示'};
+        ActionTarget = {method: 'PUT', url: 'content/item/hide/' + m.ID, title: '修改显示'};
         $http({
-            method:ActionTarget.method,
-            url:ActionTarget.url,
-            data:JSON.stringify({Hide:m.Hide}),
-            transformRequest:angular.identity,
-            headers:{"Content-Type":"application/json;charset=utf-8"}
-        }).then(function(data){
+            method: ActionTarget.method,
+            url: ActionTarget.url,
+            data: JSON.stringify({Hide: m.Hide}),
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json;charset=utf-8"}
+        }).then(function (data) {
 
             $scope.listMenus();
-            $scope.Menus=null;
+            $scope.Menus = null;
 
         });
 
     }
-    $scope.downIndex = function(index){
+    $scope.downIndex = function (index) {
 
 
-        if($scope.MenusList.length-1==index){
+        if ($scope.MenusList.length - 1 == index) {
             return
         }
         var current = angular.copy($scope.MenusList[index]);//1
-        var targetIndex = (index+1)>=$scope.MenusList.length-1?$scope.MenusList.length-1:(index+1);
+        var targetIndex = (index + 1) >= $scope.MenusList.length - 1 ? $scope.MenusList.length - 1 : (index + 1);
         var target = angular.copy($scope.MenusList[targetIndex]);//0
 
 
-        $scope.MenusList[targetIndex]=current;
-        $scope.MenusList[index]=target;
+        $scope.MenusList[targetIndex] = current;
+        $scope.MenusList[index] = target;
 
-        current.Sort=targetIndex;
-        target.Sort=index;
+        current.Sort = targetIndex;
+        target.Sort = index;
 
-        ActionTarget={method:'PUT',url:'content/item/index/'+target.ID,title:'修改菜单'};
+        ActionTarget = {method: 'PUT', url: 'content/item/index/' + target.ID, title: '修改菜单'};
         $http({
-            method:ActionTarget.method,
-            url:ActionTarget.url,
-            data:JSON.stringify(target),
-            transformRequest:angular.identity,
-            headers:{"Content-Type":"application/json;charset=utf-8"}
-        }).then(function(data){
-            ActionTarget={method:'PUT',url:'content/item/index/'+current.ID,title:'修改菜单'};
+            method: ActionTarget.method,
+            url: ActionTarget.url,
+            data: JSON.stringify(target),
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json;charset=utf-8"}
+        }).then(function (data) {
+            ActionTarget = {method: 'PUT', url: 'content/item/index/' + current.ID, title: '修改菜单'};
             $http({
-                method:ActionTarget.method,
-                url:ActionTarget.url,
-                data:JSON.stringify(current),
-                transformRequest:angular.identity,
-                headers:{"Content-Type":"application/json;charset=utf-8"}
-            }).then(function(data){
+                method: ActionTarget.method,
+                url: ActionTarget.url,
+                data: JSON.stringify(current),
+                transformRequest: angular.identity,
+                headers: {"Content-Type": "application/json;charset=utf-8"}
+            }).then(function (data) {
 
                 $scope.listMenus();
-                $scope.Menus=null;
+                $scope.Menus = null;
 
             });
         });
 
     }
-    $scope.saveMenuInline = function(){
-        ActionTarget={method:'POST',url:'content/item/add',title:'添加菜单'};
+    $scope.saveMenuInline = function () {
+        ActionTarget = {method: 'POST', url: 'content/item/add', title: '添加菜单'};
         $scope.saveMenu();
     }
     //{method:'PUT',url:''}
 
-    $scope.editMenus = function(m){
-        $scope.selectClassify=null;
-        $scope.classifyChild=null;
+    $scope.editMenus = function (m) {
+        $scope.selectClassify = null;
+        $scope.classifyChild = null;
 
-        ActionTarget={method:'PUT',url:'content/item/'+m.ID,title:'修改菜单'};
-        $scope.Menus=m;
+        ActionTarget = {method: 'PUT', url: 'content/item/' + m.ID, title: '修改菜单'};
+        $scope.Menus = m;
 
-        $scope.classify = {ContentItemID:$scope.Menus.ID};
+        $scope.classify = {ContentItemID: $scope.Menus.ID};
 
-        $("#editMenus").modal({centered: false,allowMultiple: true}).modal("show");
+        $("#editMenus").modal({centered: false, allowMultiple: true}).modal("show");
 
         $scope.listClassify();
     }
-    $scope.deleteMenus = function(ID){
-        $http.delete("content/item/"+ID,{transformRequest:angular.identity,headers:{"Content-Type":"application/json;charset=utf-8"}}).then(function(data){
+    $scope.deleteMenus = function (ID) {
+        $http.delete("content/item/" + ID, {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json;charset=utf-8"}
+        }).then(function (data) {
 
             alert(data.data.Message);
 
             $scope.listMenus();
 
-            $scope.Menus=null;
+            $scope.Menus = null;
 
         });
     }
     $scope.listMenus();
 
 
-    $scope.classify=null;
+    $scope.classify = null;
 
-    $scope.ActionClassifyTarget={method:'POST',url:'content/sub_type',title:'添加分类'};
+    $scope.ActionClassifyTarget = {method: 'POST', url: 'content/sub_type', title: '添加分类'};
 
-    $scope.deleteClassify = function(m){
+    $scope.deleteClassify = function (m) {
 
-        $http.delete("content/sub_type/"+m.ID,{transformRequest:angular.identity,headers:{"Content-Type":"application/json;charset=utf-8"}}).then(function(data){
+        $http.delete("content/sub_type/" + m.ID, {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json;charset=utf-8"}
+        }).then(function (data) {
 
             alert(data.data.Message);
             $scope.listClassify();
@@ -1166,26 +1196,26 @@ main.controller('content_list_controller', function ($http, $scope, $rootScope, 
         });
 
     }
-    $scope.editClassify = function(m){
+    $scope.editClassify = function (m) {
 
-        $scope.classify=m;
-        $scope.ActionClassifyTarget={method:'PUT',url:'content/sub_type/'+m.ID,title:'修改分类'};
+        $scope.classify = m;
+        $scope.ActionClassifyTarget = {method: 'PUT', url: 'content/sub_type/' + m.ID, title: '修改分类'};
         //$scope.saveClassify();
     }
     $scope.saveClassify = function () {
 
         $http({
-            method:$scope.ActionClassifyTarget.method,
-            url:$scope.ActionClassifyTarget.url,
-            data:JSON.stringify($scope.classify),
-            transformRequest:angular.identity,
-            headers:{"Content-Type":"application/json;charset=utf-8"}
-        }).then(function(data){
+            method: $scope.ActionClassifyTarget.method,
+            url: $scope.ActionClassifyTarget.url,
+            data: JSON.stringify($scope.classify),
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json;charset=utf-8"}
+        }).then(function (data) {
 
             $scope.listClassify();
-            $scope.classify.Name='';
-            $scope.classify.ID=null;
-            $scope.ActionClassifyTarget={method:'POST',url:'content/sub_type',title:'添加分类'};
+            $scope.classify.Name = '';
+            $scope.classify.ID = null;
+            $scope.ActionClassifyTarget = {method: 'POST', url: 'content/sub_type', title: '添加分类'};
             alert(data.data.Message);
         });
 
@@ -1193,73 +1223,72 @@ main.controller('content_list_controller', function ($http, $scope, $rootScope, 
     }
 
 
-
-
-
-    $scope.selectClassifyFunc = function(m){
+    $scope.selectClassifyFunc = function (m) {
         //$scope.ActionClassifyTarget={method:'PUT',url:'content_sub_type/'+m.ID,title:'修改分类'};
-        $scope.selectClassify=m;
-        $scope.listChildClassify($scope.selectClassify.ContentItemID,$scope.selectClassify.ID);
+        $scope.selectClassify = m;
+        $scope.listChildClassify($scope.selectClassify.ContentItemID, $scope.selectClassify.ID);
     }
 
 
-    $scope.selectClassify=null;
-    $scope.classifyChild=null;
+    $scope.selectClassify = null;
+    $scope.classifyChild = null;
 
-    $scope.ActionClassifyChildTarget={method:'POST',url:'content/sub_type',title:'添加子分类'};
+    $scope.ActionClassifyChildTarget = {method: 'POST', url: 'content/sub_type', title: '添加子分类'};
 
     //saveClassifyChild
     $scope.saveClassifyChild = function () {
 
-        if(!$scope.selectClassify){
+        if (!$scope.selectClassify) {
             alert("请选择父类");
             return
         }
-        if(!$scope.Menus){
+        if (!$scope.Menus) {
             alert("请菜单");
             return
         }
 
 
-        $scope.classifyChild.ParentContentSubTypeID=$scope.selectClassify.ID;
+        $scope.classifyChild.ParentContentSubTypeID = $scope.selectClassify.ID;
         //{ContentItemID:$scope.Menus.ID};
-        $scope.classifyChild.ContentItemID=$scope.Menus.ID;
+        $scope.classifyChild.ContentItemID = $scope.Menus.ID;
         //$scope.classifyChild.MenusID=$scope.Menus.ID;
         //{MenusID:$scope.Menus.ID}
 
         $http({
-            method:$scope.ActionClassifyChildTarget.method,
-            url:$scope.ActionClassifyChildTarget.url,
-            data:JSON.stringify($scope.classifyChild),
-            transformRequest:angular.identity,
-            headers:{"Content-Type":"application/json;charset=utf-8"}
-        }).then(function(data){
+            method: $scope.ActionClassifyChildTarget.method,
+            url: $scope.ActionClassifyChildTarget.url,
+            data: JSON.stringify($scope.classifyChild),
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json;charset=utf-8"}
+        }).then(function (data) {
             alert(data.data.Message);
-            $scope.listChildClassify($scope.selectClassify.ContentItemID,$scope.selectClassify.ID);
+            $scope.listChildClassify($scope.selectClassify.ContentItemID, $scope.selectClassify.ID);
 
-            $scope.classifyChild.Name='';
-            $scope.classifyChild.ID=null;
-            $scope.ActionClassifyChildTarget={method:'POST',url:'content/sub_type',title:'添加分类'};
+            $scope.classifyChild.Name = '';
+            $scope.classifyChild.ID = null;
+            $scope.ActionClassifyChildTarget = {method: 'POST', url: 'content/sub_type', title: '添加分类'};
         });
 
 
     }
-    $scope.deleteClassifyChild = function(m){
+    $scope.deleteClassifyChild = function (m) {
 
-        $http.delete("content/sub_type/"+m.ID,{transformRequest:angular.identity,headers:{"Content-Type":"application/json;charset=utf-8"}}).then(function(data){
+        $http.delete("content/sub_type/" + m.ID, {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/json;charset=utf-8"}
+        }).then(function (data) {
 
             alert(data.data.Message);
-            $scope.listChildClassify($scope.selectClassify.ContentItemID,$scope.selectClassify.ID);
+            $scope.listChildClassify($scope.selectClassify.ContentItemID, $scope.selectClassify.ID);
 
         });
 
     }
-    $scope.editClassifyChild = function(m){
-        $scope.classifyChild=m;
-        $scope.ActionClassifyChildTarget={method:'PUT',url:'content/sub_type/'+m.ID,title:'修改分类'};
+    $scope.editClassifyChild = function (m) {
+        $scope.classifyChild = m;
+        $scope.ActionClassifyChildTarget = {method: 'PUT', url: 'content/sub_type/' + m.ID, title: '修改分类'};
         //$scope.saveClassify();
     }
-
 
 
 });

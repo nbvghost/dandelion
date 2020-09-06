@@ -109,7 +109,7 @@ func (controller *ContentController) DeleteClassify(context *gweb.Context) gweb.
 	if len(css) > 0 {
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("包含子项内容，无法删除"), "删除成功", nil)}
 	}
-	articles := controller.Content.FindArticleByContentSubTypeID(ID)
+	articles := controller.Content.FindContentByContentSubTypeID(ID)
 	if len(articles) > 0 {
 		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("包含文章，无法删除"), "删除成功", nil)}
 	}

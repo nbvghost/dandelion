@@ -1,17 +1,19 @@
-{{- define "Menus" -}}
-    <nav class="navbar navbar-expand-lg navbar-light bg-faded">
-        <button class="navbar-toggler mx-auto" type="button" data-toggle="collapse" data-target="#navbarNavDropdown"
-                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+{{- define "menus" -}}
+
+    {{$id:=(ParseInt .query.id)}}
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <a class="navbar-brand" href="index">Navbar</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse justify-content-center" id="navbarNavDropdown">
-            <ul class="navbar-nav">
-
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
 
                 {{- range $k, $v := .params.Menus -}}
+
                     {{- if gt (len $v.SubType) 0 -}}
 
-                        <li class="nav-item dropdown">
+                        <li class="nav-item {{if eq  $id $v.Item.ID}}active{{end}} dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink"
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 {{$v.Item.Name}}
@@ -27,14 +29,12 @@
                         </li>
 
                     {{else}}
-
-
                         {{if eq $v.Item.Type "index"}}
-                            <li class="nav-item">
+                            <li class="nav-item {{if eq $id 0}}active{{end}}">
                                 <a class="nav-link" href="{{$v.Item.Type}}">{{$v.Item.Name}}<span class="sr-only">(current)</span></a>
                             </li>
                         {{else}}
-                            <li class="nav-item">
+                            <li class="nav-item {{if eq  $id $v.Item.ID}}active{{end}}">
                                 <a class="nav-link" href="{{$v.Item.Type}}?id={{$v.Item.ID}}">{{$v.Item.Name}}<span
                                             class="sr-only">(current)</span></a>
                             </li>
@@ -48,9 +48,11 @@
 
 
                 {{end}}
-
             </ul>
         </div>
     </nav>
+
+
+
 {{- end -}}
 

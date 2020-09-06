@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{.params.Item.Name}}</title>
+    {{template "import_asset"}}
+</head>
+<body>
+
+{{template "header" .}}
+
+
+<!-- inner page banner -->
+<section class="inner_page_banner text-center">
+    <h2 class="page_heading text-uppercase pt-md-4 pt-sm-4">{{.params.Item.Name}}</h2>
+    <h4 class="text-uppercase pt-2"><a href="index">Home</a> -<a
+                href="?id={{.params.Item.ID}}">{{.params.Item.TemplateName}}</a></h4>
+</section>
+
+<!-- //inner page banner -->
+<div class="container">
+    <div class="row">
+        <div class="col-lg-3 mb-3">
+
+            <div class="card border-danger mt-3 mb-3">
+                <div class="card-header text-white bg-danger">{{.params.Item.Name}}</div>
+                <div class="card-body text-primary">
+
+
+                    <ul class="list-group list-group-flush">
+                        {{range $k,$v:=.params.MenusSub}}
+                            {{range $sk,$sv:=$v.SubType}}
+                                <li class="list-group-item pl-0 pt-2 pb-2"><a
+                                            href="?id={{$sv.Item.ContentItemID}}&sid={{$sv.Item.ID}}">{{$sv.Item.Name}}</a></li>
+
+                                <ul class="list-group list-group-flush ml-3">
+
+                                    {{range $ssk,$ssv:=$sv.SubType}}
+                                        <li class="list-group-item p-0"><a
+                                                    href="?id={{$sv.Item.ContentItemID}}&sid={{$ssv.ID}}">{{$ssv.Name}}</a>
+                                        </li>
+                                    {{end}}
+
+                                </ul>
+
+                            {{end}}
+                        {{end}}
+
+                    </ul>
+
+                </div>
+            </div>
+
+
+
+
+        </div>
+        <div class="col-lg-9">
+
+
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="font-weight-bold">{{if eq .params.CurrentSubType.ID 0}} 全部 {{else}} {{.params.CurrentSubType.Name}} {{end}}</h6>
+                <ol class="p-0 pt-3 pb-2 d-flex m-0 list-unstyled justify-content-end">
+                    <li class="breadcrumb-item"><a href="#">Home</a></li>
+                    <li class="breadcrumb-item"><a href="#">Library</a></li>
+                    <li class="breadcrumb-item">Data</li>
+                    <li class="breadcrumb-item" aria-current="page">Data</li>
+                </ol>
+            </div>
+
+            <div class="border-top mb-3"></div>
+
+            <ul class="list-unstyled">
+
+                {{range $k,$v:=.params.ContentList}}
+                    <li class="media mb-3">
+                        <img style="width: 64px;height: 64px;" src="/file/load?path={{$v.Picture}}" class="mr-3"
+                             alt="{{$v.Title}}">
+                        <div class="media-body">
+                            <h5 class="mt-0 mb-1"><strong>{{$v.Title}}</strong></h5>
+                            <p class="overflow-hidden" style="max-lines: 2">{{$v.Introduce}}</p>
+                            <p class="text-muted"><small>{{$v.CreatedAt}}</small></p>
+                        </div>
+                    </li>
+
+                {{end}}
+
+
+            </ul>
+
+            <div class="border-top mb-3"></div>
+
+
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm justify-content-center">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                    </li>
+                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
+
+        </div>
+    </div>
+</div>
+
+<!-- services -->
+<section class="services py-5 my-lg-5">
+    <h3 class="heading text-center text-uppercase">Our Services</h3>
+    <p class="heading-bottom text-center font-italic mb-5">Industrial Revolution Business</p>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 col-md-6 agileits_banner_bottom_left">
+                <div class="agileinfo_banner_bottom_pos">
+                    <div class="row w3_agileits_banner_bottom_pos_grid">
+                        <div class="col-3 wthree_banner_bottom_grid_left">
+                            <div class="agile_banner_bottom_grid_left_grid hvr-radial-out text-center">
+                                <i class="fab fa-steam" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                        <div class="col-9 wthree_banner_bottom_grid_right">
+                            <h4 class="sub_service_agileits text-uppercase mb-2">Machinery Tools</h4>
+                            <p class="mb-2">Morbi viverra lacus commodo felis semper, eu iaculis lectus feugiat egestas
+                                erat.</p>
+                            <div class="agileits-button two service">
+                                <a class="btn btn-primary btn-lg hvr-underline-from-left text-uppercase" href=""
+                                   data-toggle="modal" data-target="#exampleModalCenter" role="button">Read More »</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 agileits_banner_bottom_left mt-md-0 mt-sm-4 mt-4">
+                <div class="agileinfo_banner_bottom_pos">
+                    <div class="row w3_agileits_banner_bottom_pos_grid">
+                        <div class="col-3 wthree_banner_bottom_grid_left">
+                            <div class="agile_banner_bottom_grid_left_grid hvr-radial-out text-center">
+                                <i class="fa fa-rocket" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                        <div class="col-9 wthree_banner_bottom_grid_right">
+                            <h4 class="sub_service_agileits text-uppercase mb-2">Coal &amp; Solid Fuels</h4>
+                            <p class="mb-2">Morbi viverra lacus commodo felis semper, eu iaculis lectus feugiat egestas
+                                erat.</p>
+                            <div class="agileits-button two service">
+                                <a class="btn btn-primary btn-lg hvr-underline-from-left text-uppercase" href=""
+                                   data-toggle="modal" data-target="#exampleModalCenter" role="button">Read More »</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 agileits_banner_bottom_left mt-lg-0 mt-md-5 mt-sm-4 mt-4">
+                <div class="agileinfo_banner_bottom_pos">
+                    <div class="row w3_agileits_banner_bottom_pos_grid">
+                        <div class="col-3 wthree_banner_bottom_grid_left">
+                            <div class="agile_banner_bottom_grid_left_grid hvr-radial-out text-center">
+                                <i class="fa fa-paint-brush" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                        <div class="col-9 wthree_banner_bottom_grid_right">
+                            <h4 class="sub_service_agileits text-uppercase mb-2">Oil Revolution</h4>
+                            <p class="mb-2">Morbi viverra lacus commodo felis semper, eu iaculis lectus feugiat egestas
+                                erat.</p>
+                            <div class="agileits-button two service">
+                                <a class="btn btn-primary btn-lg hvr-underline-from-left text-uppercase" href=""
+                                   data-toggle="modal" data-target="#exampleModalCenter" role="button">Read More »</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 agileits_banner_bottom_left mt-md-5 mt-sm-4 mt-4">
+                <div class="agileinfo_banner_bottom_pos">
+                    <div class="row w3_agileits_banner_bottom_pos_grid">
+                        <div class="col-3 wthree_banner_bottom_grid_left">
+                            <div class="agile_banner_bottom_grid_left_grid hvr-radial-out text-center">
+                                <i class="fas fa-industry" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                        <div class="col-9 wthree_banner_bottom_grid_right">
+                            <h4 class="sub_service_agileits text-uppercase mb-2">Industry chemicals</h4>
+                            <p class="mb-2">Morbi viverra lacus commodo felis semper, eu iaculis lectus feugiat egestas
+                                erat.</p>
+                            <div class="agileits-button two service">
+                                <a class="btn btn-primary btn-lg hvr-underline-from-left text-uppercase" href=""
+                                   data-toggle="modal" data-target="#exampleModalCenter" role="button">Read More »</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 agileits_banner_bottom_left mt-md-5 mt-sm-4 mt-4">
+                <div class="agileinfo_banner_bottom_pos">
+                    <div class="row w3_agileits_banner_bottom_pos_grid">
+                        <div class="col-3 wthree_banner_bottom_grid_left">
+                            <div class="agile_banner_bottom_grid_left_grid hvr-radial-out text-center">
+                                <i class="fa fa-fire" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                        <div class="col-9 wthree_banner_bottom_grid_right">
+                            <h4 class="sub_service_agileits text-uppercase mb-2">Gas Revolution</h4>
+                            <p class="mb-2">Morbi viverra lacus commodo felis semper, eu iaculis lectus feugiat egestas
+                                erat.</p>
+                            <div class="agileits-button two service">
+                                <a class="btn btn-primary btn-lg hvr-underline-from-left text-uppercase" href=""
+                                   data-toggle="modal" data-target="#exampleModalCenter" role="button">Read More »</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 agileits_banner_bottom_left mt-md-5 mt-sm-4 mt-4">
+                <div class="agileinfo_banner_bottom_pos">
+                    <div class="row w3_agileits_banner_bottom_pos_grid">
+                        <div class="col-3 wthree_banner_bottom_grid_left">
+                            <div class="agile_banner_bottom_grid_left_grid hvr-radial-out text-center">
+                                <i class="fas fa-cogs" aria-hidden="true"></i>
+                            </div>
+                        </div>
+                        <div class="col-9 wthree_banner_bottom_grid_right">
+                            <h4 class="sub_service_agileits text-uppercase mb-2">Quality Material</h4>
+                            <p class="mb-2">Morbi viverra lacus commodo felis semper, eu iaculis lectus feugiat egestas
+                                erat.</p>
+                            <div class="agileits-button two service">
+                                <a class="btn btn-primary btn-lg hvr-underline-from-left text-uppercase" href=""
+                                   data-toggle="modal" data-target="#exampleModalCenter" role="button">Read More »</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- //services -->
+
+<!-- services middle section -->
+<section class="middle">
+    <div class="layer py-5">
+        <div class="container">
+            <h3 class="text-center text-uppercase">Revolutionary Business For All Industrial Needs</h3>
+            <p class="text-center text-capitalize font-italic mt-3">Morbi viverra lacus commodo felis semper, eu iaculis
+                lectus feugiat egestas erat.</p>
+            <div class="contactus text-center pt-md-5 pt-sm-4 pt-4">
+                <a href="" class="text-capitalize">Contact us</a>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- //services middle section -->
+
+<!-- Other services -->
+<section class="services py-5 my-lg-5">
+    <h3 class="heading text-center text-uppercase">Industrial Services</h3>
+    <p class="heading-bottom text-center font-italic mb-5">Industrial Revolution Business</p>
+    <div class="container">
+        <div class="row top-grids">
+            <div class="col-md-4 servicegrid">
+                <img src="./img/g2.jpg" alt="" class="img-fluid">
+                <h3 class="text-center p-3">Steel Industry</h3>
+            </div>
+            <div class="col-md-4 servicegrid mt-lg-0 mt-sm-5 mt-5">
+                <img src="./img/g3.jpg" alt="" class="img-fluid">
+                <h3 class="text-center p-3">Chemical Industry</h3>
+            </div>
+            <div class="col-md-4 servicegrid mt-lg-0 mt-sm-5 mt-5">
+                <img src="./img/g4.jpg" alt="" class="img-fluid">
+                <h3 class="text-center p-3">Auto Refinery</h3>
+            </div>
+        </div>
+        <div class="row mt-md-5 bottom-grids mt-sm-5 mt-5">
+            <div class="col-md-8 servicetextgrid">
+                <h3 class="text-capitalize">Industrial business we serve</h3>
+                <p class="para text-capitalize font-italic">Indus Fact revolution business</p>
+                <p>Morbi viverra lacus commodo felis semper, eu iaculis lectus feugiat egestas erat.Morbi viverra lacus
+                    commodo felis semper, eu iaculis lectus feugiat egestas erat. Sed sodales sodales augue nec
+                    sollicitudin. Nullam blandit imperdiet orci, sit amet accumsan dui pharetra eget. Quisque non est
+                    sit amet ex dignissim facilisis in eu augue. Suspendisse eu purus augue. Maecenas maximus sit amet
+                    ante nec interdum.</p>
+                <div class="read mt-4">
+                    <a href="" class="text-capitalize">Read more</a>
+                </div>
+            </div>
+            <div class="col-md-4 servicegrid mt-lg-0 mt-sm-5 mt-5">
+                <img src="./img/g5.jpg" alt="" class="img-fluid">
+                <h3 class="text-center p-3">Construction</h3>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- //services -->
+
+<!-- Vertically centered Modal -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-uppercase" id="exampleModalLongTitle">Indus Fact</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img src="./img/1.jpg" class="img-fluid mb-4" alt="Modal Image">
+                Vivamus eget est in odio tempor interdum. Mauris maximus fermentum arcu, ac finibus ante. Sed mattis
+                risus at ipsum elementum, ut auctor turpis cursus. Sed sed odio pharetra, aliquet velit cursus, vehicula
+                enim. Mauris porta aliquet magna, eget laoreet ligula.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

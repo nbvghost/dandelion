@@ -278,7 +278,7 @@ func (controller *Controller) articleAction(context *gweb.Context) gweb.Result {
 	switch action {
 	case "listByCategory":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("id"), 10, 64)
-		d := controller.Content.FindArticleByContentSubTypeID(ID)
+		d := controller.Content.FindContentByContentSubTypeID(ID)
 		result.Data = &dao.ActionStatus{Success: true, Message: "SUCCESS", Data: d}
 	case "add":
 		context.Request.ParseForm()
