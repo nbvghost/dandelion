@@ -5,6 +5,4 @@
 
 
 ### 使用IDEA开发
-[![使用IDEA开发](https://raw.githubusercontent.com/nbvghost/dandelion/master/icon-goland.png "使用IDEA开发"){:height="64px" width="64px"}](https://www.jetbrains.com/?from=dandelion)
-
-<a href=""><img src="http://p1-ks3.532106.com/33f925f1f92649678221088fdfb531a1.jpg" alt="图片替换文本" width="100" height="30" align="bottom" /></a>
+<a href="https://www.jetbrains.com/?from=dandelion"><img src="https://raw.githubusercontent.com/nbvghost/dandelion/master/icon-goland.png" alt="使用IDEA开发" width="128" height="128" align="bottom" /></a>
