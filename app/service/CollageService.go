@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/nbvghost/dandelion/app/result"
 	"strconv"
 	"strings"
 
@@ -29,16 +30,16 @@ func (service CollageService) AddCollageGoodsAction(context *gweb.Context) gweb.
 
 	goods := GlobalService.Goods.FindGoodsByOrganizationIDAndGoodsID(organization.ID, GoodsID)
 	if goods.ID == 0 {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("没有找到商品"), "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("没有找到商品"), "", nil)}
 	}
 	collage := service.GetCollageByHash(CollageHash, organization.ID)
 	if collage.ID == 0 {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("没有找到限时抢购"), "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("没有找到限时抢购"), "", nil)}
 	}
 
 	have := service.GetCollageGoodsByGoodsID(goods.ID, organization.ID)
 	if have.ID > 0 {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("这个商品已被添加为限时抢购"), "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("这个商品已被添加为限时抢购"), "", nil)}
 	}
 
 	//service.ChangeMap(dao.Orm(), timeSell.ID, &dao.TimeSell{}, map[string]interface{}{})
@@ -49,7 +50,7 @@ func (service CollageService) AddCollageGoodsAction(context *gweb.Context) gweb.
 		OID:         organization.ID,
 	})
 
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "Success", goods)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "Success", goods)}
 }
 func (service CollageService) GetCollageGoodsByGoodsID(GoodsID uint64, OID uint64) dao.CollageGoods {
 	var timesellGoods dao.CollageGoods
@@ -72,7 +73,7 @@ func (service CollageService) DeleteItem(context *gweb.Context) gweb.Result {
 
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	err := service.DeleteCollage(ID)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}
 }
 func (service CollageService) DeleteGoods(context *gweb.Context) gweb.Result {
 
@@ -81,7 +82,7 @@ func (service CollageService) DeleteGoods(context *gweb.Context) gweb.Result {
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	list := GlobalService.Goods.DeleteTimeSellGoods(Orm, ID, company.ID)
 
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "删除成功", list)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "删除成功", list)}
 	*/
 
 	Orm := dao.Orm()
@@ -89,7 +90,7 @@ func (service CollageService) DeleteGoods(context *gweb.Context) gweb.Result {
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	list := GlobalService.Goods.DeleteCollageGoods(Orm, ID, company.ID)
 
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "删除成功", list)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "删除成功", list)}
 
 }
 func (service CollageService) ListGoods(context *gweb.Context) gweb.Result {
@@ -99,7 +100,7 @@ func (service CollageService) ListGoods(context *gweb.Context) gweb.Result {
 	//list := GlobalService.Goods.FindGoodsByCollageHash(Hash)
 	//var item dao.ExpressTemplate
 	//err := controller.ExpressTemplate.Get(service.Orm, ID, &item)
-	//return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "", list)}
+	//return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "", list)}
 	//2002
 
 	Hash := context.PathParams["Hash"]
@@ -139,7 +140,7 @@ func (service CollageService) GetItem(context *gweb.Context) gweb.Result {
 	//Orm := dao.Orm()
 	Hash := context.PathParams["Hash"]
 	item := service.GetItemByHash(Hash)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", item)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", item)}
 }
 func (service CollageService) GetCollageByGoodsID(GoodsID uint64, OID uint64) dao.Collage {
 	//timesellGoods := service.GetTimeSellGoodsByGoodsID(GoodsID, OID)
@@ -199,7 +200,7 @@ func (service CollageService) SaveItem(context *gweb.Context) gweb.Result {
 	//GoodsListIDs := make([]uint64, 0)
 	//err = util.JSONToStruct(GoodsListJson, &GoodsListIDs)
 	//if err != nil {
-	//	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+	//	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	//}
 
 	tx := dao.Orm().Begin()
@@ -213,7 +214,7 @@ func (service CollageService) SaveItem(context *gweb.Context) gweb.Result {
 	item := &dao.Collage{}
 	err = util.JSONToStruct(CollageJson, item)
 	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
 	Hash := tool.UUID()
 	//if strings.EqualFold(item.Hash, "") {
@@ -240,20 +241,20 @@ func (service CollageService) SaveItem(context *gweb.Context) gweb.Result {
 		item.Hash = Hash
 		item.OID = company.ID
 		err = service.Save(tx, item)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "提交成功", item)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "提交成功", item)}
 
 	} else {
 		//修改
 		_item := service.GetCollageByHash(item.Hash, company.ID)
 		if _item.ID == 0 {
-			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("无法修改"), "", nil)}
+			return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("无法修改"), "", nil)}
 		}
 		_item.Num = item.Num
 		_item.Discount = item.Discount
 		_item.TotalNum = item.TotalNum
 		err = service.Save(tx, _item)
 
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "提交成功", _item)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "提交成功", _item)}
 		/*for _, value := range GoodsListIDs {
 			isHaveTS := service.GetCollageByGoodsID(value)
 			if isHaveTS.ID != 0 {
@@ -281,6 +282,6 @@ func (service CollageService) SaveItem(context *gweb.Context) gweb.Result {
 
 	}
 
-	//return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "提交成功", nil)}
+	//return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "提交成功", nil)}
 
 }

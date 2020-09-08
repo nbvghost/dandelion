@@ -5,24 +5,32 @@ package dao
 //Menus
 type ContentItem struct {
 	BaseModel
-	OID           uint64 `gorm:"column:OID"`
-	Name          string `gorm:"column:Name"`
-	Sort          int    `gorm:"column:Sort"`
-	ContentTypeID uint64 `gorm:"column:ContentTypeID"`
-	TemplateName  string `gorm:"column:TemplateName"` //使用模板的文件名，如多文章列表，
-	Type          string `gorm:"column:Type"`
-	Hide          bool   `gorm:"column:Hide"`
+	OID           uint64          `gorm:"column:OID"`
+	Name          string          `gorm:"column:Name"`
+	Sort          int             `gorm:"column:Sort"`
+	ContentTypeID uint64          `gorm:"column:ContentTypeID"`
+	TemplateName  string          `gorm:"column:TemplateName"` //使用模板的文件名，如多文章列表，
+	Type          ContentTypeType `gorm:"column:Type"`
+	Hide          bool            `gorm:"column:Hide"`
 }
 
 func (ContentItem) TableName() string {
 	return "ContentItem"
 }
 
+type ContentTypeType string
+
+const ContentTypeContents ContentTypeType = "contents"
+const ContentTypeContent ContentTypeType = "content"
+const ContentTypeIndex ContentTypeType = "index"
+const ContentTypeGallery ContentTypeType = "gallery"
+const ContentTypeProducts ContentTypeType = "products"
+
 //MenuType
 type ContentType struct {
 	BaseModel
-	Label string `gorm:"column:Label"`
-	Type  string `gorm:"column:Type;unique"`
+	Label string          `gorm:"column:Label"`
+	Type  ContentTypeType `gorm:"column:Type;unique"`
 }
 
 func (ContentType) TableName() string {

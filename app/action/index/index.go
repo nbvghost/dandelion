@@ -2,6 +2,7 @@ package index
 
 import (
 	"fmt"
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/gweb/tool/encryption"
 	"io/ioutil"
 	"strconv"
@@ -76,7 +77,7 @@ func (controller *Controller) configurationListAction(context *gweb.Context) gwe
 	var ks []uint64
 	util.RequestBodyToJSON(context.Request.Body, &ks)
 	list := controller.Configuration.GetConfigurations(0, ks)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", list)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", list)}
 }
 func (controller *Controller) newArticlePostAction(context *gweb.Context) gweb.Result {
 	organization := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
@@ -126,7 +127,7 @@ func (controller *Controller) newArticlePostAction(context *gweb.Context) gweb.R
 }
 func (controller *Controller) addArticle(OID uint64, ContentName string, ContentSubTypeName string, Author, Title string, FromUrl string, Introduce string, Picture string, Content string, CreatedAt time.Time) {
 
-	controller.Content.AddSpiderArticle(OID, ContentName, ContentSubTypeName, Author, Title, FromUrl, Introduce, Picture, Content, CreatedAt)
+	controller.Content.AddSpiderContent(OID, ContentName, ContentSubTypeName, Author, Title, FromUrl, Introduce, Picture, Content, CreatedAt)
 
 }
 func (controller *Controller) newArticleWebhookAction(context *gweb.Context) gweb.Result {
@@ -195,7 +196,7 @@ func (controller *Controller) newArticleWebhookAction(context *gweb.Context) gwe
 	fmt.Println(err)
 	fmt.Println(string(b))
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: nil}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: nil}}
 }
 
 func (controller *Controller) defaultPage(context *gweb.Context) gweb.Result {

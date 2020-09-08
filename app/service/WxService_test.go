@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"reflect"
 	"testing"
@@ -13,7 +14,7 @@ func TestWxService_OrderDeliveryNotify(t *testing.T) {
 	tests := []struct {
 		name  string
 		Order dao.Orders
-		want  *dao.ActionStatus
+		want  *result.ActionResult
 	}{
 		{name: "dsf", Order: Order},
 	}
@@ -40,7 +41,7 @@ func TestWxService_INComeNotify(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want *dao.ActionStatus
+		want *result.ActionResult
 	}{
 		{name: "sdfsd", args: args{slUser: user, itemName: "dsfsdfsd", timeText: "sdfsdfsd", typeText: "sdfdsfsd"}},
 	}
@@ -66,7 +67,7 @@ func TestWxService_NewOrderNotify(t *testing.T) {
 	tests := []struct {
 		name string
 		args args
-		want *dao.ActionStatus
+		want *result.ActionResult
 	}{
 		{name: "dsfdsfsd", args: args{Order: Order}},
 	}

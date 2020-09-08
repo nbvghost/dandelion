@@ -1,8 +1,10 @@
 package service
 
 import (
+	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"time"
 
@@ -98,10 +100,16 @@ func (service ContentService) GetContentItemByID(ID uint64) dao.ContentItem {
 	Orm.Where("ID=?", ID).First(&menus)
 	return menus
 }
-func (service ContentService) GetContentItemByOID(OID uint64) []dao.ContentItem {
+func (service ContentService) GetContentSubTypeByID(ID uint64) dao.ContentSubType {
+	Orm := dao.Orm()
+	var menus dao.ContentSubType
+	Orm.Where("ID=?", ID).First(&menus)
+	return menus
+}
+func (service ContentService) ListContentItemByOID(OID uint64) []dao.ContentItem {
 	Orm := dao.Orm()
 	var menus []dao.ContentItem
-	Orm.Where("OID=?", OID).Find(&menus)
+	Orm.Model(dao.ContentItem{}).Where("OID=?", OID).Order("Sort").Order("UpdatedAt desc").Find(&menus)
 	return menus
 }
 func (service ContentService) GetContentItemByNameAndOID(Name string, OID uint64) dao.ContentItem {
@@ -137,7 +145,7 @@ func (service ContentService) FindContentSubTypesByNameAndContentItemID(Name str
 }
 
 //-----------------------
-func (service ContentService) AddSpiderArticle(OID uint64, ContentName string, ContentSubTypeName string, Author, Title string, FromUrl string, Introduce string, Picture string, Content string, CreatedAt time.Time) {
+func (service ContentService) AddSpiderContent(OID uint64, ContentName string, ContentSubTypeName string, Author, Title string, FromUrl string, Introduce string, Picture string, Content string, CreatedAt time.Time) {
 	var article dao.Content
 	article.Title = Title
 	article.FromUrl = FromUrl
@@ -177,22 +185,22 @@ func (service ContentService) AddSpiderArticle(OID uint64, ContentName string, C
 
 	article.Author = Author
 	article.ContentSubTypeID = contentSubType.ID
-	service.AddArticle(&article)
+	service.AddContent(&article)
 
 }
 
-func (service ContentService) ChangeArticle(article *dao.Content) error {
+func (service ContentService) ChangeContent(article *dao.Content) error {
 
 	return service.Save(dao.Orm(), article)
 }
 
-func (service ContentService) GetArticleByTitle(Orm *gorm.DB, Title string) *dao.Content {
+func (service ContentService) GetContentByTitle(Orm *gorm.DB, Title string) *dao.Content {
 	article := &dao.Content{}
 	err := Orm.Where("Title=?", Title).First(article).Error //SelectOne(user, "select * from User where Email=?", Email)
 	glog.Error(err)
 	return article
 }
-func (service ContentService) DelArticle(ID uint64) error {
+func (service ContentService) DelContent(ID uint64) error {
 	err := service.Delete(dao.Orm(), &dao.Content{}, ID)
 	return err
 }
@@ -227,20 +235,26 @@ func (service ContentService) FindContentByContentItemIDAndContentSubTypeID(Cont
 	glog.Error(err)
 	return contentList
 }
-func (service ContentService) GetArticleByContentItemID(ContentItemID uint64) *dao.Content {
+func (service ContentService) GetContentByContentItemID(ContentItemID uint64) *dao.Content {
 	article := &dao.Content{}
 	dao.Orm().Where("ContentItemID=? and ContentSubTypeID=?", ContentItemID, 0).First(article)
 	//service.ChangeMap(dao.Orm(), ID, &dao.Article{}, map[string]interface{}{"Look": article.Look + 1})
 	return article
 }
-func (service ContentService) GetArticle(ID uint64) *dao.Content {
+func (service ContentService) GetContentByContentItemIDAndContentSubTypeID(ContentItemID, ContentSubTypeID uint64) *dao.Content {
+	article := &dao.Content{}
+	dao.Orm().Where("ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeID).First(article)
+	//service.ChangeMap(dao.Orm(), ID, &dao.Article{}, map[string]interface{}{"Look": article.Look + 1})
+	return article
+}
+func (service ContentService) GetContent(ID uint64) *dao.Content {
 	article := &dao.Content{}
 	err := service.Get(dao.Orm(), ID, article) //SelectOne(user, "select * from User where Email=?", Email)
 	glog.Error(err)
 	//service.ChangeMap(dao.Orm(), ID, &dao.Article{}, map[string]interface{}{"Look": article.Look + 1})
 	return article
 }
-func (service ContentService) GetArticleAndAddLook(context *gweb.Context, ArticleID uint64) *dao.Content {
+func (service ContentService) GetContentAndAddLook(context *gweb.Context, ArticleID uint64) *dao.Content {
 
 	article := &dao.Content{}
 	err := service.Get(dao.Orm(), ArticleID, article) //SelectOne(user, "select * from User where Email=?", Email)
@@ -266,7 +280,7 @@ func (service ContentService) GetArticleAndAddLook(context *gweb.Context, Articl
 	return article
 }
 
-func (service ContentService) HaveArticleByTitle(ContentItemID, ContentSubTypeID uint64, Title string) bool {
+func (service ContentService) HaveContentByTitle(ContentItemID, ContentSubTypeID uint64, Title string) bool {
 	Orm := dao.Orm()
 	_article := &dao.Content{}
 	Orm.Where("ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeID).Where("Title=?", Title).First(_article)
@@ -277,33 +291,56 @@ func (service ContentService) HaveArticleByTitle(ContentItemID, ContentSubTypeID
 	}
 
 }
-func (service ContentService) AddArticle(article *dao.Content) *dao.ActionStatus {
+func (service ContentService) AddContent(article *dao.Content) *result.ActionResult {
 
-	as := &dao.ActionStatus{}
+	as := &result.ActionResult{}
 	Orm := dao.Orm()
 
 	if article.ContentItemID == 0 {
-		as.Success = false
+		as.Code = result.ActionFail
 		as.Message = "必须指定ContentItemID"
 		return as
+	}
+
+	contentItem := service.GetContentItemByID(article.ContentItemID)
+	switch contentItem.Type {
+
+	case dao.ContentTypeContent:
+		if article.ContentSubTypeID == 0 {
+			return &result.ActionResult{Code: result.ActionFail, Message: fmt.Sprintf("%v内容请指定类型", contentItem.Type)}
+		}
+		contentSubType := service.GetContentSubTypeByID(article.ContentSubTypeID)
+		if contentSubType.ParentContentSubTypeID == 0 {
+			return &result.ActionResult{Code: result.ActionFail, Message: fmt.Sprintf("%v内容请指定子类型", contentItem.Type)}
+		}
+
+		if contentSubType.ID == 0 {
+			return &result.ActionResult{Code: result.ActionFail, Message: fmt.Sprintf("无效的类别%v", contentSubType.ID)}
+		}
+
+		content := service.GetContentByContentItemIDAndContentSubTypeID(article.ContentItemID, article.ContentSubTypeID)
+		if content.ID > 0 && article.ID != content.ID {
+			return &result.ActionResult{Code: result.ActionFail, Message: fmt.Sprintf("添加的内容与原内容冲突")}
+		}
+
 	}
 
 	//_article := &dao.Article{}
 	//err := Orm.Where("ContentItemID=? and ContentSubTypeID=?", article.ContentItemID, article.ContentSubTypeID).Where("Title=?", article.Title).First(_article).Error
 	//if _article.ID != 0 && _article.ID != article.ID {
 	if false {
-		as.Success = false
+		as.Code = result.ActionFail
 		as.Message = "添加失败，存在相同的标题"
 	} else {
-		//fmt.Println(article.Introduce)
+		articleID := article.ID
 		err := service.Save(Orm, article) //self.dao.AddArticle(Orm, article)
 		if err != nil {
 			glog.Error(err)
-			as.Success = false
+			as.Code = result.ActionFail
 			as.Message = err.Error()
 		} else {
-			as.Success = true
-			if article.ID != 0 {
+			as.Code = result.ActionOK
+			if articleID != 0 {
 				as.Message = "修改成功"
 			} else {
 				as.Message = "添加成功"

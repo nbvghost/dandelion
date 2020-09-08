@@ -11,7 +11,7 @@
 
 <div id="articlePage">
     <p>
-        <a class="ui large red ribbon label">菜单管理</a>
+        <a class="ui large red ribbon label">添加内容</a>
     </p>
 
 
@@ -19,6 +19,22 @@
         <div class="field">
             <label>标题</label>
             <input required ng-model="Article.Title" maxlength="120" placeholder="标题" type="text">
+        </div>
+
+
+        <div class="fields">
+            <div class="four wide field">
+                <label>分类</label>
+                <select ng-model="Article.ContentSubTypeID" disabled ng-change="changeContentSubTypes()" ng-options="key as value.SubType.Name for (key , value) in ContentSubTypes" required >
+
+                </select>
+            </div>
+            <div class="four wide field">
+                <label>子类</label>
+                <select ng-model="Article.ContentSubTypeChildID" disabled ng-change="changeContentSubTypeChilds()" ng-options="key as value.Name for (key , value) in ContentSubTypes[Article.ContentSubTypeID].SubTypeChildren">
+
+                </select>
+            </div>
         </div>
 
         <div class="fields">

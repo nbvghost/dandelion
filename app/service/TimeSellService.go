@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"github.com/nbvghost/dandelion/app/result"
 	"strconv"
 
 	"github.com/nbvghost/dandelion/app/service/dao"
@@ -28,16 +29,16 @@ func (service TimeSellService) AddTimeSellGoodsAction(context *gweb.Context) gwe
 
 	goods := GlobalService.Goods.FindGoodsByOrganizationIDAndGoodsID(organization.ID, GoodsID)
 	if goods.ID == 0 {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("没有找到商品"), "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("没有找到商品"), "", nil)}
 	}
 	timeSell := service.GetTimeSellByHash(TimeSellHash, organization.ID)
 	if timeSell.ID == 0 {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("没有找到限时抢购"), "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("没有找到限时抢购"), "", nil)}
 	}
 
 	have := service.GetTimeSellGoodsByGoodsID(goods.ID, organization.ID)
 	if have.ID > 0 {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("这个商品已被添加为限时抢购"), "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("这个商品已被添加为限时抢购"), "", nil)}
 	}
 
 	//service.ChangeMap(dao.Orm(), timeSell.ID, &dao.TimeSell{}, map[string]interface{}{})
@@ -48,7 +49,7 @@ func (service TimeSellService) AddTimeSellGoodsAction(context *gweb.Context) gwe
 		OID:          organization.ID,
 	})
 
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "Success", goods)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "Success", goods)}
 }
 func (service TimeSellService) DeleteTimeSellGoods(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
@@ -56,7 +57,7 @@ func (service TimeSellService) DeleteTimeSellGoods(context *gweb.Context) gweb.R
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	list := GlobalService.Goods.DeleteTimeSellGoods(Orm, ID, company.ID)
 
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "删除成功", list)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "删除成功", list)}
 
 }
 func (service TimeSellService) ListTimeSellGoods(context *gweb.Context) gweb.Result {
@@ -92,7 +93,7 @@ func (service TimeSellService) ListTimeSellGoods(context *gweb.Context) gweb.Res
 	list := GlobalService.Goods.FindGoodsByTimeSellHash(Hash)
 	//var item dao.ExpressTemplate
 	//err := controller.ExpressTemplate.Get(service.Orm, ID, &item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "", list)}*/
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "", list)}*/
 	//2002
 }
 func (service TimeSellService) GetItem(context *gweb.Context) gweb.Result {
@@ -100,7 +101,7 @@ func (service TimeSellService) GetItem(context *gweb.Context) gweb.Result {
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	Hash := context.PathParams["Hash"]
 	item := service.GetTimeSellByHash(Hash, company.ID)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", item)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", item)}
 }
 func (service TimeSellService) GetTimeSellByHash(Hash string, OID uint64) dao.TimeSell {
 	var timesell dao.TimeSell
@@ -130,7 +131,7 @@ func (service TimeSellService) AddTimeSellAction(context *gweb.Context) gweb.Res
 	context.Request.ParseForm()
 	//Hash := context.Request.FormValue("Hash")
 	//GoodsID, _ := strconv.ParseUint(context.Request.FormValue("GoodsID"), 10, 64)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "", nil)}
 }*/
 func (service TimeSellService) SaveItem(context *gweb.Context) gweb.Result {
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
@@ -144,7 +145,7 @@ func (service TimeSellService) SaveItem(context *gweb.Context) gweb.Result {
 	//GoodsListIDs := make([]uint64, 0)
 	//err = util.JSONToStruct(GoodsListJson, &GoodsListIDs)
 	//if err != nil {
-	//return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+	//return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	//}
 
 	tx := dao.Orm().Begin()
@@ -158,7 +159,7 @@ func (service TimeSellService) SaveItem(context *gweb.Context) gweb.Result {
 	item := dao.TimeSell{}
 	err = util.JSONToStruct(TimeSellJson, &item)
 	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
 	Hash := tool.UUID()
 	if item.ID == 0 {
@@ -184,11 +185,11 @@ func (service TimeSellService) SaveItem(context *gweb.Context) gweb.Result {
 		item.Hash = Hash
 		item.OID = company.ID
 		err = service.Save(tx, item)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "提交成功", item)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "提交成功", item)}
 	} else {
 		_item := service.GetTimeSellByHash(item.Hash, company.ID)
 		if _item.ID == 0 {
-			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("无法修改"), "", nil)}
+			return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("无法修改"), "", nil)}
 		}
 		//_item.Hash = item.Hash
 		_item.BuyNum = item.BuyNum
@@ -203,7 +204,7 @@ func (service TimeSellService) SaveItem(context *gweb.Context) gweb.Result {
 		_item.EndM = item.EndM
 		err = service.Save(tx, _item)
 
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "提交成功", _item)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "提交成功", _item)}
 
 		//修改
 		/*for _, value := range GoodsListIDs {
@@ -252,7 +253,7 @@ func (service TimeSellService) DeleteItem(context *gweb.Context) gweb.Result {
 
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	err := service.DeleteTimeSell(ID)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}
 }
 
 func (service TimeSellService) DeleteTimeSell(TimeSellID uint64) error {

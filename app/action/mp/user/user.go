@@ -3,6 +3,7 @@ package user
 import (
 	"fmt"
 	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/util"
@@ -51,18 +52,18 @@ func (controller *UserController) levelAction(context *gweb.Context) gweb.Result
 
 	users := controller.User.FindUserByIDs(leve1UserIDs)
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: users}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK", Data: users}}
 }
 func (controller *UserController) addUserFormIdAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
 	context.Request.ParseForm()
 	formId, _ := strconv.Atoi(context.Request.FormValue("formId"))
 	if formId == 0 {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "无效的formId", Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: "无效的formId", Data: nil}}
 	}
 	controller.User.Add(dao.Orm(), &dao.UserFormIds{UserID: user.ID, FormId: strconv.Itoa(formId)})
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: nil}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK", Data: nil}}
 }
 func (controller *UserController) userShareKeyAction(context *gweb.Context) gweb.Result {
 
@@ -73,7 +74,7 @@ func (controller *UserController) userShareKeyAction(context *gweb.Context) gweb
 
 	var user dao.User
 	controller.User.Get(dao.Orm(), UserID, &user)
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: user}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: user}}
 }
 func (controller *UserController) transfersAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
@@ -84,7 +85,7 @@ func (controller *UserController) transfersAction(context *gweb.Context) gweb.Re
 	IP := util.GetIP(context)
 	err := controller.Transfers.UserTransfers(user.ID, ReUserName, IP)
 
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "提现成功，请查看到账通知结果", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "提现成功，请查看到账通知结果", nil)}
 }
 func (controller *UserController) updateAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
@@ -102,13 +103,13 @@ func (controller *UserController) updateAction(context *gweb.Context) gweb.Resul
 	err := controller.User.ChangeMap(dao.Orm(), user.ID, user, changeDataMap)
 	//IP := util.GetIP(context)
 	//err := controller.Transfers.UserTransfers(user.ID, ReUserName, IP)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 }
 func (controller *UserController) userInfoByUserIDAction(context *gweb.Context) gweb.Result {
 	UserID, _ := strconv.ParseUint(context.PathParams["UserID"], 10, 64)
 	var user dao.User
 	controller.User.Get(dao.Orm(), UserID, &user)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", user)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", user)}
 }
 func (controller *UserController) userGrowthListAction(context *gweb.Context) gweb.Result {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
@@ -122,7 +123,7 @@ func (controller *UserController) userGrowthListAction(context *gweb.Context) gw
 	}
 	var users []dao.User
 	err := controller.User.FindOrderWhereLength(dao.Orm(), Order, &users, 20)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", users)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", users)}
 }
 func (controller *UserController) userInfoDaySignAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
@@ -138,24 +139,24 @@ func (controller *UserController) userInfoDaySignAction(context *gweb.Context) g
 	fmt.Println(":", today.Unix())
 	dayCount := float64(float64(time.Now().Unix()-today.Unix()) / 60 / 60 / 24) //天
 	fmt.Println("天", dayCount)
-	as := dao.ActionStatus{}
+	as := result.ActionResult{}
 	if dayCount > 1 {
 		//已经超过一天了，
 		userInfo.DaySignTime = time.Now()
 		userInfo.DaySignCount = 1
-		as.Success = true
+		as.Code = result.ActionOK
 		as.Message = "打卡成功，您的打卡已经超过一天了，打卡重新累计"
-		//return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("打卡成功，您的打卡已经超过一天了，打卡重新累计"), "OK", nil)}
+		//return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("打卡成功，您的打卡已经超过一天了，打卡重新累计"), "OK", nil)}
 	} else if dayCount <= 1 && dayCount >= 0 {
 		//可以打卡
 		userInfo.DaySignTime = time.Now()
 		userInfo.DaySignCount = userInfo.DaySignCount + 1
-		as.Success = true
+		as.Code = result.ActionOK
 		as.Message = "打卡成功"
 	} else {
 		//负数
 		//已经打过卡了
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("您今天已经打卡了"), "OK", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("您今天已经打卡了"), "OK", nil)}
 	}
 
 	if userInfo.DaySignCount <= 0 {
@@ -182,7 +183,7 @@ func (controller *UserController) userInfoDaySignAction(context *gweb.Context) g
 			userInfo.DaySignTime.String()+"/"+strconv.Itoa(int(score.(float64)))+"/"+strconv.Itoa(userInfo.DaySignCount),
 			play.ScoreJournal_Type_DaySign, int64(score.(float64)), dao.KV{Key: "UserInfoID", Value: userInfo.ID})
 		if err != nil {
-			as.Success = false
+			as.Code = result.ActionFail
 			as.Message = err.Error()
 		} else {
 			controller.User.ChangeMap(dao.Orm(), userInfo.ID, &dao.UserInfo{}, map[string]interface{}{"DaySignTime": userInfo.DaySignTime, "DaySignCount": userInfo.DaySignCount})
@@ -190,7 +191,7 @@ func (controller *UserController) userInfoDaySignAction(context *gweb.Context) g
 		return &gweb.JsonResult{Data: &as}
 
 	} else {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("暂时无法打卡"), "OK", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("暂时无法打卡"), "OK", nil)}
 	}
 
 }
@@ -258,5 +259,5 @@ func (controller *UserController) userInfoAction(context *gweb.Context) gweb.Res
 
 	context.Session.Attributes.Put(play.SessionStore, &store)
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: results}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: results}}
 }

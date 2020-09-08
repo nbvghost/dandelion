@@ -99,59 +99,6 @@ func init() {
 
 }
 
-type Pager struct {
-	Data   interface{}
-	Total  int
-	Limit  int
-	Offset int
-}
-
-//var dbMap *gorp.DbMap
-type ActionStatus struct {
-	Success bool
-	Message string
-	Data    interface{}
-}
-
-func (as *ActionStatus) SmartSuccessData(data interface{}) *ActionStatus {
-	as.Message = "SUCCESS"
-	as.Success = true
-	as.Data = data
-	return as
-}
-func (as *ActionStatus) SmartError(err error, successTxt string, data interface{}) *ActionStatus {
-
-	if err == nil {
-		as.Message = successTxt
-		as.Success = true
-		as.Data = data
-	} else {
-		as.Message = err.Error()
-		as.Success = false
-		as.Data = data
-	}
-	return as
-}
-func (as *ActionStatus) Smart(success bool, s string, f string) *ActionStatus {
-	as.Success = success
-	if success {
-		as.Message = s
-	} else {
-		as.Message = f
-	}
-	return as
-}
-func (as *ActionStatus) SmartData(success bool, s string, f string, data interface{}) *ActionStatus {
-	as.Success = success
-	if success {
-		as.Message = s
-		as.Data = data
-	} else {
-		as.Message = f
-	}
-	return as
-}
-
 type IDataBaseFace interface {
 	TableName() string
 }

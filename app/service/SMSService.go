@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/gweb/tool/encryption"
 	"io/ioutil"
 	"net/http"
@@ -119,7 +120,7 @@ func (s SMSService) SendAliyunSms(ParamMap map[string]interface{}, TemplateCode 
 	}
 
 }
-func (s SMSService) SendIDCode(Code string, tel string) (bool, string) {
+func (s SMSService) SendIDCode(Code string, tel string) (result.ActionResultCode, string) {
 
 	params := url.Values{}
 	params.Add("app_key", "24807838")
@@ -157,23 +158,23 @@ func (s SMSService) SendIDCode(Code string, tel string) (bool, string) {
 
 	//map[error_response:map[code:15 msg:Remote service error sub_code:isv.BUSINESS_LIMIT_CONTROL sub_msg:触发分钟级流控Permits:1 request_id:z2b5hq31ty7v]]
 	//map[alibaba_aliqin_fc_sms_num_send_response:map[result:map[err_code:0 model:465323720574031803^0 msg:OK success:true] request_id:zioman9yylzz]]
-	result := make(map[string]interface{})
-	err = json.Unmarshal(b, &result)
+	Result := make(map[string]interface{})
+	err = json.Unmarshal(b, &Result)
 	glog.Trace(err)
 	//fmt.Println(result)
-	if result["error_response"] != nil {
-		var dd = result["error_response"].(map[string]interface{})["sub_msg"].(string)
-		return false, dd
+	if Result["error_response"] != nil {
+		var dd = Result["error_response"].(map[string]interface{})["sub_msg"].(string)
+		return result.ActionFail, dd
 	} else {
-		if result["alibaba_aliqin_fc_sms_num_send_response"] != nil {
-			_resu := result["alibaba_aliqin_fc_sms_num_send_response"].(map[string]interface{})["result"].(map[string]interface{})["success"].(bool)
+		if Result["alibaba_aliqin_fc_sms_num_send_response"] != nil {
+			_resu := Result["alibaba_aliqin_fc_sms_num_send_response"].(map[string]interface{})["result"].(map[string]interface{})["success"].(bool)
 			if _resu {
-				return true, ""
+				return result.ActionOK, ""
 			} else {
-				return false, "短信发送过快"
+				return result.ActionFail, "短信发送过快"
 			}
 		} else {
-			return true, ""
+			return result.ActionOK, ""
 		}
 
 	}

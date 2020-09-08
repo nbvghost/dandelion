@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"github.com/nbvghost/dandelion/app/result"
 	"net/url"
 
 	"github.com/nbvghost/glog"
@@ -95,19 +96,19 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 
 		//fmt.Println(item)
 		err = controller.Goods.Add(Orm, item)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
 	case "change_goods_type":
 		item := &dao.GoodsType{}
 		err := util.RequestBodyToJSON(context.Request.Body, item)
 		glog.Trace(err)
 		err = controller.Goods.ChangeModel(Orm, item.ID, &dao.GoodsType{Name: item.Name})
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 
 	case "get_goods_type_child":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
 		var goods dao.GoodsTypeChild
 		controller.Goods.Get(Orm, ID, &goods)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", goods)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", goods)}
 	case "del_goods_type_child":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
 		return &gweb.JsonResult{Data: controller.Goods.DeleteGoodsTypeChild(ID)}
@@ -117,25 +118,25 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		glog.Trace(err)
 		//fmt.Println(item)
 		err = controller.Goods.Add(Orm, item)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
 	case "change_goods_type_child":
 		item := &dao.GoodsTypeChild{}
 		err := util.RequestBodyToJSON(context.Request.Body, item)
 		glog.Trace(err)
 		err = controller.Goods.ChangeModel(Orm, item.ID, &dao.GoodsTypeChild{Name: item.Name, Image: item.Image})
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 	case "list_goods_type_child":
 		var gts []dao.GoodsTypeChild
 		controller.Goods.FindAll(Orm, &gts)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", gts)}
 	case "list_goods_type_child_id":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
 		gts := controller.Goods.ListAllGoodsTypeChild(ID)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", gts)}
 
 	case "list_goods_type_all":
 		//gts := controller.Goods.ListGoodsType()
-		//return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
+		//return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", gts)}
 	case "list_goods_type":
 		dts := &dao.Datatables{}
 		util.RequestBodyToJSON(context.Request.Body, dts)
@@ -151,7 +152,7 @@ func (controller *Controller) giveVoucherSaveAction(context *gweb.Context) gweb.
 	item := dao.GiveVoucher{}
 	util.RequestBodyToJSON(context.Request.Body, &item)
 	err := controller.GiveVoucher.SaveItem(item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
 }
 func (controller *Controller) giveVoucherListAction(context *gweb.Context) gweb.Result {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
@@ -166,21 +167,21 @@ func (controller *Controller) configurationChangeAction(context *gweb.Context) g
 	item := dao.Configuration{}
 	util.RequestBodyToJSON(context.Request.Body, &item)
 	err := controller.Configuration.ChangeConfiguration(0, item.K, item.V)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 }
 func (controller *Controller) configurationListAction(context *gweb.Context) gweb.Result {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	var ks []uint64
 	util.RequestBodyToJSON(context.Request.Body, &ks)
 	list := controller.Configuration.GetConfigurations(0, ks)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", list)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", list)}
 }
 func (controller *Controller) rankAddAction(context *gweb.Context) gweb.Result {
 
 	rank := dao.Rank{}
 	util.RequestBodyToJSON(context.Request.Body, &rank)
 	err := controller.Rank.AddRank(rank)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
 }
 func (controller *Controller) rankListAction(context *gweb.Context) gweb.Result {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
@@ -196,7 +197,7 @@ func (controller *Controller) rankDeleteAction(context *gweb.Context) gweb.Resul
 
 	err := controller.Rank.Delete(dao.Orm(), &dao.Rank{}, RankID)
 
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}
 }
 func (controller *Controller) ListAllTableDatas(context *gweb.Context) gweb.Result {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
@@ -216,17 +217,17 @@ func (controller *Controller) addArticlePage(context *gweb.Context) gweb.Result 
 	result := &gweb.JsonResult{}
 	switch action {
 	case "list":
-		result.Data = &dao.ActionStatus{true, "ok", this.ArticleType.FindCategory()}
+		result.Data = &result.ActionResult{true, "ok", this.ArticleType.FindCategory()}
 	case "add":
 		context.Request.ParseForm()
 		label := context.Request.Form.Get("label")
 		_, su := this.ArticleType.AddCategory(label)
-		result.Data = (&dao.ActionStatus{}).Smart(su, "添加成功", "添加失败,")
+		result.Data = (&result.ActionResult{}).Smart(su, "添加成功", "添加失败,")
 	case "del":
 		context.Request.ParseForm()
 		id, _ := strconv.ParseUint(context.Request.Form.Get("id"), 10, 64)
 		this.ArticleType.DelCategory(id)
-		result.Data = &dao.ActionStatus{true, "删除成功", nil}
+		result.Data = &result.ActionResult{true, "删除成功", nil}
 	}
 
 	return result
@@ -234,18 +235,18 @@ func (controller *Controller) addArticlePage(context *gweb.Context) gweb.Result 
 
 func (controller *Controller) adminAction(context *gweb.Context) gweb.Result {
 	action := context.Request.URL.Query().Get("action")
-	result := &gweb.JsonResult{}
+	Result := &gweb.JsonResult{}
 	switch action {
 	//list del
 	case play.ActionKey_list:
-		result.Data = &dao.ActionStatus{true, "ok", controller.Admin.FindAdmin()}
+		Result.Data = &result.ActionResult{result.ActionOK, "ok", controller.Admin.FindAdmin()}
 	case play.ActionKey_del:
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("id"), 10, 64)
-		result.Data = controller.Admin.DelAdmin(ID)
+		Result.Data = controller.Admin.DelAdmin(ID)
 	case play.ActionKey_get:
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("id"), 10, 64)
 		admin := controller.Admin.GetAdmin(ID)
-		result.Data = &dao.ActionStatus{true, "ok", admin}
+		Result.Data = &result.ActionResult{result.ActionOK, "ok", admin}
 	case play.ActionKey_change:
 		context.Request.ParseForm()
 		Name := context.Request.Form.Get("Account")
@@ -255,9 +256,9 @@ func (controller *Controller) adminAction(context *gweb.Context) gweb.Result {
 		ID, _ := strconv.ParseUint(context.Request.Form.Get("ID"), 10, 64)
 
 		if err := controller.Admin.ChangeAdmin(Name, Password, ID); err != nil {
-			result.Data = &dao.ActionStatus{false, "修改失败", nil}
+			Result.Data = &result.ActionResult{result.ActionFail, "修改失败", nil}
 		} else {
-			result.Data = &dao.ActionStatus{true, "修改成功", nil}
+			Result.Data = &result.ActionResult{result.ActionOK, "修改成功", nil}
 		}
 
 	case play.ActionKey_add:
@@ -267,46 +268,46 @@ func (controller *Controller) adminAction(context *gweb.Context) gweb.Result {
 		Domain := context.Request.Form.Get("Domain")
 		//Email := context.Request.Form.Get("Email")
 		//Tel := context.Request.Form.Get("Tel")
-		result.Data = controller.Admin.AddAdmin(Name, Password, Domain)
+		Result.Data = controller.Admin.AddAdmin(Name, Password, Domain)
 	}
-	return result
+	return Result
 }
 func (controller *Controller) articleAction(context *gweb.Context) gweb.Result {
 
 	action := context.Request.URL.Query().Get("action")
-	result := &gweb.JsonResult{}
+	Result := &gweb.JsonResult{}
 	switch action {
 	case "listByCategory":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("id"), 10, 64)
 		d := controller.Content.FindContentByContentSubTypeID(ID)
-		result.Data = &dao.ActionStatus{Success: true, Message: "SUCCESS", Data: d}
+		Result.Data = &result.ActionResult{Code: result.ActionOK, Message: "SUCCESS", Data: d}
 	case "add":
 		context.Request.ParseForm()
 		jsonText := context.Request.Form.Get("json")
 		article := &dao.Content{}
 		err := json.Unmarshal([]byte(jsonText), article)
 		glog.Error(err)
-		result.Data = controller.Content.AddArticle(article)
+		Result.Data = controller.Content.AddContent(article)
 	case "change":
 		context.Request.ParseForm()
 		jsonText := context.Request.Form.Get("json")
 		article := &dao.Content{}
 		err := json.Unmarshal([]byte(jsonText), article)
 		glog.Error(err)
-		controller.Content.ChangeArticle(article)
-		result.Data = &dao.ActionStatus{true, "SUCCESS", article}
+		controller.Content.ChangeContent(article)
+		Result.Data = &result.ActionResult{result.ActionOK, "SUCCESS", article}
 	case "one":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("id"), 10, 64)
-		article := controller.Content.GetArticle(ID)
-		result.Data = &dao.ActionStatus{true, "SUCCESS", article}
+		article := controller.Content.GetContent(ID)
+		Result.Data = &result.ActionResult{result.ActionOK, "SUCCESS", article}
 	case "del":
 		context.Request.ParseForm()
 		id, _ := strconv.ParseUint(context.Request.Form.Get("id"), 10, 64)
-		controller.Content.DelArticle(id)
-		result.Data = &dao.ActionStatus{true, "删除成功", nil}
+		controller.Content.DelContent(id)
+		Result.Data = &result.ActionResult{result.ActionOK, "删除成功", nil}
 	}
 
-	return result
+	return Result
 }
 func (controller *Controller) articlePage(context *gweb.Context) gweb.Result {
 

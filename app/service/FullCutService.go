@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/util"
 	"strconv"
@@ -31,15 +32,15 @@ func (service FullCutService) SaveItem(context *gweb.Context) gweb.Result {
 	item := &dao.FullCut{}
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
 	item.OID = company.ID
 	if Orm.NewRecord(item) {
 		err = service.Add(Orm, item)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
 	} else {
 		err = service.Save(Orm, item)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 	}
 
 }
@@ -48,7 +49,7 @@ func (service FullCutService) GetItem(context *gweb.Context) gweb.Result {
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	item := &dao.FullCut{}
 	err := service.Get(Orm, ID, item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", item)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", item)}
 }
 func (service FullCutService) DataTablesItem(context *gweb.Context) gweb.Result {
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
@@ -65,5 +66,5 @@ func (service FullCutService) DeleteItem(context *gweb.Context) gweb.Result {
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	item := &dao.FullCut{}
 	err := service.Delete(Orm, item, ID)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}
 }

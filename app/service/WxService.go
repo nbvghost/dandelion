@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/gweb/tool/encryption"
 
@@ -212,15 +213,15 @@ func (entity WxService) MiniProgramInfo(Code, AppID, AppSecret string) (err erro
 }
 
 //新用户加入，绑定上下级关系
-func (entity WxService) NewUserJoinNotify(NewUser dao.User, notifyUser dao.User) *dao.ActionStatus {
+func (entity WxService) NewUserJoinNotify(NewUser dao.User, notifyUser dao.User) *result.ActionResult {
 
 	userService := UserService{}
 
-	as := &dao.ActionStatus{}
+	as := &result.ActionResult{}
 
 	userFormID := userService.GetFromIDs(notifyUser.ID)
 	if userFormID.ID == 0 {
-		as.Success = false
+		as.Code = result.ActionFail
 		as.Message = "没有找到，用户的formid"
 	} else {
 
@@ -252,7 +253,7 @@ func (entity WxService) NewUserJoinNotify(NewUser dao.User, notifyUser dao.User)
 
 		var errcode int
 		as, errcode = entity.SendUniformMessage(sendData)
-		if as.Success || errcode == 41028 {
+		if as.Code == result.ActionOK || errcode == 41028 {
 			userService.Delete(dao.Orm(), &dao.UserFormIds{}, userFormID.ID)
 		}
 
@@ -262,10 +263,10 @@ func (entity WxService) NewUserJoinNotify(NewUser dao.User, notifyUser dao.User)
 }
 
 //发货通知
-func (entity WxService) OrderDeliveryNotify(Order dao.Orders) *dao.ActionStatus {
+func (entity WxService) OrderDeliveryNotify(Order dao.Orders) *result.ActionResult {
 
 	if Order.ID == 0 {
-		return &dao.ActionStatus{Success: false, Message: "找不到订单", Data: nil}
+		return &result.ActionResult{Code: result.ActionFail, Message: "找不到订单", Data: nil}
 	}
 
 	userService := UserService{}
@@ -273,7 +274,7 @@ func (entity WxService) OrderDeliveryNotify(Order dao.Orders) *dao.ActionStatus 
 	var notifyUser dao.User
 	userService.Get(dao.Orm(), Order.UserID, &notifyUser)
 
-	var as *dao.ActionStatus
+	var as *result.ActionResult
 
 	weapp_template_msg_data := make(map[string]interface{})
 	weapp_template_msg_data["page"] = "pages/user/user"
@@ -311,21 +312,21 @@ func (entity WxService) OrderDeliveryNotify(Order dao.Orders) *dao.ActionStatus 
 /*
 @slUser 收入的用户
 */
-func (entity WxService) INComeNotify(slUser dao.User, itemName string, timeText string, typeText string) *dao.ActionStatus {
+func (entity WxService) INComeNotify(slUser dao.User, itemName string, timeText string, typeText string) *result.ActionResult {
 	//
 
 	if slUser.ID == 0 {
-		return &dao.ActionStatus{Success: false, Message: "用户不存在", Data: nil}
+		return &result.ActionResult{Code: result.ActionFail, Message: "用户不存在", Data: nil}
 	}
 	userService := UserService{}
 	//var notifyUser dao.User
 	//entity.User.Get(dao.Orm(), slUser.SuperiorID, &notifyUser)
 
-	var as = &dao.ActionStatus{Success: false}
+	var as = &result.ActionResult{Code: result.ActionFail}
 
 	userFormID := userService.GetFromIDs(slUser.ID)
 	if userFormID.ID == 0 {
-		as.Success = false
+		as.Code = result.ActionFail
 		as.Message = "没有找到，用户的formid"
 
 	} else {
@@ -349,7 +350,7 @@ func (entity WxService) INComeNotify(slUser dao.User, itemName string, timeText 
 
 		var errcode int
 		as, errcode = entity.SendUniformMessage(sendData)
-		if as.Success || errcode == 41028 {
+		if as.Code == result.ActionOK || errcode == 41028 {
 			userService.Delete(dao.Orm(), &dao.UserFormIds{}, userFormID.ID)
 		}
 
@@ -359,16 +360,16 @@ func (entity WxService) INComeNotify(slUser dao.User, itemName string, timeText 
 }
 
 //新订单
-func (entity WxService) NewOrderNotify(Order dao.Orders) *dao.ActionStatus {
+func (entity WxService) NewOrderNotify(Order dao.Orders) *result.ActionResult {
 
 	if Order.ID == 0 {
-		return &dao.ActionStatus{Success: false, Message: "找不到订单", Data: nil}
+		return &result.ActionResult{Code: result.ActionFail, Message: "找不到订单", Data: nil}
 	}
 	userService := UserService{}
 	var notifyUser dao.User
 	userService.Get(dao.Orm(), Order.UserID, &notifyUser)
 
-	var as *dao.ActionStatus
+	var as *result.ActionResult
 
 	weapp_template_msg_data := make(map[string]interface{})
 	weapp_template_msg_data["page"] = "pages/user/user"
@@ -414,7 +415,7 @@ func (entity WxService) NewOrderNotify(Order dao.Orders) *dao.ActionStatus {
 
 	return as
 }
-func (entity WxService) SendUniformMessage(sendData map[string]interface{}) (*dao.ActionStatus, int) {
+func (entity WxService) SendUniformMessage(sendData map[string]interface{}) (*result.ActionResult, int) {
 
 	//gzh := entity.MiniWeb()
 	xcx := entity.MiniProgram()
@@ -427,7 +428,7 @@ func (entity WxService) SendUniformMessage(sendData map[string]interface{}) (*da
 	respones, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/uniform_send?access_token="+access_token, "application/json", strReader)
 	glog.Error(err)
 	if err != nil {
-		return &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}, -1
+		return &result.ActionResult{Code: result.ActionFail, Message: err.Error(), Data: nil}, -1
 	}
 	defer respones.Body.Close()
 	body, err := ioutil.ReadAll(respones.Body)
@@ -438,13 +439,13 @@ func (entity WxService) SendUniformMessage(sendData map[string]interface{}) (*da
 	glog.Error(err)
 	if mapData["errcode"] != nil {
 		if mapData["errcode"].(float64) == 0 {
-			return &dao.ActionStatus{Success: true, Message: "发送成功", Data: nil}, 0
+			return &result.ActionResult{Code: result.ActionOK, Message: "发送成功", Data: nil}, 0
 		}
 	}
-	return &dao.ActionStatus{Success: false, Message: mapData["errmsg"].(string), Data: nil}, int(mapData["errcode"].(float64))
+	return &result.ActionResult{Code: result.ActionFail, Message: mapData["errmsg"].(string), Data: nil}, int(mapData["errcode"].(float64))
 
 }
-func (entity WxService) SendWXMessage(sendData map[string]interface{}) *dao.ActionStatus {
+func (entity WxService) SendWXMessage(sendData map[string]interface{}) *result.ActionResult {
 	b, err := json.Marshal(sendData)
 	glog.Error(err)
 
@@ -455,7 +456,7 @@ func (entity WxService) SendWXMessage(sendData map[string]interface{}) *dao.Acti
 	respones, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token="+access_token, "application/json", strReader)
 	glog.Error(err)
 	if err != nil {
-		return &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}
+		return &result.ActionResult{Code: result.ActionFail, Message: err.Error(), Data: nil}
 	}
 	defer respones.Body.Close()
 	body, err := ioutil.ReadAll(respones.Body)
@@ -466,16 +467,16 @@ func (entity WxService) SendWXMessage(sendData map[string]interface{}) *dao.Acti
 	glog.Error(err)
 	if mapData["errcode"] != nil {
 		if mapData["errcode"].(float64) == 0 {
-			return &dao.ActionStatus{Success: true, Message: "发送成功", Data: nil}
+			return &result.ActionResult{Code: result.ActionOK, Message: "发送成功", Data: nil}
 		} else {
 			//mapData["errcode"].(float64)
-			return &dao.ActionStatus{Success: false, Message: mapData["errmsg"].(string), Data: nil}
+			return &result.ActionResult{Code: result.ActionFail, Message: mapData["errmsg"].(string), Data: nil}
 		}
 	}
-	return &dao.ActionStatus{Success: false, Message: mapData["errmsg"].(string), Data: nil}
+	return &result.ActionResult{Code: result.ActionFail, Message: mapData["errmsg"].(string), Data: nil}
 
 }
-func (entity WxService) Order(OrderNo string, title, description string, detail, openid string, IP string, Money uint64, attach string, WxConfig dao.WxConfig) (Success bool, Message string, result WxOrderResult) {
+func (entity WxService) Order(OrderNo string, title, description string, detail, openid string, IP string, Money uint64, attach string, WxConfig dao.WxConfig) (Success result.ActionResultCode, Message string, wxResult WxOrderResult) {
 
 	//wxConfig := entity.GetWxConfig(WxConfigID)
 
@@ -521,35 +522,35 @@ func (entity WxService) Order(OrderNo string, title, description string, detail,
 	respones, err := http.Post("https://api.mch.weixin.qq.com/pay/unifiedorder", "text/xml", strReader)
 	glog.Error(err)
 	if err != nil {
-		return false, err.Error(), WxOrderResult{}
+		return result.ActionFail, err.Error(), WxOrderResult{}
 	}
 
 	b, err := ioutil.ReadAll(respones.Body)
 	glog.Error(err)
 	if err != nil {
-		return false, err.Error(), WxOrderResult{}
+		return result.ActionFail, err.Error(), WxOrderResult{}
 	}
 	//fmt.Println(err)
 	//fmt.Println(string(b))
 
-	err = xml.Unmarshal(b, &result)
+	err = xml.Unmarshal(b, &wxResult)
 	if err != nil {
-		return false, "支付网关返回结果出错", WxOrderResult{}
+		return result.ActionFail, "支付网关返回结果出错", WxOrderResult{}
 	}
 
-	if !strings.EqualFold(result.Return_code, "SUCCESS") {
-		//return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: resultXML.Return_msg, Data: nil}}
-		return false, result.Return_msg, WxOrderResult{}
+	if !strings.EqualFold(wxResult.Return_code, "SUCCESS") {
+		//return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: resultXML.Return_msg, Data: nil}}
+		return result.ActionFail, wxResult.Return_msg, WxOrderResult{}
 	}
 
-	if !strings.EqualFold(result.Result_code, "SUCCESS") {
-		//return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: resultXML.Err_code_des, Data: nil}}
-		return false, result.Err_code_des, WxOrderResult{}
+	if !strings.EqualFold(wxResult.Result_code, "SUCCESS") {
+		//return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: resultXML.Err_code_des, Data: nil}}
+		return result.ActionFail, wxResult.Err_code_des, WxOrderResult{}
 	}
 
-	return true, "下单成功", result
+	return result.ActionOK, "下单成功", wxResult
 }
-func (entity WxService) MPOrder(OrderNo string, title, description string, ogs []dao.OrdersGoods, openid string, IP string, Money uint64, attach string) (Success bool, Message string, result WxOrderResult) {
+func (entity WxService) MPOrder(OrderNo string, title, description string, ogs []dao.OrdersGoods, openid string, IP string, Money uint64, attach string) (Success result.ActionResultCode, Message string, result WxOrderResult) {
 
 	CostGoodsPrice := uint64(0)
 
@@ -621,7 +622,7 @@ func (entity WxService) ChangeWxConfig(DB *gorm.DB, ID uint64, Value dao.WxConfi
 	glog.Error(err)
 	return wx
 }*/
-func (entity WxService) MWQRCodeTemp(OID uint64, UserID uint64, qrtype, params string) *dao.ActionStatus {
+func (entity WxService) MWQRCodeTemp(OID uint64, UserID uint64, qrtype, params string) *result.ActionResult {
 
 	//user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
@@ -645,17 +646,17 @@ func (entity WxService) MWQRCodeTemp(OID uint64, UserID uint64, qrtype, params s
 	//postData.Add("scene","sdfsd")
 	resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/qrcode/create?access_token="+access_token, "application/json", body)
 	if err != nil {
-		return &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}
+		return &result.ActionResult{Code: result.ActionFail, Message: err.Error(), Data: nil}
 	}
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}
+		return &result.ActionResult{Code: result.ActionFail, Message: err.Error(), Data: nil}
 	}
 	//fmt.Println(string(b))
 	defer resp.Body.Close()
 	path := tool.WriteTempFile(b, "image/png")
-	return &dao.ActionStatus{Success: true, Message: "", Data: path}
+	return &result.ActionResult{Code: result.ActionOK, Message: "", Data: path}
 
 }
 

@@ -86,8 +86,8 @@ func (self OrganizationService) ChangeOrganization(ID uint64, shop *dao.Organiza
 	organization := self.FindByDomain(dao.Orm(), domain)
 	if organization.ID == 0 {
 		//context.Response.Header().Add("Login-Status", "0")
-		//context.Response.Write([]byte(util.StructToJSON(&dao.ActionStatus{Success: false, Message: "找不到组织信息", Data: nil})))
-		return false, &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "找不到组织信息", Data: nil}}
+		//context.Response.Write([]byte(util.StructToJSON(&result.ActionResult{Code: result.ActionFail, Message: "找不到组织信息", Data: nil})))
+		return false, &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: "找不到组织信息", Data: nil}}
 	}
 
 	if Context.Session.Attributes.Get(play.SessionOrganization) == nil {

@@ -36,7 +36,7 @@ func orderAction(context *gweb.Context) gweb.Result {
 		for _, value := range _carts {
 			fmt.Println(value)
 		}*/
-		//result.Data = (&dao.ActionStatus{}).SmartSuccessData(carts)
+		//result.Data = (&result.ActionResult{}).SmartSuccessData(carts)
 	case "Pay":
 		/* ShopID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ShopID"), 10, 64)
 

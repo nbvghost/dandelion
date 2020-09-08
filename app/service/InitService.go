@@ -113,11 +113,11 @@ func init() {
 	AdminService{}.AddAdmin("admin", "274455411", "")
 
 	contentTypeList := []dao.ContentType{
-		{Type: "contents", Label: "文章列表"},
-		{Type: "content", Label: "独立文章"},
-		{Type: "index", Label: "首页"},
-		{Type: "gallery", Label: "画廊"},
-		{Type: "products", Label: "产品"},
+		{Type: dao.ContentTypeContents, Label: "文章列表"},
+		{Type: dao.ContentTypeContent, Label: "独立文章"},
+		{Type: dao.ContentTypeIndex, Label: "首页"},
+		{Type: dao.ContentTypeGallery, Label: "画廊"},
+		{Type: dao.ContentTypeProducts, Label: "产品"},
 	}
 	for index := range contentTypeList {
 		var _contenttype = contentTypeList[index]

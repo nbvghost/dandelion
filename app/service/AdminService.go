@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/util"
 	"github.com/nbvghost/gweb/tool/encryption"
@@ -30,22 +31,22 @@ func (service AdminService) AddItem(context *gweb.Context) gweb.Result {
 	item.OID = admin.OID
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
 
 	if strings.EqualFold(item.Account, "") {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("账号不允许为空"), "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("账号不允许为空"), "", nil)}
 	}
 
 	item.Account = strings.ToLower(item.Account)
 	item.PassWord = encryption.Md5ByString(item.PassWord)
 
 	if strings.EqualFold(item.Account, "admin") || strings.EqualFold(item.Account, "manager") || strings.EqualFold(item.Account, "administrator") {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("此账号不允许注册"), "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("此账号不允许注册"), "", nil)}
 	}
 
 	err = service.Add(dao.Orm(), item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
 }
 
 func (service AdminService) GetItem(context *gweb.Context) gweb.Result {
@@ -53,7 +54,7 @@ func (service AdminService) GetItem(context *gweb.Context) gweb.Result {
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	item := &dao.Admin{}
 	err := service.Get(dao.Orm(), ID, item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", item)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", item)}
 }
 func (service AdminService) ListItem(context *gweb.Context) gweb.Result {
 	admin := context.Session.Attributes.Get(play.SessionAdmin).(*dao.Admin)
@@ -70,14 +71,14 @@ func (service AdminService) DeleteItem(context *gweb.Context) gweb.Result {
 
 	err := service.Get(Orm, ID, item)
 	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
 	if strings.EqualFold(item.Account, "admin") {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("admin不能删除"), "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("admin不能删除"), "", nil)}
 	}
 
 	err = service.Delete(Orm, item, ID)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}
 }
 func (service AdminService) ChangeAuthority(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
@@ -85,7 +86,7 @@ func (service AdminService) ChangeAuthority(context *gweb.Context) gweb.Result {
 	item := &dao.Admin{}
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
 
 	var _admin dao.Admin
@@ -95,12 +96,12 @@ func (service AdminService) ChangeAuthority(context *gweb.Context) gweb.Result {
 		if strings.EqualFold(admin.Account, _admin.Account) {
 
 		} else {
-			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("无权修改admin账号权限"), "", nil)}
+			return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("无权修改admin账号权限"), "", nil)}
 		}
 	}
 
 	err = service.ChangeModel(Orm, ID, &dao.Admin{Authority: item.Authority})
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 }
 func (service AdminService) ChangePassWork(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
@@ -108,7 +109,7 @@ func (service AdminService) ChangePassWork(context *gweb.Context) gweb.Result {
 	item := &dao.Admin{}
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
 
 	var _admin dao.Admin
@@ -118,14 +119,14 @@ func (service AdminService) ChangePassWork(context *gweb.Context) gweb.Result {
 		if strings.EqualFold(admin.Account, _admin.Account) {
 
 		} else {
-			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("无权修改admin账号密码"), "", nil)}
+			return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("无权修改admin账号密码"), "", nil)}
 		}
 	}
 
 	item.PassWord = encryption.Md5ByString(item.PassWord)
 
 	err = service.ChangeModel(Orm, ID, item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 }
 
 func (service AdminService) DelAdmin(ID uint64) error {
@@ -142,9 +143,9 @@ func (service AdminService) FindAdmin() []dao.Admin {
 	return list
 }
 
-func (self AdminService) AddAdmin(Name, Password, Domain string) *dao.ActionStatus {
+func (self AdminService) AddAdmin(Name, Password, Domain string) *result.ActionResult {
 	//Orm := dao.Orm()
-	as := &dao.ActionStatus{}
+	as := &result.ActionResult{}
 
 	tx := dao.Orm().Begin()
 
@@ -156,7 +157,7 @@ func (self AdminService) AddAdmin(Name, Password, Domain string) *dao.ActionStat
 	admin.LastLoginAt = time.Now()
 	if haveAdmin := self.FindAdminByAccount(tx, admin.Account); haveAdmin.ID != 0 {
 		tx.Rollback()
-		as.Success = false
+		as.Code = result.ActionFail
 		as.Message = "这个账号已经存在"
 		return as
 	}
@@ -166,7 +167,7 @@ func (self AdminService) AddAdmin(Name, Password, Domain string) *dao.ActionStat
 	_org := self.Organization.FindByDomain(tx, Domain)
 	if _org.ID != 0 {
 		tx.Rollback()
-		as.Success = false
+		as.Code = result.ActionFail
 		as.Message = "域名：" + Domain + "已经被占用。"
 		return as
 	}
@@ -178,7 +179,7 @@ func (self AdminService) AddAdmin(Name, Password, Domain string) *dao.ActionStat
 
 	if err := self.Organization.AddOrganization(tx, shop); err != nil {
 		tx.Rollback()
-		as.Success = false
+		as.Code = result.ActionFail
 		as.Message = err.Error()
 		return as
 	}
@@ -187,12 +188,12 @@ func (self AdminService) AddAdmin(Name, Password, Domain string) *dao.ActionStat
 
 	if err := self.Add(tx, admin); err != nil {
 		tx.Rollback()
-		as.Success = false
+		as.Code = result.ActionFail
 		as.Message = err.Error()
 		return as
 	}
 
-	as.Success = true
+	as.Code = result.ActionOK
 	as.Message = "添加成功"
 
 	var _Configuration dao.Configuration
@@ -275,10 +276,10 @@ func (service AdminService) ManagerAction(context *gweb.Context) gweb.Result {
 		service.Get(Orm, dts.ID, sd)
 		if strings.EqualFold(sd.Account, "manager") {
 			//self.ChangeModel(Orm, dts.ID, &dao.Manager{Account: dts.Account, PassWord: tool.Md5(dts.PassWord)})
-			return &gweb.JsonResult{Data: dao.ActionStatus{Success: false, Message: "这个用户不能删除", Data: nil}}
+			return &gweb.JsonResult{Data: result.ActionResult{Code: result.ActionFail, Message: "这个用户不能删除", Data: nil}}
 		} else {
 			service.Delete(Orm, &dao.Admin{}, dts.ID)
-			return &gweb.JsonResult{Data: dao.ActionStatus{Success: true, Message: "删除成功", Data: nil}}
+			return &gweb.JsonResult{Data: result.ActionResult{Code: result.ActionOK, Message: "删除成功", Data: nil}}
 		}
 
 	case play.ActionKey_change:
@@ -287,7 +288,7 @@ func (service AdminService) ManagerAction(context *gweb.Context) gweb.Result {
 		util.RequestBodyToJSON(context.Request.Body, dts)
 
 		service.ChangeModel(Orm, dts.ID, &dao.Admin{PassWord: encryption.Md5ByString(dts.PassWord)})
-		return &gweb.JsonResult{Data: dao.ActionStatus{Success: true, Message: "修改成功", Data: nil}}
+		return &gweb.JsonResult{Data: result.ActionResult{Code: result.ActionOK, Message: "修改成功", Data: nil}}
 
 	case play.ActionKey_add:
 		dts := &dao.Admin{}
@@ -296,15 +297,15 @@ func (service AdminService) ManagerAction(context *gweb.Context) gweb.Result {
 		manager := context.Session.Attributes.Get(play.SessionAdmin).(*dao.Admin)
 
 		if !strings.EqualFold(manager.Account, "manager") {
-			return &gweb.JsonResult{Data: dao.ActionStatus{Success: false, Message: "您没有添加账号的权限", Data: nil}}
+			return &gweb.JsonResult{Data: result.ActionResult{Code: result.ActionFail, Message: "您没有添加账号的权限", Data: nil}}
 		}
 
 		sk := service.FindAdminByAccount(Orm, dts.Account)
 		if sk.ID == 0 {
 			service.Add(Orm, dts)
-			return &gweb.JsonResult{Data: dao.ActionStatus{Success: true, Message: "添加成功", Data: nil}}
+			return &gweb.JsonResult{Data: result.ActionResult{Code: result.ActionOK, Message: "添加成功", Data: nil}}
 		} else {
-			return &gweb.JsonResult{Data: dao.ActionStatus{Success: false, Message: "账号重复", Data: nil}}
+			return &gweb.JsonResult{Data: result.ActionResult{Code: result.ActionFail, Message: "账号重复", Data: nil}}
 		}
 	case "list":
 		dts := &dao.Datatables{}
@@ -313,7 +314,7 @@ func (service AdminService) ManagerAction(context *gweb.Context) gweb.Result {
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 	}
 
-	return &gweb.JsonResult{Data: dao.ActionStatus{Success: false, Message: "", Data: nil}}
+	return &gweb.JsonResult{Data: result.ActionResult{Code: result.ActionFail, Message: "", Data: nil}}
 }
 func (service AdminService) ChangeAdmin(Name, Password string, ID uint64) error {
 	Orm := dao.Orm()

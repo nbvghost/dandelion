@@ -2,6 +2,7 @@ package order
 
 import (
 	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"math"
 	"strconv"
@@ -61,21 +62,21 @@ func (controller *OrderController) ordersWxpayPackageAction(context *gweb.Contex
 	if strings.EqualFold(orders.PrepayID, "") == false {
 
 		outData := controller.Wx.GetWXAConfig(orders.PrepayID, WxConfig)
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: outData}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK", Data: outData}}
 
 	}
 
-	Success, Message, result := controller.Wx.MPOrder(orders.OrderNo, "购物", "商品消费", []dao.OrdersGoods{}, user.OpenID, ip, orders.TotalPayMoney, play.OrdersType_GoodsPackage)
-	if Success == false {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: Success, Message: Message, Data: result}}
+	Success, Message, Result := controller.Wx.MPOrder(orders.OrderNo, "购物", "商品消费", []dao.OrdersGoods{}, user.OpenID, ip, orders.TotalPayMoney, play.OrdersType_GoodsPackage)
+	if Success != result.ActionOK {
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: Success, Message: Message, Data: Result}}
 	}
 
-	outData := controller.Wx.GetWXAConfig(result.Prepay_id, WxConfig)
+	outData := controller.Wx.GetWXAConfig(Result.Prepay_id, WxConfig)
 
-	err := controller.Orders.ChangeMap(dao.Orm(), orders.ID, &dao.OrdersPackage{}, map[string]interface{}{"PrepayID": result.Prepay_id})
+	err := controller.Orders.ChangeMap(dao.Orm(), orders.ID, &dao.OrdersPackage{}, map[string]interface{}{"PrepayID": Result.Prepay_id})
 	glog.Error(err)
 	//outData["OrdersID"] = strconv.Itoa(int(orders.ID))
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: outData}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK", Data: outData}}
 
 }
 func (controller *OrderController) ordersWxpayAloneAction(context *gweb.Context) gweb.Result {
@@ -91,21 +92,21 @@ func (controller *OrderController) ordersWxpayAloneAction(context *gweb.Context)
 	if strings.EqualFold(orders.PrepayID, "") == false {
 
 		outData := controller.Wx.GetWXAConfig(orders.PrepayID, WxConfig)
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: outData}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK", Data: outData}}
 
 	}
 
-	Success, Message, result := controller.Wx.MPOrder(orders.OrderNo, "购物", "商品消费", []dao.OrdersGoods{}, user.OpenID, ip, orders.PayMoney, play.OrdersType_Goods)
-	if Success == false {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: Success, Message: Message, Data: result}}
+	Success, Message, Result := controller.Wx.MPOrder(orders.OrderNo, "购物", "商品消费", []dao.OrdersGoods{}, user.OpenID, ip, orders.PayMoney, play.OrdersType_Goods)
+	if Success != result.ActionOK {
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: Success, Message: Message, Data: Result}}
 	}
 
-	outData := controller.Wx.GetWXAConfig(result.Prepay_id, WxConfig)
+	outData := controller.Wx.GetWXAConfig(Result.Prepay_id, WxConfig)
 
-	err := controller.Orders.ChangeMap(dao.Orm(), orders.ID, &dao.Orders{}, map[string]interface{}{"PrepayID": result.Prepay_id})
+	err := controller.Orders.ChangeMap(dao.Orm(), orders.ID, &dao.Orders{}, map[string]interface{}{"PrepayID": Result.Prepay_id})
 	glog.Error(err)
 	//outData["OrdersID"] = strconv.Itoa(int(orders.ID))
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: outData}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK", Data: outData}}
 
 }
 func (controller *OrderController) expressInfoAction(context *gweb.Context) gweb.Result {
@@ -116,9 +117,9 @@ func (controller *OrderController) expressInfoAction(context *gweb.Context) gweb
 	LogisticCode := context.Request.FormValue("LogisticCode")
 	ShipperName := context.Request.FormValue("ShipperName")
 	//LogisticCode, ShipperName
-	result := controller.ExpressTemplate.GetExpressInfo(OrdersID, LogisticCode, ShipperName)
+	Result := controller.ExpressTemplate.GetExpressInfo(OrdersID, LogisticCode, ShipperName)
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: result}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: Result}}
 }
 
 func (controller *OrderController) orderChangeAction(context *gweb.Context) gweb.Result {
@@ -130,26 +131,26 @@ func (controller *OrderController) orderChangeAction(context *gweb.Context) gweb
 		ShipName := context.Request.FormValue("ShipName")
 		ShipNo := context.Request.FormValue("ShipNo")
 		err, info := controller.Orders.RefundInfo(OrdersGoodsID, ShipName, ShipNo)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, info, nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}
 	case "AskRefund":
 		OrdersGoodsID, _ := strconv.ParseUint(context.Request.FormValue("OrdersGoodsID"), 10, 64)
 		RefundInfoJson := context.Request.FormValue("RefundInfo")
 		var RefundInfo dao.RefundInfo
 		util.JSONToStruct(RefundInfoJson, &RefundInfo)
 		err, info := controller.Orders.AskRefund(OrdersGoodsID, RefundInfo)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, info, nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}
 	case "TakeDeliver":
 		ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
 		err, info := controller.Orders.TakeDeliver(ID)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, info, nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}
 	case "Cancel":
 		ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
 		err, info := controller.Orders.Cancel(ID)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, info, nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}
 
 	}
 
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("无法操作"), "OK", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("无法操作"), "OK", nil)}
 
 }
 func (controller *OrderController) ordersListAction(context *gweb.Context) gweb.Result {
@@ -164,9 +165,9 @@ func (controller *OrderController) ordersListAction(context *gweb.Context) gweb.
 	}
 
 	list, _ := controller.Orders.ListOrders(user.ID, 0, 0, StatusList, 10, 10*Index)
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: list}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: list}}
 	//fullcuts := controller.FullCut.FindOrderByAmountASC(service.Orm)
-	//return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "", fullcuts)}
+	//return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "", fullcuts)}
 }
 func (controller *OrderController) ordersGetListAction(context *gweb.Context) gweb.Result {
 
@@ -186,7 +187,7 @@ func (controller *OrderController) ordersGetListAction(context *gweb.Context) gw
 	//pack.CollageUsers = controller.Orders.FindOrdersGoodsByCollageUser(og.CollageNo)
 	//SELECT u.* FROM Orders o,OrdersGoods og,USER u WHERE og.CollageNo='9d262ef3926bc83f41258410239ce5ba' AND o.ID=og.OrdersID AND u.ID=o.UserID;
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: pack}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: pack}}
 }
 
 func (controller *OrderController) createOrdersAction(context *gweb.Context) gweb.Result {
@@ -219,7 +220,7 @@ func (controller *OrderController) createOrdersAction(context *gweb.Context) gwe
 
 			err, op := controller.Orders.AddOrdersPackage(TotalPrice, user.ID)
 			if err != nil {
-				return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
+				return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", nil)}
 			}
 			for _, value := range results {
 
@@ -252,7 +253,7 @@ func (controller *OrderController) createOrdersAction(context *gweb.Context) gwe
 
 				err := controller.Orders.AddOrders(&orders, oggs)
 				if err != nil {
-					return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
+					return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", nil)}
 				}
 				orderList = append(orderList, orders)
 			}
@@ -293,7 +294,7 @@ func (controller *OrderController) createOrdersAction(context *gweb.Context) gwe
 
 				err := controller.Orders.AddOrders(&orders, oggs)
 				if err != nil {
-					return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
+					return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", nil)}
 				}
 				orderList = append(orderList, orders)
 			}
@@ -307,28 +308,28 @@ func (controller *OrderController) createOrdersAction(context *gweb.Context) gwe
 		if strings.EqualFold(Type, "Collage") {
 
 			if OrdersGoodsLen != 1 || len(orderList) != 1 {
-				return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("订单数据有误，无法拼团"), "OK", nil)}
+				return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("订单数据有误，无法拼团"), "OK", nil)}
 			} else {
 
 				OrderNo := OutResult["OrderNo"].(string)
 				err := controller.Collage.AddCollageRecord(OrderNo, OrdersGoodsNo, No, user.ID)
-				return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
-				//return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
+				return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", nil)}
+				//return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", nil)}
 			}
 
 		}
 
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", OutResult)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", OutResult)}
 
 	} else {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: Error.Error(), Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: Error.Error(), Data: nil}}
 	}
 }
 func (controller *OrderController) collageRecordAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
 	Index, _ := strconv.Atoi(context.Request.URL.Query().Get("Index"))
 	list := controller.Orders.ListCollageRecord(user.ID, Index)
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: list}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK", Data: list}}
 }
 func (controller *OrderController) ordersConfirmListAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
@@ -348,7 +349,7 @@ func (controller *OrderController) ordersConfirmListAction(context *gweb.Context
 
 	Error, results, _ := controller.Orders.AnalyseOrdersGoodsList(user.ID, address, int(PostType), ogs)
 
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(Error, "OK", results)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(Error, "OK", results)}
 }
 func (controller *OrderController) ordersCartChangeAction(context *gweb.Context) gweb.Result {
 	context.Request.ParseForm()
@@ -358,7 +359,7 @@ func (controller *OrderController) ordersCartChangeAction(context *gweb.Context)
 	Quantity, _ := strconv.ParseUint(context.Request.FormValue("Quantity"), 10, 64)
 
 	err := controller.ShoppingCart.UpdateByUserIDAndID(user.ID, GSID, uint(Quantity))
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", nil)}
 }
 func (controller *OrderController) ordersCartDeleteAction(context *gweb.Context) gweb.Result {
 	context.Request.ParseForm()
@@ -374,12 +375,12 @@ func (controller *OrderController) ordersCartDeleteAction(context *gweb.Context)
 		IDs = append(IDs, ID)
 	}
 	err := controller.ShoppingCart.DeleteListByIDs(user.ID, IDs)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", nil)}
 }
 func (controller *OrderController) ordersCartListAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
 	err, list, _ := controller.ShoppingCart.FindShoppingCartListDetails(user.ID)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", list)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", list)}
 }
 func (controller *OrderController) ordersBuyCollageAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
@@ -391,11 +392,11 @@ func (controller *OrderController) ordersBuyCollageAction(context *gweb.Context)
 
 	if GoodsID != 0 && SpecificationID != 0 && Quantity != 0 {
 		err := controller.Orders.BuyCollageOrders(context.Session, user.ID, GoodsID, SpecificationID, uint(Quantity))
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "立即购买", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "立即购买", nil)}
 	} else {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("订单数据出错"), "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("订单数据出错"), "", nil)}
 	}
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("订单数据出错"), "", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("订单数据出错"), "", nil)}
 }
 func (controller *OrderController) ordersBuyAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
@@ -415,19 +416,19 @@ func (controller *OrderController) ordersBuyAction(context *gweb.Context) gweb.R
 				GSIDsList = append(GSIDsList, ID)
 			}
 			err := controller.Orders.AddCartOrdersByShoppingCartIDs(context.Session, user.ID, GSIDsList)
-			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+			return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 		} else {
-			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("没有相关ID"), "", nil)}
+			return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("没有相关ID"), "", nil)}
 		}
 	} else {
 		if GoodsID != 0 && SpecificationID != 0 && Quantity != 0 {
 			err := controller.Orders.BuyOrders(context.Session, user.ID, GoodsID, SpecificationID, uint(Quantity))
-			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "立即购买", nil)}
+			return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "立即购买", nil)}
 		} else {
-			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("订单数据出错"), "", nil)}
+			return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("订单数据出错"), "", nil)}
 		}
 	}
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("数据出错"), "", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("数据出错"), "", nil)}
 }
 func (controller *OrderController) ordersAddAction(context *gweb.Context) gweb.Result {
 
@@ -439,5 +440,5 @@ func (controller *OrderController) ordersAddAction(context *gweb.Context) gweb.R
 	Quantity, _ := strconv.ParseUint(context.Request.FormValue("Quantity"), 10, 64)
 
 	err := controller.Orders.AddCartOrders(user.ID, GoodsID, SpecificationID, uint(Quantity))
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "已添加到购物车", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "已添加到购物车", nil)}
 }

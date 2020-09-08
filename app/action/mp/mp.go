@@ -3,6 +3,7 @@ package mp
 import (
 	"fmt"
 	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/util"
 
@@ -35,8 +36,8 @@ func (controller InterceptorMp) Execute(context *gweb.Context) (bool, gweb.Resul
 
 	if context.Session.Attributes.Get(play.SessionUser) == nil {
 		//context.Response.Header().Add("Login-Status", "0")
-		//context.Response.Write([]byte(util.StructToJSON(&dao.ActionStatus{Success: false, Message: "没有登陆", Data: nil})))
-		return false, &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "没有登陆", Data: nil}}
+		//context.Response.Write([]byte(util.StructToJSON(&result.ActionResult{Code: result.ActionFail, Message: "没有登陆", Data: nil})))
+		return false, &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: "没有登陆", Data: nil}}
 	} else {
 		//return controller.Organization.ReadOrganization(context)
 		return true, nil
@@ -115,17 +116,17 @@ func (controller *Controller) readShareKeyAction(context *gweb.Context) gweb.Res
 	ShareKey := context.Request.URL.Query().Get("ShareKey")
 	UserID, ProductID := util.DecodeShareKey(ShareKey)
 
-	result := make(map[string]interface{})
-	result["UserID"] = UserID
-	result["ProductID"] = ProductID
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: result}}
+	Result := make(map[string]interface{})
+	Result["UserID"] = UserID
+	Result["ProductID"] = ProductID
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: Result}}
 }
 func (controller *Controller) configurationListAction(context *gweb.Context) gweb.Result {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	var ks []uint64
 	util.RequestBodyToJSON(context.Request.Body, &ks)
 	list := controller.Configuration.GetConfigurations(0, ks)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", list)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", list)}
 }
 func (controller *Controller) indexPage(context *gweb.Context) gweb.Result {
 
@@ -149,9 +150,9 @@ func (controller *Controller) verificationGetByVerificationNoAction(context *gwe
 	if verification.StoreID > 0 && verification.Quantity > 0 {
 		var store dao.Store
 		controller.Store.Get(dao.Orm(), verification.StoreID, &store)
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: store}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: store}}
 	} else {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "", Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: "", Data: nil}}
 	}
 
 }
@@ -188,12 +189,12 @@ func (controller *Controller) cardGetAction(context *gweb.Context) gweb.Result {
 		//postData.Add("scene","sdfsd")
 		resp, err := http.Post("https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token="+access_token, "application/json", body)
 		if err != nil {
-			return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}}
+			return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: err.Error(), Data: nil}}
 		}
 
 		b, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}}
+			return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: err.Error(), Data: nil}}
 		}
 
 		defer resp.Body.Close()
@@ -215,9 +216,9 @@ func (controller *Controller) cardGetAction(context *gweb.Context) gweb.Result {
 	results["HasQuantity"] = cardItem.Quantity - cardItem.UseQuantity
 
 	if (cardItem.Quantity - cardItem.UseQuantity) <= 0 {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "数量不足，无法核销", Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: "数量不足，无法核销", Data: nil}}
 	} else {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: results}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: results}}
 	}
 
 }
@@ -232,42 +233,42 @@ func (controller *Controller) shareScoreAction(context *gweb.Context) gweb.Resul
 		glog.Error(err)
 
 	}
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: nil}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: nil}}
 }
 func (controller *Controller) cardListAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
 	list := controller.CardItem.FindByUserID(user.ID)
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: list}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: list}}
 }
 func (controller *Controller) scoreGoodsExchangeAction(context *gweb.Context) gweb.Result {
 	//ScoreGoodsID
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
 	ScoreGoodsID, _ := strconv.ParseUint(context.PathParams["ScoreGoodsID"], 10, 64)
 	err := controller.ScoreGoods.Exchange(user.ID, ScoreGoodsID)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "兑换成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "兑换成功", nil)}
 }
 func (controller *Controller) scoreGoodsListAction(context *gweb.Context) gweb.Result {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	list := controller.ScoreGoods.ListScoreGoods()
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: list}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: list}}
 }
 
 /*func (controller *Controller) fullcutListAction(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	fullcuts := controller.FullCut.FindOrderByAmountASC(Orm)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "", fullcuts)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "", fullcuts)}
 }*/
 
 func (controller *Controller) goodsHotListAction(context *gweb.Context) gweb.Result {
 	index, _ := strconv.Atoi(context.Request.URL.Query().Get("index"))
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: controller.Goods.GoodsList(user.ID, "CountSale desc", index, "Hide=?", 0)}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: controller.Goods.GoodsList(user.ID, "CountSale desc", index, "Hide=?", 0)}}
 
-	//return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: controller.Goods.HotList()}}
+	//return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: controller.Goods.HotList()}}
 }
 func (controller *Controller) goodsAllListAction(context *gweb.Context) gweb.Result {
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: controller.Goods.AllList()}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: controller.Goods.AllList()}}
 }
 func (controller *Controller) goodsByGoodsIDAction(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
@@ -276,16 +277,16 @@ func (controller *Controller) goodsByGoodsIDAction(context *gweb.Context) gweb.R
 
 	goodsInfo := controller.Goods.GetGoods(Orm, ID)
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: goodsInfo}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: goodsInfo}}
 }
 func (controller *Controller) goodsTypeListAction(context *gweb.Context) gweb.Result {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: controller.Goods.ListAllGoodsType()}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: controller.Goods.ListAllGoodsType()}}
 }
 func (controller *Controller) goodsTypeChildListByGoodsTypeIDAction(context *gweb.Context) gweb.Result {
 	GoodsTypeID, _ := strconv.ParseUint(context.PathParams["GoodsTypeID"], 10, 64)
 	results := controller.Goods.ListGoodsTypeChild(GoodsTypeID)
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: results}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: results}}
 }
 func (controller *Controller) goodsChildByGoodsTypeIDAction(context *gweb.Context) gweb.Result {
 	GoodsTypeID, _ := strconv.ParseUint(context.PathParams["GoodsTypeID"], 10, 64)
@@ -303,14 +304,14 @@ func (controller *Controller) goodsChildByGoodsTypeIDAction(context *gweb.Contex
 		sqlWhere = fmt.Sprintf("GoodsTypeID=%v and GoodsTypeChildID=%v", GoodsTypeID, GoodsTypeChildID)
 	}
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: controller.Goods.GoodsList(user.ID, "UpdatedAt desc", Index, sqlWhere)}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: controller.Goods.GoodsList(user.ID, "UpdatedAt desc", Index, sqlWhere)}}
 
 	/*if GoodsTypeChildID==0{
 		results := controller.Goods.ListGoodsByGoodsTypeID(GoodsTypeID)
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: results}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: results}}
 	}else{
 		results := controller.Goods.ListGoodsChildByGoodsTypeID(GoodsTypeID, GoodsTypeChildID)
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: results}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: results}}
 	}*/
 
 }
@@ -333,14 +334,14 @@ func (controller *Controller) getLoginUserPhoneAction(context *gweb.Context) gwe
 		user.Tel = phoneInfo["phoneNumber"].(string)
 		controller.User.ChangeModel(Orm, user.ID, &dao.User{Tel: user.Tel})
 		context.Session.Attributes.Put(play.SessionUser, user)
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "绑定成功", Data: user}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "绑定成功", Data: user}}
 	} else {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "绑定失败", Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: "绑定失败", Data: nil}}
 	}
 }
 func (controller *Controller) getLoginUserAction(context *gweb.Context) gweb.Result {
 	if context.Session.Attributes.Get(play.SessionUser) == nil {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "", Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: "", Data: nil}}
 	} else {
 
 		user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
@@ -350,6 +351,6 @@ func (controller *Controller) getLoginUserAction(context *gweb.Context) gweb.Res
 		results := make(map[string]interface{})
 		results["User"] = user
 		results["MyShareKey"] = util.EncodeShareKey(user.ID, 0) //tool.Hashids{}.Encode(user.ID) //tool.CipherEncrypterData(strconv.Itoa(int(user.ID)))
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: results}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: results}}
 	}
 }

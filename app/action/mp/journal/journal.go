@@ -2,6 +2,7 @@ package journal
 
 import (
 	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service"
 	"github.com/nbvghost/dandelion/app/service/dao"
 
@@ -54,7 +55,7 @@ func (controller *JournalController) listLeveAction(context *gweb.Context) gweb.
 	results["leve5"] = leve5
 	results["leve6"] = leve6
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: results}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: results}}
 }
 func (controller *JournalController) listJournalAction(context *gweb.Context) gweb.Result {
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
@@ -63,5 +64,5 @@ func (controller *JournalController) listJournalAction(context *gweb.Context) gw
 	Orm := dao.Orm()
 	controller.User.FindOrderWhere(Orm, "CreatedAt desc", &list, &dao.UserJournal{UserID: user.ID})
 	//err := controller.Car.FindWhere(dao.Orm(), &list, &dao.CarRecord{CarID: CarID})
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", list)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", list)}
 }

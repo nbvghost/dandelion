@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/nbvghost/dandelion/app/result"
 	"log"
 	"strconv"
 
@@ -87,16 +88,16 @@ func (service GoodsService) OrdersStockManager(orders dao.Orders, isMinus bool) 
 	item := &dao.Specification{}
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
 	err = service.Add(Orm, item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
 }
 func (service GoodsService) ListSpecification(context *gweb.Context) gweb.Result {
 	GoodsID, _ := strconv.ParseUint(context.PathParams["GoodsID"], 10, 64)
 	var dts []dao.Specification
 	service.FindWhere(Orm, &dts, dao.Specification{GoodsID: GoodsID})
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: dts}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK", Data: dts}}
 }*/
 func (service GoodsService) DeleteSpecification(ID uint64) error {
 	Orm := dao.Orm()
@@ -109,10 +110,10 @@ func (service GoodsService) ChangeSpecification(context *gweb.Context) gweb.Resu
 	item := &dao.Specification{}
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
 	err = service.ChangeModel(Orm, GoodsID, item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 }
 func (service GoodsService) SaveGoods(goods dao.Goods, specifications []dao.Specification) error {
 	Orm := dao.Orm()
@@ -240,7 +241,7 @@ func (service GoodsService) GetGoods(DB *gorm.DB, ID uint64) dao.GoodsInfo {
 	//return DB.Model(target).Related(&dao.Specification{}).Where("ID=?", ID).First(target).Error
 }
 
-func (service GoodsService) DeleteGoods(ID uint64) *dao.ActionStatus {
+func (service GoodsService) DeleteGoods(ID uint64) *result.ActionResult {
 	Orm := dao.Orm()
 	tx := Orm.Begin()
 	err := service.Delete(tx, &dao.Goods{}, ID)
@@ -258,9 +259,9 @@ func (service GoodsService) DeleteGoods(ID uint64) *dao.ActionStatus {
 		}
 	}()
 
-	return (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)
+	return (&result.ActionResult{}).SmartError(err, "删除成功", nil)
 }
-func (service GoodsService) DeleteGoodsType(ID uint64) *dao.ActionStatus {
+func (service GoodsService) DeleteGoodsType(ID uint64) *result.ActionResult {
 	Orm := dao.Orm()
 	tx := Orm.Begin()
 	var gtcs []dao.GoodsTypeChild
@@ -273,7 +274,7 @@ func (service GoodsService) DeleteGoodsType(ID uint64) *dao.ActionStatus {
 			tx.Rollback()
 		}
 	} else {
-		return (&dao.ActionStatus{}).SmartError(err, "包含子类数据，不能删除", nil)
+		return (&result.ActionResult{}).SmartError(err, "包含子类数据，不能删除", nil)
 	}
 
 	defer func() {
@@ -281,9 +282,9 @@ func (service GoodsService) DeleteGoodsType(ID uint64) *dao.ActionStatus {
 			tx.Commit()
 		}
 	}()
-	return (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)
+	return (&result.ActionResult{}).SmartError(err, "删除成功", nil)
 }
-func (service GoodsService) DeleteGoodsTypeChild(GoodsTypeChildID uint64) *dao.ActionStatus {
+func (service GoodsService) DeleteGoodsTypeChild(GoodsTypeChildID uint64) *result.ActionResult {
 	Orm := dao.Orm()
 	tx := Orm.Begin()
 	tx.Model(&dao.Goods{GoodsTypeChildID: GoodsTypeChildID}).Updates(map[string]interface{}{"GoodsTypeChildID": 0})
@@ -297,7 +298,7 @@ func (service GoodsService) DeleteGoodsTypeChild(GoodsTypeChildID uint64) *dao.A
 		}
 	}()
 
-	return (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)
+	return (&result.ActionResult{}).SmartError(err, "删除成功", nil)
 }
 
 func (service GoodsService) DeleteTimeSellGoods(DB *gorm.DB, GoodsID uint64, OID uint64) error {

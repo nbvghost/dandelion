@@ -3,6 +3,7 @@ package account
 import (
 	"encoding/base64"
 	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/util"
@@ -151,9 +152,9 @@ func (controller *Controller) miniProgramLoginAction(context *gweb.Context) gweb
 		results["User"] = newUser
 		results["MyShareKey"] = util.EncodeShareKey(newUser.ID, 0) //tool.Hashids{}.Encode(newUser.ID)
 
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "登陆成功", Data: results}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "登陆成功", Data: results}}
 	} else {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
 
 }
@@ -176,10 +177,10 @@ func (controller *Controller) SMSAction(context *gweb.Context) gweb.Result {
 
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", nil)}
 	}
 	if context.Session.Attributes.Get(item.Tel) == nil {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "验证码不正确", Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: "验证码不正确", Data: nil}}
 	}
 	code := context.Session.Attributes.Get(item.Tel).(string)
 	//if strings.EqualFold(item.Code, code) {
@@ -190,16 +191,16 @@ func (controller *Controller) SMSAction(context *gweb.Context) gweb.Result {
 		glog.Trace(err)
 
 		if user.ID == 0 {
-			return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "没有找到用户", Data: nil}}
+			return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: "没有找到用户", Data: nil}}
 		} else {
 			user.Tel = item.Tel
 			err := controller.User.ChangeModel(Orm, user.ID, &dao.User{Tel: item.Tel})
 			glog.Trace(err)
-			return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: user}}
+			return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK", Data: user}}
 		}
 
 	} else {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "验证码不正确", Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: "验证码不正确", Data: nil}}
 	}
 
 }
@@ -218,7 +219,7 @@ func (controller *Controller) SMSCodeAction(context *gweb.Context) gweb.Result {
 
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", nil)}
 	}
 
 	texts := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
@@ -231,13 +232,13 @@ func (controller *Controller) SMSCodeAction(context *gweb.Context) gweb.Result {
 	code := texts[a] + texts[b] + texts[c] + texts[d] + texts[e]
 
 	su, txt := controller.SMS.SendIDCode(code, item.Tel)
-	if su {
+	if su == result.ActionOK {
 		context.Session.Attributes.Put(item.Tel, code)
 	} else {
 		context.Session.Attributes.Put(item.Tel, "")
 	}
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: su, Message: txt, Data: nil}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: su, Message: txt, Data: nil}}
 }
 
 func (controller *Controller) loginAction(context *gweb.Context) gweb.Result {
@@ -247,22 +248,22 @@ func (controller *Controller) loginAction(context *gweb.Context) gweb.Result {
 
 	account = strings.ToLower(account) //小写
 
-	as := &dao.ActionStatus{}
+	as := &result.ActionResult{}
 
 	admin := controller.Admin.FindAdminByAccount(dao.Orm(), account)
 
 	if admin.ID == 0 {
 
-		as.Success = false
+		as.Code = result.ActionFail
 		as.Message = "手机/邮箱/密码不正确！"
 	} else {
 		md5Password := encryption.Md5ByString(password)
 		if strings.EqualFold(admin.PassWord, md5Password) {
-			as.Success = true
+			as.Code = result.ActionOK
 			as.Message = ""
 			context.Session.Attributes.Put(play.SessionAdmin, admin)
 		} else {
-			as.Success = false
+			as.Code = result.ActionFail
 			as.Message = "手机/邮箱/密码不正确！"
 		}
 
@@ -291,22 +292,22 @@ func (controller *Controller) loginManagerAction(context *gweb.Context) gweb.Res
 
 	account = strings.ToLower(account) //小写
 
-	as := &dao.ActionStatus{}
+	as := &result.ActionResult{}
 
 	admin := controller.Manager.FindManagerByAccount(account)
 
 	if admin.ID == 0 {
-		as.Success = false
+		as.Code = result.ActionFail
 		as.Message = "密码不正确"
 	} else {
 		md5Password := encryption.Md5ByString(password)
 		if strings.EqualFold(admin.PassWord, md5Password) {
-			as.Success = true
+			as.Code = result.ActionOK
 			as.Message = "登陆成功"
 			//controller.Admin.ChangeModel(Orm, admin.ID, &dao.Admin{LastLoginAt: time.Now()})
 			context.Session.Attributes.Put(play.SessionManager, admin)
 		} else {
-			as.Success = false
+			as.Code = result.ActionFail
 			as.Message = "账号/手机/邮箱/密码不正确！"
 		}
 
@@ -321,17 +322,17 @@ func (controller *Controller) loginAdminAction(context *gweb.Context) gweb.Resul
 
 	account = strings.ToLower(account) //小写
 
-	as := &dao.ActionStatus{}
+	as := &result.ActionResult{}
 
 	admin := controller.Admin.FindAdminByAccount(Orm, account)
 
 	if admin.ID == 0 {
-		as.Success = false
+		as.Code = result.ActionFail
 		as.Message = "密码不正确"
 	} else {
 		md5Password := encryption.Md5ByString(password)
 		if strings.EqualFold(admin.PassWord, md5Password) {
-			as.Success = true
+			as.Code = result.ActionOK
 			as.Message = "登陆成功"
 			controller.Admin.ChangeModel(Orm, admin.ID, &dao.Admin{LastLoginAt: time.Now()})
 			context.Session.Attributes.Put(play.SessionAdmin, admin)
@@ -339,7 +340,7 @@ func (controller *Controller) loginAdminAction(context *gweb.Context) gweb.Resul
 			controller.Organization.Get(Orm, admin.OID, &_organization)
 			context.Session.Attributes.Put(play.SessionOrganization, &_organization)
 		} else {
-			as.Success = false
+			as.Code = result.ActionFail
 			as.Message = "账号/手机/邮箱/密码不正确！"
 		}
 
@@ -501,7 +502,7 @@ func (controller *Controller) sdfsda(context *gweb.Context) gweb.Result {
 }
 func (controller *Controller) updateUserInfoAction(context *gweb.Context) gweb.Result {
 	if context.Session.Attributes.Get(play.SessionUser) == nil {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "还没有登陆", Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "还没有登陆", Data: nil}}
 	}
 
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
@@ -524,8 +525,8 @@ func (controller *Controller) updateUserInfoAction(context *gweb.Context) gweb.R
 
 	err := controller.User.ChangeModel(dao.Orm(), user.ID, &dao.User{Name: user.Name, Portrait: user.Portrait, Gender: user.Gender})
 	if glog.Error(err) {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: err.Error(), Data: nil}}
 	}
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: user}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK", Data: user}}
 }

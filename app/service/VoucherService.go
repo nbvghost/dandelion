@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/util"
 	"strconv"
@@ -44,18 +45,18 @@ func (service VoucherService) AddItem(context *gweb.Context) gweb.Result {
 	item := &dao.Voucher{}
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
 	item.OID = company.ID
 	err = service.Add(Orm, item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
 }
 func (service VoucherService) GetItem(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	item := &dao.Voucher{}
 	err := service.Get(Orm, ID, item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", item)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", item)}
 }
 func (service VoucherService) ListItem(context *gweb.Context) gweb.Result {
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
@@ -71,7 +72,7 @@ func (service VoucherService) DeleteItem(context *gweb.Context) gweb.Result {
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	item := &dao.Voucher{}
 	err := service.Delete(Orm, item, ID)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}
 }
 func (service VoucherService) ChangeItem(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
@@ -79,8 +80,8 @@ func (service VoucherService) ChangeItem(context *gweb.Context) gweb.Result {
 	item := &dao.Voucher{}
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
 	err = service.ChangeModel(Orm, ID, item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 }

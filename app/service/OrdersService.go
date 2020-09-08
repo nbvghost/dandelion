@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/glog"
 
 	"github.com/nbvghost/dandelion/app/play"
@@ -485,7 +486,7 @@ func (service OrdersService) Deliver(ShipName, ShipNo string, OrdersID uint64) e
 	orders.Status = play.OS_Deliver
 
 	as := service.Wx.OrderDeliveryNotify(orders)
-	if as.Success == false {
+	if as.Code != result.ActionOK {
 
 		err = errors.New(as.Message)
 	}
@@ -1037,7 +1038,7 @@ func (service OrdersService) AddOrders(orders *dao.Orders, list []dao.OrdersGood
 	return nil
 
 }
-func (service OrdersService) ChangeOrdersPayMoney(PayMoney float64, OrdersID uint64) (Success bool, Message string) {
+func (service OrdersService) ChangeOrdersPayMoney(PayMoney float64, OrdersID uint64) (Success result.ActionResultCode, Message string) {
 	tx := dao.Orm().Begin()
 
 	orders := service.GetOrdersByID(OrdersID)
@@ -1047,19 +1048,19 @@ func (service OrdersService) ChangeOrdersPayMoney(PayMoney float64, OrdersID uin
 		success, message := service.Wx.CloseOrder(orders.OrderNo, orders.OID)
 		if success == false {
 			tx.Rollback()
-			return false, message
+			return result.ActionFail, message
 		}
 	}
 
 	err := service.ChangeMap(tx, OrdersID, &dao.Orders{}, map[string]interface{}{"PayMoney": uint64(PayMoney * 100), "PrepayID": "", "OrderNo": tool.UUID()})
 	if err != nil {
 		tx.Rollback()
-		return false, err.Error()
+		return result.ActionFail, err.Error()
 	}
 
 	tx.Commit()
 
-	return true, "订单金额修改成功"
+	return result.ActionOK, "订单金额修改成功"
 
 }
 

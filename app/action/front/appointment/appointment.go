@@ -1,13 +1,13 @@
 package appointment
 
 import (
+	"github.com/nbvghost/dandelion/app/result"
 	"net/http"
 	"net/url"
 
 	"github.com/nbvghost/gweb"
 
 	"github.com/nbvghost/dandelion/app/play"
-	"github.com/nbvghost/dandelion/app/service/dao"
 )
 
 type InterceptorFile struct {
@@ -92,7 +92,7 @@ func actionAddAction(context *gweb.Context) gweb.Result {
 		tempOrderPack.Orders = append(tempOrderPack.Orders, order)
 	}
 	context.Session.Attributes.Put(play.SessionCart, carts) */
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).Smart(true, "添加成功", "添加失败")}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).Smart(result.ActionOK, "添加成功", "添加失败")}
 }
 
 /* func indexPage(context *gweb.Context) gweb.Result {

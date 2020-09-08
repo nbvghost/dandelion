@@ -1,6 +1,7 @@
 package images
 
 import (
+	"github.com/nbvghost/dandelion/app/result"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -8,7 +9,6 @@ import (
 
 	"github.com/nbvghost/dandelion/app/play"
 	"github.com/nbvghost/dandelion/app/service"
-	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/util"
 
 	"github.com/nbvghost/gweb"
@@ -62,21 +62,21 @@ func (controller *Controller) miniprogramQRcodeAction(context *gweb.Context) gwe
 	//postData.Add("scene","sdfsd")
 	resp, err := http.Post("https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token="+access_token, "application/json", body)
 	if err != nil {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: err.Error(), Data: nil}}
 	}
 
 	b, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: err.Error(), Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: err.Error(), Data: nil}}
 	}
 	//fmt.Println(string(b))
 	defer resp.Body.Close()
 
 	path := tool.WriteTempFile(b, "image/png")
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: path}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: path}}
 	//return &gweb.ImageBytesResult{Data:b,ContentType:"image/png"}
 	//imageString := "data:image/png;base64," + base64.StdEncoding.EncodeToString(b)
 	//results["QRCodeBase64"] = imageString
-	//return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: results}}
+	//return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: results}}
 
 }

@@ -1,6 +1,7 @@
 package content
 
 import (
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"strconv"
@@ -30,13 +31,13 @@ func (controller *ContentController) ListContentSubTypeAction(context *gweb.Cont
 
 	csts := controller.Content.FindContentSubTypesByContentItemIDAndParentContentSubTypeID(content.ID, PID)
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: csts}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK", Data: csts}}
 }
 func (controller *ContentController) articleAction(context *gweb.Context) gweb.Result {
 	ArticleID, _ := strconv.ParseUint(context.PathParams["ArticleID"], 10, 64)
 	//article := controller.Article.GetArticle(ArticleID)
-	article := controller.Content.GetArticleAndAddLook(context, ArticleID)
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: article}}
+	article := controller.Content.GetContentAndAddLook(context, ArticleID)
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK", Data: article}}
 }
 func (controller *ContentController) relatedAction(context *gweb.Context) gweb.Result {
 	Offset, _ := strconv.Atoi(context.Request.URL.Query().Get("Offset"))
@@ -46,7 +47,7 @@ func (controller *ContentController) relatedAction(context *gweb.Context) gweb.R
 	var articles []dao.Content
 	//controller.Content.FindOrderWhereLength(dao.Orm(),"Look desc",&articles,)
 	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "CreatedAt desc", &articles, Offset, "ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeID)
-	return &gweb.JsonResult{Data: &dao.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
+	return &gweb.JsonResult{Data: &result.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
 }
 func (controller *ContentController) listNewAction(context *gweb.Context) gweb.Result {
 	Offset, _ := strconv.Atoi(context.Request.URL.Query().Get("Offset"))
@@ -55,7 +56,7 @@ func (controller *ContentController) listNewAction(context *gweb.Context) gweb.R
 	var articles []dao.Content
 	//controller.Content.FindOrderWhereLength(dao.Orm(),"Look desc",&articles,)
 	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "CreatedAt desc", &articles, Offset, "ContentItemID=?", ContentItemID)
-	return &gweb.JsonResult{Data: &dao.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
+	return &gweb.JsonResult{Data: &result.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
 }
 func (controller *ContentController) listHotAction(context *gweb.Context) gweb.Result {
 	Offset, _ := strconv.Atoi(context.Request.URL.Query().Get("Offset"))
@@ -66,5 +67,5 @@ func (controller *ContentController) listHotAction(context *gweb.Context) gweb.R
 
 	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "Look desc", &articles, Offset, "ContentItemID=?", ContentItemID)
 
-	return &gweb.JsonResult{Data: &dao.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
+	return &gweb.JsonResult{Data: &result.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
 }

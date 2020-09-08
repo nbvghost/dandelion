@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"github.com/nbvghost/dandelion/app/result"
 	"math"
 	"strconv"
 	"strings"
@@ -455,7 +456,7 @@ func (service UserService) UserAction(context *gweb.Context) gweb.Result {
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 	}
 
-	return &gweb.JsonResult{Data: dao.ActionStatus{Success: false, Message: "", Data: nil}}
+	return &gweb.JsonResult{Data: result.ActionResult{Code: result.ActionFail, Message: "", Data: nil}}
 }
 func (service UserService) FindUserByTel(Orm *gorm.DB, Tel string) *dao.User {
 	user := &dao.User{}

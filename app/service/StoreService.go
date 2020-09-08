@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/glog"
 )
@@ -46,25 +47,25 @@ func (service StoreService) LocationList(Latitude, Longitude float64) []map[stri
 	return list
 }
 
-func (service StoreService) VerificationSelf(StoreID, StoreStockID, Quantity uint64) *dao.ActionStatus {
+func (service StoreService) VerificationSelf(StoreID, StoreStockID, Quantity uint64) *result.ActionResult {
 	Orm := dao.Orm()
 	var ss dao.StoreStock
 	err := service.Get(Orm, StoreStockID, &ss)
 	if err != nil {
-		return (&dao.ActionStatus{}).SmartError(err, "", 0)
+		return (&result.ActionResult{}).SmartError(err, "", 0)
 	}
 
 	if ss.StoreID != StoreID {
-		return (&dao.ActionStatus{}).SmartError(errors.New("找不到相关库存"), "", 0)
+		return (&result.ActionResult{}).SmartError(errors.New("找不到相关库存"), "", 0)
 	}
 
 	if Quantity == 0 {
-		return (&dao.ActionStatus{}).SmartError(errors.New("无效的数量"), "", 0)
+		return (&result.ActionResult{}).SmartError(errors.New("无效的数量"), "", 0)
 	}
 
 	if Quantity > ss.Stock-ss.UseStock {
 		//库存不足
-		return (&dao.ActionStatus{}).SmartError(errors.New("库存不足"), "", 0)
+		return (&result.ActionResult{}).SmartError(errors.New("库存不足"), "", 0)
 	} else {
 
 		var specification dao.Specification
@@ -77,13 +78,13 @@ func (service StoreService) VerificationSelf(StoreID, StoreStockID, Quantity uin
 		service.Get(Orm, ss.GoodsID, &goods)
 
 		if ss.GoodsID != specification.GoodsID {
-			return (&dao.ActionStatus{}).SmartError(errors.New("找不到相关库存"), "", 0)
+			return (&result.ActionResult{}).SmartError(errors.New("找不到相关库存"), "", 0)
 		} else {
 			//判断金额,
 
 			if specification.CostPrice*Quantity > store.Amount {
 				//金额不足
-				return (&dao.ActionStatus{}).SmartError(errors.New("门店金额不足"), "", specification.CostPrice*Quantity-store.Amount)
+				return (&result.ActionResult{}).SmartError(errors.New("门店金额不足"), "", specification.CostPrice*Quantity-store.Amount)
 			} else {
 
 				tx := Orm.Begin()
@@ -91,16 +92,16 @@ func (service StoreService) VerificationSelf(StoreID, StoreStockID, Quantity uin
 				err := service.ChangeMap(tx, StoreStockID, &dao.StoreStock{}, map[string]interface{}{"UseStock": ss.UseStock + Quantity})
 				if err != nil {
 					tx.Rollback()
-					return (&dao.ActionStatus{}).SmartError(err, "", 0)
+					return (&result.ActionResult{}).SmartError(err, "", 0)
 				} else {
 					detail := fmt.Sprintf("%v,规格：%v(%v)kg成本价：%v，数量：%v", goods.Title, specification.Label, float64(specification.Num)*float64(specification.Weight)/1000, specification.CostPrice, Quantity)
 					err = service.Journal.AddStoreJournal(tx, StoreID, "自主核销商品库存", detail, play.StoreJournal_Type_ZZHX, -int64(specification.CostPrice*Quantity), ss.ID)
 					if err != nil {
 						tx.Rollback()
-						return (&dao.ActionStatus{}).SmartError(err, "", 0)
+						return (&result.ActionResult{}).SmartError(err, "", 0)
 					} else {
 						tx.Commit()
-						return (&dao.ActionStatus{}).SmartError(err, "自主核销成功", 0)
+						return (&result.ActionResult{}).SmartError(err, "自主核销成功", 0)
 					}
 
 				}

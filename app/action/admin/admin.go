@@ -2,6 +2,7 @@ package admin
 
 import (
 	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service"
 	"github.com/nbvghost/dandelion/app/util"
 	"net/url"
@@ -142,15 +143,15 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		GoodsID, _ := strconv.ParseUint(context.Request.URL.Query().Get("GoodsID"), 10, 64)
 		var gts []dao.Specification
 		err := controller.Goods.FindWhere(Orm, &gts, company.ID, dao.Specification{GoodsID: GoodsID})
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", gts)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", gts)}
 	case "delete_specification":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
 		err := controller.Goods.DeleteSpecification(ID)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}
 	case "get_goods":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
 		goodsInfo := controller.Goods.GetGoods(Orm, ID)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", goodsInfo)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", goodsInfo)}
 	case "change_goods":
 		context.Request.ParseForm()
 		goods_str := context.Request.FormValue("goods")
@@ -186,7 +187,7 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		glog.Trace(err)
 
 		err = controller.Goods.SaveGoods(item, specifications)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 
 	case "add_goods":
 		context.Request.ParseForm()
@@ -224,7 +225,7 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 
 		item.OID = company.ID
 		err = controller.Goods.SaveGoods(item, specifications)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
 	case "activity_goods":
 		//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 		//Hash := context.Request.URL.Query().Get("Hash")
@@ -251,18 +252,18 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
 		var goods dao.GoodsTypeChild
 		controller.Goods.Get(Orm, ID, &goods)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", goods)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", goods)}
 	case "list_goods_type_child":
 		var gts []dao.GoodsTypeChild
 		controller.Goods.FindAll(Orm, &gts)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", gts)}
 	case "list_goods_type_child_id":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
 		gts := controller.Goods.ListAllGoodsTypeChild(ID)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", gts)}
 	case "list_goods_type_all":
 		gts := controller.Goods.ListGoodsTypeForAdmin(company.ID)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", gts)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", gts)}
 	case "list_goods_type":
 		dts := &dao.Datatables{}
 		util.RequestBodyToJSON(context.Request.Body, dts)
@@ -295,7 +296,7 @@ func (controller *Controller) situationAction(context *gweb.Context) gweb.Result
 	results["ScoreGoods"] = controller.ScoreGoods.Situation(StartTime, EndTime)
 	results["User"] = controller.User.Situation(StartTime, EndTime)
 
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", results)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", results)}
 }
 
 /*func (controller *Controller) giveVoucherDeleteAction(context *gweb.Context) gweb.Result {
@@ -304,7 +305,7 @@ func (controller *Controller) situationAction(context *gweb.Context) gweb.Result
 
 	err := controller.Rank.Delete(dao.Orm(), &dao.GiveVoucher{}, GiveVoucherID)
 
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}
 }*/
 
 func (controller *Controller) configurationChangeAction(context *gweb.Context) gweb.Result {
@@ -312,14 +313,14 @@ func (controller *Controller) configurationChangeAction(context *gweb.Context) g
 	item := dao.Configuration{}
 	util.RequestBodyToJSON(context.Request.Body, &item)
 	err := controller.Configuration.ChangeConfiguration(company.ID, item.K, item.V)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 }
 func (controller *Controller) configurationListAction(context *gweb.Context) gweb.Result {
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	var ks []uint64
 	util.RequestBodyToJSON(context.Request.Body, &ks)
 	list := controller.Configuration.GetConfigurations(company.ID, ks)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", list)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", list)}
 }
 
 func (controller *Controller) orderChangeAction(context *gweb.Context) gweb.Result {
@@ -332,42 +333,42 @@ func (controller *Controller) orderChangeAction(context *gweb.Context) gweb.Resu
 		OrdersGoodsID, _ := strconv.ParseUint(context.Request.FormValue("OrdersGoodsID"), 10, 64)
 		RefundType, _ := strconv.ParseUint(context.Request.FormValue("RefundType"), 10, 64)
 		err, info := controller.Orders.RefundComplete(OrdersGoodsID, RefundType)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, info, nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}
 	case "RefundOk":
 		OrdersGoodsID, _ := strconv.ParseUint(context.Request.FormValue("OrdersGoodsID"), 10, 64)
 		err, info := controller.Orders.RefundOk(OrdersGoodsID)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, info, nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}
 	case "RefundNo":
 		OrdersGoodsID, _ := strconv.ParseUint(context.Request.FormValue("OrdersGoodsID"), 10, 64)
 		err, info := controller.Orders.RefundNo(OrdersGoodsID)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, info, nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}
 	case "Cancel":
 		ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
 		err, info := controller.Orders.Cancel(ID)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, info, nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}
 	case "CancelOk":
 		ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
 		RefundType, _ := strconv.ParseUint(context.Request.FormValue("RefundType"), 10, 64) //退款资金来源	 0=未结算资金退款,1=可用余额退款
 		err, info := controller.Orders.CancelOk(ID, RefundType)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, info, nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}
 	case "Deliver":
 		ShipName := context.Request.FormValue("ShipName")
 		ShipNo := context.Request.FormValue("ShipNo")
 		ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
 
 		err := controller.Orders.Deliver(ShipName, ShipNo, ID)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "发货成功", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "发货成功", nil)}
 	case "PayMoney":
 		PayMoney, _ := strconv.ParseFloat(context.Request.FormValue("PayMoney"), 64)
 		ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
 		err := controller.Orders.ChangeMap(Orm, ID, &dao.Orders{}, map[string]interface{}{"PayMoney": uint64(PayMoney * 100)})
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 		success, message := controller.Orders.ChangeOrdersPayMoney(PayMoney, ID)
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: success, Message: message, Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: success, Message: message, Data: nil}}
 
 	}
 
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("999"), "OK", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("999"), "OK", nil)}
 
 }
 func (controller *Controller) storeJournalListAction(context *gweb.Context) gweb.Result {
@@ -405,7 +406,7 @@ func (controller *Controller) getExpressTemplate(context *gweb.Context) gweb.Res
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	var item dao.ExpressTemplate
 	err := controller.ExpressTemplate.Get(Orm, ID, &item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", item)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", item)}
 	//2002
 }
 func (controller *Controller) deleteExpressTemplate(context *gweb.Context) gweb.Result {
@@ -414,7 +415,7 @@ func (controller *Controller) deleteExpressTemplate(context *gweb.Context) gweb.
 
 	err := controller.ExpressTemplate.Delete(Orm, &dao.ExpressTemplate{}, ID)
 
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}
 }
 func (controller *Controller) saveExpressTemplate(context *gweb.Context) gweb.Result {
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
@@ -423,14 +424,14 @@ func (controller *Controller) saveExpressTemplate(context *gweb.Context) gweb.Re
 	glog.Trace(err)
 	item.OID = company.ID
 	err = controller.ExpressTemplate.SaveExpressTemplate(item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "保存成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "保存成功", nil)}
 }
 func (controller *Controller) listExpressTemplate(context *gweb.Context) gweb.Result {
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	Orm := dao.Orm()
 	var list []dao.ExpressTemplate
 	err := controller.ExpressTemplate.FindAllByOID(Orm, &list, company.ID)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", list)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", list)}
 }
 func (controller *Controller) datatablesExpressTemplate(context *gweb.Context) gweb.Result {
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)

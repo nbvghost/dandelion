@@ -2,6 +2,7 @@ package store
 
 import (
 	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/util"
@@ -54,7 +55,7 @@ func (controller *StoreController) addStarAction(context *gweb.Context) gweb.Res
 
 	store.StarsCount = store.StarsCount + 1
 	err := controller.Store.ChangeModel(dao.Orm(), store.ID, &dao.Store{Stars: store.Stars, StarsCount: store.StarsCount})
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "评价成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "评价成功", nil)}
 
 }
 func (controller *StoreController) transfersAction(context *gweb.Context) gweb.Result {
@@ -67,7 +68,7 @@ func (controller *StoreController) transfersAction(context *gweb.Context) gweb.R
 	IP := util.GetIP(context)
 	err := controller.Transfers.StoreTransfers(store.ID, user.ID, ReUserName, IP)
 
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "提现申请成功，请查看到账通知结果", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "提现申请成功，请查看到账通知结果", nil)}
 }
 func (controller *StoreController) verificationGetByVerificationNoAction(context *gweb.Context) gweb.Result {
 
@@ -78,14 +79,14 @@ func (controller *StoreController) verificationGetByVerificationNoAction(context
 	controller.CardItem.Get(dao.Orm(), verification.CardItemID, &cardItem)
 
 	if verification.ID == 0 {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "", Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: "", Data: nil}}
 	}
 
 	results := make(map[string]interface{})
 	results["CardItem"] = cardItem
 	results["Verification"] = verification
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: results}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: results}}
 }
 func (controller *StoreController) journalListAction(context *gweb.Context) gweb.Result {
 	store := context.Session.Attributes.Get(play.SessionStore).(*dao.Store)
@@ -96,14 +97,14 @@ func (controller *StoreController) journalListAction(context *gweb.Context) gweb
 
 	list := controller.Journal.StoreListJournal(store.ID, StartDate, EndDate)
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: list}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: list}}
 }
 func (controller *StoreController) supplyAction(context *gweb.Context) gweb.Result {
 
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 
 	if context.Session.Attributes.Get(play.SessionUser) == nil || context.Session.Attributes.Get(play.SessionStore) == nil {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "登陆信息已经失效，请重新登陆", Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: "登陆信息已经失效，请重新登陆", Data: nil}}
 	}
 
 	store := context.Session.Attributes.Get(play.SessionStore).(*dao.Store)
@@ -113,7 +114,7 @@ func (controller *StoreController) supplyAction(context *gweb.Context) gweb.Resu
 
 	PayMoney, _ := strconv.ParseUint(context.Request.FormValue("PayMoney"), 10, 64)
 	if PayMoney <= 0 {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "无效的金额", Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: "无效的金额", Data: nil}}
 	}
 	ip := util.GetIP(context)
 
@@ -126,18 +127,18 @@ func (controller *StoreController) supplyAction(context *gweb.Context) gweb.Resu
 
 	WxConfig := controller.Wx.MiniProgram()
 
-	Success, Message, result := controller.Wx.Order(supply.OrderNo, "门店", "充值", "", user.OpenID, ip, PayMoney, play.OrdersType_Supply, WxConfig)
-	if Success == false {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: Success, Message: Message, Data: result}}
+	Success, Message, Result := controller.Wx.Order(supply.OrderNo, "门店", "充值", "", user.OpenID, ip, PayMoney, play.OrdersType_Supply, WxConfig)
+	if Success != result.ActionOK {
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: Success, Message: Message, Data: Result}}
 	}
 
 	controller.Orders.Add(dao.Orm(), &supply)
 
 	//WxConfig := controller.Wx.MiniProgram()
 
-	outData := controller.Wx.GetWXAConfig(result.Prepay_id, WxConfig)
+	outData := controller.Wx.GetWXAConfig(Result.Prepay_id, WxConfig)
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK", Data: outData}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK", Data: outData}}
 }
 func (controller *StoreController) verificationAction(context *gweb.Context) gweb.Result {
 	context.Request.ParseForm()
@@ -155,10 +156,10 @@ func (controller *StoreController) verificationAction(context *gweb.Context) gwe
 		err := controller.Verification.VerificationCardItem(tx, VerificationNo, uint(Quantity), user, store)
 		if err != nil {
 			tx.Rollback()
-			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+			return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 		} else {
 			tx.Commit()
-			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "核销成功", nil)}
+			return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "核销成功", nil)}
 		}
 		//fmt.Println(verification)
 	case "Self":
@@ -169,7 +170,7 @@ func (controller *StoreController) verificationAction(context *gweb.Context) gwe
 		return &gweb.JsonResult{Data: as}
 
 	}
-	return &gweb.JsonResult{Data: &dao.ActionStatus{}}
+	return &gweb.JsonResult{Data: &result.ActionResult{}}
 }
 func (controller *StoreController) listStockSpecificationsAction(context *gweb.Context) gweb.Result {
 	//GoodsID
@@ -178,7 +179,7 @@ func (controller *StoreController) listStockSpecificationsAction(context *gweb.C
 	store := context.Session.Attributes.Get(play.SessionStore).(*dao.Store)
 
 	list := controller.Store.ListStoreSpecifications(store.ID, GoodsID)
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: list}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: list}}
 
 }
 func (controller *StoreController) listStockAction(context *gweb.Context) gweb.Result {
@@ -186,24 +187,24 @@ func (controller *StoreController) listStockAction(context *gweb.Context) gweb.R
 	store := context.Session.Attributes.Get(play.SessionStore).(*dao.Store)
 
 	list := controller.Store.ListStoreStock(store.ID)
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: list}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: list}}
 
 }
 func (controller *StoreController) storeGetIDAction(context *gweb.Context) gweb.Result {
 	StoreID, _ := strconv.ParseUint(context.PathParams["StoreID"], 10, 64)
 	var Store dao.Store
 	controller.Store.Get(dao.Orm(), StoreID, &Store)
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: Store}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: Store}}
 }
 func (controller *StoreController) storeGetAction(context *gweb.Context) gweb.Result {
 
 	if context.Session.Attributes.Get(play.SessionStore) == nil {
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: false, Message: "没有权限访问门店", Data: nil}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionFail, Message: "没有权限访问门店", Data: nil}}
 	} else {
 		Store := context.Session.Attributes.Get(play.SessionStore).(*dao.Store)
 		controller.Store.Get(dao.Orm(), Store.ID, Store)
 		context.Session.Attributes.Put(play.SessionStore, Store)
-		return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: Store}}
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: Store}}
 	}
 }
 func (controller *StoreController) storeLocationListAction(context *gweb.Context) gweb.Result {
@@ -215,6 +216,6 @@ func (controller *StoreController) storeLocationListAction(context *gweb.Context
 
 	list := controller.Store.LocationList(Latitude, Longitude)
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "", Data: list}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "", Data: list}}
 
 }

@@ -3,6 +3,7 @@ package admin
 import (
 	"errors"
 	"github.com/nbvghost/dandelion/app/play"
+	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/util"
@@ -35,7 +36,7 @@ func (controller *StoreController) DeleteStoreStockItem(context *gweb.Context) g
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	item := &dao.StoreStock{}
 	err := controller.Store.Delete(Orm, item, ID)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}
 }
 func (controller *StoreController) ListStoreStockItem(context *gweb.Context) gweb.Result {
 	dts := &dao.Datatables{}
@@ -122,14 +123,14 @@ func (controller *StoreController) ListExistGoodsIDS(context *gweb.Context) gweb
 	var ids []Result
 	Orm.Table("StoreStock").Select("GoodsID as GoodsID").Where(&dao.StoreStock{StoreID: StoreID}).Find(&ids)
 	//fmt.Println(ids)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(nil, "OK", ids)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", ids)}
 }
 func (controller *StoreController) GetStoreStockItem(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	item := &dao.StoreStock{}
 	err := controller.Store.Get(Orm, ID, item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", item)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", item)}
 }
 
 //库存的修改与添加
@@ -154,7 +155,7 @@ func (controller *StoreController) SaveStoreStockItem(context *gweb.Context) gwe
 	if item.ID == 0 {
 
 		if AddStoreStockStock < 0 {
-			//return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("增加的库存不能小于0"), "", nil)}
+			//return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("增加的库存不能小于0"), "", nil)}
 			AddStoreStockStock = 0
 		}
 
@@ -163,23 +164,23 @@ func (controller *StoreController) SaveStoreStockItem(context *gweb.Context) gwe
 		item.SpecificationID = SpecificationID
 		item.Stock = uint64(AddStoreStockStock)
 		err := controller.Store.Add(Orm, item)
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
 	} else {
 
 		stock := int64(item.Stock) + AddStoreStockStock
 		if stock < 0 {
-			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("库存不能为负的"), "", nil)}
+			return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("库存不能为负的"), "", nil)}
 		}
 		if stock < int64(item.UseStock) {
-			//return (&dao.ActionStatus{}).SmartError(errors.New("库存不能为负的"), "", 0)
-			return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("库存不能为负的"), "", nil)}
+			//return (&result.ActionResult{}).SmartError(errors.New("库存不能为负的"), "", 0)
+			return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("库存不能为负的"), "", nil)}
 		}
 
 		item.Stock = uint64(stock)
 		item.SpecificationID = SpecificationID
 
 		err := controller.Store.ChangeMap(Orm, ID, item, map[string]interface{}{"SpecificationID": item.SpecificationID, "Stock": item.Stock})
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 	}
 
 }
@@ -189,24 +190,24 @@ func (controller *StoreController) ChangeStoreItem(context *gweb.Context) gweb.R
 	item := &dao.Store{}
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
 
 	var _store dao.Store
 	controller.Store.GetByPhone(item.Phone)
 	if _store.ID > 0 && _store.ID != item.ID {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("手机号："+item.Phone+"已经被使用"), "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("手机号："+item.Phone+"已经被使用"), "", nil)}
 	}
 
 	err = controller.Store.ChangeModel(Orm, ID, item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "修改成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 }
 func (controller *StoreController) DeleteStoreItem(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	item := &dao.Store{}
 	err := controller.Store.Delete(Orm, item, ID)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "删除成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}
 }
 func (controller *StoreController) ListStoreItem(context *gweb.Context) gweb.Result {
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
@@ -222,7 +223,7 @@ func (controller *StoreController) GetStoreItem(context *gweb.Context) gweb.Resu
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	item := &dao.Store{}
 	err := controller.Store.Get(Orm, ID, item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "OK", item)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", item)}
 }
 func (controller *StoreController) AddStoreItem(context *gweb.Context) gweb.Result {
 
@@ -233,14 +234,14 @@ func (controller *StoreController) AddStoreItem(context *gweb.Context) gweb.Resu
 	item.OID = company.ID
 	err := util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
 	var _store dao.Store
 	_store = controller.Store.GetByPhone(item.Phone)
 	if _store.ID > 0 {
-		return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(errors.New("手机号："+item.Phone+"已经被使用"), "", nil)}
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("手机号："+item.Phone+"已经被使用"), "", nil)}
 	}
 
 	err = controller.Store.Add(Orm, item)
-	return &gweb.JsonResult{Data: (&dao.ActionStatus{}).SmartError(err, "添加成功", nil)}
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
 }
