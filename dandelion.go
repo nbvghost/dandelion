@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"github.com/nbvghost/dandelion/app/action/account"
+	"github.com/nbvghost/dandelion/app/action/admin"
 	"github.com/nbvghost/dandelion/app/action/api"
 	"github.com/nbvghost/dandelion/app/action/file"
 	"github.com/nbvghost/dandelion/app/action/images"
@@ -13,11 +13,8 @@ import (
 	"github.com/nbvghost/dandelion/app/action/sites"
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
-	"net/http"
-	"path/filepath"
-
-	"github.com/nbvghost/dandelion/app/action/admin"
 	"github.com/nbvghost/gweb/conf"
+	"net/http"
 )
 
 func init() {
@@ -29,8 +26,6 @@ func init() {
 	glog.Start()
 }
 func main() {
-
-	fmt.Println(filepath.Split("/sdf/ds/f/sd/fsd/f/sd/f/ds/fdsfsdfds/"))
 
 	admin := &admin.Controller{}
 	admin.NewController("/admin/", admin)

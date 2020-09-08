@@ -548,7 +548,7 @@ $(document).ready(function(){
                         action: "appointment"
                     },
                     success: function(data) {
-                        if(data.success==true){
+                        if(data.Code==0){
 
                             var htmltxt ="本次转盘获得：<br>";
                             htmltxt=htmltxt+"项目："+data.data.title+"<br>";

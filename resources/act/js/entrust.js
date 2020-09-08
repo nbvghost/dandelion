@@ -237,7 +237,7 @@ app.controller("entrustController", function ($http, $scope) {
             headers: {'Content-Type': undefined}
         }).success(function (response) {
 
-            if(response.success==true){
+            if(response.Code==0){
                 //entrust/{shopID}/result/{expressID}
                 window.location.href="result/"+response.data.id;
                 sendID ="";

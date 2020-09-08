@@ -342,7 +342,7 @@ main.controller("give_voucher_controller",function ($http,$filter,$scope, $rootS
         }).then(function (data, status, headers, config) {
 
             alert(data.data.Message);
-            if(data.data.Success){
+            if(data.data.Code==0){
                 table_local.ajax.reload();
                 $("#add_give_voucher").modal("hide");
                 $scope.GiveVoucher=null;

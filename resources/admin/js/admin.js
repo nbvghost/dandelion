@@ -930,7 +930,7 @@ main.controller("order_list_controller",function ($http,$filter,$scope, $rootSco
                         headers: {'Content-Type':'application/x-www-form-urlencoded'}
                     }).then(function (data, status, headers, config) {
                         alert(data.data.Message);
-                        if(data.data.Success){
+                        if(data.data.Code==0){
                             if(table_local){
                                 table_local.ajax.reload();
                             }
@@ -1078,7 +1078,7 @@ main.controller("order_list_controller",function ($http,$filter,$scope, $rootSco
             headers: {'Content-Type':'application/x-www-form-urlencoded'}
         }).then(function (data, status, headers, config) {
             alert(data.data.Message);
-            if(data.data.Success){
+            if(data.data.Code==0){
                 $("#ChangePayMoney").modal("hide");
                 if(table_local){
                     table_local.ajax.reload();
@@ -1114,7 +1114,7 @@ main.controller("order_list_controller",function ($http,$filter,$scope, $rootSco
             headers: {'Content-Type':'application/x-www-form-urlencoded'}
         }).then(function (data, status, headers, config) {
             alert(data.data.Message);
-            if(data.data.Success){
+            if(data.data.Code==0){
                 $("#Deliver").modal("hide");
                 if(table_local){
                     table_local.ajax.reload();
@@ -1144,7 +1144,7 @@ main.controller("order_list_controller",function ($http,$filter,$scope, $rootSco
             }).then(function (data, status, headers, config) {
                 alert(data.data.Message);
 
-                if(data.data.Success){
+                if(data.data.Code==0){
 
                     $("#RefundComplete").modal("hide");
                     $scope.currentOrders=null;
@@ -1176,7 +1176,7 @@ main.controller("order_list_controller",function ($http,$filter,$scope, $rootSco
             headers: {'Content-Type':'application/x-www-form-urlencoded'}
         }).then(function (data, status, headers, config) {
             alert(data.data.Message);
-            if(data.data.Success){
+            if(data.data.Code==0){
                 $("#CancelOk").modal("hide");
                 if(table_local){
                     table_local.ajax.reload();
@@ -1306,7 +1306,7 @@ main.controller("add_express_controller",function ($http,$filter,$scope, $rootSc
         }).then(function (data, status, headers, config) {
 
             alert(data.data.Message);
-            if(data.data.Success==true){
+            if(data.data.Code==0){
                 window.history.back();
             }
 
@@ -2400,7 +2400,7 @@ main.controller("add_store_controller",function ($http,$filter,$scope, $rootScop
 
             alert(data.data.Message);
 
-            if(data.data.Success==true){
+            if(data.data.Code==0){
                 window.location.href="#!/store_list";
             }
         });
@@ -3166,7 +3166,7 @@ main.controller("collage_manager_controller",function ($http,$filter,$scope, $ro
             }).then(function (data, status, headers, config) {
 
 
-                if(data.data.Success==true){
+                if(data.data.Code==0){
 
 
                 }else{
@@ -3351,7 +3351,7 @@ main.controller("timesell_manager_controller",function ($http,$filter,$scope, $r
             }).then(function (data, status, headers, config) {
 
 
-                if(data.data.Success==true){
+                if(data.data.Code==0){
 
 
                 }else{
@@ -3822,7 +3822,7 @@ main.controller("add_goods_controller",function ($http, $scope, $rootScope, $rou
 
                 $http.get("goods?action=get_goods",{params:{ID:$scope.Goods.ID}}).then(function (data) {
 
-                    if(data.data.Success==true){
+                    if(data.data.Code==0){
 
                         var Goods = data.data.Data.Goods;
                         Goods.Price= Goods.Price/100;
@@ -3973,7 +3973,7 @@ main.controller("add_goods_controller",function ($http, $scope, $rootScope, $rou
             headers: {'Content-Type':'application/x-www-form-urlencoded'}
         }).then(function (data, status, headers, config) {
             alert(data.data.Message);
-            if(data.data.Success==true){
+            if(data.data.Code==0){
                 window.location.href="#!/goods_list";
             }
         });
@@ -3985,7 +3985,7 @@ main.controller("add_goods_controller",function ($http, $scope, $rootScope, $rou
         }).then(function (data, status, headers, config) {
 
            alert(data.data.Message);
-            if(data.data.Success==true){
+            if(data.data.Code==0){
                 window.location.href="#!/goods_list";
             }
         });*/

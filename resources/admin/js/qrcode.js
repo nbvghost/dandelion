@@ -13,7 +13,7 @@ lqBig.controller('qrcodeCtrl', function ($http, $scope, $location,$routeParams) 
     $scope.consume = function(){
         $http.get("card", {params: {action: "consume", code:code,cardID:cardID}}).success(function(getcarddata) {
             //alert(JSON.stringify(getcarddata));
-            if(getcarddata.success==true){
+            if(getcarddata.Code==0){
                 //$scope.base_info = getcarddata.card.cash.base_info;
                 alert("核销成功");
                 $scope.isCardInfo = false;
@@ -27,13 +27,13 @@ lqBig.controller('qrcodeCtrl', function ($http, $scope, $location,$routeParams) 
     function qrcode (){
         $http.get("card", {params: {action: "code", code:code}}).success(function (response) {
             //alert(JSON.stringify(response));
-            if(response.success==true){
+            if(response.Code==0){
                 cardID = response.data.card.card_id;
                 $http.get("card", {params: {action: "getcard", json:response.data.card.card_id}}).success(function (getcarddata) {
 
                     //alert(JSON.stringify(getcarddata));
 
-                    if(getcarddata.success==true){
+                    if(getcarddata.Code==0){
 
                         $scope.isCardInfo=true;
                         $scope.cash = getcarddata.data.card.cash;

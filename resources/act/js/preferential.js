@@ -181,7 +181,7 @@ preferential.controller('preferentialCtrl', function ($http, $scope, $location) 
         }).success(function (response) {
             $scope.selectItemData = [];
             //alert(JSON.stringify(response.data));
-            if(response.success==true){
+            if(response.Code==0){
                 var html = '恭喜您，预约到优惠：<br>';
                 for(var i=0;i<response.data.length;i++){
                     var imte = response.data[i];

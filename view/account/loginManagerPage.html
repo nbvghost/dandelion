@@ -47,7 +47,7 @@
                 $http.post("loginManager",form,{transformRequest: angular.identity,headers: {'Content-Type':undefined}}).then(function (response) {
 
                     var status = response.data;
-                    if (status.Success) {
+                    if (status.Code==0) {
                         if(redirect==""){
                             window.location.replace("/manager");
                             return;

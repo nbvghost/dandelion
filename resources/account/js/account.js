@@ -62,7 +62,7 @@ account.controller("orderPayController", function ($http, $scope) {
         form.append("openID",openID);
         $http.post("platform_order_create",form,{transformRequest: angular.identity,headers: {'Content-Type':undefined}}).success(function (response) {
 
-            if(response.success==true){
+            if(response.Code==0){
                 //window.location.href = "/account/wxpay/"+response.data.id;
                 //alert(JSON.stringify(response));
                 function pay(){
@@ -87,7 +87,7 @@ account.controller("orderPayController", function ($http, $scope) {
 
                     AddTask(TaskType_orderQuery,{orderID:response.data.returnData.orderID},function (data) {
                         //alert(data.success==false);
-                        if(data.success==true){
+                        if(data.Code==0){
                             // $("#pay_success").show();
                             RemoveTask(TaskType_orderQuery);
                             alert("支付成功！")

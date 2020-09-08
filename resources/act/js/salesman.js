@@ -88,13 +88,13 @@ act.controller('salesmanController', function ($http, $scope) {
 
             alert(data.data.message);
             $scope.express_executor_list();
-            if(data.data.success==true){
+            if(data.data.Code==0){
                 $scope.payIndex = 1;
                 $scope.code_url = data.data.data.returnData.code_url;
 
                 AddTask(TaskType_orderQuery,{orderID:data.data.data.returnData.orderID},function (data) {
                     //alert(data.success==false);
-                    if(data.success==true){
+                    if(data.Code==0){
                         $("#pay_success").show();
                         RemoveTask(TaskType_orderQuery);
                     }else{

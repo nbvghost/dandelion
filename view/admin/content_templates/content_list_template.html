@@ -59,7 +59,6 @@
                 </div>
             </td>
             <td class="right aligned">
-                @{m.Type}@
                 <a ng-click="editMenus(m)" class="ui blue button"><i class="edit icon"></i>编辑</a>
                 <a ng-if="m.Type=='content' && getTemplateNameObj(m.Type,m.TemplateName).Content" href="" ng-click="showContentContentSubTypeDialog(m)" class="ui green button"> <i class="edit icon"></i>内容管理</a>
                 <a ng-if="m.Type!='content' && getTemplateNameObj(m.Type,m.TemplateName).Content" href="#!/@{m.Type}@?ContentItemID=@{m.ID}@&Type=@{m.Type}@" class="ui green button"> <i class="edit icon"></i>内容管理</a>
@@ -116,7 +115,7 @@
             </form>
         </div>
 
-        <div ng-if="EditMenus.SubMenu">
+        <div ng-if="EditMenus.Template.SubMenu">
             <h3>分类管理</h3>
             <div class="ui grid">
                 <div class="eight wide column">

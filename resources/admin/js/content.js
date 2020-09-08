@@ -173,7 +173,7 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
         }).then(function (data, status, headers, config) {
             console.log(data);
             alert(data.data.Message);
-            if (data.data.Success) {
+            if (data.data.Code==0) {
                 window.history.back();
             }
         });
@@ -693,7 +693,7 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
         }).then(function (data, status, headers, config) {
             console.log(data);
             alert(data.data.Message);
-            if (data.data.Success) {
+            if (data.data.Code==0) {
                 window.history.back();
             }
         });
@@ -990,7 +990,7 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
         ],
         "content": [
             {Key: "services", Label: "服务", SubMenu: true, Content: true},
-            {Key: "about", Label: "关于我们", SubMenu: false, Content: true}
+            {Key: "about", Label: "关于我们", SubMenu: true, Content: true}
         ],
         "index": [
             {Key: "index", Label: "首页", SubMenu: false, Content: false}
@@ -1082,7 +1082,7 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
         const targetIndex = (index - 1) <= 0 ? 0 : (index - 1);
         const target = angular.copy($scope.MenusList[targetIndex]);//0
 
-        $scope.changeMenuSort(current,targetIndex,target);
+        $scope.changeMenuSort(current,index,targetIndex,target);
 
     }
 
@@ -1114,15 +1114,15 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
         const target = angular.copy($scope.MenusList[targetIndex]);//0
 
 
-        $scope.changeMenuSort(current,targetIndex,target);
+        $scope.changeMenuSort(current,index,targetIndex,target);
 
     }
-    $scope.changeMenuSort = function (current,targetIndex,target){
+    $scope.changeMenuSort = function (current,orgIndex,targetIndex,target){
         $scope.MenusList[targetIndex] = current;
-        $scope.MenusList[index] = target;
+        $scope.MenusList[orgIndex] = target;
 
         current.Sort = targetIndex;
-        target.Sort = index;
+        target.Sort = orgIndex;
 
         ActionTarget = {method: 'PUT', url: 'content/item/index/' + target.ID, title: '修改菜单'};
         $http({
@@ -1202,7 +1202,7 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
         //$scope.selectClassify = null;
         //$scope.classifyChild = null;
         $scope.EditMenus = m;
-        $scope.EditMenus.SubMenu = $scope.getTemplateNameObj($scope.EditMenus.Type,$scope.EditMenus.TemplateName);
+        $scope.EditMenus.Template = $scope.getTemplateNameObj($scope.EditMenus.Type,$scope.EditMenus.TemplateName);
 
         $scope.classify = {ContentItemID: $scope.EditMenus.ID};
         $("#editMenus").modal({
