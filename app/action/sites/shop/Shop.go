@@ -1,6 +1,7 @@
 package shop
 
 import (
+	"github.com/nbvghost/dandelion/app/result"
 	"strconv"
 
 	"github.com/nbvghost/dandelion/app/service"
@@ -117,5 +118,5 @@ func (controller *Controller) AddProjectdsfdsfsdAction(context *gweb.Context) gw
 }
 func (controller *Controller) articleAction(context *gweb.Context) gweb.Result {
 
-	return &gweb.JsonResult{Data: &dao.ActionStatus{Success: true, Message: "OK"}}
+	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK"}}
 }
