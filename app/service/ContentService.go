@@ -310,9 +310,9 @@ func (service ContentService) AddContent(article *dao.Content) *result.ActionRes
 			return &result.ActionResult{Code: result.ActionFail, Message: fmt.Sprintf("%v内容请指定类型", contentItem.Type)}
 		}
 		contentSubType := service.GetContentSubTypeByID(article.ContentSubTypeID)
-		if contentSubType.ParentContentSubTypeID == 0 {
+		/*if contentSubType.ParentContentSubTypeID == 0 {
 			return &result.ActionResult{Code: result.ActionFail, Message: fmt.Sprintf("%v内容请指定子类型", contentItem.Type)}
-		}
+		}*/
 
 		if contentSubType.ID == 0 {
 			return &result.ActionResult{Code: result.ActionFail, Message: fmt.Sprintf("无效的类别%v", contentSubType.ID)}
@@ -333,7 +333,24 @@ func (service ContentService) AddContent(article *dao.Content) *result.ActionRes
 		as.Message = "添加失败，存在相同的标题"
 	} else {
 		articleID := article.ID
-		err := service.Save(Orm, article) //self.dao.AddArticle(Orm, article)
+		var err error
+		if articleID == 0 {
+			err = service.Save(Orm, article) //self.dao.AddArticle(Orm, article)
+		} else {
+			err = service.ChangeMap(Orm, articleID, &dao.Content{}, map[string]interface{}{
+				"Author":           article.Author,
+				"Content":          article.Content,
+				"ContentSubTypeID": article.ContentSubTypeID,
+				"Description":      article.Description,
+				"FromUrl":          article.FromUrl,
+				"Introduce":        article.Introduce,
+				"Keywords":         article.Keywords,
+				"Picture":          article.Picture,
+				"Title":            article.Title,
+			})
+
+		}
+
 		if err != nil {
 			glog.Error(err)
 			as.Code = result.ActionFail

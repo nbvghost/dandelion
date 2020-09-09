@@ -173,7 +173,7 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
         }).then(function (data, status, headers, config) {
             console.log(data);
             alert(data.data.Message);
-            if (data.data.Code==0) {
+            if (data.data.Code == 0) {
                 window.history.back();
             }
         });
@@ -673,6 +673,12 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
     $scope.ContentSubTypeID = $routeParams.ContentSubTypeID
     $scope.ContentSubTypeChildID = $routeParams.ContentSubTypeChildID
 
+    if (isNaN(parseInt($scope.ContentSubTypeID)) || isNaN(parseInt($scope.ContentSubTypeChildID))) {
+        alert("类别错误")
+        window.history.go(-1);
+        return
+    }
+
 
     $scope.Article = {ContentItemID: $scope.ContentItemID};
 
@@ -682,30 +688,29 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
         //$scope.ContentSubTypeID;
         //$scope.ContentSubTypeChildID;
         //console.log(quill.container.firstChild.innerHTML)
-        $scope.Article.ContentItemID = parseInt($scope.ContentItemID);
 
-        $scope.Article.Content = quill.container.firstChild.innerHTML;
-        $scope.Article.ContentSubTypeID = parseInt($scope.Article.ContentSubTypeChildID);
+        let Article = angular.copy($scope.Article)
 
-        $http.post("content/save", JSON.stringify($scope.Article), {
+        Article.ContentItemID = parseInt($scope.ContentItemID);
+
+        Article.Content = quill.container.firstChild.innerHTML;
+
+        let ContentSubTypeID = parseInt(Article.ContentSubTypeChildID) != 0 ? parseInt(Article.ContentSubTypeChildID) : parseInt(Article.ContentSubTypeID);
+
+        Article.ContentSubTypeID = ContentSubTypeID
+
+        $http.post("content/save", JSON.stringify(Article), {
             transformRequest: angular.identity,
             headers: {"Content-Type": "application/json"}
         }).then(function (data, status, headers, config) {
             console.log(data);
             alert(data.data.Message);
-            if (data.data.Code==0) {
+            if (data.data.Code == 0) {
                 window.history.back();
             }
         });
     }
 
-    $http.get("content/sub_type/list/all/" + $routeParams.ContentItemID).then(function (value) {
-        $scope.ContentSubTypes = value.data.Data || [];
-
-        $scope.Article.ContentSubTypeID=$scope.ContentSubTypeID
-        $scope.Article.ContentSubTypeChildID=$scope.ContentSubTypeChildID
-
-    });
 
     $scope.UploadPictureImage = function (file, errFiles) {
         if (file) {
@@ -770,7 +775,19 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
             UpImageError(errFiles);
         }
     }
-    $timeout(function () {
+    $timeout(async function () {
+
+        await new Promise((resolve, reject) => {
+            $http.get("content/sub_type/list/all/" + $routeParams.ContentItemID).then(function (value) {
+                $scope.ContentSubTypes = value.data.Data || [];
+
+                $scope.Article.ContentSubTypeID = $scope.ContentSubTypeID
+                $scope.Article.ContentSubTypeChildID = $scope.ContentSubTypeChildID.toString()
+                console.log($scope.Article.ContentSubTypeID,$scope.Article.ContentSubTypeChildID)
+                resolve()
+
+            });
+        })
 
         const Inline = Quill.import('blots/inline');
         const Block = Quill.import('blots/block');
@@ -905,18 +922,21 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
 
         if ($scope.ContentItemID && $scope.ContentSubTypeID && $scope.ContentSubTypeChildID) {
 
-            $http.get("content/single/get/" + $scope.ContentItemID+"/"+$scope.ContentSubTypeChildID).then(function (responea) {
+            let ContentSubTypeID = parseInt($scope.ContentSubTypeChildID) === 0 ? parseInt($scope.ContentSubTypeID) : parseInt($scope.ContentSubTypeChildID)
 
-                if(responea.data.Data.ID>0){
+            $http.get("content/single/get/" + $scope.ContentItemID + "/" +ContentSubTypeID).then(function (responea) {
+
+                if (responea.data.Data.ID > 0) {
                     $scope.Article = responea.data.Data;
 
-                    if( $scope.Article.ContentSubTypeID!==parseInt($scope.ContentSubTypeChildID)){
+                    if ($scope.Article.ContentSubTypeID !== parseInt($scope.ContentSubTypeID) && $scope.Article.ContentSubTypeID !== parseInt($scope.ContentSubTypeChildID)) {
 
                         alert("原内容类型与所选类型不匹配")
                         return
                     }
                     //$scope.ContentSubTypeID = $scope.Article.ContentSubTypeID
                     //$scope.ContentSubTypeChildID = $scope.Article.ContentSubTypeChildID
+
                     $scope.Article.ContentSubTypeID=$scope.ContentSubTypeID
                     $scope.Article.ContentSubTypeChildID=$scope.ContentSubTypeChildID
 
@@ -976,13 +996,13 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
 main.controller('content_list_controller', function ($http, $scope, $timeout, $routeParams, $document, $interval) {
 
     $scope.MenuTypes = [];
-    $scope.EditMenus=null;
-    $scope.CreateMenus=null;
+    $scope.EditMenus = null;
+    $scope.CreateMenus = null;
     $scope.selectClassify = null;
     $scope.classifyChild = {};
 
-    $scope.ContentContentSubType ={}
-    $scope.ContentSubTypes ={}
+    $scope.ContentContentSubType = {}
+    $scope.ContentSubTypes = {}
 
     $scope.templateNameObj = {
         "contents": [
@@ -1069,7 +1089,7 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
                 alert(data.data.Message);
                 resolve(true);
 
-            }).catch((error)=>{
+            }).catch((error) => {
                 resolve(false);
             });
         });
@@ -1082,7 +1102,7 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
         const targetIndex = (index - 1) <= 0 ? 0 : (index - 1);
         const target = angular.copy($scope.MenusList[targetIndex]);//0
 
-        $scope.changeMenuSort(current,index,targetIndex,target);
+        $scope.changeMenuSort(current, index, targetIndex, target);
 
     }
 
@@ -1114,10 +1134,10 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
         const target = angular.copy($scope.MenusList[targetIndex]);//0
 
 
-        $scope.changeMenuSort(current,index,targetIndex,target);
+        $scope.changeMenuSort(current, index, targetIndex, target);
 
     }
-    $scope.changeMenuSort = function (current,orgIndex,targetIndex,target){
+    $scope.changeMenuSort = function (current, orgIndex, targetIndex, target) {
         $scope.MenusList[targetIndex] = current;
         $scope.MenusList[orgIndex] = target;
 
@@ -1150,15 +1170,14 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
     $scope.saveCreateMenu = async function () {
         ActionTarget = {method: 'POST', url: 'content/item/add', title: '添加菜单'};
         await $scope.saveMenu($scope.CreateMenus);
-        $scope.CreateMenus=null;
+        $scope.CreateMenus = null;
     }
     $scope.saveEditMenu = async function () {
-        ActionTarget = {method: 'PUT', url: 'content/item/' + m.ID, title: '修改菜单'};
+        ActionTarget = {method: 'PUT', url: 'content/item/' + $scope.EditMenus.ID, title: '修改菜单'};
         await $scope.saveMenu($scope.EditMenus);
-        $scope.EditMenus=null;
+        $scope.EditMenus = null;
     }
     //{method:'PUT',url:''}
-
 
 
     $scope.showContentContentSubTypeDialog = function (m) {
@@ -1169,26 +1188,34 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
             $scope.ContentSubTypes = value.data.Data || [];
 
             $("#contentContentSubTypeDialog").modal({
-                centered: false,closable:false, allowMultiple: false,
-                onDeny:function(e){
-                    $timeout(function (){
-                        $scope.ContentSubTypes={};
-                        $scope.ContentContentSubType={};
+                centered: false, closable: false, allowMultiple: false,
+                onDeny: function (e) {
+                    $timeout(function () {
+                        $scope.ContentSubTypes = {};
+                        $scope.ContentContentSubType = {};
                     })
                     return true
                 },
                 onApprove: function (e) {
 
-                    if($scope.ContentContentSubType.ContentSubTypeID==undefined || $scope.ContentContentSubType.ContentSubTypeChildID==undefined){
+                    if ($scope.ContentContentSubType.ContentSubTypeID == undefined) {
                         alert("请选择类别")
                         return false
                     }
+                    if ($scope.ContentContentSubType.ContentSubTypeChildID == undefined) {
+                        $scope.ContentContentSubType.ContentSubTypeChildID = 0
+                    }
 
-                    $timeout(function (){
-                        let redirect ="#!/"+m.Type+"?ContentItemID="+m.ID+"&ContentSubTypeID="+$scope.ContentContentSubType.ContentSubTypeID+"&ContentSubTypeChildID="+$scope.ContentContentSubType.ContentSubTypeChildID
-                        $scope.ContentSubTypes={};
-                        $scope.ContentContentSubType={};
-                        window.location.href=redirect
+                    if (isNaN(parseInt($scope.ContentContentSubType.ContentSubTypeID)) || isNaN(parseInt($scope.ContentContentSubType.ContentSubTypeChildID))) {
+                        alert("类别选择错误")
+                        return
+                    }
+
+                    $timeout(function () {
+                        let redirect = "#!/" + m.Type + "?ContentItemID=" + m.ID + "&ContentSubTypeID=" + $scope.ContentContentSubType.ContentSubTypeID + "&ContentSubTypeChildID=" + $scope.ContentContentSubType.ContentSubTypeChildID
+                        $scope.ContentSubTypes = {};
+                        $scope.ContentContentSubType = {};
+                        window.location.href = redirect
                     })
 
                     return true
@@ -1202,11 +1229,11 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
         //$scope.selectClassify = null;
         //$scope.classifyChild = null;
         $scope.EditMenus = m;
-        $scope.EditMenus.Template = $scope.getTemplateNameObj($scope.EditMenus.Type,$scope.EditMenus.TemplateName);
+        $scope.EditMenus.Template = $scope.getTemplateNameObj($scope.EditMenus.Type, $scope.EditMenus.TemplateName);
 
         $scope.classify = {ContentItemID: $scope.EditMenus.ID};
         $("#editMenus").modal({
-            centered: false,closable:false, allowMultiple: false,
+            centered: false, closable: false, allowMultiple: false,
             onApprove: function (e) {
 
                 $timeout(function () {
@@ -1221,7 +1248,7 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
         $scope.listClassify();
     }
     $scope.deleteMenus = function (ID) {
-        if(confirm("确定要删除？")==false){
+        if (confirm("确定要删除？") == false) {
             return
         }
         $http.delete("content/item/" + ID, {
@@ -1233,7 +1260,7 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
 
             $scope.listMenus();
 
-           // $scope.Menus = null;
+            // $scope.Menus = null;
 
         });
     }
@@ -1246,7 +1273,7 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
 
     $scope.deleteClassify = function (m) {
 
-        if(confirm("确定要删除？")==false){
+        if (confirm("确定要删除？") == false) {
             return
         }
 
@@ -1295,8 +1322,6 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
     }
 
 
-
-
     $scope.ActionClassifyChildTarget = {method: 'POST', url: 'content/sub_type', title: '添加子分类'};
 
     //saveClassifyChild
@@ -1335,7 +1360,7 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
 
     }
     $scope.deleteClassifyChild = function (m) {
-        if(confirm("确定要删除？")==false){
+        if (confirm("确定要删除？") == false) {
             return
         }
         $http.delete("content/sub_type/" + m.ID, {

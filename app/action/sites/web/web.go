@@ -19,6 +19,7 @@ func (controller *Controller) Init() {
 	controller.AddHandler(gweb.ALLMethod("/index", controller.index))
 	controller.AddHandler(gweb.ALLMethod("/gallery", controller.gallery))
 	controller.AddHandler(gweb.ALLMethod("/contents", controller.contents))
+	controller.AddHandler(gweb.ALLMethod("/content", controller.content))
 	controller.AddHandler(gweb.ALLMethod("/js/", controller.AddProjectdsfdsfsdAction))
 	controller.AddHandler(gweb.ALLMethod("/css/", controller.AddProjectdsfdsfsdAction))
 	controller.AddHandler(gweb.ALLMethod("/img/", controller.AddProjectdsfdsfsdAction))
@@ -32,6 +33,36 @@ func (controller *Controller) defaultPage(context *gweb.Context) gweb.Result {
 	//return &gweb.HTMLResult{}
 	return &gweb.RedirectToUrlResult{Url: "index"}
 
+}
+func (controller *Controller) content(context *gweb.Context) gweb.Result {
+	params := make(map[string]interface{})
+
+	ContentItemID := number.ParseInt(context.Request.URL.Query().Get("id"))
+	ContentSubTypeID := number.ParseInt(context.Request.URL.Query().Get("sid"))
+
+	//item := controller.Content.GetContentItemByID(uint64(ContentItemID))
+	//params["Item"] = item
+
+	var ContentSubTypeIDList []uint64
+	if ContentSubTypeID == 0 {
+		ContentSubTypeIDList = []uint64{}
+	} else {
+		ContentSubTypeIDList = controller.Content.GetContentSubTypeAllIDByID(uint64(ContentItemID), uint64(ContentSubTypeID))
+	}
+
+	contentList := controller.Content.FindContentByContentItemIDAndContentSubTypeID(uint64(ContentItemID), ContentSubTypeIDList)
+	params["ContentList"] = contentList
+
+	item, menusPath := controller.Template.MenusTemplate(context, uint64(ContentItemID), uint64(ContentSubTypeID), params)
+	commonPath := controller.Template.CommonTemplate(context, params)
+
+	return &gweb.HTMLResult{
+		Name: item.TemplateName,
+		Template: []string{
+			menusPath, commonPath,
+		},
+		Params: params,
+	}
 }
 func (controller *Controller) contents(context *gweb.Context) gweb.Result {
 	params := make(map[string]interface{})

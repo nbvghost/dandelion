@@ -80,13 +80,13 @@
                 <div class="four wide field">
                     <label>分类</label>
                     <select ng-model="ContentContentSubType.ContentSubTypeID" ng-change="changeContentSubTypes()" ng-options="key as value.SubType.Name for (key , value) in ContentSubTypes" required >
-
+                        <option value="">请选择</option>
                     </select>
                 </div>
                 <div class="four wide field">
                     <label>子类</label>
                     <select ng-model="ContentContentSubType.ContentSubTypeChildID" ng-change="changeContentSubTypeChilds()" ng-options="key as value.Name for (key , value) in ContentSubTypes[ContentContentSubType.ContentSubTypeID].SubTypeChildren">
-
+                        <option value="">不选</option>
                     </select>
                 </div>
             </div>
