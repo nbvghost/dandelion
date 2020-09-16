@@ -298,7 +298,7 @@ func (controller *Controller) articleAction(context *gweb.Context) gweb.Result {
 		Result.Data = &result.ActionResult{result.ActionOK, "SUCCESS", article}
 	case "one":
 		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("id"), 10, 64)
-		article := controller.Content.GetContent(ID)
+		article := controller.Content.GetContentByID(ID)
 		Result.Data = &result.ActionResult{result.ActionOK, "SUCCESS", article}
 	case "del":
 		context.Request.ParseForm()

@@ -22,7 +22,7 @@ type InterceptorManager struct {
 }
 
 //Execute(Session *Session,Request *http.Request)(bool,Result)
-func (this InterceptorManager) Execute(context *gweb.Context) (bool, gweb.Result) {
+func (m InterceptorManager) Execute(context *gweb.Context) (bool, gweb.Result) {
 
 	//util.Trace(context.Session,"context.Session")
 	if context.Session.Attributes.Get(play.SessionAdmin) == nil {

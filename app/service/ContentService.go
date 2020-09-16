@@ -6,6 +6,7 @@ import (
 	"github.com/nbvghost/dandelion/app/play"
 	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service/dao"
+	"strings"
 	"time"
 
 	"github.com/nbvghost/glog"
@@ -41,7 +42,7 @@ func (service ContentService) FindAllContentSubType(OID uint64) []dao.ContentIte
 	Orm := dao.Orm()
 	var menus []dao.ContentItemContentSubType
 
-	rows, err := Orm.Raw("SELECT Item.*,SubType.* FROM ContentSubType AS SubType RIGHT JOIN ContentItem AS Item ON (Item.ID=SubType.ContentItemID) WHERE Item.OID=? and Item.Hide=0 order by Item.Sort", OID).Rows()
+	rows, err := Orm.Raw("SELECT Item.*,SubType.* FROM ContentSubType AS SubType RIGHT JOIN ContentItem AS Item ON (Item.ID=SubType.ContentItemID) WHERE Item.OID=? and Item.Hide=0 order by Item.Sort,Item.UpdatedAt desc", OID).Rows()
 
 	if glog.Error(err) {
 		return menus
@@ -218,21 +219,65 @@ func (service ContentService) FindContentByContentSubTypeID(ContentSubTypeID uin
 	glog.Error(err)
 	return contentList
 }
-func (service ContentService) FindContentByContentItemIDAndContentSubTypeID(ContentItemID uint64, ContentSubTypeIDList []uint64) []dao.Content {
+func (service ContentService) FindContentByContentItemIDAndContentSubTypeID(ContentItemID uint64, ContentSubTypeID uint64) dao.Content {
+
+	var content dao.Content
+	if ContentItemID == 0 {
+		glog.Trace("参数ContentItemID为0")
+		return content
+	}
+	if ContentSubTypeID == 0 {
+		glog.Trace("参数ContentSubTypeID为0")
+		return content
+	}
+
+	service.FindWhere(dao.Orm(), &content, "ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeID) //SelectOne(user, "select * from User where Email=?", Email)
+
+	return content
+}
+func (service ContentService) FindContentListForLeftRight(ContentItemID uint64, ContentSubTypeIDList []uint64, ContentID uint64, ContentCreatedAt time.Time) [2]dao.Content {
+
+	var contentList [2]dao.Content
+	if ContentItemID == 0 {
+		glog.Trace("参数ContentItemID为0")
+		return contentList
+	}
+
+	ContentSubTypeIDListStr := make([]string, 0)
+	for index := range ContentSubTypeIDList {
+		ContentSubTypeIDListStr = append(ContentSubTypeIDListStr, strconv.FormatUint(ContentSubTypeIDList[index], 10))
+	}
+
+	var whereSql = ""
+
+	if len(ContentSubTypeIDList) > 0 {
+		whereSql = fmt.Sprintf("ContentItemID=%v and ContentSubTypeID in (%v)", ContentItemID, strings.Join(ContentSubTypeIDListStr, ","))
+	} else {
+		whereSql = fmt.Sprintf("ContentItemID=%v", ContentItemID)
+	}
+
+	var left dao.Content
+	var right dao.Content
+	err := dao.Orm().Raw(`SELECT * FROM Content  WHERE `+whereSql+` and ID<>? and CreatedAt>=? ORDER BY CreatedAt,ID limit 1`, ContentID, ContentCreatedAt).Scan(&left).Error
+	glog.Error(err)
+	err = dao.Orm().Raw(`SELECT * FROM Content  WHERE `+whereSql+` and ID<>? and CreatedAt<=? ORDER BY CreatedAt desc,ID desc limit 1`, ContentID, ContentCreatedAt).Scan(&right).Error
+	glog.Error(err)
+
+	return [2]dao.Content{left, right}
+}
+func (service ContentService) FindContentListByContentItemIDAndContentSubTypeID(ContentItemID uint64, ContentSubTypeIDList []uint64) []dao.Content {
 
 	var contentList []dao.Content
 	if ContentItemID == 0 {
 		glog.Trace("参数ContentItemID为0")
 		return contentList
 	}
-	var err error
-	if len(ContentSubTypeIDList) > 0 {
 
-		err = service.FindWhere(dao.Orm(), &contentList, "ContentItemID=? and ContentSubTypeID in (?)", ContentItemID, ContentSubTypeIDList) //SelectOne(user, "select * from User where Email=?", Email)
+	if len(ContentSubTypeIDList) > 0 {
+		dao.Orm().Model(&dao.Content{}).Where("ContentItemID=? and ContentSubTypeID in (?)", ContentItemID, ContentSubTypeIDList).Order("CreatedAt desc").Order("ID desc").Find(&contentList) //SelectOne(user, "select * from User where Email=?", Email)
 	} else {
-		err = service.FindWhere(dao.Orm(), &contentList, "ContentItemID=?", ContentItemID) //SelectOne(user, "select * from User where Email=?", Email)
+		dao.Orm().Model(&dao.Content{}).Where("ContentItemID=?", ContentItemID).Order("CreatedAt desc").Order("ID desc").Find(&contentList) //service.FindWhere(dao.Orm(), &contentList, "ContentItemID=?", ContentItemID) //SelectOne(user, "select * from User where Email=?", Email)
 	}
-	glog.Error(err)
 	return contentList
 }
 func (service ContentService) GetContentByContentItemID(ContentItemID uint64) *dao.Content {
@@ -247,7 +292,7 @@ func (service ContentService) GetContentByContentItemIDAndContentSubTypeID(Conte
 	//service.ChangeMap(dao.Orm(), ID, &dao.Article{}, map[string]interface{}{"Look": article.Look + 1})
 	return article
 }
-func (service ContentService) GetContent(ID uint64) *dao.Content {
+func (service ContentService) GetContentByID(ID uint64) *dao.Content {
 	article := &dao.Content{}
 	err := service.Get(dao.Orm(), ID, article) //SelectOne(user, "select * from User where Email=?", Email)
 	glog.Error(err)

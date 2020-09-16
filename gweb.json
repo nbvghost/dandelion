@@ -10,7 +10,7 @@
   "HttpPort": ":8080",
   "Debug":true,
   "HttpsPort": ":443",
-  "Domain":"192.168.1.104:8080",
+  "Domain":"192.168.1.98:8080",
   "ViewSuffix": ".html",
   "ViewActionMapping":[],
   "TLSCertFile": "cert/tls/cert2.pem",

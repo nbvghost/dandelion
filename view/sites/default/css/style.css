@@ -40,6 +40,12 @@ img{
 	width:100%;
 }
 
+
+#content img{
+    width: inherit;
+    max-width: 100%;
+}
+
 /*--header--*/
 #topbar{
     background: #f85a40;

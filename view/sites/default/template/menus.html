@@ -1,6 +1,7 @@
 {{- define "menus" -}}
 
     {{$id:=(ParseInt .query.id)}}
+    {{$CurrentSubTypeID:=.params.CurrentSubType.ID}}
     <nav class="navbar navbar-expand-lg navbar-light">
         <a class="navbar-brand" href="index">Navbar</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
@@ -20,8 +21,10 @@
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                                 {{range $sk, $sv := $v.SubType}}
-                                    <a class="dropdown-item"
-                                       href="{{$v.Item.Type}}?id={{$v.Item.ID}}&sid={{$sv.Item.ID}}">{{$sv.Item.Name}}</a>
+
+                                    <a class="dropdown-item {{if eq $CurrentSubTypeID $sv.Item.ID}}active{{end}}" href="{{$v.Item.Type}}?ciid={{$v.Item.ID}}&cstid={{$sv.Item.ID}}">
+                                      {{$sv.Item.Name}}
+                                    </a>
                                 {{end}}
 
                             </div>
@@ -35,7 +38,7 @@
                             </li>
                         {{else}}
                             <li class="nav-item {{if eq  $id $v.Item.ID}}active{{end}}">
-                                <a class="nav-link" href="{{$v.Item.Type}}?id={{$v.Item.ID}}">{{$v.Item.Name}}<span
+                                <a class="nav-link" href="{{$v.Item.Type}}?ciid={{$v.Item.ID}}">{{$v.Item.Name}}<span
                                             class="sr-only">(current)</span></a>
                             </li>
                         {{end}}

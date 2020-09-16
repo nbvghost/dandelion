@@ -17,7 +17,8 @@
                 href="?id={{.params.Item.ID}}">{{.params.Item.TemplateName}}</a></h4>
 </section>
 <!-- //inner page banner -->
-
+{{$id:=.query.id}}
+{{$sid:=.query.sid}}
 
 <div class="container">
     <div class="row">
@@ -53,8 +54,6 @@
             </div>
 
 
-
-
         </div>
         <div class="col-lg-9">
 
@@ -74,7 +73,7 @@
             <ul class="list-unstyled">
 
                 {{range $k,$v:=.params.ContentList}}
-                    <li class="media mb-3">
+                    <li class="media mb-3 position-relative">
                         <img style="width: 64px;height: 64px;" src="/file/load?path={{$v.Picture}}" class="mr-3"
                              alt="{{$v.Title}}">
                         <div class="media-body">
@@ -82,6 +81,9 @@
                             <p class="overflow-hidden" style="max-lines: 2">{{$v.Introduce}}</p>
                             <p class="text-muted"><small>{{$v.CreatedAt}}</small></p>
                         </div>
+
+
+                        <a href="contents_detail?id={{$v.ID}}&iid={{$id}}&stid={{$sid}}" class="stretched-link"></a>
                     </li>
 
                 {{end}}
@@ -321,5 +323,9 @@
         </div>
     </div>
 </div>
+
+
+{{template "footer"}}
+
 </body>
 </html>

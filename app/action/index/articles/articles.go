@@ -65,7 +65,7 @@ func (controller *Controller) ListContentSubTypeAction(context *gweb.Context) gw
 }
 func (controller *Controller) articleSeftPage(context *gweb.Context) gweb.Result {
 	ArticleID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
-	article := controller.Content.GetContent(ArticleID)
+	article := controller.Content.GetContentByID(ArticleID)
 	//article.Content=template.HTML(article.Content)
 	return &gweb.HTMLResult{Params: map[string]interface{}{"Article": article}}
 }
@@ -142,7 +142,7 @@ func (controller *Controller) listNewPage(context *gweb.Context) gweb.Result {
 }
 func (controller *Controller) getArticleAction(context *gweb.Context) gweb.Result {
 	ArticleID, _ := strconv.ParseUint(context.PathParams["ArticleID"], 10, 64)
-	article := controller.Content.GetContent(ArticleID)
+	article := controller.Content.GetContentByID(ArticleID)
 	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK", Data: article}}
 }
 func (controller *Controller) listSubContentNewAction(context *gweb.Context) gweb.Result {
