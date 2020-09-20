@@ -1,44 +1,45 @@
 {{- define "menus" -}}
 
-    {{$id:=(ParseInt .query.id)}}
-    {{$CurrentSubTypeID:=.params.CurrentSubType.ID}}
+    {{$ID:=.params.Menus.ID}}
+    {{$SubID:=.params.Menus.SubID}}
+    {{$RootPath:=.rootPath}}
+
     <nav class="navbar navbar-expand-lg navbar-light">
-        <a class="navbar-brand" href="index">Navbar</a>
+        <a class="navbar-brand" href="{{$RootPath}}index">Navbar</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
 
-                {{- range $k, $v := .params.Menus -}}
+                {{- range $k, $v := .params.Menus.List -}}
 
                     {{- if gt (len $v.SubType) 0 -}}
 
-                        <li class="nav-item {{if eq  $id $v.Item.ID}}active{{end}} dropdown">
+                        <li class="nav-item {{if eq  $ID $k}}active{{end}} dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink"
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 {{$v.Item.Name}}
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                                 {{range $sk, $sv := $v.SubType}}
-
-                                    <a class="dropdown-item {{if eq $CurrentSubTypeID $sv.Item.ID}}active{{end}}" href="{{$v.Item.Type}}?ciid={{$v.Item.ID}}&cstid={{$sv.Item.ID}}">
+                                    <a class="dropdown-item {{if eq $SubID $sk}}active{{end}}" href="{{$RootPath}}{{$v.Item.Type}}/{{$v.Item.ID}}/{{$sv.Item.ID}}/0">
                                       {{$sv.Item.Name}}
                                     </a>
                                 {{end}}
-
                             </div>
 
                         </li>
 
                     {{else}}
-                        {{if eq $v.Item.Type "index"}}
-                            <li class="nav-item {{if eq $id 0}}active{{end}}">
-                                <a class="nav-link" href="{{$v.Item.Type}}">{{$v.Item.Name}}<span class="sr-only">(current)</span></a>
+
+                        {{- if eq $v.Item.Type "index" -}}
+                            <li class="nav-item {{if eq 0 0}}active{{end}}">
+                                <a class="nav-link" href="{{$RootPath}}{{$v.Item.Type}}">{{$v.Item.Name}}<span class="sr-only">(current)</span></a>
                             </li>
                         {{else}}
-                            <li class="nav-item {{if eq  $id $v.Item.ID}}active{{end}}">
-                                <a class="nav-link" href="{{$v.Item.Type}}?ciid={{$v.Item.ID}}">{{$v.Item.Name}}<span
+                            <li class="nav-item {{if eq  0 $v.Item.ID}}active{{end}}">
+                                <a class="nav-link" href="{{$RootPath}}{{$v.Item.Type}}/{{$v.Item.ID}}/0/0">{{$v.Item.Name}}<span
                                             class="sr-only">(current)</span></a>
                             </li>
                         {{end}}

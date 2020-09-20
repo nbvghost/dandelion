@@ -415,7 +415,7 @@ func (ScoreGoods) TableName() string {
 
 type GoodsType struct {
 	BaseModel
-	//OID  uint64 `gorm:"column:OID"`
+	OID  uint64 `gorm:"column:OID"`
 	Name string `gorm:"column:Name"`
 }
 

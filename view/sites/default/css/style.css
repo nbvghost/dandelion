@@ -46,6 +46,12 @@ img{
     max-width: 100%;
 }
 
+
+#gallery figure > img{
+    width: 100%;
+    object-fit: cover;
+    object-position: center;
+}
 /*--header--*/
 #topbar{
     background: #f85a40;
@@ -423,6 +429,9 @@ p.para-w3-agile {
 		font-size: 0.8em;
 	}
 }
+
+
+
 .client-eql {
 	display: flex;
 	-webkit-justify-content: space-between;
@@ -566,8 +575,11 @@ iframe {
 /*-- //contact --*/
 
 /*-- inner_page_banner --*/
+.inner_page_banner.products{
+    background:black;
+}
 .inner_page_banner{
-	background: url(../img/test.jpg) no-repeat 0px 0px;
+	background:url("../img/test.jpg");
 	background-size: cover;
 	min-height: 120px;
 }
@@ -1289,6 +1301,9 @@ a.home:hover,button.btn1:hover{
 		font-size: 50px;
 		letter-spacing: 2px;
 	}
+    #gallery figure > img{
+        height: 240px;
+    }
 }
 @media(max-width: 1080px){
 	.headder-w3 a {
@@ -1325,6 +1340,9 @@ a.home:hover,button.btn1:hover{
 	.middle h3 {
 		font-size: 27px;
 	}
+    #gallery figure > img{
+        height: 240px;
+    }
 }
 @media(max-width: 991px){
     #menus{
@@ -1406,6 +1424,9 @@ a.home:hover,button.btn1:hover{
 	.headder-w3 a {
 		font-size: 26px;
 	}
+    #gallery figure > img{
+        height: 240px;
+    }
 }
 @media(max-width: 800px){
 
@@ -1419,6 +1440,9 @@ a.home:hover,button.btn1:hover{
 	.headder-w3 a {
 		font-size: 26px;
 	}
+    #gallery figure > img{
+        height: 200px;
+    }
 }
 @media(max-width: 736px){
 	.contact-wthree input[type="text"], .contact-wthree input[type="email"], .contact-wthree input[type="password"], .contact-wthree textarea {
@@ -1476,12 +1500,18 @@ a.home:hover,button.btn1:hover{
 	.headder-w3 a {
 		font-size: 30px;
 	}
+    #gallery figure > img{
+        height: 180px;
+    }
 }
 @media(max-width: 667px){
 	.gallery1 h3 {
 		line-height: 20px;
 		font-size: 25px;
 	}
+    #gallery figure > img{
+        height: 180px;
+    }
 }
 @media(max-width: 600px){
 
@@ -1496,6 +1526,10 @@ a.home:hover,button.btn1:hover{
 	.middle p {
 		font-size: 14px;
 	}
+
+    #gallery figure > img{
+        height: 180px;
+    }
 }
 @media(max-width: 568px){
 	.w3layouts-banner-top {
@@ -1518,6 +1552,9 @@ a.home:hover,button.btn1:hover{
 	.contact-left {
 		height: auto;
 	}
+    #gallery figure > img{
+        height: 180px;
+    }
 }
 @media(max-width: 480px){
 	.w3l-slide-text h3 {
@@ -1623,6 +1660,9 @@ a.home:hover,button.btn1:hover{
 	.headder-w3 a {
 		font-size: 26px;
 	}
+    #gallery figure > img{
+        height: 140px;
+    }
 }
 @media(max-width: 384px){
 	.social-icon a {
@@ -1665,6 +1705,9 @@ a.home:hover,button.btn1:hover{
 		padding-bottom: 5px;
 		float: none;
 	}
+    #gallery figure > img{
+        height: 140px;
+    }
 }
 @media(max-width: 375px){
 	.indexgallery .w3_agileits_sub_work:hover {
@@ -1679,6 +1722,9 @@ a.home:hover,button.btn1:hover{
 	.w3l-slide-text h3 {
 		font-size: 22px;
 	}
+    #gallery figure > img{
+        height: 120px;
+    }
 }
 @media(max-width: 1680px){
 	

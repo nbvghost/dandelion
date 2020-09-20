@@ -1,3 +1,8 @@
+{{$ID:=.params.Menus.ID}}
+{{$SubID:=.params.Menus.SubID}}
+{{$SubChildID:=.params.Menus.SubChildID}}
+{{$RootPath:=.rootPath}}
+
 <!DOCTYPE html>
 <!-- saved from url=(0062)http://demo.cssmoban.com/cssthemes6/cpts_1788_csq/gallery.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -5,182 +10,132 @@
 
 	<!-- Meta tag Keywords -->
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	{{- template "import_asset" .}}
 
-	{{- template "import_asset" -}}
+	<link href="/resources/lightgallery/css/lightgallery.css" rel="stylesheet">
+	<script src="/resources/lightgallery/js/lightgallery.min.js"></script>
+	<script src="/resources/lightgallery/js/lg-thumbnail.min.js"></script>
+	<script src="/resources/lightgallery/js/lg-zoom.min.js"></script>
 </head>
 <body>
 {{- template "header" . -}}
+
+
 <!-- inner page banner -->
-<section class="inner_page_banner text-center pt-4">
-	<h2 class="page_heading text-uppercase pt-md-5 pt-sm-4">Gallery Page</h2>
-	<h4 class="text-uppercase pt-2"><a href="">Home</a> - Gallery Page</h4>
+<section class="inner_page_banner text-center">
+
+
+	{{if gt $SubChildID 0}}
+
+		<h2 class="page_heading text-uppercase pt-md-4 pt-sm-4">{{.params.Menus.SubChild.Item.Name}}</h2>
+		<h4 class="text-uppercase pt-2">
+			<a href="{{$RootPath}}index">Home</a> - <a
+					href="{{$RootPath}}{{.params.Menus.Top.Item.Type}}/{{.params.Menus.Top.Item.ID}}/0/0">{{.params.Menus.Top.Item.Name}}</a>
+		</h4>
+	{{else}}
+
+		{{if gt $SubID 0}}
+			<h2 class="page_heading text-uppercase pt-md-4 pt-sm-4">{{.params.Menus.Sub.Item.Name}}</h2>
+			<h4 class="text-uppercase pt-2">
+				<a href="{{$RootPath}}index">Home</a> - <a
+						href="{{$RootPath}}{{.params.Menus.Top.Item.Type}}/{{.params.Menus.Top.Item.ID}}/0/0">{{.params.Menus.Top.Item.Name}}</a>
+			</h4>
+		{{else}}
+			<h2 class="page_heading text-uppercase pt-md-4 pt-sm-4">{{.params.Menus.Top.Item.Name}}</h2>
+			<h4 class="text-uppercase pt-2">
+				<a href="{{$RootPath}}index">Home</a>
+			</h4>
+		{{end}}
+
+	{{end}}
+
+
 </section>
 <!-- //inner page banner -->
 
 <!--Gallery -->
-<section class="gallery py-5 my-lg-5" id="gallery">
+<section class="gallery" id="gallery">
 <div class="container">
-	<h3 class="heading text-center text-uppercase">Indus Fact Gallery</h3>
-	<p class="heading-bottom text-center font-italic mb-5">Industrial Revolution Business</p>
-		<div class="agileinfo_work_grids">
-			<div class="row">
-				<div class="col-lg-3 mb-lg-0 mb-sm-5 mb-4 w3_agile_work_grid gallery1">
-					<h3 class="text-capitalize">Our industrial infrastructure</h3>
-					<p class="text-capitalize py-4">Orci varius natoque penatibus ettdis magnis disk parturient montes, init nascetur ridiculus mus. Ut molestie venenatis nunc, in pellentesque nu llacursus sit amet. Curabitur imper diet lectus sit amet turpis pellentes que euismod. Vivamus lorem elite. Donec eget consequat elit. Aenean ettellus ut massa sodales luctus. In Pellentesque vulputate, neque ac varius ornare, urna velit fringilla sapien, ac lacinia tortor risus nec orci. Quisque lobortis eu dui id scelerisque.</p>
-					<div class="read">
-						<a href="">Explore</a>
+	<div class="d-flex justify-content-between align-items-center">
+		<h6 class="font-weight-bold">
+
+			{{if gt .params.Menus.SubChild.Item.ID 0}}
+
+				{{.params.Menus.SubChild.Item.Name}}
+
+			{{else}}
+				{{if gt .params.Menus.Sub.Item.ID 0}}
+					{{.params.Menus.Sub.Item.Name}}
+
+				{{else}}
+					{{.params.Menus.Top.Item.Name}}
+				{{end}}
+			{{end}}
+
+		</h6>
+		<ol class="p-0 pt-3 pb-2 d-flex m-0 list-unstyled justify-content-end">
+
+
+			<li class="breadcrumb-item"><a href="{{$RootPath}}">Home</a></li>
+
+			{{if gt .params.Menus.Top.Item.ID 0}}
+				<li class="breadcrumb-item"><a
+							href="{{$RootPath}}{{.params.Menus.Top.Item.Type}}/{{.params.Menus.Top.Item.ID}}/0/0">{{.params.Menus.Top.Item.Name}}</a>
+				</li>
+			{{end}}
+
+			{{if gt .params.Menus.Sub.Item.ID 0}}
+				<li class="breadcrumb-item"><a
+							href="{{$RootPath}}{{.params.Menus.Top.Item.Type}}/{{.params.Menus.Top.Item.ID}}/{{.params.Menus.Sub.Item.ID}}/0">{{.params.Menus.Sub.Item.Name}}</a>
+				</li>
+			{{end}}
+
+		</ol>
+	</div>
+
+
+
+		<div id="gallery">
+			<div class="row" id="lightgallery">
+				{{range $k,$v:=.params.ContentList}}
+
+					<div  data-src="/file/load?path={{$v.Picture}}"  data-sub-html="<h4>{{$v.Title}}</h4><p>{{$v.Introduce}}</p>" class="col-lg-3 col-sm-4 col-6 gallery_item">
+						<figure class="figure" data-src="/file/load?path={{$v.Picture}}" data-sub-html="dfds">
+							<img src="/file/load?path={{$v.Picture}}" class="figure-img img-fluid rounded" alt="{{with $v.Introduce}}-{{$v.Introduce}}{{end}}">
+							<figcaption class="figure-caption">{{$v.Title}}{{with $v.Introduce}}-{{$v.Introduce}}{{end}}</figcaption>
+						</figure>
 					</div>
-				</div>
-				<div class="col-lg-3 col-sm-4 col-6 w3_agile_work_grid">
-					<div class="wthree_work_grid1">
-						<a href="./img/g4.jpg" class="b-link-stripe b-animate-go  swipebox" title="Indus Fact">
-							<div class="agile_work_grid w3_agileits_sub_work">
-							<img src="./img/g4.jpg" alt=" " class="img-responsive">
-							<div class="agileits_w3layouts_work text-center">
-								Indus Fact
-							</div>
-							</div>
-						</a>
-					</div>
-					<div class="wthree_work_grid1">
-						<a href="./img/g5.jpg" class="b-link-stripe b-animate-go  swipebox" title="Indus Fact">
-							<div class="agile_work_grid w3_agileits_sub_work">
-							<img src="./img/g5.jpg" alt=" " class="img-responsive">
-							<div class="agileits_w3layouts_work text-center">
-								Indus Fact
-							</div>
-							</div>
-						</a>
-					</div>
-					<div class="wthree_work_grid1">
-						<a href="./img/g6.jpg" class="b-link-stripe b-animate-go  swipebox" title="Indus Fact">
-							<div class="agile_work_grid w3_agileits_sub_work">
-							<img src="./img/g6.jpg" alt=" " class="img-responsive">
-							<div class="agileits_w3layouts_work text-center">
-								Indus Fact
-							</div>
-							</div>
-						</a>
-					</div>
-				</div>
-				<div class="col-lg-3 col-sm-4 col-6 w3_agile_work_grid">
-					<div class="wthree_work_grid1">
-						<a href="./img/g7.jpg" class="b-link-stripe b-animate-go  swipebox" title="Indus Fact">
-							<div class="agile_work_grid w3_agileits_sub_work">
-							<img src="./img/g7.jpg" alt=" " class="img-responsive">
-							<div class="agileits_w3layouts_work text-center">
-								Indus Fact
-							</div>
-							</div>
-						</a>
-					</div>
-					<div class="wthree_work_grid1">
-						<a href="./img/g8.jpg" class="b-link-stripe b-animate-go  swipebox" title="Indus Fact">
-							<div class="agile_work_grid w3_agileits_sub_work">
-							<img src="./img/g8.jpg" alt=" " class="img-responsive">
-							<div class="agileits_w3layouts_work text-center">
-								Indus Fact
-							</div>
-							</div>
-						</a>
-					</div>
-					<div class="wthree_work_grid1">
-						<a href="./img/g9.jpg" class="b-link-stripe b-animate-go  swipebox" title="Indus Fact">
-							<div class="agile_work_grid w3_agileits_sub_work">
-							<img src="./img/g9.jpg" alt=" " class="img-responsive">
-							<div class="agileits_w3layouts_work text-center">
-								Indus Fact
-							</div>
-							</div>
-						</a>
-					</div>
-				</div>
-				
-				<div class="col-lg-3 col-sm-4 col-6 w3_agile_work_grid">
-					<div class="wthree_work_grid1">
-						<a href="./img/g4.jpg" class="b-link-stripe b-animate-go  swipebox" title="Indus Fact">
-							<div class="agile_work_grid w3_agileits_sub_work">
-							<img src="./img/g4.jpg" alt=" " class="img-responsive">
-							<div class="agileits_w3layouts_work text-center">
-								Indus Fact
-							</div>
-							</div>
-						</a>
-					</div>
-					<div class="wthree_work_grid1">
-						<a href="./img/g3.jpg" class="b-link-stripe b-animate-go  swipebox" title="Indus Fact">
-							<div class="agile_work_grid w3_agileits_sub_work">
-							<img src="./img/g3.jpg" alt=" " class="img-responsive">
-							<div class="agileits_w3layouts_work text-center">
-								Indus Fact
-							</div>
-							</div>
-						</a>
-					</div>
-					<div class="wthree_work_grid1">
-						<a href="./img/g2.jpg" class="b-link-stripe b-animate-go  swipebox" title="Indus Fact">
-							<div class="agile_work_grid w3_agileits_sub_work">
-							<img src="./img/g2.jpg" alt=" " class="img-responsive">
-							<div class="agileits_w3layouts_work text-center">
-								Indus Fact
-							</div>
-							</div>
-						</a>
-					</div>
-				</div>
+
+				{{end}}
 			</div>
 		</div>
 	</div>
 </section>	
 <!-- //Gallery -->
 
-{{IncludeHTML "sites/default/footer.tp.html" .}}
+{{template "footer" .}}
+
+
+
 
 <!-- js-scripts -->		
+<script>
 
 
-	
-	<!-- script-for-swipebox -->
-	<script src="./js/jquery.swipebox.min.js"></script>
-	<script type="text/javascript">
-		jQuery(function($) {
-			$(".swipebox").swipebox();
+	$(document).ready(function (){
+		lightGallery(document.getElementById('lightgallery'),{
+			selector: '.gallery_item'
 		});
-	</script>
-	<!-- //script-for-swipebox -->
-	
-	<!-- start-smoth-scrolling -->
-	<script src="./js/SmoothScroll.min.js"></script>
-	<script type="text/javascript" src="./js/move-top.js"></script>
-	<script type="text/javascript" src="./js/easing.js"></script>
-	<script type="text/javascript">
-		jQuery(document).ready(function($) {
-			$(".scroll").click(function(event){		
-				event.preventDefault();
-				$('html,body').animate({scrollTop:$(this.hash).offset().top},1000);
-			});
-		});
-	</script>
-	<!-- here stars scrolling icon -->
-	<script type="text/javascript">
-		$(document).ready(function() {
-			/*
-				var defaults = {
-				containerID: 'toTop', // fading element id
-				containerHoverID: 'toTopHover', // fading element hover id
-				scrollSpeed: 1200,
-				easingType: 'linear' 
-				};
-			*/
-								
-			$().UItoTop({ easingType: 'easeOutQuart' });
-								
-			});
-	</script>
-	<!-- //here ends scrolling icon -->
-	<!-- start-smoth-scrolling -->
-
-<!-- //js-scripts -->
+		/*lightGallery($('#lightgallery'),{
+			thumbnail:true,
+			animateThumb: true,
+			selector: '.w3_agile_work_grid'
+		});*/
+	})
 
 
-<a href="" id="toTop" style="display: none;"><span id="toTopHover"></span>To Top</a></body></html>
+
+</script>
+
+	</body>
+</html>

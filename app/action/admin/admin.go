@@ -270,7 +270,39 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.GoodsType{}, company.ID, "")
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 
-		//--------------------------------------
+	//--------------------------------------
+	case "del_goods_type":
+		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+		return &gweb.JsonResult{Data: controller.Goods.DeleteGoodsType(ID)}
+	case "add_goods_type":
+		item := &dao.GoodsType{}
+		item.OID = company.ID
+		err := util.RequestBodyToJSON(context.Request.Body, item)
+		glog.Trace(err)
+		err = controller.Goods.Add(Orm, item)
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
+	case "change_goods_type":
+		item := &dao.GoodsType{}
+		err := util.RequestBodyToJSON(context.Request.Body, item)
+		glog.Trace(err)
+		err = controller.Goods.ChangeModel(Orm, item.ID, &dao.GoodsType{Name: item.Name})
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
+
+	case "del_goods_type_child":
+		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+		return &gweb.JsonResult{Data: controller.Goods.DeleteGoodsTypeChild(ID)}
+	case "add_goods_type_child":
+		item := &dao.GoodsTypeChild{}
+		err := util.RequestBodyToJSON(context.Request.Body, item)
+		glog.Trace(err)
+		err = controller.Goods.Add(Orm, item)
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
+	case "change_goods_type_child":
+		item := &dao.GoodsTypeChild{}
+		err := util.RequestBodyToJSON(context.Request.Body, item)
+		glog.Trace(err)
+		err = controller.Goods.ChangeModel(Orm, item.ID, &dao.GoodsTypeChild{Name: item.Name, Image: item.Image})
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 
 	}
 

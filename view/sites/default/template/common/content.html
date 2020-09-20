@@ -1,6 +1,9 @@
 {{- define "content" -}}
     <p class="h3 text-center">{{.Title}}</p>
-    <p class="text-center text-secondary"><small>{{.CreatedAt}}</small></p>
+    <p class="text-center text-secondary">
+        <small>{{.CreatedAt}}</small>
+        <a href="javascript:print()"><i class="fas fa-print"></i></a>
+    </p>
 
     <div id="content">
         {{HTML .Content}}

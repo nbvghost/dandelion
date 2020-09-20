@@ -5,7 +5,7 @@
     <title>Home</title>
     <meta name="keywords" content="" />
 
-    {{template "import_asset"}}
+    {{template "import_asset" .}}
 
     <style>
         #carousel .carousel-item>img{
@@ -569,7 +569,7 @@
 <!-- script-for-swipebox -->
 <script src="js/jquery.swipebox.min.js"></script>
 <script type="text/javascript">
-    jQuery(function($) {
+    $(document).ready(function() {
         $(".swipebox").swipebox();
     });
 </script>
@@ -578,7 +578,7 @@
 <!-- flexSlider --><!-- for testimonials -->
 <script defer src="js/jquery.flexslider.js"></script>
 <script type="text/javascript">
-    $(window).load(function(){
+    $(document).ready(function(){
         $('.flexslider').flexslider({
             animation: "slide",
             start: function(slider){

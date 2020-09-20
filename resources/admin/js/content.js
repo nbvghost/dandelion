@@ -675,8 +675,13 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
 
 
     if (isNaN(parseInt($scope.ContentSubTypeID)) && isNaN(parseInt($scope.ContentSubTypeChildID))) {
-        alert("类别错误")
-        window.history.go(-1);
+        //alert("类别错误")
+        //window.history.go(-1);
+        //return
+    }
+    if (isNaN(parseInt($scope.ContentItemID)))  {
+        //alert("类别错误")
+        //window.history.go(-1);
         return
     }
 
@@ -816,16 +821,18 @@ main.controller("content_add_article_controller", function ($http, $scope, $rout
 
                         if ($scope.Article.ContentSubTypeID !== parseInt($scope.ContentSubTypeID) && $scope.Article.ContentSubTypeID !== parseInt($scope.ContentSubTypeChildID)) {
 
-                            alert("原内容类型与所选类型不匹配")
-                            return
+                            //alert("原内容类型与所选类型不匹配")
+                            //return
                         }
                         //$scope.ContentSubTypeID = $scope.Article.ContentSubTypeID
                         //$scope.ContentSubTypeChildID = $scope.Article.ContentSubTypeChildID
 
-                        $scope.Article.ContentSubTypeID = $scope.ContentSubTypeID
-                        $scope.Article.ContentSubTypeChildID = $scope.ContentSubTypeChildID
+                        $scope.Article.ContentSubTypeID = $scope.ContentSubTypeID||0
+                        $scope.Article.ContentSubTypeChildID = $scope.ContentSubTypeChildID||0
 
                         //quill.clipboard.dangerouslyPasteHTML($scope.Article.Content);
+
+                        console.log($scope.Article.Content)
 
                         window.editor.setData($scope.Article.Content);
 
@@ -1271,13 +1278,14 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
         if (isNaN(parseInt($scope.ContentContentSubType.ContentSubTypeID))===false){
             ContentSubTypeID=parseInt($scope.ContentContentSubType.ContentSubTypeID)
         }
+
         if (isNaN(parseInt($scope.ContentContentSubType.ContentSubTypeChildID))===false){
             ContentSubTypeID=parseInt($scope.ContentContentSubType.ContentSubTypeChildID)
         }
 
         if(ContentSubTypeID===0){
-            alert("请选择类别")
-            return
+            //alert("请选择类别")
+            //return
         }
 
         $http.get("content/single/get/" + $scope.ContentContentSubType.ContentItemID + "/" +ContentSubTypeID).then(function (responea) {
@@ -1331,7 +1339,11 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
         $scope.ContentContentSubType.ContentItemID = ContentItemID
 
 
+
         await loadAllContentSubType(ContentItemID);
+
+
+        $scope.loadContent()
 
 
         $("#contentContentSubTypeDialog").modal({

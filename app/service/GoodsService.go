@@ -502,7 +502,7 @@ func (service GoodsService) ListGoodsTypeForAdmin(OID uint64) []dao.GoodsType {
 	return gts*/
 	Orm := dao.Orm()
 	var gts []dao.GoodsType
-	Orm.Model(&dao.GoodsType{}).Find(&gts)
+	Orm.Model(&dao.GoodsType{}).Where("OID=?", OID).Find(&gts)
 	return gts
 }
 func (service GoodsService) ListGoodsType(OID uint64) []dao.GoodsType {
