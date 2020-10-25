@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"github.com/nbvghost/dandelion/app/action/admin/content"
 	"github.com/nbvghost/dandelion/app/play"
 	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service"
@@ -126,7 +127,7 @@ func (controller *Controller) Init() {
 	store := &StoreController{}
 	controller.AddSubController("/store/", store)
 
-	content := &ContentController{}
+	content := &content.Controller{}
 	controller.AddSubController("/content/", content)
 
 }

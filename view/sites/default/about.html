@@ -3,69 +3,6 @@
 {{$SubChildID:=.params.Menus.SubChildID}}
 {{$RootPath:=.rootPath}}
 
-
-{{define "content_left"}}
-
-    {{$ID:=.params.Menus.ID}}
-    {{$SubID:=.params.Menus.SubID}}
-    {{$SubChildID:=.params.Menus.SubChildID}}
-    {{$RootPath:=.rootPath}}
-
-
-        {{/*and  (eq $SubID 0) (eq $SubChildID 0)*/}}
-    {{if true}}
-
-        {{$Top:=.params.Menus.Top}}
-        {{$SubType:=.params.Menus.Top.SubType}}
-
-        <div class="card border-danger mt-3 mb-3">
-            <div class="card-header text-white bg-danger">{{$Top.Item.Name}}</div>
-            <div class="card-body text-primary">
-                <ul class="list-group list-group-flush">
-                    {{range $sk,$sv:=$SubType}}
-                        <li class="list-group-item {{if eq $sv.Item.ID $SubID}} active {{end}} pl-0 pt-2 pb-2">
-                            <a href="{{$RootPath}}{{$Top.Item.Type}}/{{$Top.Item.ID}}/{{$sv.Item.ID}}/0">{{$sv.Item.Name}}</a>
-                        </li>
-                        <ul class="list-group list-group-flush ml-3">
-                            {{range $ssk,$ssv:=$sv.SubType}}
-                                <li class="list-group-item {{if eq $ssv.Item.ID $SubChildID}} active {{end}} p-0">
-                                    <a href="{{$RootPath}}{{$Top.Item.Type}}/{{$Top.Item.ID}}/{{$sv.Item.ID}}/{{$ssv.Item.ID}}">{{$ssv.Item.Name}}</a>
-                                </li>
-                            {{end}}
-                        </ul>
-                    {{end}}
-                </ul>
-            </div>
-        </div>
-
-    {{else}}
-
-        {{$Sub:=.params.Menus.Sub}}
-        {{$Top:=.params.Menus.Top}}
-        {{$SubType:=$Sub.SubType}}
-        {{$Top.Item.Type|ToJSON}}
-
-        <div class="card border-danger mt-3 mb-3">
-            <div class="card-header text-white bg-danger">{{$Sub.Item.Name}}</div>
-            <div class="card-body text-primary">
-                <ul class="list-group list-group-flush">
-                    {{range $sk,$sv:=$SubType}}
-                        <li class="list-group-item {{if eq $sv.ID 7}} active {{end}} pl-0 pt-2 pb-2">
-                            <a href="{{$RootPath}}{{$Top.Item.Type}}/{{$Top.Item.ID}}/{{$Sub.Item.ID}}/{{$sv.ID}}">{{$sv.Name}}</a>
-                        </li>
-                    {{end}}
-                </ul>
-            </div>
-        </div>
-
-    {{end}}
-
-
-
-
-{{end}}
-
-
 <!DOCTYPE html>
 <!-- saved from url=(0060)http://demo.cssmoban.com/cssthemes6/cpts_1788_csq/about.html -->
 <html lang="en">
@@ -125,9 +62,7 @@
             </div>
         {{end}}
 
-
         <div class="col-lg-9">
-
 
             <div class="d-flex justify-content-between align-items-center">
                 <h6 class="font-weight-bold">

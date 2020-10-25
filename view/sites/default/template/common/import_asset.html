@@ -2,15 +2,7 @@
 <!-- Meta tag Keywords -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta charset="utf-8">
-<script type="application/x-javascript">
-    addEventListener("load", function () {
-        setTimeout(hideURLbar, 0);
-    }, false);
 
-    function hideURLbar() {
-        window.scrollTo(0, 1);
-    }
-</script>
 <!--// Meta tag Keywords -->
 
 <!-- gallery-Swipe-box -->
@@ -70,7 +62,23 @@
             };
         */
 
-        $().UItoTop({easingType: 'easeOutQuart'});
+        $(document).UItoTop({easingType: 'easeOutQuart'});
+
+        //const scrollTop = window.localStorage.getItem(window.location.href)
+
+        //window.scrollTo(0,parseInt(scrollTop));
+        //console.log(scrollTop)
+
+        //$('html,body').animate({scrollTop: 400}, 10);
+
+        $(document).scroll(function() {
+            //const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+
+            //window.localStorage.setItem(window.location.href,scrollTop.toString());
+        });
+
+
+
 
     });
 </script>

@@ -122,6 +122,13 @@ func (service ContentService) GetContentItemByNameAndOID(Name string, OID uint64
 	return menus
 }
 
+func (service ContentService) GetContentItemByType(Type dao.ContentTypeType, OID uint64) dao.ContentItem {
+	Orm := dao.Orm()
+	var menus dao.ContentItem
+	Orm.Where("Type=? and OID=?", Type, OID).First(&menus)
+	return menus
+}
+
 func (service ContentService) ListContentType() []dao.ContentType {
 	Orm := dao.Orm()
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
@@ -325,39 +332,39 @@ func (service ContentService) FindContentByTypeID(menusData *dao.MenusData, Cont
 
 	return content
 }
-func (service ContentService) FindContentListByTypeID(menusData *dao.MenusData, ContentItemID, ContentSubTypeID, ContentSubTypeChildID uint64) []dao.Content {
+func (service ContentService) FindContentListByTypeID(menusData *dao.MenusData, ContentItemID, ContentSubTypeID, ContentSubTypeChildID uint64, _Page int, _Limit int) result.Pager {
 
-	var contentList []dao.Content
+	var pager result.Pager
+
 	if ContentItemID == 0 {
 		glog.Trace("参数ContentItemID为0")
-		return contentList
+		return pager
 	}
 
 	if ContentSubTypeID == 0 && ContentSubTypeChildID == 0 {
 		if len(menusData.List) > 0 {
 
 		}
-		dao.Orm().Model(&dao.Content{}).Where("ContentItemID=?", ContentItemID).
-			Order("CreatedAt desc").Order("ID desc").Find(&contentList)
-		return contentList
+		db := dao.Orm().Model(&dao.Content{}).Where("ContentItemID=?", ContentItemID).
+			Order("CreatedAt desc").Order("ID desc")
+		return dao.Paging(db, _Page, _Limit, dao.Content{})
 	} else {
 
 		if ContentSubTypeChildID > 0 {
-			dao.Orm().Model(&dao.Content{}).Where("ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeChildID).
-				Order("CreatedAt desc").Order("ID desc").Find(&contentList)
-			return contentList
+			db := dao.Orm().Model(&dao.Content{}).Where("ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeChildID).
+				Order("CreatedAt desc").Order("ID desc")
+			return dao.Paging(db, _Page, _Limit, dao.Content{})
 		} else {
 
 			ContentSubTypeIDList := service.GetContentSubTypeAllIDByID(ContentItemID, ContentSubTypeID)
 
-			dao.Orm().Model(&dao.Content{}).
+			db := dao.Orm().Model(&dao.Content{}).
 				Where("ContentItemID=? and ContentSubTypeID in (?)", ContentItemID, ContentSubTypeIDList).
-				Order("CreatedAt desc").Order("ID desc").Find(&contentList)
-			return contentList
+				Order("CreatedAt desc").Order("ID desc")
+			return dao.Paging(db, _Page, _Limit, dao.Content{})
 		}
 	}
 
-	return contentList
 }
 
 func (service ContentService) FindContentListForLeftRight(ContentItemID, ContentSubTypeID, ContentSubTypeChildID uint64, ContentID uint64, ContentCreatedAt time.Time) [2]dao.Content {
@@ -523,6 +530,7 @@ func (service ContentService) AddContent(article *dao.Content) *result.ActionRes
 			as.Message = err.Error()
 		} else {
 			as.Code = result.ActionOK
+			as.Data = article
 			if articleID != 0 {
 				as.Message = "修改成功"
 			} else {

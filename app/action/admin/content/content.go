@@ -1,4 +1,4 @@
-package admin
+package content
 
 import (
 	"errors"
@@ -14,12 +14,12 @@ import (
 	"strings"
 )
 
-type ContentController struct {
+type Controller struct {
 	gweb.BaseController
 	Content service.ContentService
 }
 
-func (controller *ContentController) Init() {
+func (controller *Controller) Init() {
 
 	//------------------ArticleService.go-datatables------------------------
 	controller.AddHandler(gweb.POSMethod("datatables/list", controller.DataTablesAction))
@@ -28,6 +28,9 @@ func (controller *ContentController) Init() {
 	controller.AddHandler(gweb.GETMethod("single/get/{ContentItemID}/{ContentSubTypeID}", controller.GetSingleArticleAction))
 	controller.AddHandler(gweb.POSMethod("delete", controller.DeleteArticleAction))
 	//------------------ArticleService.go-datatables------------------------
+
+	controller.AddHandler(gweb.GETMethod("contents/post", controller.contentsPostPage))
+	controller.AddHandler(gweb.POSMethod("contents/post", controller.contentsPostAction))
 
 	controller.AddHandler(gweb.POSMethod("item/add", controller.addContentItemAction))
 	controller.AddHandler(gweb.GETMethod("item/{ContentItemID}", controller.GetContentAction))
@@ -42,13 +45,22 @@ func (controller *ContentController) Init() {
 
 	controller.AddHandler(gweb.GETMethod("sub_type/list/all/{ContentItemID}", controller.ListAllSubType))
 	controller.AddHandler(gweb.GETMethod("sub_type/list/{ContentItemID}", controller.ListSubType))
+	controller.AddHandler(gweb.GETMethod("sub_type/get/{ContentSubTypeID}", controller.getSubTypeAction))
 	controller.AddHandler(gweb.GETMethod("sub_type/child/list/{ContentItemID}/{ParentContentSubTypeID}", controller.ListChildClassify))
 
 	controller.AddHandler(gweb.DELMethod("sub_type/{ID}", controller.DeleteClassify))
 	controller.AddHandler(gweb.PUTMethod("sub_type/{ID}", controller.ChangeClassify))
 	controller.AddHandler(gweb.GETMethod("sub_type/{ID}", controller.GetContentSubTypeAction))
 }
-func (controller *ContentController) DeleteArticleAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) contentsPostPage(context *gweb.Context) gweb.Result {
+
+	return &gweb.HTMLResult{}
+}
+func (controller *Controller) contentsPostAction(context *gweb.Context) gweb.Result {
+
+	return &gweb.JsonResult{}
+}
+func (controller *Controller) DeleteArticleAction(context *gweb.Context) gweb.Result {
 
 	context.Request.ParseForm()
 	fmt.Println(context.Request.FormValue("ID"))
@@ -56,19 +68,19 @@ func (controller *ContentController) DeleteArticleAction(context *gweb.Context) 
 	err := controller.Content.Delete(dao.Orm(), &dao.Content{}, ID)
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}
 }
-func (controller *ContentController) GetSingleArticleAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) GetSingleArticleAction(context *gweb.Context) gweb.Result {
 	ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	ContentSubTypeID, _ := strconv.ParseUint(context.PathParams["ContentSubTypeID"], 10, 64)
 	article := controller.Content.GetContentByContentItemIDAndContentSubTypeID(ContentItemID, ContentSubTypeID)
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", article)}
 }
-func (controller *ContentController) GetMultiArticleAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) GetMultiArticleAction(context *gweb.Context) gweb.Result {
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	var article dao.Content
 	err := controller.Content.Get(dao.Orm(), ID, &article)
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", article)}
 }
-func (controller *ContentController) SaveArticleAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) SaveArticleAction(context *gweb.Context) gweb.Result {
 
 	dts := &dao.Content{}
 	util.RequestBodyToJSON(context.Request.Body, dts)
@@ -77,7 +89,7 @@ func (controller *ContentController) SaveArticleAction(context *gweb.Context) gw
 
 	return &gweb.JsonResult{Data: as}
 }
-func (controller *ContentController) DataTablesAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) DataTablesAction(context *gweb.Context) gweb.Result {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	Orm := dao.Orm()
 	dts := &dao.Datatables{}
@@ -86,7 +98,7 @@ func (controller *ContentController) DataTablesAction(context *gweb.Context) gwe
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 }
 
-func (controller *ContentController) ChangeClassify(context *gweb.Context) gweb.Result {
+func (controller *Controller) ChangeClassify(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	item := &dao.ContentSubType{}
@@ -102,7 +114,7 @@ func (controller *ContentController) ChangeClassify(context *gweb.Context) gweb.
 	err = controller.Content.ChangeModel(Orm, ID, &dao.ContentSubType{Name: item.Name})
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 }
-func (controller *ContentController) DeleteClassify(context *gweb.Context) gweb.Result {
+func (controller *Controller) DeleteClassify(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	css := controller.Content.FindContentSubTypesByParentContentSubTypeID(ID)
@@ -119,7 +131,7 @@ func (controller *ContentController) DeleteClassify(context *gweb.Context) gweb.
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}
 }
 
-func (controller *ContentController) ListChildClassify(context *gweb.Context) gweb.Result {
+func (controller *Controller) ListChildClassify(context *gweb.Context) gweb.Result {
 	ParentContentSubTypeID, _ := strconv.ParseUint(context.PathParams["ParentContentSubTypeID"], 10, 64)
 	ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
@@ -130,7 +142,7 @@ func (controller *ContentController) ListChildClassify(context *gweb.Context) gw
 
 }
 
-func (controller *ContentController) GetContentSubTypeAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) GetContentSubTypeAction(context *gweb.Context) gweb.Result {
 	ContentSubTypeID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 
 	Orm := dao.Orm()
@@ -148,7 +160,15 @@ func (controller *ContentController) GetContentSubTypeAction(context *gweb.Conte
 
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", results)}
 }
-func (controller *ContentController) ListSubType(context *gweb.Context) gweb.Result {
+func (controller *Controller) getSubTypeAction(context *gweb.Context) gweb.Result {
+	ContentSubTypeID, _ := strconv.ParseUint(context.PathParams["ContentSubTypeID"], 10, 64)
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+
+	item := controller.Content.GetContentSubTypeByID(ContentSubTypeID)
+
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", item)}
+}
+func (controller *Controller) ListSubType(context *gweb.Context) gweb.Result {
 	ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 
@@ -157,7 +177,7 @@ func (controller *ContentController) ListSubType(context *gweb.Context) gweb.Res
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", list)}
 
 }
-func (controller *ContentController) ListAllSubType(context *gweb.Context) gweb.Result {
+func (controller *Controller) ListAllSubType(context *gweb.Context) gweb.Result {
 	ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 
@@ -187,7 +207,7 @@ func (controller *ContentController) ListAllSubType(context *gweb.Context) gweb.
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", resultMap)}
 
 }
-func (controller *ContentController) AddClassify(context *gweb.Context) gweb.Result {
+func (controller *Controller) AddClassify(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	item := &dao.ContentSubType{}
@@ -204,24 +224,24 @@ func (controller *ContentController) AddClassify(context *gweb.Context) gweb.Res
 	err = controller.Content.Add(Orm, item)
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
 }
-func (controller *ContentController) ListContentTypeAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) ListContentTypeAction(context *gweb.Context) gweb.Result {
 	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.ActionOK, Message: "OK", Data: controller.Content.ListContentType()}}
 }
-func (controller *ContentController) GetContentAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) GetContentAction(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	ID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	item := &dao.ContentItem{}
 	err := controller.Content.Get(Orm, ID, item)
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", item)}
 }
-func (controller *ContentController) ListContentsAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) ListContentsAction(context *gweb.Context) gweb.Result {
 
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	dts := controller.Content.ListContentItemByOID(company.ID)
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", dts)}
 }
 
-func (controller *ContentController) DeleteContentAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) DeleteContentAction(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 
@@ -237,7 +257,7 @@ func (controller *ContentController) DeleteContentAction(context *gweb.Context) 
 	}
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}
 }
-func (controller *ContentController) ChangeContentAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) ChangeContentAction(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	ID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
@@ -254,7 +274,7 @@ func (controller *ContentController) ChangeContentAction(context *gweb.Context) 
 	err = controller.Content.ChangeModel(Orm, ID, &dao.ContentItem{Name: item.Name, Sort: item.Sort})
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 }
-func (controller *ContentController) ChangeContentIndexAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) ChangeContentIndexAction(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	ID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	item := &dao.ContentItem{}
@@ -265,7 +285,7 @@ func (controller *ContentController) ChangeContentIndexAction(context *gweb.Cont
 	err = controller.Content.ChangeMap(Orm, ID, &dao.ContentItem{}, map[string]interface{}{"Sort": item.Sort})
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "index成功", nil)}
 }
-func (controller *ContentController) ChangeHideContentAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) ChangeHideContentAction(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	ID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	item := &dao.ContentItem{}
@@ -276,7 +296,7 @@ func (controller *ContentController) ChangeHideContentAction(context *gweb.Conte
 	err = controller.Content.ChangeMap(Orm, ID, &dao.ContentItem{}, map[string]interface{}{"Hide": item.Hide})
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "index成功", nil)}
 }
-func (controller *ContentController) addContentItemAction(context *gweb.Context) gweb.Result {
+func (controller *Controller) addContentItemAction(context *gweb.Context) gweb.Result {
 	Orm := dao.Orm()
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 
@@ -285,6 +305,7 @@ func (controller *ContentController) addContentItemAction(context *gweb.Context)
 	if err != nil {
 		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
+
 	have := controller.Content.GetContentItemByNameAndOID(item.Name, company.ID)
 	if have.ID != 0 || strings.EqualFold(item.Name, "") {
 		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("这个名字已经被使用了"), "", nil)}
@@ -294,6 +315,13 @@ func (controller *ContentController) addContentItemAction(context *gweb.Context)
 	Orm.Where("ID=?", item.ContentTypeID).First(&mt)
 	if mt.ID == 0 {
 		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("没有找到类型"), "", nil)}
+	}
+
+	if strings.EqualFold(string(mt.Type), string(dao.ContentTypeBlog)) {
+		have := controller.Content.GetContentItemByType(mt.Type, company.ID)
+		if have.ID != 0 || strings.EqualFold(item.Name, "") {
+			return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New(fmt.Sprintf("这个类型（%v）只能创建一个", item.Type)), "", nil)}
+		}
 	}
 
 	item.OID = company.ID

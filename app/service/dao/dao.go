@@ -1,11 +1,13 @@
 package dao
 
 import (
+	"github.com/nbvghost/dandelion/app/result"
+	"math"
+	"reflect"
 	"time"
 
 	"github.com/nbvghost/glog"
 
-	"github.com/nbvghost/dandelion/app/play"
 	//"github.com/go-gorp/gorp"
 	//_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
@@ -96,15 +98,55 @@ type BaseModel struct {
 	//DeletedAt *time.Time `gorm:"column:DeletedAt"`             //删除日期
 }
 
-func SelectPaging(Index int, p *gorm.DB, target interface{}) (Total int) {
+func Paging(db *gorm.DB, pageIndex, pageSize int, dataType IDataBaseFace) result.Pager {
+	if pageIndex < 0 {
+		pageIndex = 0
+	}
+	if pageSize > 30000 {
+		pageSize = 30000
+	}
+	var _total = 0
+	db.Count(&_total)
 
-	//p.Find(target).Count(total).Limit(PagePaging).Offset(pageIndex * PagePaging).Find(target)
+	GetOffset := func() (int, int) {
+
+		//_total, pageIndex, pageSize
+
+		x := float64(_total) / float64(pageSize)
+		totalPage := int(math.Ceil(x))
+
+		if pageIndex >= totalPage {
+			pageIndex = totalPage - 1
+		}
+
+		offset := pageIndex * pageSize
+
+		return offset, pageIndex
+	}
+
+	_offset, _pageIndex := GetOffset()
+
+	dt := reflect.TypeOf(dataType)
+
+	var list = reflect.New(reflect.SliceOf(dt))
+
+	db.Limit(pageSize).Offset(_offset).Find(list.Interface())
+
+	pager := result.Pager{
+		Data:   list.Elem().Interface(),
+		Total:  _total,
+		Limit:  pageSize,
+		Offset: _pageIndex,
+	}
+	return pager.Calculation()
+}
+
+/*func SelectPaging(Index int, p *gorm.DB, target interface{}) (Total int) {
 	p.Limit(play.Paging).Offset(Index * play.Paging).Find(target).Offset(0).Count(&Total)
 	return
-}
-func SelectPagingOffset(_Offset int, p *gorm.DB, target interface{}) (Total int, Offset int) {
+}*/
 
-	//p.Find(target).Count(total).Limit(PagePaging).Offset(pageIndex * PagePaging).Find(target)
+/*func SelectPagingOffset(_Offset int, p *gorm.DB, target interface{}) (Total int, Offset int) {
 	p.Limit(play.Paging).Offset(_Offset).Find(target).Offset(0).Count(&Total)
 	if _Offset >= Total {
 		Offset = Total
@@ -116,4 +158,4 @@ func SelectPagingOffset(_Offset int, p *gorm.DB, target interface{}) (Total int,
 		}
 	}
 	return
-}
+}*/

@@ -1,5 +1,6 @@
 {{- define "menus" -}}
 
+
     {{$ID:=.params.Menus.ID}}
     {{$SubID:=.params.Menus.SubID}}
     {{$RootPath:=.rootPath}}
@@ -16,14 +17,14 @@
 
                     {{- if gt (len $v.SubType) 0 -}}
 
-                        <li class="nav-item {{if eq  $ID $k}}active{{end}} dropdown">
+                        <li class="nav-item {{if eq  $ID $v.Item.ID}}active{{end}} dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink"
                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 {{$v.Item.Name}}
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                                 {{range $sk, $sv := $v.SubType}}
-                                    <a class="dropdown-item {{if eq $SubID $sk}}active{{end}}" href="{{$RootPath}}{{$v.Item.Type}}/{{$v.Item.ID}}/{{$sv.Item.ID}}/0">
+                                    <a class="dropdown-item {{if eq $SubID $sv.Item.ID}}active{{end}}" href="{{$RootPath}}{{$v.Item.Type}}/{{$v.Item.ID}}/{{$sv.Item.ID}}/0">
                                       {{$sv.Item.Name}}
                                     </a>
                                 {{end}}
@@ -34,11 +35,11 @@
                     {{else}}
 
                         {{- if eq $v.Item.Type "index" -}}
-                            <li class="nav-item {{if eq 0 0}}active{{end}}">
+                            <li class="nav-item {{if eq $ID 0}}active{{end}}">
                                 <a class="nav-link" href="{{$RootPath}}{{$v.Item.Type}}">{{$v.Item.Name}}<span class="sr-only">(current)</span></a>
                             </li>
                         {{else}}
-                            <li class="nav-item {{if eq  0 $v.Item.ID}}active{{end}}">
+                            <li class="nav-item {{if eq  $ID $v.Item.ID}}active{{end}}">
                                 <a class="nav-link" href="{{$RootPath}}{{$v.Item.Type}}/{{$v.Item.ID}}/0/0">{{$v.Item.Name}}<span
                                             class="sr-only">(current)</span></a>
                             </li>

@@ -8,6 +8,10 @@ main.config(function ($routeProvider, $locationProvider, $provide, $httpProvider
         templateUrl: "content_templates/add_articles_template",
         controller: "content_add_articles_controller"
     });
+    $routeProvider.when("/add_blog", {
+        templateUrl: "content_templates/add_blog_template",
+        controller: "content_add_articles_controller"
+    });
     $routeProvider.when("/add_gallery", {
         templateUrl: "content_templates/add_gallery_template",
         controller: "content_add_gallery_controller"
@@ -20,9 +24,17 @@ main.config(function ($routeProvider, $locationProvider, $provide, $httpProvider
         templateUrl: "content_templates/articles_template",
         controller: "content_articles_controller"
     });
-    $routeProvider.when("/content", {
+    $routeProvider.when("/blog", {
+        templateUrl: "content_templates/articles_template",
+        controller: "content_articles_controller"
+    });
+   /* $routeProvider.when("/content", {
         templateUrl: "content_templates/add_article_template",
         controller: "content_add_article_controller"
+    });*/
+    $routeProvider.when("/content", {
+        templateUrl: "content_templates/add_articles_template",
+        controller: "content_add_articles_controller"
     });
 
 
@@ -109,12 +121,12 @@ main.controller("content_articles_controller", function ($http, $scope, $routePa
             var tr = $(this).closest('tr');
             var row = table.row(tr);
             console.log(row.data());
-            window.location.href = "#!/add_contents?ContentItemID=" + row.data().ContentItemID + "&ID=" + row.data().ID;
+            window.location.href = "#!/add_"+$scope.Type+"?ContentItemID=" + row.data().ContentItemID + "&ID=" + row.data().ID;
         });
 
         $('#table_local').on('click', 'td.opera .delete', function () {
-            const tr = $(this).closest('tr');
-            const row = table.row(tr);
+                const tr = $(this).closest('tr');
+                const row = table.row(tr);
 
 
                 if (confirm("确定删除？")) {
@@ -139,19 +151,93 @@ main.controller("content_articles_controller", function ($http, $scope, $routePa
 
 });
 
-main.controller("content_add_articles_controller", function ($http, $scope, $routeParams, $rootScope, $timeout, $location, Upload) {
-    $scope.ContentSubTypes = {};
+main.controller("content_add_articles_controller", function ($http, $scope, $routeParams,$interval, $rootScope, $timeout, $location, Upload) {
+    $scope.ContentSubTypes = [];
 
-    $scope.Article = {ContentItemID: parseInt($routeParams.ContentItemID)};
+    $scope.ContentItemID = $routeParams.ContentItemID
+    $scope.ContentSubTypeID = $routeParams.ContentSubTypeID
+    $scope.ContentSubTypeChildID = $routeParams.ContentSubTypeChildID
+    $scope.ArticleID = parseInt($routeParams.ID)//
+    $scope.Single = $routeParams.Single//
+    $scope.AutoSaveInfo = {Show:false,Time:"",Msg:""};
+
+    let hasArticleID = true
+    if ($scope.Single === "true") {
+        hasArticleID = false
+    }
+
+    if (isNaN(parseInt($scope.ContentSubTypeID)) && isNaN(parseInt($scope.ContentSubTypeChildID))) {
+        //alert("类别错误")
+        //window.history.go(-1);
+        //return
+    }
+    if (isNaN(parseInt($scope.ContentItemID))) {
+        alert("类别错误")
+        //window.history.go(-1);
+        return
+    }
+
+    $scope.Article = {ContentItemID: $scope.ContentItemID};
 
 
-    $scope.saveArticle = function () {
 
-        //$scope.ContentSubTypeID;
-        //$scope.ContentSubTypeChildID;
-        //console.log(quill.container.firstChild.innerHTML)
-        $scope.Article.ContentItemID = parseInt($routeParams.ContentItemID);
-        $scope.Article.Content = quill.container.firstChild.innerHTML;
+    let articleContent = "";
+    /*let runTime = $interval(async function (){
+
+        $scope.AutoSaveInfo = {Show:false,Time:"",Msg:""};
+
+        if(articleContent!==window.editor.getData()){
+
+            let article =await $scope.saveArticle(true);
+
+            articleContent=article.Content
+
+            let queryParams=$location.search();
+            queryParams.ID=article.ID;
+            $location.search(queryParams);
+
+
+            $scope.AutoSaveInfo = {Show:true,Time:article.UpdatedAt,Msg:""};
+
+            $scope.ContentItemID = article.ContentItemID
+            $scope.ArticleID = article.ID
+            $scope.Single = false
+            hasArticleID=true
+
+            if(article.ContentSubTypeID===0){
+                $scope.ContentSubTypeID = undefined
+                $scope.ContentSubTypeChildID = undefined
+            }else{
+
+                await new Promise((resolve, reject) => {
+
+                    $http.get("content/sub_type/get/" + article.ContentSubTypeID).then(async function (responea) {
+                        let ContentSubType=responea.data.Data;
+                        if(ContentSubType.ParentContentSubTypeID===0){
+                            $scope.ContentSubTypeID = ContentSubType.ID
+                            $scope.ContentSubTypeChildID =undefined
+                        }else{
+                            $scope.ContentSubTypeID = ContentSubType.ParentContentSubTypeID
+                            $scope.ContentSubTypeChildID = ContentSubType.ID
+                        }
+
+                        resolve();
+
+                    });
+                });
+
+                await loadArticle(hasArticleID);
+
+            }
+        }
+
+    },1000000000);*/
+
+    $scope.saveArticle = async function (isAutoSave) {
+
+
+        /*$scope.Article.ContentItemID = parseInt($routeParams.ContentItemID);
+        $scope.Article.Content = window.editor.getData();
 
 
         $scope.Article.ContentSubTypeID = parseInt($scope.Article.ContentSubTypeID)
@@ -161,47 +247,49 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
         }
 
         if (!$scope.Article.ContentSubTypeID) {
-            //$scope.Article.ContentSubTypeID=$scope.ContentSubTypeID;
-            //$scope.Article.ContentSubTypeChildID=$scope.ContentSubTypeChildID;
-            //}else{
+
             alert("请选择分类");
             return
-        }
-        $http.post("content/save", JSON.stringify($scope.Article), {
-            transformRequest: angular.identity,
-            headers: {"Content-Type": "application/json"}
-        }).then(function (data, status, headers, config) {
-            console.log(data);
-            alert(data.data.Message);
-            if (data.data.Code == 0) {
-                window.history.back();
+        }*/
+
+        return  new Promise((resolve, reject) => {
+            let Article = angular.copy($scope.Article)
+
+            Article.ContentItemID = parseInt($scope.ContentItemID);
+            Article.Content = window.editor.getData();
+
+
+            let ContentSubTypeID = 0
+
+            if (isNaN(parseInt(Article.ContentSubTypeID)) === false) {
+                ContentSubTypeID = parseInt(Article.ContentSubTypeID)
             }
+            if (isNaN(parseInt(Article.ContentSubTypeChildID)) === false) {
+                ContentSubTypeID = parseInt(Article.ContentSubTypeChildID)
+            }
+
+
+            Article.ContentSubTypeID = ContentSubTypeID
+
+            $http.post("content/save", JSON.stringify(Article), {
+                transformRequest: angular.identity,
+                headers: {"Content-Type": "application/json"}
+            }).then(function (data, status, headers, config) {
+                console.log(data.data.Data);
+                resolve(data.data.Data);
+                if (data.data.Code === 0) {
+                    if(!isAutoSave){
+                        console.log(data);
+                        alert(data.data.Message);
+                        window.history.back();
+                        window.close();
+                    }
+
+                }else{
+                    alert(data.data.Message);
+                }
+            });
         });
-    }
-
-
-    $http.get("content/sub_type/list/all/" + $routeParams.ContentItemID).then(function (value) {
-
-        $scope.ContentSubTypes = value.data.Data || [];
-    });
-
-
-    $scope.changeContentSubTypes = function () {
-        //$scope.ContentSubTypeChildID=undefined;
-        //$scope.Article.ContentSubTypeID=$scope.MContentSubTypeID;
-        //$scope.ContentSubTypeChilds=[];
-        //console.log($scope.ContentSubTypeID);
-        //$scope.listContentSubTypeChilds($routeParams.ContentItemID,$scope.Article.ContentSubTypeID);
-    }
-    $scope.changeContentSubTypeChilds = function () {
-        //alert($scope.MContentSubTypeChildID);
-        /* if(parseInt($scope.MContentSubTypeChildID)>0){
-             $scope.Article.ContentSubTypeID=parseInt($scope.MContentSubTypeChildID)
-         }else{
-             $scope.Article.ContentSubTypeID=parseInt($scope.MContentSubTypeID);
-         }*/
-
-        //$scope.Article.;
     }
 
 
@@ -268,216 +356,253 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
             UpImageError(errFiles);
         }
     }
-    let quill;
-    $timeout(function () {
 
-        const Inline = Quill.import('blots/inline');
-        const Block = Quill.import('blots/block');
-        const BlockEmbed = Quill.import('blots/block/embed');
+    async function loadArticle(isLoadArticleID) {
 
-        class BoldBlot extends Inline {
-        }
+        if (isLoadArticleID) {
+            //通过Id来加载内容
 
-        BoldBlot.blotName = 'bold';
-        BoldBlot.tagName = 'strong';
+            if (isNaN($scope.ArticleID)) {
 
-        class ItalicBlot extends Inline {
-        }
-
-        ItalicBlot.blotName = 'italic';
-        ItalicBlot.tagName = 'em';
-
-        class LinkBlot extends Inline {
-            static create(url) {
-                const node = super.create();
-                node.setAttribute('href', url);
-                node.setAttribute('target', '_blank');
-                return node;
+                //如果没有传ID的话，说明是新加的内容
+                return
             }
 
-            static formats(node) {
-                return node.getAttribute('href');
-            }
-        }
+            await new Promise((resolve, reject) => {
 
-        LinkBlot.blotName = 'link';
-        LinkBlot.tagName = 'a';
+                $http.get("content/multi/get/" + $scope.ArticleID).then(async function (responea) {
 
-        class BlockquoteBlot extends Block {
-        }
+                    $scope.Article = responea.data.Data;
 
-        BlockquoteBlot.blotName = 'blockquote';
-        BlockquoteBlot.tagName = 'blockquote';
+                    articleContent = $scope.Article.Content
+                    window.editor.setData($scope.Article.Content);
 
-        class HeaderBlot extends Block {
-            static formats(node) {
-                return HeaderBlot.tagName.indexOf(node.tagName) + 1;
-            }
-        }
+                    if ($scope.Article.ContentSubTypeID > 0) {
 
-        HeaderBlot.blotName = 'header';
-        HeaderBlot.tagName = ['H1', 'H2'];
+                        await new Promise((resolve1, reject1) => {
+                            $http.get("content/sub_type/" + $scope.Article.ContentSubTypeID).then(function (responeb) {
+                                const ContentSubType = responeb.data.Data.ContentSubType || {};
+                                const ParentContentSubType = responeb.data.Data.ParentContentSubType || {};
 
-        class DividerBlot extends BlockEmbed {
-        }
-
-        DividerBlot.blotName = 'divider';
-        DividerBlot.tagName = 'hr';
-
-        class ImageBlot extends BlockEmbed {
-            static create(value) {
-                const node = super.create();
-                node.setAttribute('alt', value.alt);
-                node.setAttribute('src', value.url);
-                return node;
-            }
-
-            static value(node) {
-                return {
-                    alt: node.getAttribute('alt'),
-                    url: node.getAttribute('src')
-                };
-            }
-        }
-
-        ImageBlot.blotName = 'image';
-        ImageBlot.tagName = 'img';
-
-        class VideoBlot extends BlockEmbed {
-            static create(url) {
-                const node = super.create();
-                node.setAttribute('src', url);
-                node.setAttribute('frameborder', '0');
-                node.setAttribute('allowfullscreen', true);
-                return node;
-            }
-
-            static formats(node) {
-                const format = {};
-                if (node.hasAttribute('height')) {
-                    format.height = node.getAttribute('height');
-                }
-                if (node.hasAttribute('width')) {
-                    format.width = node.getAttribute('width');
-                }
-                return format;
-            }
-
-            static value(node) {
-                return node.getAttribute('src');
-            }
-
-            format(name, value) {
-                if (name === 'height' || name === 'width') {
-                    if (value) {
-                        this.domNode.setAttribute(name, value);
-                    } else {
-                        this.domNode.removeAttribute(name, value);
-                    }
-                } else {
-                    super.format(name, value);
-                }
-            }
-        }
-
-        VideoBlot.blotName = 'video';
-        VideoBlot.tagName = 'iframe';
-
-        Quill.register(BoldBlot);
-        Quill.register(ItalicBlot);
-        Quill.register(LinkBlot);
-        Quill.register(BlockquoteBlot);
-        Quill.register(HeaderBlot);
-        Quill.register(DividerBlot);
-        Quill.register(ImageBlot);
-        Quill.register(VideoBlot);
-
-        quill = new Quill('#editor-container', {
-            modules: {
-                formula: true,
-                syntax: true,
-                toolbar: '#toolbar-container'
-            },
-            placeholder: 'Compose an epic...',
-            theme: 'snow'
-        });
-
-        if ($routeParams.ID) {
-            $http.get("content/multi/get/" + $routeParams.ID).then(function (responea) {
-
-                $scope.Article = responea.data.Data;
-                quill.clipboard.dangerouslyPasteHTML($scope.Article.Content);
+                                $timeout(function () {
 
 
-                if ($scope.Article.ContentSubTypeID > 0) {
-                    $http.get("content/sub_type/" + $scope.Article.ContentSubTypeID).then(function (responeb) {
-                        const ContentSubType = responeb.data.Data.ContentSubType || {};
-                        const ParentContentSubType = responeb.data.Data.ParentContentSubType || {};
+                                    if (parseInt(ContentSubType.ParentContentSubTypeID) > 0) {
+                                        $scope.Article.ContentSubTypeID = ContentSubType.ParentContentSubTypeID + "";
+                                        $scope.Article.ContentSubTypeChildID = ContentSubType.ID + "";
+                                        // $scope.listContentSubTypeChilds($scope.Article.ContentItemID,$scope.MContentSubTypeID);
+                                    } else {
+                                        $scope.Article.ContentSubTypeID = ContentSubType.ID + "";
+                                        $scope.Article.ContentSubTypeChildID = 0;
+                                        // $scope.listContentSubTypeChilds($scope.Article.ContentItemID,$scope.MContentSubTypeID);
+                                    }
 
-                        $timeout(function () {
+                                    resolve1()
+
+                                });
 
 
-                            if (parseInt(ContentSubType.ParentContentSubTypeID) > 0) {
-                                $scope.Article.ContentSubTypeID = ContentSubType.ParentContentSubTypeID + "";
-                                $scope.Article.ContentSubTypeChildID = ContentSubType.ID + "";
-                                // $scope.listContentSubTypeChilds($scope.Article.ContentItemID,$scope.MContentSubTypeID);
-                            } else {
-                                $scope.Article.ContentSubTypeID = ContentSubType.ID + "";
-                                $scope.Article.ContentSubTypeChildID = 0;
-                                // $scope.listContentSubTypeChilds($scope.Article.ContentItemID,$scope.MContentSubTypeID);
-                            }
-
+                            });
                         });
+                    }
 
+
+                    resolve()
+
+
+                });
+
+            });
+
+
+        } else {
+            await new Promise((resolve, reject) => {
+                if ($scope.ContentItemID && ($scope.ContentSubTypeID || $scope.ContentSubTypeChildID)) {
+
+                    let ContentSubTypeID = 0
+
+                    if (isNaN(parseInt($scope.ContentSubTypeID)) === false) {
+                        ContentSubTypeID = parseInt($scope.ContentSubTypeID)
+                    }
+                    if (isNaN(parseInt($scope.ContentSubTypeChildID)) === false) {
+                        ContentSubTypeID = parseInt($scope.ContentSubTypeChildID)
+                    }
+
+                    $http.get("content/single/get/" + $scope.ContentItemID + "/" + ContentSubTypeID).then(function (responea) {
+
+                        if (responea.data.Data.ID > 0) {
+                            $scope.Article = responea.data.Data;
+
+                            if ($scope.Article.ContentSubTypeID !== parseInt($scope.ContentSubTypeID) && $scope.Article.ContentSubTypeID !== parseInt($scope.ContentSubTypeChildID)) {
+
+                                //alert("原内容类型与所选类型不匹配")
+                                //return
+                            }
+                            //$scope.ContentSubTypeID = $scope.Article.ContentSubTypeID
+                            //$scope.ContentSubTypeChildID = $scope.Article.ContentSubTypeChildID
+
+                            $scope.Article.ContentSubTypeID = $scope.ContentSubTypeID || 0
+                            $scope.Article.ContentSubTypeChildID = $scope.ContentSubTypeChildID || 0
+
+                            //quill.clipboard.dangerouslyPasteHTML($scope.Article.Content);
+
+                            console.log($scope.Article.Content)
+
+                            articleContent = $scope.Article.Content
+                            window.editor.setData($scope.Article.Content);
+
+                            resolve()
+                        } else {
+                            resolve()
+                        }
 
                     });
+                } else {
+                    resolve()
                 }
-
-
             });
         }
 
-        quill.getModule("toolbar").addHandler("image", function (e) {
 
-            //var baseUrl ="//"+$location.host()+":"+$location.port();
+    }
 
-            $("#SelectImageModal").modal({
-                onApprove: function (e) {
+    $timeout(async function () {
 
 
-                    if ($scope.EditImages.length > 0) {
+        await new Promise((resolve, reject) => {
+            $http.get("content/sub_type/list/all/" + $routeParams.ContentItemID).then(function (value) {
+                $scope.ContentSubTypes = value.data.Data || [];
+
+                $scope.Article.ContentSubTypeID = $scope.ContentSubTypeID
+                $scope.Article.ContentSubTypeChildID = $scope.ContentSubTypeChildID
+                console.log($scope.Article.ContentSubTypeID, $scope.Article.ContentSubTypeChildID)
+                resolve()
+
+            });
+        })
 
 
-                        for (let ii = 0; ii < $scope.EditImages.length; ii++) {
+        class MyUploadAdapter {
+            constructor(loader) {
+                // The file loader instance to use during the upload.
+                this.loader = loader;
+            }
 
-                            const range = quill.getSelection(true);
-                            quill.insertText(range.index, '\n', Quill.sources.USER);
-                            quill.insertEmbed(range.index + 1, 'image', {
-                                alt: '软件定制开发，QQ/微信：274455411',
-                                url: $scope.EditImages[ii]
-                            }, Quill.sources.USER);
-                            quill.setSelection(range.index + 2, Quill.sources.SILENT);
-                        }
+            // Starts the upload process.
+            upload() {
+                return this.loader.file
+                    .then(file => new Promise((resolve, reject) => {
+                        this._initRequest();
+                        this._initListeners(resolve, reject, file);
+                        this._sendRequest(file);
+                    }));
+            }
 
+            // Aborts the upload process.
+            abort() {
+                if (this.xhr) {
+                    this.xhr.abort();
+                }
+            }
 
-                        /*for(var ii=0;ii<$scope.EditImages.length;ii++){
+            // Initializes the XMLHttpRequest object using the URL passed to the constructor.
+            _initRequest() {
+                const xhr = this.xhr = new XMLHttpRequest();
 
-                            quill.insertEmbed(range.index, 'image',);
-                            range = quill.getSelection();
-                        }*/
+                xhr.open('POST', '/file/up', true);
+                xhr.responseType = 'json';
+            }
 
-                        $scope.$apply(function () {
-                            $scope.EditImages = [];
-                        });
-                        return true;
+            // Initializes XMLHttpRequest listeners.
+            _initListeners(resolve, reject, file) {
+                const xhr = this.xhr;
+                const loader = this.loader;
+                const genericErrorText = `Couldn't upload file: ${file.name}.`;
 
+                xhr.addEventListener('error', () => reject(genericErrorText));
+                xhr.addEventListener('abort', () => reject());
+                xhr.addEventListener('load', () => {
+                    const response = xhr.response;
 
-                    } else {
-                        return false;
+                    // This example assumes the XHR server's "response" object will come with
+                    // an "error" which has its own "message" that can be passed to reject()
+                    // in the upload promise.
+                    //
+                    // Your integration may handle upload errors in a different way so make sure
+                    // it is done properly. The reject() function must be called when the upload fails.
+                    if (!response || response.error) {
+                        return reject(response && response.error ? response.error.message : genericErrorText);
                     }
-                }, closable: false
-            }).modal("show");
-        });
+
+                    // If the upload is successful, resolve the upload promise with an object containing
+                    // at least the "default" URL, pointing to the image on the server.
+                    // This URL will be used to display the image in the content. Learn more in the
+                    // UploadAdapter#upload documentation.
+
+                    resolve({
+                        default: response.Url
+                    });
+                });
+
+                // Upload progress when it is supported. The file loader has the #uploadTotal and #uploaded
+                // properties which are used e.g. to display the upload progress bar in the editor
+                // user interface.
+                if (xhr.upload) {
+                    xhr.upload.addEventListener('progress', evt => {
+                        if (evt.lengthComputable) {
+                            loader.uploadTotal = evt.total;
+                            loader.uploaded = evt.loaded;
+                        }
+                    });
+                }
+            }
+
+            // Prepares the data and sends the request.
+            _sendRequest(file) {
+                // Prepare the form data.
+                const data = new FormData();
+
+
+                data.append('file', file);
+
+                // Important note: This is the right place to implement security mechanisms
+                // like authentication and CSRF protection. For instance, you can use
+                // XMLHttpRequest.setRequestHeader() to set the request headers containing
+                // the CSRF token generated earlier by your application.
+
+                // Send the request.
+                this.xhr.send(data);
+            }
+        }
+
+        function MyCustomUploadAdapterPlugin(editor) {
+            editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+                // Configure the URL to the upload script in your back-end here!
+                return new MyUploadAdapter(loader);
+            };
+        }
+
+
+        DecoupledEditor
+            .create(document.querySelector('#editor-container'), {
+                // toolbar: [ 'heading', '|', 'bold', 'italic', 'link' ]
+                extraPlugins: [MyCustomUploadAdapterPlugin],
+                language: "zh-cn"
+            })
+            .then(editor => {
+
+                const toolbarContainer = document.querySelector('#editor-toolbar-container');
+
+                toolbarContainer.prepend(editor.ui.view.toolbar.element);
+
+                window.editor = editor;
+
+                loadArticle(hasArticleID);
+            })
+            .catch(err => {
+                console.error(err.stack);
+            });
+
 
     });
 
@@ -663,421 +788,6 @@ main.controller("content_add_gallery_controller", function ($http, $scope, $rout
 
 
 });
-main.controller("content_add_article_controller", function ($http, $scope, $routeParams, $rootScope, $timeout, $location, Upload) {
-
-
-    let quill;
-    $scope.ContentSubTypes = [];
-    $scope.ContentItemID = $routeParams.ContentItemID
-
-    $scope.ContentSubTypeID = $routeParams.ContentSubTypeID
-    $scope.ContentSubTypeChildID = $routeParams.ContentSubTypeChildID
-
-
-    if (isNaN(parseInt($scope.ContentSubTypeID)) && isNaN(parseInt($scope.ContentSubTypeChildID))) {
-        //alert("类别错误")
-        //window.history.go(-1);
-        //return
-    }
-    if (isNaN(parseInt($scope.ContentItemID)))  {
-        //alert("类别错误")
-        //window.history.go(-1);
-        return
-    }
-
-
-    $scope.Article = {ContentItemID: $scope.ContentItemID};
-
-    $scope.saveArticle = function () {
-
-
-        console.log(window.editor.getData())
-
-
-        //$scope.ContentSubTypeID;
-        //$scope.ContentSubTypeChildID;
-        //console.log(quill.container.firstChild.innerHTML)
-
-        let Article = angular.copy($scope.Article)
-
-        Article.ContentItemID = parseInt($scope.ContentItemID);
-
-        Article.Content = window.editor.getData();
-
-
-
-
-
-        //let ContentSubTypeID = parseInt(Article.ContentSubTypeChildID) != 0 ? parseInt(Article.ContentSubTypeChildID) : parseInt(Article.ContentSubTypeID);
-
-
-        let ContentSubTypeID = 0
-
-        if (isNaN(parseInt(Article.ContentSubTypeID))===false){
-            ContentSubTypeID=parseInt(Article.ContentSubTypeID)
-        }
-        if (isNaN(parseInt(Article.ContentSubTypeChildID))===false){
-            ContentSubTypeID=parseInt(Article.ContentSubTypeChildID)
-        }
-
-
-        Article.ContentSubTypeID = ContentSubTypeID
-
-        $http.post("content/save", JSON.stringify(Article), {
-            transformRequest: angular.identity,
-            headers: {"Content-Type": "application/json"}
-        }).then(async function (data, status, headers, config) {
-            console.log(data);
-            alert(data.data.Message);
-            if (data.data.Code == 0) {
-                window.history.back();
-                window.close();
-            }
-            await loadArticle()
-        });
-    }
-
-
-    $scope.UploadPictureImage = function (file, errFiles) {
-        if (file) {
-            var thumbnail = Upload.upload({
-                url: '/file/up',
-                data: {file: file},
-            });
-            thumbnail.then(function (response) {
-                var url = response.data.Path;
-                $scope.Article.Picture = url;
-            }, function (response) {
-                console.log(response);
-            }, function (evt) {
-                // Math.min is to fix IE which reports 200% sometimes
-                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
-                //upload_progress.progress('update progress',progress);
-                //$("."+progressID).text(progress+"%");
-                //$("."+progressID).css("width",progress+"%");
-            });
-        } else {
-            if (errFiles.length > 0) {
-                alert(JSON.stringify(errFiles));
-            }
-
-        }
-    }
-
-    $scope.EditImages = [];
-    $scope.UploadImages = function (progressID, files, errFiles) {
-
-        const upload_progress = $(progressID);
-        upload_progress.progress({
-            duration: 100,
-            total: 100,
-            text: {
-                active: '{value} of {total} done'
-            }
-        });
-
-        upload_progress.progress('reset');
-        //upload_progress.progress('update progress',50);
-
-        if (files && files.length) {
-            for (let i = 0; i < files.length; i++) {
-                Upload.upload({url: '/file/up', data: {file: files[i]}}).then(function (response) {
-                    const url = response.data.Url;
-
-                    if ($scope.EditImages.indexOf(url) == -1) {
-                        $scope.EditImages.push(url);
-                    }
-
-                }, function (response) {
-
-                }, function (evt) {
-
-                    const progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
-                    upload_progress.progress('update progress', progress);
-
-                });
-            }
-        } else {
-            UpImageError(errFiles);
-        }
-    }
-    async function loadArticle() {
-        await new Promise((resolve, reject) => {
-            if ($scope.ContentItemID && ($scope.ContentSubTypeID || $scope.ContentSubTypeChildID)) {
-
-                let ContentSubTypeID = 0
-
-                if (isNaN(parseInt($scope.ContentSubTypeID)) === false) {
-                    ContentSubTypeID = parseInt($scope.ContentSubTypeID)
-                }
-                if (isNaN(parseInt($scope.ContentSubTypeChildID)) === false) {
-                    ContentSubTypeID = parseInt($scope.ContentSubTypeChildID)
-                }
-
-                $http.get("content/single/get/" + $scope.ContentItemID + "/" + ContentSubTypeID).then(function (responea) {
-
-                    if (responea.data.Data.ID > 0) {
-                        $scope.Article = responea.data.Data;
-
-                        if ($scope.Article.ContentSubTypeID !== parseInt($scope.ContentSubTypeID) && $scope.Article.ContentSubTypeID !== parseInt($scope.ContentSubTypeChildID)) {
-
-                            //alert("原内容类型与所选类型不匹配")
-                            //return
-                        }
-                        //$scope.ContentSubTypeID = $scope.Article.ContentSubTypeID
-                        //$scope.ContentSubTypeChildID = $scope.Article.ContentSubTypeChildID
-
-                        $scope.Article.ContentSubTypeID = $scope.ContentSubTypeID||0
-                        $scope.Article.ContentSubTypeChildID = $scope.ContentSubTypeChildID||0
-
-                        //quill.clipboard.dangerouslyPasteHTML($scope.Article.Content);
-
-                        console.log($scope.Article.Content)
-
-                        window.editor.setData($scope.Article.Content);
-
-                        resolve()
-                    }else{
-                        resolve()
-                    }
-
-                });
-            }else{
-                resolve()
-            }
-        });
-    }
-
-    $timeout(async function () {
-
-        await new Promise((resolve, reject) => {
-            $http.get("content/sub_type/list/all/" + $routeParams.ContentItemID).then(function (value) {
-                $scope.ContentSubTypes = value.data.Data || [];
-
-                $scope.Article.ContentSubTypeID = $scope.ContentSubTypeID
-                $scope.Article.ContentSubTypeChildID = $scope.ContentSubTypeChildID.toString()
-                console.log($scope.Article.ContentSubTypeID,$scope.Article.ContentSubTypeChildID)
-                resolve()
-
-            });
-        })
-
-        function imageHandler() {
-
-
-            $("#SelectImageModal").modal({
-                onApprove: function (e) {
-                    if ($scope.EditImages.length > 0) {
-                        for (let ii = 0; ii < $scope.EditImages.length; ii++) {
-
-
-                            const range = quill.getSelection();
-                            let index = 0;
-                            if(range && range.index){
-                                index=range.index
-                            }
-                            quill.insertText(index, '\r\n', Quill.sources.USER);
-                            quill.setSelection({ index: index+1, length: 0 },  'api');
-                            //quill.insertEmbed(index, 'image',$scope.EditImages[ii]);
-
-                            //const range = quill.getSelection();
-                            quill.insertEmbed(index, 'image',$scope.EditImages[ii]);
-                        }
-
-                        $scope.$apply(function () {
-                            $scope.EditImages = [];
-                        });
-                        return true;
-
-
-                    } else {
-                        return false;
-                    }
-                }, closable: false
-            }).modal("show");
-
-           // callback("https://www.baidu.com/img/flexible/logo/pc/result.png");
-
-            //const range = quill.getSelection();
-            //quill.insertEmbed(range.index, 'image', 'https://www.baidu.com/img/flexible/logo/pc/result.png');
-
-        }
-
-        class MyUploadAdapter {
-            constructor( loader ) {
-                // The file loader instance to use during the upload.
-                this.loader = loader;
-            }
-
-            // Starts the upload process.
-            upload() {
-                return this.loader.file
-                    .then( file => new Promise( ( resolve, reject ) => {
-                        this._initRequest();
-                        this._initListeners( resolve, reject, file );
-                        this._sendRequest( file );
-                    } ) );
-            }
-
-            // Aborts the upload process.
-            abort() {
-                if ( this.xhr ) {
-                    this.xhr.abort();
-                }
-            }
-
-            // Initializes the XMLHttpRequest object using the URL passed to the constructor.
-            _initRequest() {
-                const xhr = this.xhr = new XMLHttpRequest();
-
-                xhr.open( 'POST', '/file/up', true );
-                xhr.responseType = 'json';
-            }
-
-            // Initializes XMLHttpRequest listeners.
-            _initListeners( resolve, reject, file ) {
-                const xhr = this.xhr;
-                const loader = this.loader;
-                const genericErrorText = `Couldn't upload file: ${ file.name }.`;
-
-                xhr.addEventListener( 'error', () => reject( genericErrorText ) );
-                xhr.addEventListener( 'abort', () => reject() );
-                xhr.addEventListener( 'load', () => {
-                    const response = xhr.response;
-
-                    // This example assumes the XHR server's "response" object will come with
-                    // an "error" which has its own "message" that can be passed to reject()
-                    // in the upload promise.
-                    //
-                    // Your integration may handle upload errors in a different way so make sure
-                    // it is done properly. The reject() function must be called when the upload fails.
-                    if ( !response || response.error ) {
-                        return reject( response && response.error ? response.error.message : genericErrorText );
-                    }
-
-                    // If the upload is successful, resolve the upload promise with an object containing
-                    // at least the "default" URL, pointing to the image on the server.
-                    // This URL will be used to display the image in the content. Learn more in the
-                    // UploadAdapter#upload documentation.
-
-                    resolve( {
-                        default: response.Url
-                    } );
-                } );
-
-                // Upload progress when it is supported. The file loader has the #uploadTotal and #uploaded
-                // properties which are used e.g. to display the upload progress bar in the editor
-                // user interface.
-                if ( xhr.upload ) {
-                    xhr.upload.addEventListener( 'progress', evt => {
-                        if ( evt.lengthComputable ) {
-                            loader.uploadTotal = evt.total;
-                            loader.uploaded = evt.loaded;
-                        }
-                    } );
-                }
-            }
-
-            // Prepares the data and sends the request.
-            _sendRequest( file ) {
-                // Prepare the form data.
-                const data = new FormData();
-
-
-                data.append( 'file', file );
-
-                // Important note: This is the right place to implement security mechanisms
-                // like authentication and CSRF protection. For instance, you can use
-                // XMLHttpRequest.setRequestHeader() to set the request headers containing
-                // the CSRF token generated earlier by your application.
-
-                // Send the request.
-                this.xhr.send( data );
-            }
-        }
-
-        function MyCustomUploadAdapterPlugin( editor ) {
-            editor.plugins.get( 'FileRepository' ).createUploadAdapter = ( loader ) => {
-                // Configure the URL to the upload script in your back-end here!
-                return new MyUploadAdapter( loader );
-            };
-        }
-
-
-        DecoupledEditor
-            .create( document.querySelector( '#editor-container' ), {
-                // toolbar: [ 'heading', '|', 'bold', 'italic', 'link' ]
-                extraPlugins: [ MyCustomUploadAdapterPlugin ],
-                language:"zh-cn"
-            } )
-            .then( editor => {
-
-                const toolbarContainer = document.querySelector( '#editor-toolbar-container' );
-
-                toolbarContainer.prepend( editor.ui.view.toolbar.element );
-
-                window.editor = editor;
-
-                loadArticle();
-            } )
-            .catch( err => {
-                console.error( err.stack );
-            } );
-
-        /*quill = new Quill('#editor-container', {
-            modules: {
-                formula: true,
-                syntax: true,
-                toolbar: '#toolbar-container'
-            },
-            placeholder: 'Compose an epic...',
-            theme: 'snow'
-        });
-
-        quill.getModule("toolbar").addHandler("image", imageHandler);*/
-
-
-
-
-        /*quill.getModule("toolbar").addHandler("image", function (e) {
-
-            //var baseUrl ="//"+$location.host()+":"+$location.port();
-
-            $("#SelectImageModal").modal({
-                onApprove: function (e) {
-
-
-                    if ($scope.EditImages.length > 0) {
-
-
-                        for (let ii = 0; ii < $scope.EditImages.length; ii++) {
-
-                            const range = quill.getSelection(true);
-                            //quill.insertText(range.index, '\n', Quill.sources.USER);
-                            quill.insertEmbed(range.index, 'image', {
-                                alt: '软件定制开发，QQ/微信：274455411',
-                                url:$scope.EditImages[ii]
-                            }, Quill.sources.USER);
-                            quill.setSelection(range.index + 2, Quill.sources.SILENT);
-                        }
-
-                        $scope.$apply(function () {
-                            $scope.EditImages = [];
-                        });
-                        return true;
-
-
-                    } else {
-                        return false;
-                    }
-                }, closable: false
-            }).modal("show");
-        });*/
-
-    });
-
-
-});
 
 main.controller('content_list_controller', function ($http, $scope, $timeout, $routeParams, $document, $interval) {
 
@@ -1106,6 +816,9 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
         ],
         "products": [
             {Key: "products", Label: "产品", SubMenu: false, Content: false}
+        ],
+        "blog": [
+            {Key: "blog", Label: "博客", SubMenu: true, Content: true}
         ],
     };
 
@@ -1266,44 +979,44 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
     //{method:'PUT',url:''}
 
 
-    $scope.changeContentSubTypes=function (){
+    $scope.changeContentSubTypes = function () {
         $scope.loadContent()
     }
-    $scope.changeContentSubTypeChilds=function (){
+    $scope.changeContentSubTypeChilds = function () {
         $scope.loadContent()
     }
-    $scope.loadContent=function (){
+    $scope.loadContent = function () {
         let ContentSubTypeID = 0
 
-        if (isNaN(parseInt($scope.ContentContentSubType.ContentSubTypeID))===false){
-            ContentSubTypeID=parseInt($scope.ContentContentSubType.ContentSubTypeID)
+        if (isNaN(parseInt($scope.ContentContentSubType.ContentSubTypeID)) === false) {
+            ContentSubTypeID = parseInt($scope.ContentContentSubType.ContentSubTypeID)
         }
 
-        if (isNaN(parseInt($scope.ContentContentSubType.ContentSubTypeChildID))===false){
-            ContentSubTypeID=parseInt($scope.ContentContentSubType.ContentSubTypeChildID)
+        if (isNaN(parseInt($scope.ContentContentSubType.ContentSubTypeChildID)) === false) {
+            ContentSubTypeID = parseInt($scope.ContentContentSubType.ContentSubTypeChildID)
         }
 
-        if(ContentSubTypeID===0){
+        if (ContentSubTypeID === 0) {
             //alert("请选择类别")
             //return
         }
 
-        $http.get("content/single/get/" + $scope.ContentContentSubType.ContentItemID + "/" +ContentSubTypeID).then(function (responea) {
+        $http.get("content/single/get/" + $scope.ContentContentSubType.ContentItemID + "/" + ContentSubTypeID).then(function (responea) {
 
-            $scope.Article = responea.data.Data||{};
+            $scope.Article = responea.data.Data || {};
 
         });
     }
 
-    $scope.deleteArticle = function (article){
+    $scope.deleteArticle = function (article) {
         if (confirm("确定删除？")) {
 
             const form = {};
-            form.ID =article.ID;
+            form.ID = article.ID;
             $http.post("content/delete", $.param(form), {
                 transformRequest: angular.identity,
                 headers: {"Content-Type": "application/x-www-form-urlencoded"}
-            }).then( async  function (data, status, headers, config) {
+            }).then(async function (data, status, headers, config) {
 
                 alert(data.data.Message);
                 $scope.loadContent();
@@ -1315,7 +1028,7 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
 
     $scope.gotoContent = function () {
         $timeout(function () {
-            let redirect = "#!/content?ContentItemID=" + $scope.ContentContentSubType.ContentItemID + "&ContentSubTypeID=" + $scope.ContentContentSubType.ContentSubTypeID + "&ContentSubTypeChildID=" + $scope.ContentContentSubType.ContentSubTypeChildID
+            let redirect = "#!/content?Single=true&ContentItemID=" + $scope.ContentContentSubType.ContentItemID + "&ContentSubTypeID=" + $scope.ContentContentSubType.ContentSubTypeID + "&ContentSubTypeChildID=" + $scope.ContentContentSubType.ContentSubTypeChildID
             //$scope.ContentSubTypes = {};
             //$scope.ContentContentSubType = {};
             window.open(redirect)
@@ -1337,7 +1050,6 @@ main.controller('content_list_controller', function ($http, $scope, $timeout, $r
 
     $scope.showContentContentSubTypeDialog = async function (ContentItemID) {
         $scope.ContentContentSubType.ContentItemID = ContentItemID
-
 
 
         await loadAllContentSubType(ContentItemID);
