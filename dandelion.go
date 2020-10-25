@@ -25,6 +25,7 @@ func init() {
 	glog.Param.FileStorage = false
 	glog.Start()
 }
+
 func main() {
 
 	admin := &admin.Controller{}

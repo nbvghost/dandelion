@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"github.com/nbvghost/dandelion/app/action/admin/content"
 	"github.com/nbvghost/dandelion/app/play"
 	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service"
@@ -22,7 +23,7 @@ type InterceptorManager struct {
 }
 
 //Execute(Session *Session,Request *http.Request)(bool,Result)
-func (this InterceptorManager) Execute(context *gweb.Context) (bool, gweb.Result) {
+func (m InterceptorManager) Execute(context *gweb.Context) (bool, gweb.Result) {
 
 	//util.Trace(context.Session,"context.Session")
 	if context.Session.Attributes.Get(play.SessionAdmin) == nil {
@@ -126,7 +127,7 @@ func (controller *Controller) Init() {
 	store := &StoreController{}
 	controller.AddSubController("/store/", store)
 
-	content := &ContentController{}
+	content := &content.Controller{}
 	controller.AddSubController("/content/", content)
 
 }
@@ -270,7 +271,39 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]dao.GoodsType{}, company.ID, "")
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 
-		//--------------------------------------
+	//--------------------------------------
+	case "del_goods_type":
+		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+		return &gweb.JsonResult{Data: controller.Goods.DeleteGoodsType(ID)}
+	case "add_goods_type":
+		item := &dao.GoodsType{}
+		item.OID = company.ID
+		err := util.RequestBodyToJSON(context.Request.Body, item)
+		glog.Trace(err)
+		err = controller.Goods.Add(Orm, item)
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
+	case "change_goods_type":
+		item := &dao.GoodsType{}
+		err := util.RequestBodyToJSON(context.Request.Body, item)
+		glog.Trace(err)
+		err = controller.Goods.ChangeModel(Orm, item.ID, &dao.GoodsType{Name: item.Name})
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
+
+	case "del_goods_type_child":
+		ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+		return &gweb.JsonResult{Data: controller.Goods.DeleteGoodsTypeChild(ID)}
+	case "add_goods_type_child":
+		item := &dao.GoodsTypeChild{}
+		err := util.RequestBodyToJSON(context.Request.Body, item)
+		glog.Trace(err)
+		err = controller.Goods.Add(Orm, item)
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
+	case "change_goods_type_child":
+		item := &dao.GoodsTypeChild{}
+		err := util.RequestBodyToJSON(context.Request.Body, item)
+		glog.Trace(err)
+		err = controller.Goods.ChangeModel(Orm, item.ID, &dao.GoodsTypeChild{Name: item.Name, Image: item.Image})
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}
 
 	}
 

@@ -2,29 +2,21 @@
 <!-- Meta tag Keywords -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta charset="utf-8">
-<script type="application/x-javascript">
-    addEventListener("load", function () {
-        setTimeout(hideURLbar, 0);
-    }, false);
 
-    function hideURLbar() {
-        window.scrollTo(0, 1);
-    }
-</script>
 <!--// Meta tag Keywords -->
 
 <!-- gallery-Swipe-box -->
-<link rel="stylesheet" href="css/swipebox.css">
+<link rel="stylesheet" href="{{.rootPath}}css/swipebox.css">
 <!-- //gallery-Swipe-box -->
 
 <!-- testimonials css -->
-<link rel="stylesheet" href="css/flexslider.css" type="text/css" media="screen" property="" /><!-- flexslider css -->
+<link rel="stylesheet" href="{{.rootPath}}css/flexslider.css" type="text/css" media="screen" property="" /><!-- flexslider css -->
 <!-- //testimonials css -->
 
 <!-- css files -->
-<link rel="stylesheet" href="css/bootstrap.min.css"> <!-- Bootstrap-Core-CSS -->
-<link rel="stylesheet" href="lib/fontawesome/css/all.min.css"> <!-- Font-Awesome-Icons-CSS -->
-<link rel="stylesheet" href="css/style.css" type="text/css" media="all" /> <!-- Style-CSS -->
+<link rel="stylesheet" href="/resources/bootstrap/css/bootstrap.min.css"> <!-- Bootstrap-Core-CSS -->
+<link rel="stylesheet" href="/resources/fontawesome/css/all.min.css"> <!-- Font-Awesome-Icons-CSS -->
+<link rel="stylesheet" href="{{.rootPath}}css/style.css" type="text/css" media="all" /> <!-- Style-CSS -->
 <!-- //css files -->
 
 <!-- web-fonts -->
@@ -36,8 +28,64 @@
 
 
 <!-- js -->
-<script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
-<script type="text/javascript" src="js/bootstrap.js"></script> <!-- Necessary-JavaScript-File-For-Bootstrap -->
+<script type="text/javascript" src="/resources/jquery/jquery-3.3.1.min.js"></script>
+<script type="text/javascript" src="/resources/bootstrap/js/bootstrap.min.js"></script> <!-- Necessary-JavaScript-File-For-Bootstrap -->
 <!-- //js -->
+
+
+
+<!-- stats numscroller-js-file -->
+<script src="{{.rootPath}}js/numscroller-1.0.js"></script>
+<!-- //stats numscroller-js-file -->
+
+<!-- start-smoth-scrolling -->
+<script src="{{.rootPath}}js/SmoothScroll.min.js"></script>
+<script type="text/javascript" src="{{.rootPath}}js/move-top.js"></script>
+<script type="text/javascript" src="{{.rootPath}}js/easing.js"></script>
+<script type="text/javascript">
+    $(document).ready(function ($) {
+        $(".scroll").click(function (event) {
+            event.preventDefault();
+            $('html,body').animate({scrollTop: $(this.hash).offset().top}, 1000);
+        });
+    });
+</script>
+<!-- here stars scrolling icon -->
+<script type="text/javascript">
+    $(document).ready(function () {
+        /*
+            var defaults = {
+            containerID: 'toTop', // fading element id
+            containerHoverID: 'toTopHover', // fading element hover id
+            scrollSpeed: 1200,
+            easingType: 'linear'
+            };
+        */
+
+        $(document).UItoTop({easingType: 'easeOutQuart'});
+
+        //const scrollTop = window.localStorage.getItem(window.location.href)
+
+        //window.scrollTo(0,parseInt(scrollTop));
+        //console.log(scrollTop)
+
+        //$('html,body').animate({scrollTop: 400}, 10);
+
+        $(document).scroll(function() {
+            //const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+
+            //window.localStorage.setItem(window.location.href,scrollTop.toString());
+        });
+
+
+
+
+    });
+</script>
+<!-- //here ends scrolling icon -->
+<!-- start-smoth-scrolling -->
+
+<!-- //js-scripts -->
+
 
 {{end}}

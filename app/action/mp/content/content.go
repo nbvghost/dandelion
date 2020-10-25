@@ -44,28 +44,28 @@ func (controller *ContentController) relatedAction(context *gweb.Context) gweb.R
 	ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	ContentSubTypeID, _ := strconv.ParseUint(context.PathParams["ContentSubTypeID"], 10, 64)
 
-	var articles []dao.Content
+	//var articles []dao.Content
 	//controller.Content.FindOrderWhereLength(dao.Orm(),"Look desc",&articles,)
-	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "CreatedAt desc", &articles, Offset, "ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeID)
-	return &gweb.JsonResult{Data: &result.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
+	pagin := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "CreatedAt desc", dao.Content{}, Offset, "ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeID)
+	return &gweb.JsonResult{Data: &pagin}
 }
 func (controller *ContentController) listNewAction(context *gweb.Context) gweb.Result {
 	Offset, _ := strconv.Atoi(context.Request.URL.Query().Get("Offset"))
 	ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 
-	var articles []dao.Content
+	//var articles []dao.Content
 	//controller.Content.FindOrderWhereLength(dao.Orm(),"Look desc",&articles,)
-	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "CreatedAt desc", &articles, Offset, "ContentItemID=?", ContentItemID)
-	return &gweb.JsonResult{Data: &result.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
+	pager := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "CreatedAt desc", dao.Content{}, Offset, "ContentItemID=?", ContentItemID)
+	return &gweb.JsonResult{Data: &pager}
 }
 func (controller *ContentController) listHotAction(context *gweb.Context) gweb.Result {
 	Offset, _ := strconv.Atoi(context.Request.URL.Query().Get("Offset"))
 	ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 
-	var articles []dao.Content
+	//var articles []dao.Content
 	//controller.Content.FindOrderWhereLength(dao.Orm(),"Look desc",&articles,)
 
-	_Total, _Limit, _Offset := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "Look desc", &articles, Offset, "ContentItemID=?", ContentItemID)
+	pager := controller.Content.FindSelectWherePaging(dao.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "Look desc", dao.Content{}, Offset, "ContentItemID=?", ContentItemID)
 
-	return &gweb.JsonResult{Data: &result.Pager{Data: articles, Total: _Total, Limit: _Limit, Offset: _Offset}}
+	return &gweb.JsonResult{Data: &pager}
 }

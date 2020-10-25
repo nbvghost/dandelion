@@ -1,0 +1,69 @@
+<div class="ui container">
+    <p>
+        <a class="ui red ribbon label">子类管理</a>
+    </p>
+    <div class="ui mini menu">
+        <div class="right menu">
+            <a class="item" ng-click="ShowGoodsTypeChildModal()">
+                <div class="ui blue button">添加子类</div>
+            </a>
+            <a class="item" href="#!/goods_type_list">
+                <div class="ui button">返回分类</div>
+            </a>
+        </div>
+    </div>
+
+
+
+    <div class="ui divided mini items">
+        <div class="item" ng-repeat="m in GoodsTypeChildList">
+            <div style="width: 120px;height: 120px;" class="ui fluid image">
+                <img style="max-width: 100%;max-height: 100%;object-fit:cover;width: 100%;height: 100%;" ng-src="/file/load?path=@{m.Image}@">
+            </div>
+            <div class="content">
+                <a class="header">@{m.Name}@</a>
+                <div class="meta">
+                    <span class="cinema">@{m.UpdatedAt|date:"medium"}@</span>
+                    <span class="cinema">#ID:@{m.ID}@</span>
+                </div>
+                <div class="description">
+                    <p></p>
+                </div>
+                <div class="extra">
+                    <div ng-click="editGoodsTypeChild(m)" class="ui mini blue button"><i class="edit icon"></i>编辑</div>
+                    <div ng-click="deleteGoodsTypeChild(m)" class="ui mini red button"><i class="delete icon"></i>删除</div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+</div>
+
+<div id="goods_type_child_modal" class="ui modal">
+    <div class="header">@{GoodsTypeChildModalObj.Title}@</div>
+    <div class="content">
+        <form class="ui form" ng-submit="saveGoodsTypeChild()">
+            <div class="field">
+                <label>系列名称</label>
+                <input type="text" ng-model="GoodsTypeChild.Name" required placeholder="系列名称">
+            </div>
+            <div class="field">
+                <label>系列图片</label>
+                <div style="border:0px solid red;width: 100%;height: 120px;">
+                    <img class="ui fluid image" style="width:100%;height:100%;object-fit: contain;" ng-src="/file/load?path=@{GoodsTypeChild.Image}@">
+                </div>
+                <div class="ui bottom attached button" type="file" ngf-select="uploadImages('progress-bar',$file,$invalidFiles)" accept="image/*" ngf-max-size="1MB"><i class="image icon"></i>上传图片</div>
+            </div>
+            <div class="actions">
+                <button type="submit" class="ui red button">确定</button>
+                <div class="ui cancel button">取消</div>
+            </div>
+        </form>
+    </div>
+    <div style="display: none;" class="actions">
+        <div class="ui approve red button">确定</div>
+        <div class="ui cancel button">取消</div>
+    </div>
+</div>

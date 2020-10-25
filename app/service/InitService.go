@@ -118,6 +118,7 @@ func init() {
 		{Type: dao.ContentTypeIndex, Label: "首页"},
 		{Type: dao.ContentTypeGallery, Label: "画廊"},
 		{Type: dao.ContentTypeProducts, Label: "产品"},
+		{Type: dao.ContentTypeBlog, Label: "博客"},
 	}
 	for index := range contentTypeList {
 		var _contenttype = contentTypeList[index]

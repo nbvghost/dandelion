@@ -25,6 +25,7 @@ const ContentTypeContent ContentTypeType = "content"
 const ContentTypeIndex ContentTypeType = "index"
 const ContentTypeGallery ContentTypeType = "gallery"
 const ContentTypeProducts ContentTypeType = "products"
+const ContentTypeBlog ContentTypeType = "blog"
 
 //MenuType
 type ContentType struct {

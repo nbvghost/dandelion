@@ -60,7 +60,7 @@
             </td>
             <td class="right aligned">
                 <a ng-click="editMenus(m)" class="ui blue button"><i class="edit icon"></i>编辑</a>
-                <a ng-if="m.Type=='content' && getTemplateNameObj(m.Type,m.TemplateName).Content" href="" ng-click="showContentContentSubTypeDialog(m)" class="ui green button"> <i class="edit icon"></i>内容管理</a>
+                <a ng-if="m.Type=='content' && getTemplateNameObj(m.Type,m.TemplateName).Content" href="" ng-click="showContentContentSubTypeDialog(m.ID)" class="ui green button"> <i class="edit icon"></i>内容管理</a>
                 <a ng-if="m.Type!='content' && getTemplateNameObj(m.Type,m.TemplateName).Content" href="#!/@{m.Type}@?ContentItemID=@{m.ID}@&Type=@{m.Type}@" class="ui green button"> <i class="edit icon"></i>内容管理</a>
                 <a ng-click="upIndex($index)" class="ui button"><i class="angle up icon"></i>上移</a>
                 <a ng-click="downIndex($index)" class="ui button"><i class="angle down icon"></i>下移</a>
@@ -71,6 +71,7 @@
         </tbody>
     </table>
 </div>
+
 <div id="contentContentSubTypeDialog" class="ui fullscreen modal">
     <div class="header">请选择要添加的类别</div>
     <div class="scrolling content">
@@ -80,7 +81,7 @@
                 <div class="four wide field">
                     <label>分类</label>
                     <select ng-model="ContentContentSubType.ContentSubTypeID" ng-change="changeContentSubTypes()" ng-options="key as value.SubType.Name for (key , value) in ContentSubTypes" required >
-                        <option value="">请选择</option>
+                        <option value="">主页</option>
                     </select>
                 </div>
                 <div class="four wide field">
@@ -89,12 +90,37 @@
                         <option value="">不选</option>
                     </select>
                 </div>
+                <div class="four wide field">
+                    <label>Action</label>
+                    <div ng-click="loadContent()" class="ui primary button">刷新</div>
+                </div>
             </div>
         </form>
+
+        <div ng-if="Article.ID>0" class="ui placeholder segment align-center">
+            <div class="ui icon header">
+                <img style="width: 128px;height: 128px;" class="ui small icon image" ng-src="/file/load?path=@{Article.Picture}@">
+                @{Article.Title}@
+            </div>
+            <div class="inline align-center">
+                <div ng-click="gotoContent()" class="ui primary button">编辑</div>
+                <div ng-click="deleteArticle(Article)" class="ui orange button">删除</div>
+            </div>
+        </div>
+
+        <div ng-if="Article.ID==0" class="ui placeholder segment align-center">
+            <div class="ui icon header">
+                没有内容
+            </div>
+            <div class="inline align-center">
+                <div ng-click="gotoContent()" class="ui primary button">添加</div>
+            </div>
+        </div>
+
     </div>
     <div class="actions">
         <button class="ui cancel button">取消</button>
-        <button class="ui blue approve button">确定</button>
+        <button style="display: none;" class="ui blue approve button">确定</button>
     </div>
 </div>
 <div id="editMenus" class="ui fullscreen modal">

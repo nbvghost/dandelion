@@ -435,13 +435,12 @@ func (service GoodsService) GetTopGoodsTypeChild(DB *gorm.DB, Num uint64) []TopG
 }
 func (service GoodsService) GoodsList(UserID uint64, SqlOrder string, Index int, where interface{}, args ...interface{}) []dao.GoodsInfo {
 	Orm := dao.Orm()
-	var goodsList []dao.Goods
+	//var goodsList []dao.Goods
 	//db := Orm.Model(&dao.Goods{}).Order("CountSale desc").Limit(10)
 	//db.Find(&result)
-	err := service.FindWherePaging(Orm, SqlOrder, &goodsList, Index, where, args)
-	glog.Error(err)
+	pager := service.FindWherePaging(Orm, SqlOrder, dao.Goods{}, Index, where, args)
 
-	return service.GetGoodsInfoList(UserID, goodsList)
+	return service.GetGoodsInfoList(UserID, pager.Data.([]dao.Goods))
 }
 func (service GoodsService) HotListByGoodsTypeIDAndGoodsTypeChildID(GoodsTypeID, GoodsTypeChildID, Num uint64) []dao.Goods {
 
@@ -496,13 +495,9 @@ func (service GoodsService) ListAllGoodsType() []dao.GoodsType {
 	return gts
 }
 func (service GoodsService) ListGoodsTypeForAdmin(OID uint64) []dao.GoodsType {
-	/*Orm := dao.Orm()
-	var gts []dao.GoodsType
-	service.FindAllByOID(Orm,&gts,OID)
-	return gts*/
 	Orm := dao.Orm()
 	var gts []dao.GoodsType
-	Orm.Model(&dao.GoodsType{}).Find(&gts)
+	Orm.Model(&dao.GoodsType{}).Where("OID=?", OID).Find(&gts)
 	return gts
 }
 func (service GoodsService) ListGoodsType(OID uint64) []dao.GoodsType {
@@ -583,4 +578,69 @@ func (service GoodsService) AddGoodsTypeByNameByChild(name string, childName str
 	}
 
 	return gt, gtc
+}
+
+func (service GoodsService) RecommendGoods(OID, GoodsID, GoodsTypeID, GoodsTypeChildID uint64) []dao.Goods {
+	var contentList []dao.Goods
+	dao.Orm().
+		Model(&dao.Goods{}).
+		Where("OID=? and ID<>? and (GoodsTypeID=? or GoodsTypeChildID=?)", OID, GoodsID, GoodsTypeID, GoodsTypeChildID).
+		Order("RAND()").
+		Limit(6).
+		Find(&contentList)
+	return contentList
+}
+func (service GoodsService) ListGoodsByType(OID, GoodsTypeID, GoodsTypeChildID uint64) []dao.Goods {
+
+	var contentList []dao.Goods
+
+	if GoodsTypeID == 0 {
+		dao.Orm().Model(&dao.Goods{}).Where("OID=?", OID).
+			Order("CreatedAt desc").Order("ID desc").Find(&contentList)
+		return contentList
+	}
+
+	if GoodsTypeChildID > 0 {
+
+		dao.Orm().Model(&dao.Goods{}).Where("OID=? and GoodsTypeID=? and GoodsTypeChildID=?", OID, GoodsTypeID, GoodsTypeChildID).
+			Order("CreatedAt desc").Order("ID desc").Find(&contentList)
+		return contentList
+	} else {
+		dao.Orm().Model(&dao.Goods{}).Where("OID=? and GoodsTypeID=?", OID, GoodsTypeID).
+			Order("CreatedAt desc").Order("ID desc").Find(&contentList)
+		return contentList
+	}
+
+}
+func (service GoodsService) GetGoodsTypeData(OID uint64) *dao.GoodsTypeData {
+
+	goodsTypeData := &dao.GoodsTypeData{}
+
+	rows, err := dao.Orm().Raw(`SELECT gt.*,gtc.* FROM GoodsTypeChild AS gtc LEFT JOIN GoodsType as gt ON (gt.ID=gtc.GoodsTypeID) WHERE OID=?`, OID).Rows()
+	if glog.Error(err) {
+		return goodsTypeData
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var item dao.GoodsTypeGoodsTypeChild
+		err := dao.Orm().ScanRows(rows, &item)
+		glog.Error(err)
+
+		goodsTypeItem := goodsTypeData.Get(item.GoodsType.ID)
+		if goodsTypeItem.Item.ID == 0 {
+
+			goodsTypeData.List = append(goodsTypeData.List, &dao.GoodsTypeItem{Item: &item.GoodsType, SubType: []*dao.GoodsTypeItemSub{{Item: &item.GoodsTypeChild, SubType: []*dao.GoodsTypeItemSub{}}}})
+
+		} else {
+
+			goodsTypeItem.SubType = append(goodsTypeItem.SubType, &dao.GoodsTypeItemSub{Item: &item.GoodsTypeChild, SubType: []*dao.GoodsTypeItemSub{}})
+
+		}
+
+	}
+
+	return goodsTypeData
+
 }

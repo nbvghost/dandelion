@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"github.com/nbvghost/dandelion/app/result"
 	"strings"
 
 	"github.com/nbvghost/dandelion/app/play"
@@ -74,22 +75,24 @@ func (b BaseDao) FindOrderWhereLength(DB *gorm.DB, Order interface{}, target int
 
 	return DB.Model(target).Order(Order).Limit(Length).Find(target).Error
 }
-func (b BaseDao) FindWherePaging(DB *gorm.DB, Order interface{}, target interface{}, Index int, where interface{}, args ...interface{}) error {
+func (b BaseDao) FindWherePaging(DB *gorm.DB, Order interface{}, target IDataBaseFace, Index int, where interface{}, args ...interface{}) result.Pager {
 
 	db := DB.Model(target).Where(where, args...).Order(Order)
-	SelectPaging(Index, db, target)
-	return nil
+	//SelectPaging(Index, db, target)
+
+	return Paging(db, Index, play.Paging, target)
 	//return DB.Model(target).Where(where, args...).Order(Order).Limit(Length).Find(target).Error
 }
-func (b BaseDao) FindSelectWherePaging(DB *gorm.DB, Select string, Order interface{}, target interface{}, Offset int, where interface{}, args ...interface{}) (_Total, _Limit, _Offset int) {
+func (b BaseDao) FindSelectWherePaging(DB *gorm.DB, Select string, Order interface{}, target IDataBaseFace, Offset int, where interface{}, args ...interface{}) result.Pager {
 
 	db := DB.Model(target).Select(Select).Where(where, args...).Order(Order)
 	if Offset < 0 {
 		Offset = 0
 	}
-	_Total, _Offset = SelectPagingOffset(Offset, db, target)
-	_Limit = play.Paging
-	return
+	//_Total, _Offset = SelectPagingOffset(Offset, db, target)
+	pagin := Paging(db, Offset, play.Paging, target)
+
+	return pagin
 	//return DB.Model(target).Where(where, args...).Order(Order).Limit(Length).Find(target).Error
 }
 

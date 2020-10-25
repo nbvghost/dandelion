@@ -1,11 +1,16 @@
+{{$ID:=.params.Menus.ID}}
+{{$SubID:=.params.Menus.SubID}}
+{{$SubChildID:=.params.Menus.SubChildID}}
+{{$RootPath:=.rootPath}}
+
 <!DOCTYPE html>
 <!-- saved from url=(0060)http://demo.cssmoban.com/cssthemes6/cpts_1788_csq/about.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>About</title>
-
-	<title>About</title>
-	<meta name="keywords" content="" />
-	{{template "import_asset"}}
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>About</title>
+    <meta name="keywords" content=""/>
+    {{template "import_asset" .}}
 </head>
 <body>
 
@@ -14,281 +19,140 @@
 
 {{template "header" .}}
 
-
 <!-- inner page banner -->
 <section class="inner_page_banner text-center">
-	<h2 class="page_heading text-uppercase pt-md-4 pt-sm-4">{{.params.Item.Name}}</h2>
-	<h4 class="text-uppercase pt-2"><a href="index">Home</a> -<a
-				href="?id={{.params.Item.ID}}">{{.params.Item.TemplateName}}</a></h4>
+
+
+    {{if gt $SubChildID 0}}
+
+        <h2 class="page_heading text-uppercase pt-md-4 pt-sm-4">{{.params.Menus.SubChild.Item.Name}}</h2>
+        <h4 class="text-uppercase pt-2">
+            <a href="{{$RootPath}}index">Home</a> - <a
+                    href="{{$RootPath}}{{.params.Menus.Top.Item.Type}}/{{.params.Menus.Top.Item.ID}}/0/0">{{.params.Menus.Top.Item.Name}}</a>
+        </h4>
+    {{else}}
+
+        {{if gt $SubID 0}}
+            <h2 class="page_heading text-uppercase pt-md-4 pt-sm-4">{{.params.Menus.Sub.Item.Name}}</h2>
+            <h4 class="text-uppercase pt-2">
+                <a href="{{$RootPath}}index">Home</a> - <a
+                        href="{{$RootPath}}{{.params.Menus.Top.Item.Type}}/{{.params.Menus.Top.Item.ID}}/0/0">{{.params.Menus.Top.Item.Name}}</a>
+            </h4>
+        {{else}}
+            <h2 class="page_heading text-uppercase pt-md-4 pt-sm-4">{{.params.Menus.Top.Item.Name}}</h2>
+            <h4 class="text-uppercase pt-2">
+                <a href="{{$RootPath}}index">Home</a>
+            </h4>
+        {{end}}
+
+    {{end}}
+
+
 </section>
 <!-- //inner page banner -->
 
 
+<div class="container mb-5">
+    <div class="row justify-content-md-center">
 
 
-<div class="container">
-	<div class="row">
-		<div class="col-lg-3 mb-3">
+        {{if gt (len .params.Menus.Top.SubType) 0}}
+            <div class="col-lg-3 mb-3">
+                {{template "content_left" .}}
+            </div>
+        {{end}}
 
-			<div class="card border-danger mt-3 mb-3">
-				<div class="card-header text-white bg-danger">{{.params.Item.Name}}</div>
-				<div class="card-body text-primary">
+        <div class="col-lg-9">
 
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="font-weight-bold">
 
-					<ul class="list-group list-group-flush">
-						{{range $k,$v:=.params.MenusSub}}
-							{{range $sk,$sv:=$v.SubType}}
-								<li class="list-group-item pl-0 pt-2 pb-2"><a
-											href="?id={{$sv.Item.ContentItemID}}&sid={{$sv.Item.ID}}">{{$sv.Item.Name}}</a></li>
+                    {{if gt .params.Menus.SubChild.Item.ID 0}}
 
-								<ul class="list-group list-group-flush ml-3">
+                        {{.params.Menus.SubChild.Item.Name}}
 
-									{{range $ssk,$ssv:=$sv.SubType}}
-										<li class="list-group-item p-0"><a
-													href="?id={{$sv.Item.ContentItemID}}&sid={{$ssv.ID}}">{{$ssv.Name}}</a>
-										</li>
-									{{end}}
+                    {{else}}
+                        {{if gt .params.Menus.Sub.Item.ID 0}}
+                            {{.params.Menus.Sub.Item.Name}}
 
-								</ul>
+                        {{else}}
+                            {{.params.Menus.Top.Item.Name}}
+                        {{end}}
+                    {{end}}
 
-							{{end}}
-						{{end}}
-
-					</ul>
-
-				</div>
-			</div>
+                </h6>
+                <ol class="p-0 pt-3 pb-2 d-flex m-0 list-unstyled justify-content-end">
 
 
+                    <li class="breadcrumb-item"><a href="{{$RootPath}}">Home</a></li>
+
+                    {{if gt .params.Menus.Top.Item.ID 0}}
+                        <li class="breadcrumb-item"><a href="{{$RootPath}}{{.params.Menus.Top.Item.Type}}/{{.params.Menus.Top.Item.ID}}/0/0">{{.params.Menus.Top.Item.Name}}</a></li>
+                    {{end}}
+
+                    {{if gt .params.Menus.Sub.Item.ID 0}}
+                        <li class="breadcrumb-item"><a href="{{$RootPath}}{{.params.Menus.Top.Item.Type}}/{{.params.Menus.Top.Item.ID}}/{{.params.Menus.Sub.Item.ID}}/0">{{.params.Menus.Sub.Item.Name}}</a></li>
+                    {{end}}
+
+                </ol>
+            </div>
+
+            <div class="border-top mb-3"></div>
 
 
-		</div>
-		<div class="col-lg-9">
+            {{template "content" .params.Content}}
 
 
-			<div class="d-flex justify-content-between align-items-center">
-				<h6 class="font-weight-bold">{{if eq .params.CurrentSubType.ID 0}} 全部 {{else}} {{.params.CurrentSubType.Name}} {{end}}</h6>
-				<ol class="p-0 pt-3 pb-2 d-flex m-0 list-unstyled justify-content-end">
-					<li class="breadcrumb-item"><a href="#">Home</a></li>
-					<li class="breadcrumb-item"><a href="#">Library</a></li>
-					<li class="breadcrumb-item">Data</li>
-					<li class="breadcrumb-item" aria-current="page">Data</li>
-				</ol>
-			</div>
-
-			<div class="border-top mb-3"></div>
-
-			<ul class="list-unstyled">
-
-				{{range $k,$v:=.params.ContentList}}
-					<li class="media mb-3">
-						<img style="width: 64px;height: 64px;" src="/file/load?path={{$v.Picture}}" class="mr-3"
-							 alt="{{$v.Title}}">
-						<div class="media-body">
-							<h5 class="mt-0 mb-1"><strong>{{$v.Title}}</strong></h5>
-							<p class="overflow-hidden" style="max-lines: 2">{{$v.Introduce}}</p>
-							<p class="text-muted"><small>{{$v.CreatedAt}}</small></p>
-						</div>
-					</li>
-
-				{{end}}
+            <div class="border-top mt-3"></div>
 
 
-			</ul>
 
-			<div class="border-top mb-3"></div>
-
-
-			<nav aria-label="Page navigation">
-				<ul class="pagination pagination-sm justify-content-center">
-					<li class="page-item disabled">
-						<a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-					</li>
-					<li class="page-item"><a class="page-link" href="#">1</a></li>
-					<li class="page-item"><a class="page-link" href="#">2</a></li>
-					<li class="page-item"><a class="page-link" href="#">3</a></li>
-					<li class="page-item">
-						<a class="page-link" href="#">Next</a>
-					</li>
-				</ul>
-			</nav>
-
-		</div>
-	</div>
+        </div>
+    </div>
 </div>
 
+{{template "footer" .}}
+
+<!-- js-scripts -->
 
 
-<!-- Welcome section -->
-<section class="welcome py-5 my-lg-5" id="welcome">
-	<h3 class="heading text-center text-uppercase">Welcome to industry</h3>
-	<p class="heading-bottom text-center font-italic mb-5">Industrial Revolution Business</p>
-	<div class="container">
-		<div class="row">
-			<div class="col-lg-6 welcome_left">
-				<img src="./img/welcome.jpg" alt="welcome image">
-			</div>
-			<div class="col-lg-6 welcome_right mt-5 py-5 px-4">
-				<p>Nulla pellentesque mi non laoreet eleifend. Integer porttitor mollisar lorem, at molestie arcu pulvinar ut. Proin ac fermentum est. Cras mi ipsum, consectetur ac ipsum in, egestas vestibulum tellus.</p>
-				
-				<div class="row grid1 my-4">
-					<div class="col-md-2 col-sm-2 col-3 icon color1 text-center">
-						<span class="fas fa-info-circle" aria-hidden="true"></span>
-					</div>
-					<div class="col-md-10 col-sm-10 col-9 grid_info">
-						<h3 class="text-uppercase mb-2">Industrial Business</h3>
-						<p>Lorem ipsum dolor sit amet aueit, consectetur adipiscing elit. Quisque utrisus eget libero finibus. Etiam males</p>
-					</div>
-				</div>
-				<div class="row grid2 my-4">
-					<div class="col-md-2  col-sm-2 col-3 icon color1 text-center">
-						<span class="fas fa-headphones" aria-hidden="true"></span>
-					</div>
-					<div class="col-md-10 col-sm-10 col-9 grid_info">
-						<h3 class="text-uppercase mb-2">24/7 support</h3>
-						<p>Lorem ipsum dolor sit amet aueit, consectetur adipiscing elit. Quisque utrisus eget libero finibus. Etiam males</p>
-					</div>
-				</div>
-				<div class="row grid3">
-					<div class="col-md-2 col-sm-2 col-3 icon color1 text-center">
-						<span class="fas fa-users" aria-hidden="true"></span>
-					</div>
-					<div class="col-md-10 col-sm-10 col-9 grid_info">
-						<h3 class="text-uppercase mb-2">Professional Team</h3>
-						<p>Lorem ipsum dolor sit amet aueit, consectetur adipiscing elit. Quisque utrisus eget libero finibus. Etiam males</p>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-</section>
-<!-- //Welcome section -->
+<!-- stats numscroller-js-file -->
+<script src="./js/numscroller-1.0.js"></script>
+<!-- //stats numscroller-js-file -->
 
-<!-- why we best Section -->
-<section class="why">
-	<div class="layer py-5">
-		<h3 class="heading text-center text-uppercase">Why we are best</h3>
-		<p class="heading-bottom text-center font-italic mb-5">Industrial Revolution Business</p>
-			<div class="container">
-				<div class="row">
-					<div class="col-lg-3 col-sm-6 why-grid text-center icon">
-						<span class="fas fa-users" aria-hidden="true"></span>
-						<h3 class="text-uppercase mt-4 mb-3">Best Workers</h3>
-						<p>Morbi viverra lacus commodo eu felis semper, eu iaculis lectus feugiat egestas erat.</p>
-						<div class="agileits-button two service">
-							<a class="btn btn-primary btn-lg hvr-underline-from-left text-uppercase" href="" data-toggle="modal" data-target="#myModal" role="button">Read More »</a>
-						</div>
-					</div>
-					<div class="col-lg-3 col-sm-6 mt-4 why-grid text-center icon">
-						<span class="fa fa-user" aria-hidden="true"></span>
-						<h3 class="text-uppercase mt-4 mb-3">Qualify Engineers</h3>
-						<p>Morbi viverra lacus commodo eu felis semper, eu iaculis lectus feugiat egestas erat.</p>
-						<div class="agileits-button two service">
-							<a class="btn btn-primary btn-lg hvr-underline-from-left text-uppercase" href="" data-toggle="modal" data-target="#myModal" role="button">Read More »</a>
-						</div>
-					</div>
-					<div class="col-lg-3 col-sm-6 mt-lg-0 mt-sm-5 mt-4 why-grid text-center icon">
-						<span class="fa fa-headphones" aria-hidden="true"></span>
-						<h3 class="text-uppercase mt-4 mb-3">Customer Support</h3>
-						<p>Morbi viverra lacus commodo eu felis semper, eu iaculis lectus feugiat egestas erat.</p>
-						<div class="agileits-button two service">
-							<a class="btn btn-primary btn-lg hvr-underline-from-left text-uppercase" href="" data-toggle="modal" data-target="#myModal" role="button">Read More »</a>
-						</div>
-					</div>
-					<div class="col-lg-3 col-sm-6 mt-lg-0 mt-sm-5 mt-4 why-grid text-center icon">
-						<span class="fas fa-certificate" aria-hidden="true"></span>
-						<h3 class="text-uppercase mt-4 mb-3">100% Quality</h3>
-						<p>Morbi viverra lacus commodo eu felis semper, eu iaculis lectus feugiat egestas erat.</p>
-						<div class="agileits-button two service">
-							<a class="btn btn-primary btn-lg hvr-underline-from-left text-uppercase" href="" data-toggle="modal" data-target="#myModal" role="button">Read More »</a>
-						</div>
-					</div>
-				</div>
-			</div>
-	</div>
-</section>
-<!-- //why we best Section -->
+<!-- start-smoth-scrolling -->
+<script src="./js/SmoothScroll.min.js"></script>
+<script type="text/javascript" src="./js/move-top.js"></script>
+<script type="text/javascript" src="./js/easing.js"></script>
+<script type="text/javascript">
+    jQuery(document).ready(function ($) {
+        $(".scroll").click(function (event) {
+            event.preventDefault();
+            $('html,body').animate({scrollTop: $(this.hash).offset().top}, 1000);
+        });
+    });
+</script>
+<!-- here stars scrolling icon -->
+<script type="text/javascript">
+    $(document).ready(function () {
+        /*
+            var defaults = {
+            containerID: 'toTop', // fading element id
+            containerHoverID: 'toTopHover', // fading element hover id
+            scrollSpeed: 1200,
+            easingType: 'linear'
+            };
+        */
 
-<!-- About Section -->
-<section class="about py-5 my-lg-5">
-	<h3 class="heading text-center text-uppercase">About our industry</h3>
-	<p class="heading-bottom text-center font-italic mb-5">Industrial Revolution Business</p>
-		<div class="container">
-			<div class="row welcome-sub-wthree">
-				<div class="col-lg-5 mb-lg-0 mb-md-3 banner_bottom_left">
-					<h4 class="text-capitalize">History of Our company</h4>
-					<p class="para text-capitalize font-italic">Indus Fact revolution business</p>
-					<p>Lorem Ipsum convallis diam consequat magna vulputate malesuada. Cras a ornare elit, Nulla viverra pharetra se eget magna vulputate malesuada.</p>
-					<p>Pellentesque convallis diam consequat magna vulputate malesuada. Cras a ornare elit. Nulla viverra pharetra se eget
-						pulvinar neque pharetra ac.Lorem Ipsum convallis diam consequat magna vulputate malesuada, Crasa ornareelit. Lorem
-						Ipsum convallis diam Nulla viverra pharetra sem.</p>
-				</div>
-				
-				<!-- Stats-->
-				<div class="col-lg-2 col-md-5 w3l-right-stats text-center">
-					<div class="stats-grid py-3 stat-border">
-						<div class="numscroller numscroller-big-bottom roller-title-number-1 scrollzip" data-slno="1" data-min="0" data-max="190" data-delay=".2" data-increment="1">190</div>
-						<p>Workers</p>
-					</div>
-					<div class="stats-grid py-3">
-						<div class="numscroller numscroller-big-bottom roller-title-number-2 scrollzip" data-slno="2" data-min="0" data-max="480" data-delay=".2" data-increment="1">480</div>
-						<p>Projects</p>
-					</div>
-					<div class="stats-grid py-3 stat-border border-st2">
-						<div class="numscroller numscroller-big-bottom roller-title-number-3 scrollzip" data-slno="3" data-min="0" data-max="900" data-delay=".2" data-increment="1">900</div>
-						<p>Constructions</p>
-					</div>
-				</div>
-				<!-- //Stats -->
-				<div class="col-lg-5 col-md-7 stats-info-agile">
-					<img src="./img/11.jpg" alt="" class="img-fluid">
-				</div>
-			</div>
-		</div>
-</section>
-<!-- //About Section -->
+        $().UItoTop({easingType: 'easeOutQuart'});
 
-{{IncludeHTML "sites/default/footer.tp.html" .}}
-
-<!-- js-scripts -->		
-
-	
-	<!-- stats numscroller-js-file -->
-	<script src="./js/numscroller-1.0.js"></script>
-	<!-- //stats numscroller-js-file -->
-
-	<!-- start-smoth-scrolling -->
-	<script src="./js/SmoothScroll.min.js"></script>
-	<script type="text/javascript" src="./js/move-top.js"></script>
-	<script type="text/javascript" src="./js/easing.js"></script>
-	<script type="text/javascript">
-		jQuery(document).ready(function($) {
-			$(".scroll").click(function(event){		
-				event.preventDefault();
-				$('html,body').animate({scrollTop:$(this.hash).offset().top},1000);
-			});
-		});
-	</script>
-	<!-- here stars scrolling icon -->
-	<script type="text/javascript">
-		$(document).ready(function() {
-			/*
-				var defaults = {
-				containerID: 'toTop', // fading element id
-				containerHoverID: 'toTopHover', // fading element hover id
-				scrollSpeed: 1200,
-				easingType: 'linear' 
-				};
-			*/
-								
-			$().UItoTop({ easingType: 'easeOutQuart' });
-								
-			});
-	</script>
-	<!-- //here ends scrolling icon -->
-	<!-- start-smoth-scrolling -->
+    });
+</script>
+<!-- //here ends scrolling icon -->
+<!-- start-smoth-scrolling -->
 
 <!-- //js-scripts -->
 
 
-<a href="" id="toTop" style="display: none;"><span id="toTopHover"></span>To Top</a></body></html>
+<a href="" id="toTop" style="display: none;"><span id="toTopHover"></span>To Top</a></body>
+</html>
