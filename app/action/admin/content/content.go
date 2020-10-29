@@ -10,6 +10,7 @@ import (
 	"github.com/nbvghost/dandelion/app/util"
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
+	"github.com/nbvghost/gweb/tool/number"
 	"strconv"
 	"strings"
 )
@@ -24,6 +25,7 @@ func (controller *Controller) Init() {
 	//------------------ArticleService.go-datatables------------------------
 	controller.AddHandler(gweb.POSMethod("datatables/list", controller.DataTablesAction))
 	controller.AddHandler(gweb.POSMethod("save", controller.SaveArticleAction))
+	controller.AddHandler(gweb.POSMethod("get", controller.getContentTitleAction))
 	controller.AddHandler(gweb.GETMethod("multi/get/{ID}", controller.GetMultiArticleAction))
 	controller.AddHandler(gweb.GETMethod("single/get/{ContentItemID}/{ContentSubTypeID}", controller.GetSingleArticleAction))
 	controller.AddHandler(gweb.POSMethod("delete", controller.DeleteArticleAction))
@@ -51,6 +53,13 @@ func (controller *Controller) Init() {
 	controller.AddHandler(gweb.DELMethod("sub_type/{ID}", controller.DeleteClassify))
 	controller.AddHandler(gweb.PUTMethod("sub_type/{ID}", controller.ChangeClassify))
 	controller.AddHandler(gweb.GETMethod("sub_type/{ID}", controller.GetContentSubTypeAction))
+}
+func (controller *Controller) getContentTitleAction(context *gweb.Context) gweb.Result {
+	context.Request.ParseForm()
+	ContentItemID := number.ParseInt(context.Request.FormValue("ContentItemID"))
+	Title := context.Request.FormValue("Title")
+	content := controller.Content.GetContentByContentItemIDAndTitle(uint64(ContentItemID), Title)
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", content)}
 }
 func (controller *Controller) contentsPostPage(context *gweb.Context) gweb.Result {
 

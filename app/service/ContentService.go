@@ -416,6 +416,12 @@ func (service ContentService) GetContentByContentItemID(ContentItemID uint64) *d
 	//service.ChangeMap(dao.Orm(), ID, &dao.Article{}, map[string]interface{}{"Look": article.Look + 1})
 	return article
 }
+func (service ContentService) GetContentByContentItemIDAndTitle(ContentItemID uint64, Title string) *dao.Content {
+	article := &dao.Content{}
+	dao.Orm().Where("ContentItemID=? and Title=?", ContentItemID, Title).First(article)
+	//service.ChangeMap(dao.Orm(), ID, &dao.Article{}, map[string]interface{}{"Look": article.Look + 1})
+	return article
+}
 func (service ContentService) GetContentByContentItemIDAndContentSubTypeID(ContentItemID, ContentSubTypeID uint64) *dao.Content {
 	article := &dao.Content{}
 	dao.Orm().Where("ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeID).First(article)
