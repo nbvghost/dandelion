@@ -2,6 +2,7 @@ package company
 
 import (
 	"errors"
+	"github.com/nbvghost/glog"
 
 	"github.com/nbvghost/dandelion/app/service/dao"
 
@@ -32,7 +33,9 @@ func (service OrganizationService) FindByDomain(Orm *gorm.DB, Domain string) *da
 	manager := &dao.Organization{}
 	//err := Orm.Where("Domain=?", Domain).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
 	Orm.Where(map[string]interface{}{"Domain": Domain}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)
-
+	if manager.ID == 0 {
+		return nil
+	}
 	return manager
 }
 func (service OrganizationService) GetOrganization(ID uint64) *dao.Organization {
@@ -52,19 +55,23 @@ func (service OrganizationService) DelCompany(ID uint64) error {
 	Orm := dao.Orm()
 	return service.Delete(Orm, dao.Organization{}, ID)
 }
-func (service OrganizationService) ChangeOrganization(ID uint64, shop *dao.Organization) bool {
+func (service OrganizationService) ChangeOrganization(ID uint64, shop *dao.Organization) error {
 	Orm := dao.Orm()
 	//return Orm.Save(article).Error
 	//err := db.Orm.Save(shop).Error
 	org := service.FindByDomain(Orm, shop.Domain)
 	if org.ID != 0 && org.ID != shop.ID {
-		return false
+		return errors.New("企业信息不存在")
 	} else {
+		shop.Amount = org.Amount
+		shop.BlockAmount = org.BlockAmount
+		shop.Vip = org.Vip
+		shop.Expire = org.Expire
 		err := service.ChangeModel(Orm, ID, shop)
-		if err != nil {
-			return false
+		if glog.Error(err) {
+			return err
 		} else {
-			return true
+			return nil
 		}
 	}
 

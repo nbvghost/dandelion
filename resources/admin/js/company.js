@@ -416,7 +416,7 @@ main.controller("company_info_controller",function ($http, $scope, $routeParams,
     $scope.Images=[];
     $scope.Store ={};
 
-    $scope.TargetAction={method:"POST",url:"company/add",title:"添加门店"};
+
 
 
     function loadCompanyInfo(){
@@ -632,9 +632,11 @@ main.controller("company_info_controller",function ($http, $scope, $routeParams,
         //$scope.Store.Address=JSON.stringify($scope.address);
 
 
+        $scope.TargetAction={method:"POST",url:"company/add",title:"添加门店"};
+
         $http({
-            method: $scope.TargetAction.method,
-            url: $scope.TargetAction.url,
+            method: "POST",
+            url: "company/info",
             data: JSON.stringify($scope.Store),
             transformRequest: angular.identity,
             headers: {"Content-Type": "application/json"}
@@ -643,37 +645,42 @@ main.controller("company_info_controller",function ($http, $scope, $routeParams,
             alert(data.data.Message);
 
             if(data.data.Code==0){
-                window.location.href="#!/store_list";
+                //window.location.href="#!/store_list";
+                loadCompanyInfo()
             }
         });
 
     }
-    $scope.uploadImages = function (progressID,file, errFiles) {
+    $scope.uploadImages = function (progressID,$files, errFiles) {
 
-        if (file) {
-            const thumbnail = Upload.upload({
-                url: '/file/up',
-                data: {file: file},
-            });
-            thumbnail.then(function (response) {
-                $timeout(function () {
-                    const url = response.data.Path;
+        if ($files) {
 
-                    if($scope.Photos.indexOf(url)==-1){
-                        $scope.Photos.push(url);
-                    }
-
+            for(let i=0;i<$files.length;i++){
+                const thumbnail = Upload.upload({
+                    url: '/file/up',
+                    data: {file: $files[i]},
                 });
-            }, function (response) {
-                if (response.status > 0){
-                    $scope.errorMsg = response.status + ': ' + response.data;
-                }
-            }, function (evt) {
-                // Math.min is to fix IE which reports 200% sometimes
-                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
-                //$("."+progressID).text(progress+"%");
-                //$("."+progressID).css("width",progress+"%");
-            });
+                thumbnail.then(function (response) {
+                    $timeout(function () {
+                        const url = response.data.Path;
+
+                        if($scope.Photos.indexOf(url)==-1){
+                            $scope.Photos.push(url);
+                        }
+
+                    });
+                }, function (response) {
+                    if (response.status > 0){
+                        $scope.errorMsg = response.status + ': ' + response.data;
+                    }
+                }, function (evt) {
+                    // Math.min is to fix IE which reports 200% sometimes
+                    //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                    //$("."+progressID).text(progress+"%");
+                    //$("."+progressID).css("width",progress+"%");
+                });
+            }
+
         }else{
             UpImageError(errFiles);
         }

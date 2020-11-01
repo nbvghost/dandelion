@@ -304,11 +304,11 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 	return &gweb.JsonResult{}
 }
 func (controller *Controller) carditemListAction(context *gweb.Context) gweb.Result {
-	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	Orm := dao.Orm()
 	dts := &dao.Datatables{}
 	util.RequestBodyToJSON(context.Request.Body, dts)
-	draw, recordsTotal, recordsFiltered, list := controller.CardItem.DatatablesListOrder(Orm, dts, &[]dao.CardItem{}, company.ID, "")
+	draw, recordsTotal, recordsFiltered, list := controller.CardItem.DatatablesListOrder(Orm, dts, &[]dao.CardItem{}, 0, "")
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 }
 func (controller *Controller) situationAction(context *gweb.Context) gweb.Result {
@@ -399,11 +399,11 @@ func (controller *Controller) orderChangeAction(context *gweb.Context) gweb.Resu
 
 }
 func (controller *Controller) storeJournalListAction(context *gweb.Context) gweb.Result {
-	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	Orm := dao.Orm()
 	dts := &dao.Datatables{}
 	util.RequestBodyToJSON(context.Request.Body, dts)
-	draw, recordsTotal, recordsFiltered, list := controller.CardItem.DatatablesListOrder(Orm, dts, &[]dao.StoreJournal{}, company.ID, "")
+	draw, recordsTotal, recordsFiltered, list := controller.CardItem.DatatablesListOrder(Orm, dts, &[]dao.StoreJournal{}, 0, "")
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 
 }

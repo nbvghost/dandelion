@@ -17,7 +17,7 @@ type VoucherController struct {
 
 func (controller *VoucherController) Init() {
 
-	controller.AddHandler(gweb.POSMethod("default", controller.AddItem))
+	controller.AddHandler(gweb.POSMethod("index", controller.AddItem))
 	controller.AddHandler(gweb.GETMethod("{ID}", controller.GetItem))
 	controller.AddHandler(gweb.POSMethod("list", controller.ListItem))
 	controller.AddHandler(gweb.DELMethod("{ID}", controller.DeleteItem))

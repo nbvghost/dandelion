@@ -67,33 +67,7 @@
             </div>
         </div>
 
-
-
-        //Name        string `gorm:"column:Name;not null"`           //店名
-        Address      string    `gorm:"column:Address"`         //街道地址
-        Telephone    string    `gorm:"column:Telephone"`       //手机
-        Email        string    `gorm:"column:Email"`           //联系邮箱
-        Categories   string    `gorm:"column:Categories"`      //门店的类型
-        Longitude    string    `gorm:"column:Longitude"`       //地理位置
-        Latitude     string    `gorm:"column:Latitude"`        //地理位置
-
-        Photos       string    `gorm:"column:Photos"`          //店的图片
-        Special      string    `gorm:"column:Special"`         //特色
-        Opentime     string    `gorm:"column:Opentime"`        //营业时间
-        Avgprice     int       `gorm:"column:Avgprice"`        //每人平均消费
-        Introduction string    `gorm:"column:Introduction"`    //介绍
-        Recommend    string    `gorm:"column:Recommend"`       //推荐
-        Link         string    `gorm:"column:Link"`            //链接
-        Vip          int       `gorm:"column:Vip;default:'0'"` //VIP等级
-        Expire       time.Time `gorm:"column:Expire"`          //过期时间
-
-
-
         <div class="fields">
-            <div class="field">
-                <label>联系人</label>
-                <input ng-model="Store.ContactName" placeholder="联系人" required type="text">
-            </div>
             <div class="field">
                 <label>手机号</label>
                 <input ng-model="Store.Telephone" maxlength="11" minlength="11" placeholder="手机号" required type="text">
@@ -159,7 +133,7 @@
                     <div class="description">128*128  最大1M</div>
                 </div>
 
-                <div class="ui bottom attached button" type="file" ngf-select="uploadImages('progress-bar',$file,$invalidFiles)" accept="image/*" ngf-max-size="1MB"><i class="image icon"></i>上传图片</div>
+                <div class="ui bottom attached button" type="file" multiple="multiple" ngf-select="uploadImages('progress-bar',$files,$invalidFiles)" accept="image/*" ngf-max-size="1MB"><i class="image icon"></i>上传图片</div>
 
             </div>
         </div>

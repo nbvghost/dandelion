@@ -44,15 +44,125 @@ main.config(function ($routeProvider, $locationProvider, $provide, $httpProvider
         templateUrl: "content_templates/add_article_template",
         controller: "content_add_article_controller"
     });*/
-    $routeProvider.when("/content", {
-        templateUrl: "content_templates/add_articles_template",
-        controller: "content_add_articles_controller"
+    $routeProvider.when("/content_config", {
+        templateUrl: "content_templates/content_config",
+        controller: "content_config_controller"
     });
 
 
 });
 
 
+main.controller("content_config_controller", function ($http, $scope, $routeParams, $rootScope, $timeout, $location, Upload) {
+
+    $scope.contentConfig = {}
+
+    $scope.customerService = {
+        SocialAccount:[]
+    }
+
+
+    $scope.socialAccount = {}
+
+
+    $scope.tabIndex = 0
+    $scope.selectTab = function (tabIndex) {
+        $scope.tabIndex=tabIndex
+    }
+    $scope.deleteSocialAccount = function (index) {
+        if(confirm("确定删除？")){
+            $scope.customerService.SocialAccount.splice(index,1)
+        }
+    }
+    $scope.editSocialAccount = function (index) {
+        $scope.socialAccount = $scope.customerService.SocialAccount[index];
+    }
+    $scope.cancelSocialAccount = function () {
+        $scope.socialAccount = {}
+    }
+    $scope.submitSocialAccount = function () {
+
+        let Type=    $scope.socialAccount.Type||""
+        let Account= $scope.socialAccount.Account||""
+        if(Type.length>0 && Account.length>0) {
+            let has =false
+            for(let i=0;i<$scope.customerService.SocialAccount.length;i++){
+                 let sa = $scope.customerService.SocialAccount[i]
+                let accountInfo = sa.Type+sa.Account
+                if(Type+Account===accountInfo){
+                    has =true
+                    break
+                }
+            }
+            if(has===false){
+                $scope.customerService.SocialAccount.push($scope.socialAccount)
+                $scope.socialAccount={}
+            }
+
+        }
+    }
+    $scope.uploadCustomerServicePhoto = function (file, errFiles) {
+        if (file) {
+            const thumbnail = Upload.upload({
+                url: '/file/up',
+                data: {file: file},
+            });
+            thumbnail.then(function (response) {
+                const url = response.data.Path;
+                $scope.customerService.Photo = url
+            }, function (evt) {
+                // Math.min is to fix IE which reports 200% sometimes
+                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                //upload_progress.progress('update progress',progress);
+                //$("."+progressID).text(progress+"%");
+                //$("."+progressID).css("width",progress+"%");
+            });
+        } else {
+            if (errFiles.length > 0) {
+                alert(JSON.stringify(errFiles));
+            }
+
+        }
+    }
+    $scope.submitCustomerService = function (){
+
+        if($scope.customerService.SocialAccount.length===0){
+            alert("请添加社交帐号")
+            return
+        }
+        let Name =$scope.customerService.Name||""
+        if(Name.length===0){
+            alert("请填写名字")
+            return
+        }
+        let Title =$scope.customerService.Title||""
+        if(Title.length===0){
+            alert("请填写头衔")
+            return
+        }
+
+    }
+    $scope.cancelCustomerService = function (){
+        $("#CustomerServiceModal").modal({
+            centered: false, closable: false, allowMultiple: false
+        }).modal("hide");
+    }
+    $scope.showCustomerServiceModal = function (isAdd) {
+
+        $("#CustomerServiceModal").modal({
+            centered: false, closable: false, allowMultiple: false
+        }).modal("show");
+    }
+
+
+
+    $timeout(function (){
+        $('.tabular.menu .item').tab();
+        $('.tabular.menu .item').tab('change tab', 'tab0');
+        //$.tab('change tab', 'tab0');
+    })
+
+})
 main.controller("content_articles_controller", function ($http, $scope, $routeParams, $rootScope, $timeout, $location, Upload) {
     $scope.ContentSubTypes = {};
 

@@ -1,0 +1,206 @@
+<div id="score_goods_list" class="ui container">
+    <p>
+        <a class="ui red ribbon label">单品销售统计</a>
+    </p>
+
+
+    Name            string                    `gorm:"column:Name"`
+    Logo            string                    `gorm:"column:Logo"`
+    SocialAccount   []sqltype.SocialAccount   `gorm:"column:SocialAccount"`
+    CustomerService []sqltype.CustomerService `gorm:"column:CustomerService"`
+    EnableHTMLCache bool                      `gorm:"column:EnableHTMLCache"`
+    FocusPicture    []sqltype.FocusPicture    `gorm:"column:FocusPicture"`
+
+    <div class="ui top attached tabular menu">
+        <a class="item" ng-class="{true:'active',false:''}[tabIndex==0]" ng-click="selectTab(0)" data-tab="tab0">焦点广告</a>
+        <a class="item" ng-class="{true:'active',false:''}[tabIndex==1]" ng-click="selectTab(1)" data-tab="tab1">站点名称</a>
+        <a class="item" ng-class="{true:'active',false:''}[tabIndex==2]" ng-click="selectTab(2)" data-tab="tab2">站点Logo</a>
+        <a class="item" ng-class="{true:'active',false:''}[tabIndex==3]" ng-click="selectTab(3)" data-tab="tab3">社交账号</a>
+        <a class="item" ng-class="{true:'active',false:''}[tabIndex==4]" ng-click="selectTab(4)" data-tab="tab4">客服帐号</a>
+        <a class="item" ng-class="{true:'active',false:''}[tabIndex==5]" ng-click="selectTab(5)" data-tab="tab5">启动HTML缓存</a>
+    </div>
+    <div class="ui bottom attached tab segment" data-tab="tab5">
+        <form class="ui form" >
+            <div class="field">
+                <div class="ui  checkbox">
+                    <input type="checkbox" id="EnableHTMLCache" ng-model="contentConfig.EnableHTMLCache" name="EnableHTMLCache">
+                    <label for="EnableHTMLCache">启动HTML缓存</label>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="ui bottom attached tab segment" data-tab="tab4">
+
+        <table width="100%" class="ui red table">
+            <thead>
+            <tr>
+                <th>#ID</th>
+                <th>名称</th>
+                <th>内容</th>
+                <th>门店#ID</th>
+                <th>类型</th>
+                <th>变动金额</th>
+                <th>余额</th>
+                <th>创建时间</th>
+            </tr>
+            </thead>
+        </table>
+
+        <button type="submit" ng-click="showCustomerServiceModal(true)" class="ui red fluid button">添加客服信息</button>
+
+    </div>
+    <div class="ui bottom attached tab segment" data-tab="tab3">tab3</div>
+    <div class="ui bottom attached tab segment" data-tab="tab2">tab2</div>
+    <div class="ui bottom attached tab segment" data-tab="tab1">tab1</div>
+    <div class="ui bottom attached tab segment" data-tab="tab0">
+        <form class="ui form" ng-submit="submit()">
+            <div class="field">
+                <input ng-model="StoreID" placeholder="请输入门店ID" type="number">
+            </div>
+            <div class="field">
+                <input ng-model="StartTime" required type="date">
+            </div>
+            <div class="field">
+                <input ng-model="EndTime" required type="date">
+            </div>
+            <div class="field">
+                <button type="submit" class="ui red button">确定</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+
+<div id="CustomerServiceModal" class="ui modal">
+    <div class="header">客服信息</div>
+    <div class="content">
+        <form class="ui form" name="customerServiceForm" ng-submit="submitCustomerService()">
+            <div class="field">
+                <label>名字</label>
+                <input type="text" min="1" ng-model="customerService.Name" required placeholder="名字">
+            </div>
+            <div class="field">
+                <label>隐藏</label>
+                <div class="ui  checkbox">
+                    <input type="checkbox" id="customerServiceHide" ng-model="customerService.Hide" name="Hide">
+                    <label for="customerServiceHide">是否隐藏此客服</label>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>头衔</label>
+                <input type="text" min="1" ng-model="customerService.Title" required placeholder="头衔">
+            </div>
+
+
+
+            <div class="field">
+                <label>照片</label>
+                <div class="ui card">
+                    <div class="image">
+                        <img ng-src="/file/load?path=@{customerService.Photo}@">
+                    </div>
+                    <div class="extra content">
+                        <div class="ui fluid buttons">
+                            <div class="ui basic green button" type="file" ngf-select="uploadCustomerServicePhoto($file,$invalidFiles)" accept="image/*" ngf-max-size="1MB"><i class="image icon"></i>上传图片</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <div class="field">
+                <label>社交账号</label>
+                <table width="100%" class="ui red table">
+                    <thead>
+                    <tr>
+                        <th>社交平台</th>
+                        <th>帐号</th>
+                        <th>显示</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr ng-repeat="m in customerService.SocialAccount">
+                        <td>@{m.Type}@</td>
+                        <td>@{m.Account}@</td>
+                        <td>@{m.Hide?'隐藏':'显示'}@</td>
+                        <td><a ng-click="deleteSocialAccount($index)">删除</a></td>
+                        <td><a ng-click="editSocialAccount($index)">编辑</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="ui inverted segment">
+                    <div name="socialAccountForm" class="ui inverted form">
+                        <div class="fields">
+                            <div class="field">
+                                <label>社交平台</label>
+                                <select ng-model="socialAccount.Type" class="ui dropdown">
+                                    <option value="facebook">facebook</option>
+                                    <option value="twitter">twitter</option>
+                                    <option value="linkedin">linkedin</option>
+                                    <option value="instagram">instagram</option>
+                                    <option value="skype">skype</option>
+                                    <option value="wechat">wechat</option>
+                                    <option value="qq">qq</option>
+                                    <option value="email">email</option>
+                                    <option value="phone">phone</option>
+                                    <option value="whatsapp">whatsapp</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label>帐号</label>
+                                <input ng-model="socialAccount.Account" minlength="1"  type="text">
+                            </div>
+                            <div class="field">
+                                <label>隐藏</label>
+                                <div class="ui  checkbox">
+                                    <input type="checkbox" id="SocialAccountHide" ng-model="socialAccount.Hide" name="Hide">
+                                    <label for="SocialAccountHide">是否隐藏此社交帐号</label>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <button type="button" ng-click="submitSocialAccount()" class="ui red button">设置</button>
+                                <button type="button" ng-click="cancelSocialAccount()" class="ui button">清除</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <hr>
+            <button type="submit" class="ui primary button">提交</button>
+            <button type="button" ng-click="cancelCustomerService()" class="ui button">取消</button>
+        </form>
+    </div>
+</div>
+
+<div id="add_score_goods" class="ui mini modal">
+
+    <div class="header">@{TargetAction.title}@</div>
+
+    <div class="content">
+        <form class="ui actions form" ng-submit="add_score_goods()">
+
+            <div class="field">
+                <label>满足金额(单位：分)</label>
+                <input type="number" min="1" ng-model="FullCut.Amount" required placeholder="满足金额">
+            </div>
+            <div class="field">
+                <label>减免金额(单位：分)</label>
+                <input type="number" min="1" ng-model="FullCut.CutAmount" required placeholder="减免金额">
+            </div>
+
+            <div class="field">
+                <button type="submit" class="ui red button">提交</button>
+                <div class="ui cancel button">取消</div>
+            </div>
+        </form>
+    </div>
+
+</div>

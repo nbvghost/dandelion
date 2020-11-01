@@ -13,6 +13,9 @@
     <script type="text/javascript" src="/resources/datatables/datatables.min.js"></script>
     <script type="text/javascript" src="/resources/semantic-ui/semantic.min.js"></script>
 
+    <link rel="stylesheet" type="text/css" href="/resources/semantic-ui/plugin/alert/semantic-ui-alerts.css">
+    <script type="text/javascript" src="/resources/semantic-ui/plugin/alert/semantic-ui-alerts.js"></script>
+
     <link rel="stylesheet" type="text/css" href="/resources/datatables/dataTables.semanticui.css">
     <script type="text/javascript" src="/resources/datatables/dataTables.semanticui.js"></script>
 
@@ -92,6 +95,8 @@
 
             $('.ui.container .menu .browse').popup({target: '.menu .header',position : 'right center',on:'click', popup: '.ui.flowing',inline:true,delay:{show:300,hide:800}});
             //$('.ui.container .menu .browse').popup();
+
+            $('.tabular.menu .item').tab();
 
         });
 

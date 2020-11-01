@@ -50,8 +50,8 @@ type Organization struct {
 	Telephone    string    `gorm:"column:Telephone"`                     //手机
 	Email        string    `gorm:"column:Email"`                         //联系邮箱
 	Categories   string    `gorm:"column:Categories"`                    //门店的类型
-	Longitude    string    `gorm:"column:Longitude"`                     //地理位置
-	Latitude     string    `gorm:"column:Latitude"`                      //地理位置
+	Longitude    float64   `gorm:"column:Longitude"`                     //地理位置
+	Latitude     float64   `gorm:"column:Latitude"`                      //地理位置
 	Photos       string    `gorm:"column:Photos;type:JSON;default:'[]'"` //店的图片
 	Special      string    `gorm:"column:Special"`                       //特色
 	Opentime     string    `gorm:"column:Opentime"`                      //营业时间

@@ -20,11 +20,11 @@ type ScoreGoodsController struct {
 
 func (controller *ScoreGoodsController) Init() {
 
-	controller.AddHandler(gweb.POSMethod("score_goods", controller.AddScoreGoods))
-	controller.AddHandler(gweb.GETMethod("score_goods/{ID}", controller.GetScoreGoods))
-	controller.AddHandler(gweb.POSMethod("score_goods/list", controller.DatatablesScoreGoods))
-	controller.AddHandler(gweb.DELMethod("score_goods/{ID}", controller.DeleteScoreGoods))
-	controller.AddHandler(gweb.PUTMethod("score_goods/{ID}", controller.ChangeScoreGoods))
+	controller.AddHandler(gweb.POSMethod("index", controller.AddScoreGoods))
+	controller.AddHandler(gweb.GETMethod("{ID}", controller.GetScoreGoods))
+	controller.AddHandler(gweb.POSMethod("list", controller.DatatablesScoreGoods))
+	controller.AddHandler(gweb.DELMethod("{ID}", controller.DeleteScoreGoods))
+	controller.AddHandler(gweb.PUTMethod("{ID}", controller.ChangeScoreGoods))
 
 }
 func (controller *ScoreGoodsController) DeleteScoreGoods(context *gweb.Context) gweb.Result {
