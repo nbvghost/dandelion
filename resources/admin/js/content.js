@@ -8,13 +8,25 @@ main.config(function ($routeProvider, $locationProvider, $provide, $httpProvider
         templateUrl: "content_templates/add_articles_template",
         controller: "content_add_articles_controller"
     });
+    $routeProvider.when("/edit_contents", {
+        templateUrl: "content_templates/add_articles_template",
+        controller: "content_add_articles_controller"
+    });
     $routeProvider.when("/add_blog", {
+        templateUrl: "content_templates/add_blog_template",
+        controller: "content_add_articles_controller"
+    });
+    $routeProvider.when("/edit_blog", {
         templateUrl: "content_templates/add_blog_template",
         controller: "content_add_articles_controller"
     });
     $routeProvider.when("/add_gallery", {
         templateUrl: "content_templates/add_gallery_template",
         controller: "content_add_gallery_controller"
+    });
+    $routeProvider.when("/edit_gallery", {
+        templateUrl: "content_templates/add_articles_template",
+        controller: "content_add_articles_controller"
     });
     $routeProvider.when("/contents", {
         templateUrl: "content_templates/articles_template",
@@ -121,7 +133,7 @@ main.controller("content_articles_controller", function ($http, $scope, $routePa
             var tr = $(this).closest('tr');
             var row = table.row(tr);
             console.log(row.data());
-            window.location.href = "#!/add_"+$scope.Type+"?ContentItemID=" + row.data().ContentItemID + "&ID=" + row.data().ID;
+            window.location.href = "#!/edit_"+$scope.Type+"?ContentItemID=" + row.data().ContentItemID + "&ID=" + row.data().ID;
         });
 
         $('#table_local').on('click', 'td.opera .delete', function () {
@@ -235,7 +247,6 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
 
     $scope.saveArticle = async function (isAutoSave) {
 
-
         /*$scope.Article.ContentItemID = parseInt($routeParams.ContentItemID);
         $scope.Article.Content = window.editor.getData();
 
@@ -256,7 +267,8 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
             let Article = angular.copy($scope.Article)
 
             Article.ContentItemID = parseInt($scope.ContentItemID);
-            Article.Content = window.editor.getData();
+            //Article.Content = window.editor.getData();
+            Article.Content = quill.root.innerHTML;
 
 
             let ContentSubTypeID = 0
@@ -375,7 +387,9 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
                     $scope.Article = responea.data.Data;
 
                     articleContent = $scope.Article.Content
-                    window.editor.setData($scope.Article.Content);
+                    //window.editor.setData($scope.Article.Content);
+                    //quill.clipboard.dangerouslyPasteHTML(articleContent);
+                    quill.root.innerHTML=articleContent
 
                     if ($scope.Article.ContentSubTypeID > 0) {
 
@@ -446,10 +460,11 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
 
                             //quill.clipboard.dangerouslyPasteHTML($scope.Article.Content);
 
-                            console.log($scope.Article.Content)
+
 
                             articleContent = $scope.Article.Content
-                            window.editor.setData($scope.Article.Content);
+                            //quill.clipboard.dangerouslyPasteHTML(articleContent);
+                            quill.root.innerHTML=articleContent
 
                             resolve()
                         } else {
@@ -466,8 +481,40 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
 
     }
 
+    let quill;
+
     $timeout(async function () {
 
+        quill = new Quill('#editor-container',{
+            modules: {
+                formula: true,
+                syntax: true,
+                toolbar: '#toolbar-container',
+                imageResize:{},
+                //markdownShortcuts:{},
+                imageUploader: {
+                    upload: file => {
+                        return new Promise((resolve, reject) => {
+                            Upload.upload({url: '/file/up', data: {file: file}}).then(function (response) {
+                                const url = response.data.Path;
+
+                                resolve( '/file/load?path='+url)
+
+                            }, function (evt) {
+
+                                reject(evt)
+
+                            });
+                        });
+                    }
+                }
+            },
+            handlers: {
+
+            },
+            placeholder: 'Compose an epic...',
+            theme: 'snow'
+        });
 
         await new Promise((resolve, reject) => {
             $http.get("content/sub_type/list/all/" + $routeParams.ContentItemID).then(function (value) {
@@ -582,8 +629,9 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
             };
         }
 
+        await loadArticle(hasArticleID);
 
-        DecoupledEditor
+        /*DecoupledEditor
             .create(document.querySelector('#editor-container'), {
                 // toolbar: [ 'heading', '|', 'bold', 'italic', 'link' ]
                 extraPlugins: [MyCustomUploadAdapterPlugin],
@@ -601,7 +649,7 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
             })
             .catch(err => {
                 console.error(err.stack);
-            });
+            });*/
 
 
     });

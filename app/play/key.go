@@ -115,4 +115,4 @@ const (
 	ContentTypeArticles = "articles"
 )
 
-var GWebSecretKey encryption.SecretKey = encryption.SecretKey(encryption.Md5ByString("ds1f4ds524f52ds4f5ds4"))
+var GWebSecretKey = encryption.SecretKey(encryption.Md5ByString("ds1f4ds524f52ds4f5ds4"))

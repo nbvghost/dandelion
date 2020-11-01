@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/nbvghost/dandelion/app/service/admin"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/gweb/tool/encryption"
 
@@ -9,12 +10,6 @@ import (
 )
 
 //var GlobalGoodsService = GoodsService{}
-var GlobalService GlobalServiceStruct
-
-type GlobalServiceStruct struct {
-	Goods  GoodsService
-	Orders OrdersService
-}
 
 func init() {
 
@@ -88,6 +83,7 @@ func init() {
 	models = append(models, dao.QuestionTag{})
 	models = append(models, dao.AnswerQuestion{})
 	models = append(models, dao.TimeSellGoods{})
+	models = append(models, dao.ContentConfig{})
 
 	for index := range models {
 
@@ -110,7 +106,7 @@ func init() {
 	}
 
 	//this.Admin.AddAdmin(Name, Password)
-	AdminService{}.AddAdmin("admin", "274455411", "")
+	admin.AdminService{}.AddAdmin("admin", "274455411", "")
 
 	contentTypeList := []dao.ContentType{
 		{Type: dao.ContentTypeContents, Label: "文章列表"},

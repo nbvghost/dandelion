@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/nbvghost/dandelion/app/play"
 	"github.com/nbvghost/dandelion/app/result"
-	"github.com/nbvghost/dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/service/company"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/util"
 	"github.com/nbvghost/gweb"
@@ -14,7 +14,7 @@ import (
 
 type StoreController struct {
 	gweb.BaseController
-	Store service.StoreService
+	Store company.StoreService
 }
 
 func (controller *StoreController) Init() {

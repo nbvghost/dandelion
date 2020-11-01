@@ -1,5 +1,7 @@
 package dao
 
+import "github.com/nbvghost/dandelion/app/service/dao/sqltype"
+
 //Content   ContentType  ContentSubType
 
 //Menus
@@ -68,4 +70,19 @@ type Content struct {
 
 func (Content) TableName() string {
 	return "Content"
+}
+
+type ContentConfig struct {
+	BaseModel
+	OID             uint64                    `gorm:"column:OID;unique"`
+	Name            string                    `gorm:"column:Name"`
+	Logo            string                    `gorm:"column:Logo"`
+	SocialAccount   []sqltype.SocialAccount   `gorm:"column:SocialAccount"`
+	CustomerService []sqltype.CustomerService `gorm:"column:CustomerService"`
+	EnableHTMLCache bool                      `gorm:"column:EnableHTMLCache"`
+	FocusPicture    []sqltype.FocusPicture    `gorm:"column:FocusPicture"`
+}
+
+func (ContentConfig) TableName() string {
+	return "ContentConfig"
 }

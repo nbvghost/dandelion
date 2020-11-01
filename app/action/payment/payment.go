@@ -3,6 +3,8 @@ package payment
 import (
 	"encoding/xml"
 	"fmt"
+	"github.com/nbvghost/dandelion/app/service/order"
+	"github.com/nbvghost/dandelion/app/service/wechat"
 	"io/ioutil"
 	"strconv"
 
@@ -10,7 +12,6 @@ import (
 
 	"github.com/nbvghost/dandelion/app/util"
 
-	"github.com/nbvghost/dandelion/app/service"
 	"log"
 
 	"github.com/nbvghost/gweb"
@@ -18,8 +19,8 @@ import (
 
 type Controller struct {
 	gweb.BaseController
-	Orders service.OrdersService
-	Wx     service.WxService
+	Orders order.OrdersService
+	Wx     wechat.WxService
 }
 
 func (controller *Controller) Init() {

@@ -4,7 +4,7 @@ import (
 	"github.com/nbvghost/dandelion/app/action/sites/shop"
 	"github.com/nbvghost/dandelion/app/action/sites/web"
 	"github.com/nbvghost/dandelion/app/play"
-	"github.com/nbvghost/dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/service/company"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"strings"
 
@@ -16,7 +16,7 @@ type Controller struct {
 	Dao dao.BaseDao
 }
 type InterceptorManager struct {
-	Organization service.OrganizationService
+	Organization company.OrganizationService
 }
 
 func (m InterceptorManager) Execute(context *gweb.Context) (bool, gweb.Result) {

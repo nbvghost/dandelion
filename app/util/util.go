@@ -20,7 +20,6 @@ import (
 	"github.com/nbvghost/gweb"
 )
 
-
 type Hashids struct {
 }
 

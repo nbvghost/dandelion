@@ -2,7 +2,7 @@ package sites
 
 import (
 	"github.com/nbvghost/dandelion/app/play"
-	"github.com/nbvghost/dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/service/content"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/conf"
@@ -10,7 +10,7 @@ import (
 )
 
 type TemplateService struct {
-	Content service.ContentService
+	Content content.ContentService
 }
 
 func (service TemplateService) CommonTemplate(context *gweb.Context, params map[string]interface{}) string {
