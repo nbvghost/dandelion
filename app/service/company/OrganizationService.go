@@ -46,7 +46,7 @@ func (service OrganizationService) GetOrganization(ID uint64) *dao.Organization 
 }
 func (service OrganizationService) AddOrganization(Orm *gorm.DB, shop *dao.Organization) error {
 	org := service.FindByDomain(Orm, shop.Domain)
-	if org.ID != 0 {
+	if org != nil && org.ID > 0 {
 		return errors.New("域名：" + shop.Domain + "已经被占用，请试试其它域名")
 	}
 	return service.Add(Orm, shop)

@@ -40,10 +40,10 @@ main.config(function ($routeProvider, $locationProvider, $provide, $httpProvider
         templateUrl: "content_templates/articles_template",
         controller: "content_articles_controller"
     });
-   /* $routeProvider.when("/content", {
-        templateUrl: "content_templates/add_article_template",
-        controller: "content_add_article_controller"
-    });*/
+    /* $routeProvider.when("/content", {
+         templateUrl: "content_templates/add_article_template",
+         controller: "content_add_article_controller"
+     });*/
     $routeProvider.when("/content_config", {
         templateUrl: "content_templates/content_config",
         controller: "content_config_controller"
@@ -55,23 +55,95 @@ main.config(function ($routeProvider, $locationProvider, $provide, $httpProvider
 
 main.controller("content_config_controller", function ($http, $scope, $routeParams, $rootScope, $timeout, $location, Upload) {
 
-    $scope.contentConfig = {}
+    $scope.contentConfig = {
+        SocialAccount: [],
+        FocusPicture: []
+    }
 
     $scope.customerService = {
-        SocialAccount:[]
+        SocialAccount: []
     }
 
+    $scope.editCustomerServiceIndex = -1
+    $scope.editFocusPictureIndex = -1
 
     $scope.socialAccount = {}
-
+    $scope.focusPicture = {}
 
     $scope.tabIndex = 0
-    $scope.selectTab = function (tabIndex) {
-        $scope.tabIndex=tabIndex
+
+    function resetCustomerService() {
+        $scope.customerService = {
+            SocialAccount: []
+
+        }
     }
+
+    let getContentConfig = function () {
+        return new Promise((resolve, reject) => {
+            $http.get("content/config").then(function (value) {
+
+                $scope.contentConfig = value.data.Data;
+
+            });
+        })
+    }
+    getContentConfig()
+
+
+
+
+
+    $scope.deleteFocusPicture = function (index) {
+        if (confirm("确定删除？")) {
+            $scope.contentConfig.FocusPicture.splice(index, 1)
+            $scope.editFocusPictureIndex = index
+            console.log($scope.contentConfig.FocusPicture)
+            $scope.submitFocusPicture();
+        }
+    }
+    $scope.editFocusPicture = function (index) {
+        $scope.focusPicture = $scope.contentConfig.FocusPicture[index];
+        $scope.editFocusPictureIndex = -1
+        $scope.showFocusPictureModal();
+    }
+    $scope.cancelFocusPicture = function () {
+        $scope.focusPicture = {}
+    }
+    $scope.submitFocusPicture = function () {
+
+        if ($scope.editFocusPictureIndex === -1) {
+            $scope.contentConfig.FocusPicture.push($scope.focusPicture)
+        }
+
+        const form = {};
+        form.FieldName = "FocusPicture";
+        form.FieldValue = JSON.stringify($scope.contentConfig.FocusPicture);
+        $http.post("content/config", $.param(form), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"}
+        }).then(async function (data, status, headers, config) {
+            $scope.editFocusPictureIndex=-1
+            if (data.data.Code === 0) {
+                getContentConfig()
+                $scope.cancelFocusPictureModal()
+            } else {
+                alert(data.data.Message);
+            }
+        });
+
+    }
+
+
+
+
+    $scope.selectTab = function (tabIndex) {
+        $scope.tabIndex = tabIndex
+    }
+
     $scope.deleteSocialAccount = function (index) {
-        if(confirm("确定删除？")){
-            $scope.customerService.SocialAccount.splice(index,1)
+        if (confirm("确定删除？")) {
+            $scope.customerService.SocialAccount.splice(index, 1)
         }
     }
     $scope.editSocialAccount = function (index) {
@@ -80,23 +152,125 @@ main.controller("content_config_controller", function ($http, $scope, $routePara
     $scope.cancelSocialAccount = function () {
         $scope.socialAccount = {}
     }
-    $scope.submitSocialAccount = function () {
 
-        let Type=    $scope.socialAccount.Type||""
-        let Account= $scope.socialAccount.Account||""
-        if(Type.length>0 && Account.length>0) {
-            let has =false
-            for(let i=0;i<$scope.customerService.SocialAccount.length;i++){
-                 let sa = $scope.customerService.SocialAccount[i]
-                let accountInfo = sa.Type+sa.Account
-                if(Type+Account===accountInfo){
-                    has =true
+
+
+    $scope.deleteSiteSocialAccount = function (index) {
+        if (confirm("确定删除？")) {
+            $scope.contentConfig.SocialAccount.splice(index, 1)
+        }
+    }
+    $scope.editSiteSocialAccount = function (index) {
+        $scope.socialAccount = $scope.contentConfig.SocialAccount[index];
+        $scope.showSocialAccountModal();
+    }
+    $scope.cancelSiteSocialAccount = function () {
+        $scope.socialAccount = {}
+    }
+    $scope.submitSiteSocialAccount = function (socialAccountArray) {
+
+        let Type = $scope.socialAccount.Type || ""
+        let Account = $scope.socialAccount.Account || ""
+        if (Type.length > 0 && Account.length > 0) {
+            let has = false
+            for (let i = 0; i < socialAccountArray.length; i++) {
+                let sa = socialAccountArray[i]
+                let accountInfo = sa.Type + sa.Account
+                if (Type + Account === accountInfo) {
+                    has = true
                     break
                 }
             }
-            if(has===false){
-                $scope.customerService.SocialAccount.push($scope.socialAccount)
-                $scope.socialAccount={}
+            if (has === false) {
+                socialAccountArray.push($scope.socialAccount)
+                $scope.socialAccount = {}
+            }
+        }
+
+            const form = {};
+            form.FieldName = "SocialAccount";
+            form.FieldValue = JSON.stringify(socialAccountArray);
+            $http.post("content/config", $.param(form), {
+                transformRequest: angular.identity,
+                headers: {"Content-Type": "application/x-www-form-urlencoded"}
+            }).then(async function (data, status, headers, config) {
+
+                if (data.data.Code === 0) {
+                    getContentConfig()
+                    $scope.cancelSocialAccountModal()
+                } else {
+                    alert(data.data.Message);
+                }
+            });
+
+    }
+
+
+
+
+
+    $scope.submitSocialAccount = function (socialAccountArray) {
+
+        let Type = $scope.socialAccount.Type || ""
+        let Account = $scope.socialAccount.Account || ""
+        if (Type.length > 0 && Account.length > 0) {
+            let has = false
+            for (let i = 0; i < socialAccountArray.length; i++) {
+                let sa = socialAccountArray[i]
+                let accountInfo = sa.Type + sa.Account
+                if (Type + Account === accountInfo) {
+                    has = true
+                    break
+                }
+            }
+            if (has === false) {
+                socialAccountArray.push($scope.socialAccount)
+                $scope.socialAccount = {}
+            }
+        }
+    }
+    $scope.uploadContentConfigLogo = function (file, errFiles) {
+        if (file) {
+            const thumbnail = Upload.upload({
+                url: '/file/up',
+                data: {file: file},
+            });
+            thumbnail.then(function (response) {
+                const url = response.data.Path;
+                $scope.contentConfig.Logo = url
+            }, function (evt) {
+                // Math.min is to fix IE which reports 200% sometimes
+                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                //upload_progress.progress('update progress',progress);
+                //$("."+progressID).text(progress+"%");
+                //$("."+progressID).css("width",progress+"%");
+            });
+        } else {
+            if (errFiles.length > 0) {
+                alert(JSON.stringify(errFiles));
+            }
+
+        }
+    }
+    $scope.uploadFocusPictureUrl = function (file, errFiles) {
+        if (file) {
+            const thumbnail = Upload.upload({
+                url: '/file/up',
+                data: {file: file},
+            });
+            thumbnail.then(function (response) {
+                const url = response.data.Path;
+                $scope.focusPicture.Url = url
+            }, function (evt) {
+                // Math.min is to fix IE which reports 200% sometimes
+                //var progress = Math.min(100, parseInt(100.0 * evt.loaded / evt.total));
+                //upload_progress.progress('update progress',progress);
+                //$("."+progressID).text(progress+"%");
+                //$("."+progressID).css("width",progress+"%");
+            });
+        } else {
+            if (errFiles.length > 0) {
+                alert(JSON.stringify(errFiles));
             }
 
         }
@@ -124,25 +298,124 @@ main.controller("content_config_controller", function ($http, $scope, $routePara
 
         }
     }
-    $scope.submitCustomerService = function (){
+    $scope.submitContentConfigName = function () {
+        const form = {};
+        form.FieldName = "Name";
+        form.FieldValue = $scope.contentConfig.Name;
+        $http.post("content/config", $.param(form), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"}
+        }).then(async function (data, status, headers, config) {
+            $scope.editCustomerServiceIndex = -1
+            if (data.data.Code === 0) {
+                getContentConfig()
+                resetCustomerService()
+            } else {
+                alert(data.data.Message);
+            }
+        });
+    }
+    $scope.submitContentConfigLogo = function () {
+        const form = {};
+        form.FieldName = "Logo";
+        form.FieldValue = $scope.contentConfig.Logo;
+        $http.post("content/config", $.param(form), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"}
+        }).then(async function (data, status, headers, config) {
+            $scope.editCustomerServiceIndex = -1
+            if (data.data.Code === 0) {
+                getContentConfig()
+                resetCustomerService()
+            } else {
+                alert(data.data.Message);
+            }
+        });
+    }
+    $scope.submitCustomerService = function () {
 
-        if($scope.customerService.SocialAccount.length===0){
+        if ($scope.customerService.SocialAccount.length === 0) {
             alert("请添加社交帐号")
             return
         }
-        let Name =$scope.customerService.Name||""
-        if(Name.length===0){
+        let Name = $scope.customerService.Name || ""
+        if (Name.length === 0) {
             alert("请填写名字")
             return
         }
-        let Title =$scope.customerService.Title||""
-        if(Title.length===0){
+        let Title = $scope.customerService.Title || ""
+        if (Title.length === 0) {
             alert("请填写头衔")
             return
         }
 
+        console.log($scope.contentConfig.CustomerService)
+        console.log($scope.editCustomerServiceIndex)
+
+        if ($scope.editCustomerServiceIndex === -1) {
+            $scope.contentConfig.CustomerService.push($scope.customerService)
+        }
+
+
+
+        const form = {};
+        form.FieldName = "CustomerService";
+        form.FieldValue = JSON.stringify($scope.contentConfig.CustomerService);
+        $http.post("content/config", $.param(form), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"}
+        }).then(async function (data, status, headers, config) {
+            $scope.editCustomerServiceIndex = -1
+            if (data.data.Code === 0) {
+                getContentConfig()
+                resetCustomerService()
+                $scope.cancelCustomerService()
+            } else {
+                alert(data.data.Message);
+            }
+        });
+
     }
-    $scope.cancelCustomerService = function (){
+
+    $scope.submitEnableHTMLCache = function () {
+
+        const form = {};
+        form.FieldName = "EnableHTMLCache";
+        form.FieldValue = $scope.contentConfig.EnableHTMLCache;
+        $http.post("content/config", $.param(form), {
+            transformRequest: angular.identity,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"}
+        }).then(async function (data, status, headers, config) {
+
+            if (data.data.Code === 0) {
+                getContentConfig()
+            } else {
+                alert(data.data.Message);
+            }
+        });
+
+    }
+
+    $scope.deleteCustomerService = function (index) {
+        if(confirm("确定删除？")===false){
+            return
+        }
+        $scope.customerService = $scope.contentConfig.CustomerService[index]
+        $scope.contentConfig.CustomerService.splice(index, 1)
+
+        $scope.editCustomerServiceIndex=index
+
+        $scope.submitCustomerService()
+    }
+    $scope.editCustomerService = function (index) {
+        $scope.customerService = $scope.contentConfig.CustomerService[index]
+        $scope.editCustomerServiceIndex = index
+
+        $("#CustomerServiceModal").modal({
+            centered: false, closable: false, allowMultiple: false
+        }).modal("show");
+    }
+    $scope.cancelCustomerService = function () {
         $("#CustomerServiceModal").modal({
             centered: false, closable: false, allowMultiple: false
         }).modal("hide");
@@ -154,9 +427,35 @@ main.controller("content_config_controller", function ($http, $scope, $routePara
         }).modal("show");
     }
 
+    $scope.showFocusPictureModal = function (isAdd) {
+
+        $("#FocusPictureModal").modal({
+            centered: false, closable: false, allowMultiple: false
+        }).modal("show");
+    }
+
+    $scope.cancelFocusPictureModal = function (isAdd) {
+
+        $("#FocusPictureModal").modal({
+            centered: false, closable: false, allowMultiple: false
+        }).modal("hide");
+        $scope.cancelFocusPicture();
+    }
+
+    $scope.showSocialAccountModal = function (isAdd) {
+        $("#SocialAccountModal").modal({
+            centered: false, closable: false, allowMultiple: false
+        }).modal("show");
+    }
+    $scope.cancelSocialAccountModal = function () {
+
+        $("#SocialAccountModal").modal({
+            centered: false, closable: false, allowMultiple: false
+        }).modal("hide");
+    }
 
 
-    $timeout(function (){
+    $timeout(function () {
         $('.tabular.menu .item').tab();
         $('.tabular.menu .item').tab('change tab', 'tab0');
         //$.tab('change tab', 'tab0');
@@ -243,7 +542,7 @@ main.controller("content_articles_controller", function ($http, $scope, $routePa
             var tr = $(this).closest('tr');
             var row = table.row(tr);
             console.log(row.data());
-            window.location.href = "#!/edit_"+$scope.Type+"?ContentItemID=" + row.data().ContentItemID + "&ID=" + row.data().ID;
+            window.location.href = "#!/edit_" + $scope.Type + "?ContentItemID=" + row.data().ContentItemID + "&ID=" + row.data().ID;
         });
 
         $('#table_local').on('click', 'td.opera .delete', function () {
@@ -273,7 +572,7 @@ main.controller("content_articles_controller", function ($http, $scope, $routePa
 
 });
 
-main.controller("content_add_articles_controller", function ($http, $scope, $routeParams,$interval, $rootScope, $timeout, $location, Upload) {
+main.controller("content_add_articles_controller", function ($http, $scope, $routeParams, $interval, $rootScope, $timeout, $location, Upload) {
     $scope.ContentSubTypes = [];
 
     $scope.ContentItemID = $routeParams.ContentItemID
@@ -281,7 +580,7 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
     $scope.ContentSubTypeChildID = $routeParams.ContentSubTypeChildID
     $scope.ArticleID = parseInt($routeParams.ID)//
     $scope.Single = $routeParams.Single//
-    $scope.AutoSaveInfo = {Show:false,Time:"",Msg:""};
+    $scope.AutoSaveInfo = {Show: false, Time: "", Msg: ""};
 
     let hasArticleID = true
     if ($scope.Single === "true") {
@@ -300,7 +599,6 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
     }
 
     $scope.Article = {ContentItemID: $scope.ContentItemID};
-
 
 
     let articleContent = "";
@@ -373,7 +671,7 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
             return
         }*/
 
-        return  new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             let Article = angular.copy($scope.Article)
 
             Article.ContentItemID = parseInt($scope.ContentItemID);
@@ -400,14 +698,14 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
                 console.log(data.data.Data);
                 resolve(data.data.Data);
                 if (data.data.Code === 0) {
-                    if(!isAutoSave){
+                    if (!isAutoSave) {
                         console.log(data);
                         alert(data.data.Message);
                         window.history.back();
                         window.close();
                     }
 
-                }else{
+                } else {
                     alert(data.data.Message);
                 }
             });
@@ -499,7 +797,7 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
                     articleContent = $scope.Article.Content
                     //window.editor.setData($scope.Article.Content);
                     //quill.clipboard.dangerouslyPasteHTML(articleContent);
-                    quill.root.innerHTML=articleContent
+                    quill.root.innerHTML = articleContent
 
                     if ($scope.Article.ContentSubTypeID > 0) {
 
@@ -571,10 +869,9 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
                             //quill.clipboard.dangerouslyPasteHTML($scope.Article.Content);
 
 
-
                             articleContent = $scope.Article.Content
                             //quill.clipboard.dangerouslyPasteHTML(articleContent);
-                            quill.root.innerHTML=articleContent
+                            quill.root.innerHTML = articleContent
 
                             resolve()
                         } else {
@@ -595,12 +892,12 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
 
     $timeout(async function () {
 
-        quill = new Quill('#editor-container',{
+        quill = new Quill('#editor-container', {
             modules: {
                 formula: true,
                 syntax: true,
                 toolbar: '#toolbar-container',
-                imageResize:{},
+                imageResize: {},
                 //markdownShortcuts:{},
                 imageUploader: {
                     upload: file => {
@@ -608,7 +905,7 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
                             Upload.upload({url: '/file/up', data: {file: file}}).then(function (response) {
                                 const url = response.data.Path;
 
-                                resolve( '/file/load?path='+url)
+                                resolve('/file/load?path=' + url)
 
                             }, function (evt) {
 
@@ -619,9 +916,7 @@ main.controller("content_add_articles_controller", function ($http, $scope, $rou
                     }
                 }
             },
-            handlers: {
-
-            },
+            handlers: {},
             placeholder: 'Compose an epic...',
             theme: 'snow'
         });

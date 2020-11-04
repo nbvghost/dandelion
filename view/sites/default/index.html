@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Home</title>
+    <title>首页-{{.params.Company.Name}}</title>
     <meta name="keywords" content="" />
 
     {{template "import_asset" .}}
@@ -10,7 +10,8 @@
     <style>
         #carousel .carousel-item>img{
             width: 100%;
-            height: 350px;
+            height: 60vw;
+            max-height: 60vh;
             object-position: center;
             object-fit: cover;
         }
@@ -31,54 +32,29 @@
 <body>
 {{template "header" .}}
 
-
-
 <!-- banner slider-->
 <div id="carousel">
     <div id="carouselExampleCaptions" class="carousel slide" data-ride="carousel">
         <ol class="carousel-indicators">
-            <li data-target="#carouselExampleCaptions" data-slide-to="0" class="active"></li>
-            <li data-target="#carouselExampleCaptions" data-slide-to="1"></li>
-            <li data-target="#carouselExampleCaptions" data-slide-to="2"></li>
-            <li data-target="#carouselExampleCaptions" data-slide-to="3"></li>
-            <li data-target="#carouselExampleCaptions" data-slide-to="4"></li>
+            {{range $key,$value:=.params.Config.FocusPicture}}
+                <li data-target="#carouselExampleCaptions" data-slide-to="{{$key}}" class="{{if eq $key 0}}active{{end}}"></li>
+            {{end}}
         </ol>
         <div class="carousel-inner">
-            <div class="carousel-item text-center active">
-                <img src="img/1.jpg" class="d-block"  alt="...">
-                <div class="carousel-caption d-none d-md-block">
-                    <h5>First slide label</h5>
-                    <p>Nulla vitae elit libero, a pharetra augue mollis interdum.<button type="button" class="btn btn-link">Link</button></p>
+
+            {{range $key,$value:=.params.Config.FocusPicture}}
+                <div class="carousel-item text-center {{if eq $key 0}}active{{end}}">
+                    <img src="/file/load?path={{$value.Url}}" class="d-block"  alt="{{$value.Title}}-{{$value.Introduce}}">
+                    <div class="carousel-caption d-none d-md-block">
+
+                            <h5>{{$value.Title}}</h5>
+                            <p>{{$value.Introduce}}</p>
+
+                    </div>
+                    <a target="_blank" href="{{$value.Link}}" class="stretched-link"></a>
                 </div>
-            </div>
-            <div class="carousel-item">
-                <img src="img/2.jpg" class="d-block" alt="...">
-                <div class="carousel-caption d-none d-md-block">
-                    <h5>Second slide label</h5>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <img src="img/3.jpg" class="d-block" alt="...">
-                <div class="carousel-caption d-none d-md-block">
-                    <h5>Third slide label</h5>
-                    <p>Praesent commodo cursus magna, vel scelerisque nisl consectetur.</p>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <img src="img/4.jpg" class="d-block" alt="...">
-                <div class="carousel-caption d-none d-md-block">
-                    <h5>Third slide label</h5>
-                    <p>Praesent commodo cursus magna, vel scelerisque nisl consectetur.</p>
-                </div>
-            </div>
-            <div class="carousel-item">
-                <img src="img/5.jpg" class="d-block" alt="...">
-                <div class="carousel-caption d-none d-md-block">
-                    <h5>Third slide label</h5>
-                    <p>Praesent commodo cursus magna, vel scelerisque nisl consectetur.</p>
-                </div>
-            </div>
+            {{end}}
+
         </div>
         <a class="carousel-control-prev" href="#carouselExampleCaptions" role="button" data-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -100,7 +76,7 @@
     <div class="container">
         <div class="row">
             <div class="col-lg-6 welcome_left">
-                <img src="img/welcome.jpg" alt="welcome image">
+                <img width="100%" src="img/welcome.jpg" alt="welcome image">
             </div>
             <div class="col-lg-6 welcome_right mt-5 py-5 px-4">
                 <p>Nulla pellentesque mi non laoreet eleifend. Integer porttitor mollisar lorem, at molestie arcu pulvinar ut. Proin ac fermentum est. Cras mi ipsum, consectetur ac ipsum in, egestas vestibulum tellus.</p>
@@ -456,66 +432,36 @@
 
 <!-- Indus Fact Workers -->
 <section class="team py-5 mb-md-5" id="team">
-    <h3 class="heading text-center text-uppercase">Indus Fact Workers</h3>
+    <h3 class="heading text-center text-uppercase">Fact Workers</h3>
     <p class="heading-bottom text-center font-italic mb-5">Industrial Revolution Business</p>
     <div class="container">
         <div class="row">
-            <div class="col-md-3 col-sm-6 col-6 team-grids">
-                <div class="thumbnail team-agileits text-center">
-                    <img src="img/t2.jpg" class="img-responsive" alt=""/>
-                    <div class="w3agile-caption ">
-                        <h4>Alexander</h4>
-                        <p>Chief Engineer</p>
-                        <div class="social-icon social-w3lsicon">
-                            <a href="#" class="social-button twit"><span class="fab fa-twitter"></span></a>
-                            <a href="#" class="social-button fb"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="social-button in"><i class="fab fa-linkedin-in"></i></a>
+
+            {{range $key,$value:=.params.Config.CustomerService}}
+                <div class="col-md-3 col-sm-6 col-6 team-grids">
+                    <div class="thumbnail team-agileits text-center">
+                        <img width="100%" height="300px;" src="/file/load?path={{$value.Photo}}" class="img-responsive" alt=""/>
+                        <div class="w3agile-caption ">
+                            <h4>{{$value.Name}}</h4>
+                            <p>{{$value.Title}}</p>
+                            <div class="social-icon social-w3lsicon">
+                                {{range $kk,$vv:=$value.SocialAccount}}
+                                    {{if eq $vv.Type "facebook"}}<a class="social-button" target="_blank" href="{{$vv.Account}}"><i class="fab fa-facebook"></i></a>{{end}}
+                                    {{if eq $vv.Type "twitter"}}<a class="social-button" target="_blank" href="{{$vv.Account}}"><i class="fab fa-twitter"></i></a>{{end}}
+                                    {{if eq $vv.Type "linkedin"}}<a class="social-button" target="_blank" href="{{$vv.Account}}"><i class="fab fa-linkedin-in"></i></a>{{end}}
+                                    {{if eq $vv.Type "instagram"}}<a class="social-button" target="_blank" href="{{$vv.Account}}"><i class="fab fa-instagram"></i></a>{{end}}
+                                    {{if eq $vv.Type "skype"}}<a class="social-button" target="_blank" href="{{$vv.Account}}"><i class="fab fa-skype"></i></a>{{end}}
+                                    {{if eq $vv.Type "wechat"}}<a class="social-button" target="_blank" href="{{$vv.Account}}"><i class="fab fa-rocketchat"></i></a>{{end}}
+                                    {{if eq $vv.Type "qq"}}<a class="social-button" target="_blank" href="{{$vv.Account}}"><i class="fab fa-qq"></i></a>{{end}}
+                                    {{if eq $vv.Type "email"}}<a class="social-button" target="_blank" href="{{$vv.Account}}"><i class="fas fa-envelope"></i></a>{{end}}
+                                    {{if eq $vv.Type "phone"}}<a class="social-button" target="_blank" href="{{$vv.Account}}"><i class="fas fa-phone-alt"></i></a>{{end}}
+                                    {{if eq $vv.Type "whatsapp"}}<a class="social-button" target="_blank" href="{{$vv.Account}}"><i class="fab fa-whatsapp"></i></a>{{end}}
+                                {{end}}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3 col-sm-6 mb-sm-5 mb-5 col-6 team-grids">
-                <div class="thumbnail team-agileits text-center">
-                    <img src="img/t1.jpg" class="img-responsive" alt=""/>
-                    <div class="w3agile-caption">
-                        <h4>Elisa Liden</h4>
-                        <p>Site Engineer</p>
-                        <div class="social-icon social-w3lsicon">
-                            <a href="#" class="social-button twit"><i class="fab fa-twitter"></i></a>
-                            <a href="#" class="social-button fb"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="social-button in"><i class="fab fa-linkedin-in"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6 col-6 team-grids">
-                <div class="thumbnail team-agileits text-center">
-                    <img src="img/t3.jpg" class="img-responsive" alt=""/>
-                    <div class="w3agile-caption">
-                        <h4>Mary Paul</h4>
-                        <p>Site Worker</p>
-                        <div class="social-icon social-w3lsicon">
-                            <a href="#" class="social-button twit"><i class="fab fa-twitter"></i></a>
-                            <a href="#" class="social-button fb"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="social-button in"><i class="fab fa-linkedin-in"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 col-sm-6 col-6 team-grids">
-                <div class="thumbnail team-agileits text-center">
-                    <img src="img/t4.jpg" class="img-responsive" alt=""/>
-                    <div class="w3agile-caption">
-                        <h4>Johnson</h4>
-                        <p>Chief Engineer</p>
-                        <div class="social-icon social-w3lsicon">
-                            <a href="#" class="social-button twit"><i class="fab fa-twitter"></i></a>
-                            <a href="#" class="social-button fb"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="social-button in"><i class="fab fa-linkedin-in"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {{end}}
         </div>
     </div>
 </section>
@@ -534,7 +480,7 @@
 </section>
 <!-- //Newsletter  -->
 
-{{template "footer"}}
+{{template "footer" .}}
 
 <!-- Vertically centered Modal -->
 <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">

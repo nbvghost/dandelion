@@ -432,7 +432,7 @@ main.controller("company_info_controller",function ($http, $scope, $routeParams,
                 headers: {"Content-Type": "application/json"}
             }).then(function (data, status, headers, config) {
                 const Store = data.data.Data;
-                $scope.Photos=JSON.parse(Store.Photos);
+                $scope.Photos=Store.Photos;
                 //$scope.Pictures=JSON.parse(Store.Pictures);
                 $scope.Store=Store;
 
@@ -610,7 +610,7 @@ main.controller("company_info_controller",function ($http, $scope, $routeParams,
 
     $scope.save = function(){
 
-        $scope.Store.Photos = JSON.stringify($scope.Photos);
+        $scope.Store.Photos = $scope.Photos;
         //$scope.Store.Pictures = JSON.stringify($scope.Pictures);
 
         if($scope.Store.Latitude==undefined||$scope.Store.Latitude==""||$scope.Store.Longitude==undefined||$scope.Store.Longitude==""){

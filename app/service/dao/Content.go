@@ -74,13 +74,13 @@ func (Content) TableName() string {
 
 type ContentConfig struct {
 	BaseModel
-	OID             uint64                    `gorm:"column:OID;unique"`
-	Name            string                    `gorm:"column:Name"`
-	Logo            string                    `gorm:"column:Logo"`
-	SocialAccount   []sqltype.SocialAccount   `gorm:"column:SocialAccount"`
-	CustomerService []sqltype.CustomerService `gorm:"column:CustomerService"`
-	EnableHTMLCache bool                      `gorm:"column:EnableHTMLCache"`
-	FocusPicture    []sqltype.FocusPicture    `gorm:"column:FocusPicture"`
+	OID             uint64                      `gorm:"column:OID;unique"`
+	Name            string                      `gorm:"column:Name"`
+	Logo            string                      `gorm:"column:Logo"`
+	SocialAccount   sqltype.SocialAccountList   `gorm:"column:SocialAccount;type:JSON"`
+	CustomerService sqltype.CustomerServiceList `gorm:"column:CustomerService;type:JSON"`
+	EnableHTMLCache bool                        `gorm:"column:EnableHTMLCache"`
+	FocusPicture    sqltype.FocusPictureList    `gorm:"column:FocusPicture;type:JSON"`
 }
 
 func (ContentConfig) TableName() string {

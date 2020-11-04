@@ -3,15 +3,14 @@ package service
 import (
 	"github.com/nbvghost/dandelion/app/service/admin"
 	"github.com/nbvghost/dandelion/app/service/dao"
-	"github.com/nbvghost/gweb/tool/encryption"
-
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb/conf"
+	"github.com/nbvghost/gweb/tool/encryption"
 )
 
 //var GlobalGoodsService = GoodsService{}
 
-func init() {
+func Init() {
 
 	//var err error
 	//_db, err := sql.Open("mysql", "tcp:localhost:3306*dandelion/root/123456")
@@ -106,7 +105,7 @@ func init() {
 	}
 
 	//this.Admin.AddAdmin(Name, Password)
-	admin.AdminService{}.AddAdmin("admin", "274455411", "")
+	admin.AdminService{}.AddAdmin("admin", "274455411", "default")
 
 	contentTypeList := []dao.ContentType{
 		{Type: dao.ContentTypeContents, Label: "文章列表"},

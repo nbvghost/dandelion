@@ -36,10 +36,6 @@ ul{
 label{
 	margin:0;
 }
-img{
-	width:100%;
-}
-
 
 #content img{
     width: inherit;
@@ -651,9 +647,6 @@ h2.page_heading {
 }
 .footer-grid span.fa {
     margin-right: 10px;
-}
-.footer-grid span.addr {
-    padding-left: 28px;
 }
 .footer-grid ul li a,.footer-grid ul li {
     color: #aaa;

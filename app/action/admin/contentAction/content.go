@@ -53,6 +53,31 @@ func (controller *Controller) Init() {
 	controller.AddHandler(gweb.DELMethod("sub_type/{ID}", controller.DeleteClassify))
 	controller.AddHandler(gweb.PUTMethod("sub_type/{ID}", controller.ChangeClassify))
 	controller.AddHandler(gweb.GETMethod("sub_type/{ID}", controller.GetContentSubTypeAction))
+
+	controller.AddHandler(gweb.GETMethod("config", controller.getContentConfigAction))
+	controller.AddHandler(gweb.POSMethod("config", controller.changeContentConfigAction))
+}
+
+func (controller *Controller) changeContentConfigAction(context *gweb.Context) gweb.Result {
+
+	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+
+	context.Request.ParseForm()
+	fieldName := context.Request.FormValue("FieldName")
+	fieldValue := context.Request.FormValue("FieldValue")
+
+	err := controller.Content.ChangeContentConfig(company.ID, fieldName, fieldValue)
+	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", nil)}
+}
+
+func (controller *Controller) getContentConfigAction(context *gweb.Context) gweb.Result {
+	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	contentConfig := controller.Content.GetContentConfig(dao.Orm(), company.ID)
+	return &gweb.JsonResult{Data: &result.ActionResult{
+		Code:    result.ActionOK,
+		Message: "OK",
+		Data:    contentConfig,
+	}}
 }
 func (controller *Controller) getContentTitleAction(context *gweb.Context) gweb.Result {
 	context.Request.ParseForm()

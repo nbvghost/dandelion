@@ -6,7 +6,11 @@
     {{$RootPath:=.rootPath}}
 
     <nav class="navbar navbar-expand-lg navbar-light">
-        <a class="navbar-brand" href="{{$RootPath}}index">Navbar</a>
+        <a class="navbar-brand" href="{{$RootPath}}index">
+            <img src="/file/load?path={{.params.Config.Logo}}" width="30" height="30" class="d-inline-block align-top" alt="" loading="lazy">
+            {{.params.Config.Name}}
+        </a>
+
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>

@@ -14,8 +14,11 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20190110000554-dc11ecdae0a9
+	golang.org/x/exp v0.0.0-20190121172915-509febef88a4
 	golang.org/x/net v0.0.0-20190918130420-a8b05e9114ab
 	golang.org/x/text v0.3.2
+	gorm.io/gorm v1.20.5
 )
 
-replace github.com/nbvghost/gweb v1.2.14 => C:\Users\nbvghost\Desktop\gweb
+//replace github.com/nbvghost/gweb v1.2.13 => C:\Users\nbvghost\Desktop\gweb
+replace github.com/nbvghost/gweb v1.2.14 => /home/nbvghost/datas/projects/gweb

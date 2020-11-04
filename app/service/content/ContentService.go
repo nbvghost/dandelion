@@ -1,11 +1,13 @@
 package content
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/jinzhu/gorm"
 	"github.com/nbvghost/dandelion/app/play"
 	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/service/dao/sqltype"
 	"github.com/nbvghost/dandelion/app/service/journal"
 	"strings"
 	"time"
@@ -18,6 +20,56 @@ import (
 type ContentService struct {
 	dao.BaseDao
 	Journal journal.JournalService
+}
+
+func (service ContentService) ChangeContentConfig(OID uint64, fieldName, fieldValue string) error {
+
+	changeMap := make(map[string]interface{})
+
+	switch fieldName {
+	case "Name":
+		changeMap["Name"] = fieldValue
+	case "Logo":
+		changeMap["Logo"] = fieldValue
+	case "SocialAccount":
+		var socialAccount sqltype.SocialAccountList
+		json.Unmarshal([]byte(fieldValue), &socialAccount)
+		changeMap["SocialAccount"] = socialAccount
+	case "CustomerService":
+		var customerService sqltype.CustomerServiceList
+		json.Unmarshal([]byte(fieldValue), &customerService)
+		changeMap["CustomerService"] = customerService
+	case "EnableHTMLCache":
+		EnableHTMLCache, _ := strconv.ParseBool(fieldValue)
+		changeMap["EnableHTMLCache"] = EnableHTMLCache
+	case "FocusPicture":
+		var focusPicture sqltype.FocusPictureList
+		json.Unmarshal([]byte(fieldValue), &focusPicture)
+		changeMap["FocusPicture"] = focusPicture
+
+	}
+	Orm := dao.Orm()
+	err := Orm.Model(&dao.ContentConfig{}).Where("OID=?", OID).Updates(changeMap).Error
+	return err
+}
+
+func (service ContentService) AddContentConfig(db *gorm.DB, company *dao.Organization) error {
+	Orm := db
+	if service.GetContentConfig(db, company.ID) == nil {
+		err := Orm.Create(&dao.ContentConfig{OID: company.ID, Name: company.Name}).Error
+		return err
+	}
+	return nil
+}
+
+func (service ContentService) GetContentConfig(db *gorm.DB, OID uint64) *dao.ContentConfig {
+	Orm := db
+	var contentConfig dao.ContentConfig
+	Orm.Model(&dao.ContentConfig{}).Where("OID=?", OID).First(&contentConfig)
+	if contentConfig.ID == 0 {
+		return nil
+	}
+	return &contentConfig
 }
 
 func (service ContentService) GetContentItemIDs(OID uint64) []uint64 {

@@ -6,6 +6,7 @@ import (
 	"github.com/nbvghost/dandelion/app/result"
 	"github.com/nbvghost/dandelion/app/service/company"
 	"github.com/nbvghost/dandelion/app/service/configuration"
+	"github.com/nbvghost/dandelion/app/service/content"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/util"
 	"github.com/nbvghost/gweb/tool/encryption"
@@ -24,6 +25,7 @@ type AdminService struct {
 	dao.BaseDao
 	Organization  company.OrganizationService
 	Configuration configuration.ConfigurationService
+	Content       content.ContentService
 }
 
 func (service AdminService) AddItem(context *gweb.Context) gweb.Result {
@@ -145,7 +147,7 @@ func (service AdminService) FindAdmin() []dao.Admin {
 	return list
 }
 
-func (self AdminService) AddAdmin(Name, Password, Domain string) *result.ActionResult {
+func (service AdminService) AddAdmin(Name, Password, Domain string) *result.ActionResult {
 	//Orm := dao.Orm()
 	as := &result.ActionResult{}
 
@@ -157,7 +159,7 @@ func (self AdminService) AddAdmin(Name, Password, Domain string) *result.ActionR
 	//admin.Tel = Tel
 
 	admin.LastLoginAt = time.Now()
-	if haveAdmin := self.FindAdminByAccount(tx, admin.Account); haveAdmin.ID != 0 {
+	if haveAdmin := service.FindAdminByAccount(tx, admin.Account); haveAdmin.ID != 0 {
 		tx.Rollback()
 		as.Code = result.ActionFail
 		as.Message = "这个账号已经存在"
@@ -166,8 +168,8 @@ func (self AdminService) AddAdmin(Name, Password, Domain string) *result.ActionR
 
 	admin.PassWord = encryption.Md5ByString(Password)
 
-	_org := self.Organization.FindByDomain(tx, Domain)
-	if _org.ID != 0 {
+	_org := service.Organization.FindByDomain(tx, Domain)
+	if _org != nil && _org.ID > 0 {
 		tx.Rollback()
 		as.Code = result.ActionFail
 		as.Message = "域名：" + Domain + "已经被占用。"
@@ -175,11 +177,11 @@ func (self AdminService) AddAdmin(Name, Password, Domain string) *result.ActionR
 	}
 
 	shop := &dao.Organization{}
-	shop.Name = Name + "的店铺"
+	shop.Name = Name
 	shop.Domain = Domain
 	shop.Expire = time.Now().Add((365 * 1) * 24 * time.Hour)
 
-	if err := self.Organization.AddOrganization(tx, shop); err != nil {
+	if err := service.Organization.AddOrganization(tx, shop); err != nil {
 		tx.Rollback()
 		as.Code = result.ActionFail
 		as.Message = err.Error()
@@ -188,7 +190,7 @@ func (self AdminService) AddAdmin(Name, Password, Domain string) *result.ActionR
 
 	admin.OID = shop.ID
 
-	if err := self.Add(tx, admin); err != nil {
+	if err := service.Add(tx, admin); err != nil {
 		tx.Rollback()
 		as.Code = result.ActionFail
 		as.Message = err.Error()
@@ -200,52 +202,67 @@ func (self AdminService) AddAdmin(Name, Password, Domain string) *result.ActionR
 
 	var _Configuration dao.Configuration
 
-	self.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve1, shop.ID)
+	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve1, shop.ID)
 	if _Configuration.ID == 0 {
 		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve1, V: "0"}
 		a.OID = shop.ID
-		self.Organization.Add(tx, &a)
+		service.Organization.Add(tx, &a)
 	}
 
 	_Configuration = dao.Configuration{}
-	self.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve2, shop.ID)
+	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve2, shop.ID)
 	if _Configuration.ID == 0 {
 		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve2, V: "0"}
 		a.OID = shop.ID
-		self.Organization.Add(tx, &a)
+		service.Organization.Add(tx, &a)
 	}
 
 	_Configuration = dao.Configuration{}
-	self.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve3, shop.ID)
+	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve3, shop.ID)
 	if _Configuration.ID == 0 {
 		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve3, V: "0"}
 		a.OID = shop.ID
-		self.Organization.Add(tx, &a)
+		service.Organization.Add(tx, &a)
 	}
 
 	_Configuration = dao.Configuration{}
-	self.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve4, shop.ID)
+	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve4, shop.ID)
 	if _Configuration.ID == 0 {
 		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve4, V: "0"}
 		a.OID = shop.ID
-		self.Organization.Add(tx, &a)
+		service.Organization.Add(tx, &a)
 	}
 
 	_Configuration = dao.Configuration{}
-	self.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve5, shop.ID)
+	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve5, shop.ID)
 	if _Configuration.ID == 0 {
 		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve5, V: "0"}
 		a.OID = shop.ID
-		self.Organization.Add(tx, &a)
+		service.Organization.Add(tx, &a)
 	}
 
 	_Configuration = dao.Configuration{}
-	self.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve6, shop.ID)
+	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve6, shop.ID)
 	if _Configuration.ID == 0 {
 		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve6, V: "0"}
 		a.OID = shop.ID
-		self.Organization.Add(tx, &a)
+		service.Organization.Add(tx, &a)
 	}
+	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve6, shop.ID)
+	if _Configuration.ID == 0 {
+		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve6, V: "0"}
+		a.OID = shop.ID
+		service.Organization.Add(tx, &a)
+	}
+
+	err := service.Content.AddContentConfig(tx, shop)
+	if glog.Error(err) {
+		as.Code = result.ActionSQLError
+		as.Message = err.Error()
+		tx.Rollback()
+		return as
+	}
+
 	tx.Commit()
 	return as
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/nbvghost/dandelion/app/action/mp"
 	"github.com/nbvghost/dandelion/app/action/payment"
 	"github.com/nbvghost/dandelion/app/action/sites"
+	"github.com/nbvghost/dandelion/app/service"
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/conf"
@@ -27,6 +28,8 @@ func init() {
 }
 
 func main() {
+
+	service.Init()
 
 	admin := &admin.Controller{}
 	admin.NewController("/admin/", admin)

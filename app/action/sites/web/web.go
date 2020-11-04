@@ -3,6 +3,7 @@ package web
 import (
 	"github.com/nbvghost/dandelion/app/play"
 	"github.com/nbvghost/dandelion/app/result"
+	"github.com/nbvghost/dandelion/app/service/company"
 	"github.com/nbvghost/dandelion/app/service/content"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/service/goods"
@@ -14,9 +15,10 @@ import (
 
 type Controller struct {
 	gweb.BaseController
-	Template sites.TemplateService
-	Content  content.ContentService
-	Goods    goods.GoodsService
+	Template     sites.TemplateService
+	Content      content.ContentService
+	Goods        goods.GoodsService
+	Organization company.OrganizationService
 }
 
 func (controller *Controller) Init() {
@@ -290,6 +292,12 @@ func (controller *Controller) index(context *gweb.Context) gweb.Result {
 	menusData, menusPath := controller.Template.MenusTemplate(context)
 	commonPath := controller.Template.CommonTemplate(context, params)
 	params["Menus"] = menusData
+
+	ContentConfig := controller.Content.GetContentConfig(dao.Orm(), org.ID)
+	params["Config"] = ContentConfig
+
+	company := controller.Organization.GetOrganization(org.ID)
+	params["Company"] = company
 	return &gweb.CacheHTMLResult{
 		OID: org.ID,
 		HTMLResult: gweb.HTMLResult{
