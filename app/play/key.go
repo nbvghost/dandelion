@@ -3,11 +3,12 @@ package play
 import "github.com/nbvghost/gweb/tool/encryption"
 
 const (
-	SessionAdmin          string = "ADMIN"        //商家后台
-	SessionManager        string = "MANAGER"      //系统管理
-	SessionUser           string = "USER"         //前台用户
-	SessionOrganization   string = "Organization" //前台用户
-	SessionStore          string = "STORE"        //
+	SessionAdmin          string = "ADMIN"         //商家后台
+	SessionManager        string = "MANAGER"       //系统管理
+	SessionUser           string = "USER"          //前台用户
+	SessionOrganization   string = "Organization"  //前台用户
+	SessionContentConfig  string = "ContentConfig" //
+	SessionStore          string = "STORE"         //
 	SessionAction         string = "ACTION"
 	SessionUserID         string = "USERID"
 	SessionOpenID         string = "OPENID"

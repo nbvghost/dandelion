@@ -22,6 +22,65 @@ type ContentService struct {
 	Journal journal.JournalService
 }
 
+func (service ContentService) AddContentItem(company *dao.Organization, item *dao.ContentItem) *result.ActionResult {
+	Orm := dao.Orm()
+
+	have := service.GetContentItemByNameAndOID(item.Name, company.ID)
+	if have.ID != 0 || strings.EqualFold(item.Name, "") {
+		return &result.ActionResult{
+			Code:    result.ActionFail,
+			Message: "这个名字已经被使用了",
+			Data:    nil,
+		} //&gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("这个名字已经被使用了"), "", nil)}
+	}
+
+	var mt dao.ContentType
+	Orm.Where("ID=?", item.ContentTypeID).First(&mt)
+	if mt.ID == 0 {
+		return &result.ActionResult{
+			Code:    result.ActionFail,
+			Message: "没有找到类型",
+			Data:    nil,
+		} //&gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("没有找到类型"), "", nil)}
+	}
+
+	if strings.EqualFold(string(mt.Type), string(dao.ContentTypeBlog)) || strings.EqualFold(string(mt.Type), string(dao.ContentTypeProducts)) {
+		haveList := service.FindContentItemByType(mt.Type, company.ID)
+		if len(haveList) != 0 {
+			return &result.ActionResult{
+				Code:    result.ActionFail,
+				Message: fmt.Sprintf("这个类型（%v）只能创建一个", have.Name),
+				Data:    nil,
+			} // &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New(fmt.Sprintf("这个类型（%v）只能创建一个", item.Type)), "", nil)}
+		}
+	}
+
+	item.OID = company.ID
+	item.Type = mt.Type
+
+	{
+
+		contentItemList := service.ListContentItemByOID(company.ID)
+		if len(contentItemList) > 0 {
+			item.Sort = contentItemList[len(contentItemList)-1].Sort + 1
+		}
+	}
+
+	err := service.Add(Orm, item)
+	if glog.Error(err) {
+		return &result.ActionResult{
+			Code:    result.ActionSQLError,
+			Message: err.Error(),
+			Data:    nil,
+		}
+	}
+
+	return &result.ActionResult{
+		Code:    result.ActionOK,
+		Message: "添加成功",
+		Data:    nil,
+	} //(&result.ActionResult{}).SmartError(err, "添加成功", nil)
+}
 func (service ContentService) ChangeContentConfig(OID uint64, fieldName, fieldValue string) error {
 
 	changeMap := make(map[string]interface{})
@@ -72,6 +131,16 @@ func (service ContentService) GetContentConfig(db *gorm.DB, OID uint64) *dao.Con
 	return &contentConfig
 }
 
+func (service ContentService) GetContentItemDefault(db *gorm.DB, OID uint64) *dao.ContentItem {
+	Orm := db
+	var contentItem dao.ContentItem
+	Orm.Model(&dao.ContentItem{}).Where("OID=? And Type=?", OID, dao.ContentTypeProducts).First(&contentItem)
+	if contentItem.ID == 0 {
+		return nil
+	}
+	return &contentItem
+}
+
 func (service ContentService) GetContentItemIDs(OID uint64) []uint64 {
 	Orm := dao.Orm()
 	var levea []uint64
@@ -91,6 +160,17 @@ func (service ContentService) GetClassifyByName(Name string, ContentItemID, Pare
 	return menus
 
 }
+
+func (service ContentService) GetContentSubTypeByNameContentItemIDParentContentSubTypeID(Name string, ContentItemID, ParentContentSubTypeID uint64) dao.ContentSubType {
+	Orm := dao.Orm()
+	var menus dao.ContentSubType
+
+	Orm.Where("Name=?", Name).Where("ContentItemID=? and ParentContentSubTypeID=?", ContentItemID, ParentContentSubTypeID).First(&menus)
+
+	return menus
+
+}
+
 func (service ContentService) FindAllContentSubType(OID uint64) []dao.ContentItemContentSubType {
 	Orm := dao.Orm()
 	var menus []dao.ContentItemContentSubType
@@ -175,10 +255,10 @@ func (service ContentService) GetContentItemByNameAndOID(Name string, OID uint64
 	return menus
 }
 
-func (service ContentService) GetContentItemByType(Type dao.ContentTypeType, OID uint64) dao.ContentItem {
+func (service ContentService) FindContentItemByType(Type dao.ContentTypeType, OID uint64) []dao.ContentItem {
 	Orm := dao.Orm()
-	var menus dao.ContentItem
-	Orm.Where("Type=? and OID=?", Type, OID).First(&menus)
+	menus := make([]dao.ContentItem, 0)
+	Orm.Where("Type=? and OID=?", Type, OID).Find(&menus)
 	return menus
 }
 
@@ -525,6 +605,12 @@ func (service ContentService) HaveContentByTitle(ContentItemID, ContentSubTypeID
 	}
 
 }
+func (service ContentService) FindContentByIDAndNum(contentItemIDList []uint64, num int) []dao.Content {
+	Orm := dao.Orm()
+	_articleList := make([]dao.Content, 0)
+	Orm.Where("ContentItemID in (?)", contentItemIDList).Order("CreatedAt desc").Limit(num).Find(&_articleList)
+	return _articleList
+}
 func (service ContentService) AddContent(article *dao.Content) *result.ActionResult {
 
 	as := &result.ActionResult{}
@@ -599,4 +685,15 @@ func (service ContentService) AddContent(article *dao.Content) *result.ActionRes
 		}
 	}
 	return as
+}
+
+func (service ContentService) GalleryBlock(OID uint64, num int) ([]dao.ContentItem, []dao.Content) {
+	contentItemList := service.FindContentItemByType(dao.ContentTypeGallery, OID)
+
+	contentItemIDList := make([]uint64, 0)
+	for _, item := range contentItemList {
+		contentItemIDList = append(contentItemIDList, item.ID)
+	}
+	contentList := service.FindContentByIDAndNum(contentItemIDList, num)
+	return contentItemList, contentList
 }
