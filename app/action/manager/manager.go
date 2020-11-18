@@ -25,9 +25,7 @@ import (
 type InterceptorManager struct {
 }
 
-//Execute(Session *Session,Request *http.Request)(bool,Result)
-func (this InterceptorManager) Execute(context *gweb.Context) (bool, gweb.Result) {
-
+func (controller InterceptorManager) ActionBefore(context *gweb.Context) (bool, gweb.Result) {
 	//util.Trace(context.Session,"context.Session")
 	if context.Session.Attributes.Get(play.SessionManager) == nil {
 		//http.SetCookie(context.Response, &http.Cookie{Name: "UID", MaxAge:-1, Path: "/"})
@@ -46,6 +44,12 @@ func (this InterceptorManager) Execute(context *gweb.Context) (bool, gweb.Result
 		return true, nil
 	}
 }
+func (controller InterceptorManager) ActionBeforeServiceName(context *gweb.Context) string {
+	return ""
+}
+func (controller InterceptorManager) ActionAfter(context *gweb.Context, result gweb.Result) gweb.Result {
+	return nil
+}
 
 type Controller struct {
 	gweb.BaseController
@@ -61,7 +65,7 @@ type Controller struct {
 
 func (controller *Controller) Init() {
 	//Index.RequestMapping = make(map[string]mvc.Function)
-	controller.Interceptors.Add(&InterceptorManager{})
+	controller.Interceptors.Set(&InterceptorManager{})
 
 	controller.AddHandler(gweb.ALLMethod("index", controller.indexPage))
 	controller.AddHandler(gweb.ALLMethod("articlePage", controller.articlePage))

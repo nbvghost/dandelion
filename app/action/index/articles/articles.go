@@ -25,10 +25,6 @@ type InterceptorMp struct {
 	Organization company.OrganizationService
 }
 
-func (controller InterceptorMp) Execute(Context *gweb.Context) (bool, gweb.Result) {
-	return true, nil
-}
-
 type Controller struct {
 	gweb.BaseController
 	Content content.ContentService
@@ -38,7 +34,7 @@ type Controller struct {
 
 func (controller *Controller) Init() {
 	//Index.RequestMapping = make(map[string]mvc.Function)
-	controller.Interceptors.Add(&InterceptorMp{})
+	//controller.Interceptors.Set(&InterceptorMp{})
 
 	controller.AddHandler(gweb.GETMethod("list/{OID}/new", controller.listNewAction))
 	controller.AddHandler(gweb.GETMethod("article", controller.articleSeftPage))
