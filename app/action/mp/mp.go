@@ -35,9 +35,7 @@ type InterceptorMp struct {
 	Organization company.OrganizationService
 }
 
-//Execute(Session *Session,Request *http.Request)(bool,Result)
-func (controller InterceptorMp) Execute(context *gweb.Context) (bool, gweb.Result) {
-
+func (controller InterceptorMp) ActionBefore(context *gweb.Context) (bool, gweb.Result) {
 	if context.Session.Attributes.Get(play.SessionUser) == nil {
 		//context.Response.Header().Add("Login-Status", "0")
 		//context.Response.Write([]byte(util.StructToJSON(&result.ActionResult{Code: result.ActionFail, Message: "没有登陆", Data: nil})))
@@ -46,6 +44,12 @@ func (controller InterceptorMp) Execute(context *gweb.Context) (bool, gweb.Resul
 		//return controller.Organization.ReadOrganization(context)
 		return true, nil
 	}
+}
+func (controller InterceptorMp) ActionBeforeServiceName(context *gweb.Context) string {
+	return ""
+}
+func (controller InterceptorMp) ActionAfter(context *gweb.Context, result gweb.Result) gweb.Result {
+	return nil
 }
 
 type Controller struct {
@@ -67,7 +71,7 @@ type Controller struct {
 }
 
 func (controller *Controller) Init() {
-	controller.Interceptors.Add(&InterceptorMp{})
+	controller.Interceptors.Set(&InterceptorMp{})
 
 	controller.AddHandler(gweb.ALLMethod("index", controller.indexPage))
 

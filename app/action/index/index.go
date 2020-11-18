@@ -62,7 +62,7 @@ type Controller struct {
 
 func (controller *Controller) Init() {
 	//Index.RequestMapping = make(map[string]mvc.Function)
-	controller.Interceptors.Add(&InterceptorMp{})
+	//controller.Interceptors.Add(&InterceptorMp{})
 
 	controller.AddHandler(gweb.GETMethod("index", controller.indexPage))
 	controller.AddHandler(gweb.POSMethod("/content/new/article/webhook", controller.newArticleWebhookAction))
