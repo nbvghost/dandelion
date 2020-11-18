@@ -11,7 +11,7 @@ require (
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89
 	github.com/nbvghost/glog v1.0.13
-	github.com/nbvghost/gweb v1.2.14
+	github.com/nbvghost/gweb v1.2.16
 	github.com/pkg/errors v0.8.1
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20190110000554-dc11ecdae0a9
@@ -21,4 +21,4 @@ require (
 
 //replace github.com/nbvghost/gweb v1.2.13 => C:\Users\nbvghost\Desktop\gweb
 //replace github.com/nbvghost/gweb v1.2.14 => /Users/nbvghost/Desktop/gweb
-replace github.com/nbvghost/gweb v1.2.14 => /home/nbvghost/datas/projects/gweb
+//replace github.com/nbvghost/gweb v1.2.14 => /home/nbvghost/datas/projects/gweb
