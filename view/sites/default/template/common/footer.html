@@ -1,5 +1,6 @@
 {{define "footer"}}
     {{$Company:=.params.Company}}
+    {{$RootPath:=.rootPath}}
 <footer>
     <div class="footer-top">
         <div class="container">
@@ -12,13 +13,11 @@
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6 footer-grid mt-md-0 mt-sm-3 mt-3">
-                    <h3 class="text-uppercase mb-3">Solutions</h3>
+                    <h3 class="text-uppercase mb-3">Fast Links</h3>
                     <ul>
-                        <li> <a href="#">Industrial Chemicals</a> </li>
-                        <li> <a href="#">Machinery and Tools</a> </li>
-                        <li> <a href="#">Coal and Solid Fuels</a> </li>
-                        <li> <a href="#">Oil & Gas Revolution</a> </li>
-                        <li> <a href="#">High Quality Materials</a> </li>
+                        {{range $k, $v := .params.Menus.List}}
+                                <li> <a href="{{$RootPath}}{{$v.Item.Type}}/{{$v.Item.ID}}/0/0">{{$v.Item.Name}}</a> </li>
+                        {{end}}
                     </ul>
                 </div>
                 <div class="col-lg-3 col-md-6 mt-lg-0 mt-md-4 mt-sm-3 mt-3 footer-grid">
@@ -27,7 +26,7 @@
                         <p class="pb-2"><span class="fa fa-home" aria-hidden="true"></span> {{.params.Company.Address}}</p>
                         <p class="pb-2"><span class="fa fa-phone" aria-hidden="true"></span> {{.params.Company.Telephone}}</p>
                         <p class="pb-2"><span class="fa fa-envelope" aria-hidden="true"></span><a href="mailto:{{.params.Company.Email}}">{{.params.Company.Email}}</a></p>
-                        <p class="pb-2"><span class="fa fa-globe" aria-hidden="true"></span><a href="#">{{.params.Company.Link}}</a></p>
+                        <p class="pb-2"><span class="fa fa-globe" aria-hidden="true"></span><a target="_blank" href="{{.params.Company.Link}}">{{.params.Company.Link}}</a></p>
                     </address>
                 </div>
                 <div class="col-lg-3 col-md-6 mt-lg-0 mt-md-4 mt-sm-3 mt-3 agile-footer-grid footer-grid">

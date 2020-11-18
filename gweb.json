@@ -3,7 +3,7 @@
   "ResourcesDir": "resources",
   "ResourcesDirName": "resources",
   "LogDir": "logs",
-  "UploadDir": "upload",
+  "UploadDir": "",
   "UploadDirName": "upload",
   "DefaultPage": "index",
   "JsonDataPath": "data.json",

@@ -2,9 +2,4 @@
 \temp/
 \/dandelion
 \/debug
-/logs
-/.idea
-/.vscode
-/*.exe
-/dandelion
-/cache/
+/.idea/

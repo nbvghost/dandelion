@@ -12,7 +12,6 @@ import (
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/tool/number"
 	"strconv"
-	"strings"
 )
 
 type Controller struct {
@@ -331,7 +330,6 @@ func (controller *Controller) ChangeHideContentAction(context *gweb.Context) gwe
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "index成功", nil)}
 }
 func (controller *Controller) addContentItemAction(context *gweb.Context) gweb.Result {
-	Orm := dao.Orm()
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 
 	item := &dao.ContentItem{}
@@ -340,36 +338,5 @@ func (controller *Controller) addContentItemAction(context *gweb.Context) gweb.R
 		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	}
 
-	have := controller.Content.GetContentItemByNameAndOID(item.Name, company.ID)
-	if have.ID != 0 || strings.EqualFold(item.Name, "") {
-		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("这个名字已经被使用了"), "", nil)}
-	}
-
-	var mt dao.ContentType
-	Orm.Where("ID=?", item.ContentTypeID).First(&mt)
-	if mt.ID == 0 {
-		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("没有找到类型"), "", nil)}
-	}
-
-	if strings.EqualFold(string(mt.Type), string(dao.ContentTypeBlog)) {
-		have := controller.Content.GetContentItemByType(mt.Type, company.ID)
-		if have.ID != 0 || strings.EqualFold(item.Name, "") {
-			return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New(fmt.Sprintf("这个类型（%v）只能创建一个", item.Type)), "", nil)}
-		}
-	}
-
-	item.OID = company.ID
-	item.Type = mt.Type
-
-	{
-
-		contentItemList := controller.Content.ListContentItemByOID(company.ID)
-		if len(contentItemList) > 0 {
-			item.Sort = contentItemList[len(contentItemList)-1].Sort + 1
-		}
-	}
-
-	err = controller.Content.Add(Orm, item)
-
-	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
+	return &gweb.JsonResult{Data: controller.Content.AddContentItem(company, item)}
 }
