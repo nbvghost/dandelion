@@ -32,7 +32,7 @@ jobs:
       run: CGO_ENABLED=0 go build -v .
 
     - name: Set version code
-      run: echo "::set-env name=APPVERSION::$(cat version)"
+      run: echo "APPVERSION=$(cat version)" >> $GITHUB_ENV
 
     - name: Docker
       run: docker build -t docker.pkg.github.com/nbvghost/dandelion/dandelion:$APPVERSION .
