@@ -2,13 +2,14 @@ package images
 
 import (
 	"github.com/nbvghost/dandelion/app/result"
+	"github.com/nbvghost/dandelion/app/service/file"
+	"github.com/nbvghost/dandelion/app/service/wechat"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/nbvghost/dandelion/app/play"
-	"github.com/nbvghost/dandelion/app/service"
 	"github.com/nbvghost/dandelion/app/util"
 
 	"github.com/nbvghost/gweb"
@@ -17,8 +18,8 @@ import (
 
 type Controller struct {
 	gweb.BaseController
-	File service.FileService
-	Wx   service.WxService
+	File file.FileService
+	Wx   wechat.WxService
 }
 
 func (controller *Controller) Init() {

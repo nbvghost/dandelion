@@ -1,0 +1,225 @@
+{{$RootPath:=.rootPath}}
+{{$Goods:=.params.GoodsInfo.Goods}}
+{{$Images:=$Goods.Images|FromJSONToArray}}
+{{$Videos:=$Goods.Videos|FromJSONToArray}}
+{{$Params:=$Goods.Params|FromJSONToArray}}
+{{$Pictures:=$Goods.Pictures|FromJSONToArray}}
+{{$Specifications:=.params.GoodsInfo.Specifications}}
+{{$SubType:=.params.GoodsType.Sub.Item}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    {{template "import_asset" .}}
+    <style>
+        #big_image{
+            width: 100%;height: 480px;object-fit:cover;object-position: center;
+        }
+        #small_image img{
+            border: 3px solid transparent;
+            width: 100%;height: 100%;object-fit: contain;object-position: center;
+        }
+        #small_image .active{
+
+            border: 3px solid orange;
+        }
+        .rating{
+            display: inline-flex;
+            margin-bottom: 0;
+        }
+        #specifications .specification{
+
+        }
+    </style>
+</head>
+<body>
+{{template "header" .}}
+<div class="container">
+    <ol class="p-0 pt-3 pb-2 d-flex m-0 list-unstyled justify-content-start">
+
+
+        <li class="breadcrumb-item"><a href="{{$RootPath}}">Home</a></li>
+
+        {{if gt .params.Menus.Top.Item.ID 0}}
+            <li class="breadcrumb-item"><a
+                        href="{{$RootPath}}{{.params.Menus.Top.Item.Type}}/{{.params.Menus.Top.Item.ID}}/0/0">{{.params.Menus.Top.Item.Name}}</a>
+            </li>
+        {{end}}
+
+        {{if gt .params.GoodsType.Top.Item.ID 0}}
+            <li class="breadcrumb-item"><a
+                        href="{{$RootPath}}{{.params.Menus.Top.Item.Type}}/{{.params.Menus.Top.Item.ID}}/{{.params.GoodsType.Top.Item.ID}}/0">{{.params.GoodsType.Top.Item.Name}}</a>
+            </li>
+        {{end}}
+
+
+    </ol>
+
+
+    <div class="row">
+
+        <div class="col-12">
+
+            <div class="row">
+
+                <div class="col-12 col-md-6 mb-3">
+
+                    <div class="card text-white">
+                        <img id="big_image" src="/file/load?path={{index $Images 0}}" class="card-img" alt="{{$Goods.Title}}">
+                        <div class="card-img-overlay">
+                            <h5 class="card-title"></h5>
+                            <p class="card-text"></p>
+                            <p class="card-text"></p>
+                        </div>
+                    </div>
+                    <div id="small_image" class="row mt-3">
+                        {{range $index,$value:=$Images}}
+                            <div class="col-2 pb-3">
+                                <img onclick="switchImage('{{$value}}',{{$index}},{{len $Images}})" src="/file/load?path={{$value}}" alt="{{$Goods.Title}}" class="small_image-{{$index}} rounded">
+                            </div>
+                        {{end}}
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 pl-lg-10">
+                    <div class="row mb-3">
+                        <div class="col-6 col-md-6 col-sm-6">
+                            <!-- Preheading -->
+                            <a class="text-muted" href="{{$RootPath}}{{.params.Menus.Top.Item.Type}}/{{.params.Menus.Top.Item.ID}}/{{.params.GoodsType.Top.Item.ID}}/{{.params.GoodsType.Sub.Item.ID}}">{{$SubType.Name}}</a>
+
+                        </div>
+                        <div class="col-6 col-md-6 text-right col-sm-6">
+
+                            <div class="rating font-size-xs text-dark" data-value="4">
+                                <div class="rating-item">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="rating-item">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="rating-item">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="rating-item">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="rating-item">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                    <h3 class="mb-3">{{$Goods.Title}}</h3>
+                    <h5 class="mb-5 text-muted">{{$Goods.Summary}}</h5>
+
+                    <ul class="list-group mt-3 mb-3">
+                        {{range $index,$value:=$Params}}
+                            <h4>
+                                {{$value.Name}}
+                                <small class="text-muted">{{$value.Value}}</small>
+                            </h4>
+                        {{end}}
+                    </ul>
+
+                    <div id="specifications" class="row mb-3">
+
+                        {{range $index,$value:=$Specifications}}
+                            <div class="specification col py-2 mx-2 my-2 col-md-auto border">{{$value.Label}}x{{$value.Num}}({{$value.Weight}}Kg)</div>
+                        {{end}}
+                    </div>
+
+                </div>
+
+
+
+
+            </div>
+
+            {{/*<ul class="nav justify-content-center">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#">Active</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Link</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Link</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+                </li>
+            </ul>*/}}
+
+            <div class="border-top"></div>
+
+            <div style="max-width: 800px;" class="mx-auto">
+                {{range $index,$value:=$Videos}}
+                    <div class="text-center my-3">
+                        <video src="/file/load?path={{$value}}" style="max-width: 100%;"  controls="controls">
+                            your browser does not support the video tag
+                        </video>
+                    </div>
+                {{end}}
+
+                <div style="width: 100%;" class="my-3">{{$Goods.Introduce}}</div>
+                <div style="width: 100%;" class="d-flex flex-wrap justify-content-center">
+                    {{range $index,$value:=$Pictures}}
+                        <p class="my-1" style="width: 100%;text-align: center;">
+                            <img class="mx-auto" style="width: auto;max-width:100%;object-fit: contain;" src="/file/load?path={{$value}}">
+                        </p>
+                    {{end}}
+                </div>
+            </div>
+            <h4 class="my-5 text-center">You might also like</h4>
+
+            <div class="row">
+
+
+                {{$MenuID:=.params.Menus.Top.Item.ID}}
+                {{range $k,$v:=.params.RecommendGoods}}
+
+                    <div class="col-lg-2 col-md-4 col-sm-6 col-6">
+                        <div class="card mb-3">
+                            <img style="height:120px;object-fit: cover;object-position: center;" src="/file/load?path={{index ($v.Images|FromJSONToArray) 0}}" class="card-img-top" alt="{{$v.Title}}">
+                            <div class="card-body">
+                                <small class="card-title">{{$v.Title}}</small>
+                            </div>
+                            <a href="{{$RootPath}}product/{{$MenuID}}/{{$v.ID}}" class="stretched-link"></a>
+                        </div>
+                    </div>
+                {{end}}
+
+
+            </div>
+        </div>
+
+
+
+    </div>
+
+</div>
+
+
+
+<script>
+
+
+    function switchImage(imagePath,index,len){
+        for(let i=0;i<len;i++){
+            $("#small_image .small_image-"+i).removeClass("active");
+        }
+        $("#big_image").attr("src","/file/load?path="+imagePath);
+        $("#small_image .small_image-"+index).addClass("active");
+    }
+    switchImage('{{index $Images 0}}',0,{{len $Images}})
+
+</script>
+
+{{template "footer"}}
+
+</body>
+</html>

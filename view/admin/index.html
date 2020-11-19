@@ -13,21 +13,24 @@
     <script type="text/javascript" src="/resources/datatables/datatables.min.js"></script>
     <script type="text/javascript" src="/resources/semantic-ui/semantic.min.js"></script>
 
+    <link rel="stylesheet" type="text/css" href="/resources/semantic-ui/plugin/alert/semantic-ui-alerts.css">
+    <script type="text/javascript" src="/resources/semantic-ui/plugin/alert/semantic-ui-alerts.js"></script>
+
     <link rel="stylesheet" type="text/css" href="/resources/datatables/dataTables.semanticui.css">
     <script type="text/javascript" src="/resources/datatables/dataTables.semanticui.js"></script>
 
 
-   {{/* <link href="/resources/quill/katex.min.css" rel="stylesheet">
+    <link href="/resources/quill/katex.min.css" rel="stylesheet">
     <link href="/resources/quill/monokai-sublime.min.css" rel="stylesheet">
     <link href="/resources/quill/quill.snow.css" rel="stylesheet">
+
+    <link href="/resources/quill/modules/quill-image-uploader/quill.imageUploader.min.css" rel="stylesheet" />
 
     <script src="/resources/quill/katex.min.js"></script>
     <script src="/resources/quill/highlight.min.js"></script>
     <script src="/resources/quill/quill.min.js"></script>
-*/}}
-
-    <script src="/resources/ckeditor/translations/zh-cn.js"></script>
-    <script src="/resources/ckeditor/ckeditor.js"></script>
+    <script src="/resources/quill/modules/quill-image-uploader/quill.imageUploader.min.js"></script>
+    <script src="/resources/quill/modules/quill-image-resize/image-resize.min.js"></script>
 
     <script type="text/javascript" src="/resources/angular/angular.min.js"></script>
     <script type="text/javascript" src="/resources/angular/plugins/ng-file-upload/ng-file-upload.min.js"></script>
@@ -40,6 +43,8 @@
     <script src="//webapi.amap.com/ui/1.1/main.js?v=1.1.1"></script>
 
     <script>
+        Quill.register("modules/imageUploader", ImageUploader);
+        //Quill.register('modules/markdownShortcuts',MarkdownShortcuts);
         /*var GoodsTypes={{.params.GoodsTypes}};
         var GoodsTypeChilds ={{.params.GoodsTypeChilds}};
 
@@ -91,6 +96,8 @@
             $('.ui.container .menu .browse').popup({target: '.menu .header',position : 'right center',on:'click', popup: '.ui.flowing',inline:true,delay:{show:300,hide:800}});
             //$('.ui.container .menu .browse').popup();
 
+            $('.tabular.menu .item').tab();
+
         });
 
 
@@ -99,6 +106,7 @@
 
     <script type="text/javascript" src="/resources/admin/js/admin.js"></script>
     <script type="text/javascript" src="/resources/admin/js/content.js"></script>
+    <script type="text/javascript" src="/resources/admin/js/company.js"></script>
     <style>
         .ui.modal{
 

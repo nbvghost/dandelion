@@ -1,10 +1,19 @@
 package admin
 
 import (
-	"github.com/nbvghost/dandelion/app/action/admin/content"
+	"github.com/nbvghost/dandelion/app/action/admin/activityAction"
+	"github.com/nbvghost/dandelion/app/action/admin/companyAction"
+	"github.com/nbvghost/dandelion/app/action/admin/contentAction"
 	"github.com/nbvghost/dandelion/app/play"
 	"github.com/nbvghost/dandelion/app/result"
-	"github.com/nbvghost/dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/service/activity"
+	"github.com/nbvghost/dandelion/app/service/admin"
+	"github.com/nbvghost/dandelion/app/service/configuration"
+	"github.com/nbvghost/dandelion/app/service/content"
+	"github.com/nbvghost/dandelion/app/service/express"
+	"github.com/nbvghost/dandelion/app/service/goods"
+	"github.com/nbvghost/dandelion/app/service/order"
+	"github.com/nbvghost/dandelion/app/service/user"
 	"github.com/nbvghost/dandelion/app/util"
 	"net/url"
 	"strings"
@@ -22,9 +31,7 @@ import (
 type InterceptorManager struct {
 }
 
-//Execute(Session *Session,Request *http.Request)(bool,Result)
-func (m InterceptorManager) Execute(context *gweb.Context) (bool, gweb.Result) {
-
+func (controller InterceptorManager) ActionBefore(context *gweb.Context) (bool, gweb.Result) {
 	//util.Trace(context.Session,"context.Session")
 	if context.Session.Attributes.Get(play.SessionAdmin) == nil {
 		//http.SetCookie(context.Response, &http.Cookie{Name: "UID", MaxAge:-1, Path: "/"})
@@ -44,56 +51,35 @@ func (m InterceptorManager) Execute(context *gweb.Context) (bool, gweb.Result) {
 		return true, nil
 	}
 }
+func (controller InterceptorManager) ActionBeforeServiceName(context *gweb.Context) string {
+	return ""
+}
+func (controller InterceptorManager) ActionAfter(context *gweb.Context, result gweb.Result) gweb.Result {
+	return nil
+}
 
 type Controller struct {
 	gweb.BaseController
-	Admin      service.AdminService
-	Goods      service.GoodsService
-	ScoreGoods service.ScoreGoodsService
-	Voucher    service.VoucherService
+	Admin admin.AdminService
+	Goods goods.GoodsService
 
-	ExpressTemplate service.ExpressTemplateService
-	FullCut         service.FullCutService
-	TimeSell        service.TimeSellService
-	Orders          service.OrdersService
-
-	Configuration service.ConfigurationService
-	GiveVoucher   service.GiveVoucherService
-	User          service.UserService
-	CardItem      service.CardItemService
-	Content       service.ContentService
-	Collage       service.CollageService
+	ExpressTemplate express.ExpressTemplateService
+	Voucher         activity.VoucherService
+	//TimeSell        activity.TimeSellService
+	Orders        order.OrdersService
+	ScoreGoods    activity.ScoreGoodsService
+	Configuration configuration.ConfigurationService
+	GiveVoucher   activity.GiveVoucherService
+	User          user.UserService
+	CardItem      activity.CardItemService
+	Content       content.ContentService
+	Collage       activity.CollageService
 }
 
 func (controller *Controller) Init() {
-	controller.Interceptors.Add(&InterceptorManager{})
+	controller.Interceptors.Set(&InterceptorManager{})
 	controller.AddHandler(gweb.ALLMethod("index", controller.indexPage))
 	controller.AddHandler(gweb.ALLMethod("goods", controller.GoodsAction))
-	controller.AddHandler(gweb.POSMethod("score_goods", controller.ScoreGoods.AddScoreGoods))
-	controller.AddHandler(gweb.GETMethod("score_goods/{ID}", controller.ScoreGoods.GetScoreGoods))
-	controller.AddHandler(gweb.POSMethod("score_goods/list", controller.ScoreGoods.DatatablesScoreGoods))
-	controller.AddHandler(gweb.DELMethod("score_goods/{ID}", controller.ScoreGoods.DeleteScoreGoods))
-	controller.AddHandler(gweb.PUTMethod("score_goods/{ID}", controller.ScoreGoods.ChangeScoreGoods))
-	controller.AddHandler(gweb.POSMethod("fullcut/save", controller.FullCut.SaveItem))
-	controller.AddHandler(gweb.GETMethod("fullcut/{ID}", controller.FullCut.GetItem))
-	controller.AddHandler(gweb.POSMethod("fullcut/datatables/list", controller.FullCut.DataTablesItem))
-	controller.AddHandler(gweb.DELMethod("fullcut/{ID}", controller.FullCut.DeleteItem))
-	controller.AddHandler(gweb.POSMethod("timesell/save", controller.TimeSell.SaveItem))
-	controller.AddHandler(gweb.POSMethod("timesell/change", controller.TimeSell.SaveItem))
-	controller.AddHandler(gweb.GETMethod("timesell/{Hash}", controller.TimeSell.GetItem))
-	controller.AddHandler(gweb.POSMethod("timesell/datatables/list", controller.TimeSell.DataTablesItem))
-	controller.AddHandler(gweb.POSMethod("timesell/goods/{Hash}/list", controller.TimeSell.ListTimeSellGoods))
-	controller.AddHandler(gweb.DELMethod("timesell/goods/{GoodsID}", controller.TimeSell.DeleteTimeSellGoods))
-	controller.AddHandler(gweb.POSMethod("timesell/goods/add", controller.TimeSell.AddTimeSellGoodsAction))
-	controller.AddHandler(gweb.DELMethod("timesell/{ID}", controller.TimeSell.DeleteItem))
-	controller.AddHandler(gweb.POSMethod("collage/save", controller.Collage.SaveItem))
-	controller.AddHandler(gweb.POSMethod("collage/change", controller.Collage.SaveItem))
-	controller.AddHandler(gweb.GETMethod("collage/{Hash}", controller.Collage.GetItem))
-	controller.AddHandler(gweb.POSMethod("collage/datatables/list", controller.Collage.DataTablesItem))
-	controller.AddHandler(gweb.POSMethod("collage/goods/{Hash}/list", controller.Collage.ListGoods))
-	controller.AddHandler(gweb.DELMethod("collage/goods/{GoodsID}", controller.Collage.DeleteGoods))
-	controller.AddHandler(gweb.POSMethod("collage/goods/add", controller.Collage.AddCollageGoodsAction))
-	controller.AddHandler(gweb.DELMethod("collage/{ID}", controller.Collage.DeleteItem))
 
 	controller.AddHandler(gweb.POSMethod("express_template/save", controller.saveExpressTemplate))
 	controller.AddHandler(gweb.DELMethod("express_template/{ID}", controller.deleteExpressTemplate))
@@ -118,17 +104,29 @@ func (controller *Controller) Init() {
 	controller.AddHandler(gweb.ALLMethod("loginOut", controller.loginOutAction))
 	//--------------content------------------
 
-	controller.AddHandler(gweb.POSMethod("voucher", controller.Voucher.AddItem))
-	controller.AddHandler(gweb.GETMethod("voucher/{ID}", controller.Voucher.GetItem))
-	controller.AddHandler(gweb.POSMethod("voucher/list", controller.Voucher.ListItem))
-	controller.AddHandler(gweb.DELMethod("voucher/{ID}", controller.Voucher.DeleteItem))
-	controller.AddHandler(gweb.PUTMethod("voucher/{ID}", controller.Voucher.ChangeItem))
-
 	store := &StoreController{}
 	controller.AddSubController("/store/", store)
 
-	content := &content.Controller{}
+	content := &contentAction.Controller{}
 	controller.AddSubController("/content/", content)
+
+	company := &companyAction.Controller{}
+	controller.AddSubController("/company/", company)
+
+	timesell := &activityAction.TimesellController{}
+	controller.AddSubController("/timesell/", timesell)
+
+	collage := &activityAction.CollageController{}
+	controller.AddSubController("/collage/", collage)
+
+	scoreGoods := &activityAction.ScoreGoodsController{}
+	controller.AddSubController("/score_goods/", scoreGoods)
+
+	voucher := &activityAction.VoucherController{}
+	controller.AddSubController("/voucher/", voucher)
+
+	fullcut := &activityAction.FullcutController{}
+	controller.AddSubController("/fullcut/", fullcut)
 
 }
 
@@ -310,11 +308,11 @@ func (controller *Controller) GoodsAction(context *gweb.Context) gweb.Result {
 	return &gweb.JsonResult{}
 }
 func (controller *Controller) carditemListAction(context *gweb.Context) gweb.Result {
-	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	Orm := dao.Orm()
 	dts := &dao.Datatables{}
 	util.RequestBodyToJSON(context.Request.Body, dts)
-	draw, recordsTotal, recordsFiltered, list := controller.CardItem.DatatablesListOrder(Orm, dts, &[]dao.CardItem{}, company.ID, "")
+	draw, recordsTotal, recordsFiltered, list := controller.CardItem.DatatablesListOrder(Orm, dts, &[]dao.CardItem{}, 0, "")
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 }
 func (controller *Controller) situationAction(context *gweb.Context) gweb.Result {
@@ -405,11 +403,11 @@ func (controller *Controller) orderChangeAction(context *gweb.Context) gweb.Resu
 
 }
 func (controller *Controller) storeJournalListAction(context *gweb.Context) gweb.Result {
-	company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	Orm := dao.Orm()
 	dts := &dao.Datatables{}
 	util.RequestBodyToJSON(context.Request.Body, dts)
-	draw, recordsTotal, recordsFiltered, list := controller.CardItem.DatatablesListOrder(Orm, dts, &[]dao.StoreJournal{}, company.ID, "")
+	draw, recordsTotal, recordsFiltered, list := controller.CardItem.DatatablesListOrder(Orm, dts, &[]dao.StoreJournal{}, 0, "")
 	return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}
 
 }

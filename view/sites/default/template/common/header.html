@@ -1,17 +1,25 @@
 {{- define "header" -}}
     <header>
+
         <div id="topbar" class="d-none d-lg-flex align-items-center  bg-faded">
             <div class="container d-flex">
                 <div class="contact-info mr-auto">
-                   <a href="mailto:contact@example.com"> <i class="fas fa-envelope"></i>contact@example.com</a>
-                   <a href="tel:+155895548855"><i class="fas fa-phone-alt"></i>+1 5589 55488 55</a>
+                   <a href="mailto:{{.params.Company.Email}}"> <i class="fas fa-envelope"></i>{{.params.Company.Email}}</a>
+                   <a href="tel:{{.params.Company.Telephone}}"><i class="fas fa-phone-alt"></i>{{.params.Company.Telephone}}</a>
                 </div>
                 <div class="social-links">
-                    <a href="#"><i class="fab fa-facebook"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-skype"></i></a>
+                    {{range $key,$value:=.params.Config.SocialAccount}}
+                        {{if eq $value.Type "facebook"}}<a target="_blank" href="{{$value.Account}}"><i class="fab fa-facebook"></i></a>{{end}}
+                        {{if eq $value.Type "twitter"}}<a target="_blank" href="{{$value.Account}}"><i class="fab fa-twitter"></i></a>{{end}}
+                        {{if eq $value.Type "linkedin"}}<a target="_blank" href="{{$value.Account}}"><i class="fab fa-linkedin-in"></i></a>{{end}}
+                        {{if eq $value.Type "instagram"}}<a target="_blank" href="{{$value.Account}}"><i class="fab fa-instagram"></i></a>{{end}}
+                        {{if eq $value.Type "skype"}}<a target="_blank" href="{{$value.Account}}"><i class="fab fa-skype"></i></a>{{end}}
+                        {{if eq $value.Type "wechat"}}<a target="_blank" href="{{$value.Account}}"><i class="fab fa-rocketchat"></i></a>{{end}}
+                        {{if eq $value.Type "qq"}}<a target="_blank" href="{{$value.Account}}"><i class="fab fa-qq"></i></a>{{end}}
+                        {{if eq $value.Type "email"}}<a target="_blank" href="{{$value.Account}}"><i class="fas fa-envelope"></i></a>{{end}}
+                        {{if eq $value.Type "phone"}}<a target="_blank" href="{{$value.Account}}"><i class="fas fa-phone-alt"></i></a>{{end}}
+                        {{if eq $value.Type "whatsapp"}}<a target="_blank" href="{{$value.Account}}"><i class="fab fa-whatsapp"></i></a>{{end}}
+                    {{end}}
                 </div>
             </div>
         </div>

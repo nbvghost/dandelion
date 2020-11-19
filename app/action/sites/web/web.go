@@ -3,8 +3,10 @@ package web
 import (
 	"github.com/nbvghost/dandelion/app/play"
 	"github.com/nbvghost/dandelion/app/result"
-	"github.com/nbvghost/dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/service/company"
+	"github.com/nbvghost/dandelion/app/service/content"
 	"github.com/nbvghost/dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/service/goods"
 	"github.com/nbvghost/dandelion/app/service/sites"
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
@@ -13,9 +15,10 @@ import (
 
 type Controller struct {
 	gweb.BaseController
-	Template sites.TemplateService
-	Content  service.ContentService
-	Goods    service.GoodsService
+	Template     sites.TemplateService
+	Content      content.ContentService
+	Goods        goods.GoodsService
+	Organization company.OrganizationService
 }
 
 func (controller *Controller) Init() {
@@ -281,7 +284,7 @@ func (controller *Controller) gallery(context *gweb.Context) gweb.Result {
 	}
 }
 func (controller *Controller) index(context *gweb.Context) gweb.Result {
-
+	org := context.Session.Attributes.Get(play.SessionOrganization).(*dao.Organization)
 	//siteName := context.PathParams["siteName"]
 
 	params := make(map[string]interface{})
@@ -289,11 +292,20 @@ func (controller *Controller) index(context *gweb.Context) gweb.Result {
 	menusData, menusPath := controller.Template.MenusTemplate(context)
 	commonPath := controller.Template.CommonTemplate(context, params)
 	params["Menus"] = menusData
-	return &gweb.HTMLResult{
-		Template: []string{
-			menusPath, commonPath,
+
+	ContentConfig := controller.Content.GetContentConfig(dao.Orm(), org.ID)
+	params["Config"] = ContentConfig
+
+	company := controller.Organization.GetOrganization(org.ID)
+	params["Company"] = company
+	return &gweb.CacheHTMLResult{
+		OID: org.ID,
+		HTMLResult: gweb.HTMLResult{
+			Template: []string{
+				menusPath, commonPath,
+			},
+			Params: params,
 		},
-		Params: params,
 	}
 }
 func (controller *Controller) AddProjectdsfdsfsdAction(context *gweb.Context) gweb.Result {

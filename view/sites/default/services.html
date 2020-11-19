@@ -1,0 +1,158 @@
+{{$ID:=.params.Menus.ID}}
+{{$SubID:=.params.Menus.SubID}}
+{{$SubChildID:=.params.Menus.SubChildID}}
+{{$RootPath:=.rootPath}}
+
+<!DOCTYPE html>
+<!-- saved from url=(0060)http://demo.cssmoban.com/cssthemes6/cpts_1788_csq/about.html -->
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>About</title>
+    <meta name="keywords" content=""/>
+    {{template "import_asset" .}}
+</head>
+<body>
+
+
+<div style="position:fixed;top:0px;left:0px;width:0;height:0;" id="scrollzipPoint"></div>
+
+{{template "header" .}}
+
+<!-- inner page banner -->
+<section class="inner_page_banner text-center">
+
+
+    {{if gt $SubChildID 0}}
+
+        <h2 class="page_heading text-uppercase pt-md-4 pt-sm-4">{{.params.Menus.SubChild.Item.Name}}</h2>
+        <h4 class="text-uppercase pt-2">
+            <a href="{{$RootPath}}index">Home</a> - <a
+                    href="{{$RootPath}}{{.params.Menus.Top.Item.Type}}/{{.params.Menus.Top.Item.ID}}/0/0">{{.params.Menus.Top.Item.Name}}</a>
+        </h4>
+    {{else}}
+
+        {{if gt $SubID 0}}
+            <h2 class="page_heading text-uppercase pt-md-4 pt-sm-4">{{.params.Menus.Sub.Item.Name}}</h2>
+            <h4 class="text-uppercase pt-2">
+                <a href="{{$RootPath}}index">Home</a> - <a
+                        href="{{$RootPath}}{{.params.Menus.Top.Item.Type}}/{{.params.Menus.Top.Item.ID}}/0/0">{{.params.Menus.Top.Item.Name}}</a>
+            </h4>
+        {{else}}
+            <h2 class="page_heading text-uppercase pt-md-4 pt-sm-4">{{.params.Menus.Top.Item.Name}}</h2>
+            <h4 class="text-uppercase pt-2">
+                <a href="{{$RootPath}}index">Home</a>
+            </h4>
+        {{end}}
+
+    {{end}}
+
+
+</section>
+<!-- //inner page banner -->
+
+
+<div class="container mb-5">
+    <div class="row justify-content-md-center">
+
+
+        {{if gt (len .params.Menus.Top.SubType) 0}}
+            <div class="col-lg-3 mb-3">
+                {{template "content_left" .}}
+            </div>
+        {{end}}
+
+        <div class="col-lg-9">
+
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="font-weight-bold">
+
+                    {{if gt .params.Menus.SubChild.Item.ID 0}}
+
+                        {{.params.Menus.SubChild.Item.Name}}
+
+                    {{else}}
+                        {{if gt .params.Menus.Sub.Item.ID 0}}
+                            {{.params.Menus.Sub.Item.Name}}
+
+                        {{else}}
+                            {{.params.Menus.Top.Item.Name}}
+                        {{end}}
+                    {{end}}
+
+                </h6>
+                <ol class="p-0 pt-3 pb-2 d-flex m-0 list-unstyled justify-content-end">
+
+
+                    <li class="breadcrumb-item"><a href="{{$RootPath}}">Home</a></li>
+
+                    {{if gt .params.Menus.Top.Item.ID 0}}
+                        <li class="breadcrumb-item"><a href="{{$RootPath}}{{.params.Menus.Top.Item.Type}}/{{.params.Menus.Top.Item.ID}}/0/0">{{.params.Menus.Top.Item.Name}}</a></li>
+                    {{end}}
+
+                    {{if gt .params.Menus.Sub.Item.ID 0}}
+                        <li class="breadcrumb-item"><a href="{{$RootPath}}{{.params.Menus.Top.Item.Type}}/{{.params.Menus.Top.Item.ID}}/{{.params.Menus.Sub.Item.ID}}/0">{{.params.Menus.Sub.Item.Name}}</a></li>
+                    {{end}}
+
+                </ol>
+            </div>
+
+            <div class="border-top mb-3"></div>
+
+
+            {{template "content" .params.Content}}
+
+
+            <div class="border-top mt-3"></div>
+
+
+
+        </div>
+    </div>
+</div>
+
+{{template "footer" .}}
+
+<!-- js-scripts -->
+
+
+<!-- stats numscroller-js-file -->
+<script src="./js/numscroller-1.0.js"></script>
+<!-- //stats numscroller-js-file -->
+
+<!-- start-smoth-scrolling -->
+<script src="./js/SmoothScroll.min.js"></script>
+<script type="text/javascript" src="./js/move-top.js"></script>
+<script type="text/javascript" src="./js/easing.js"></script>
+<script type="text/javascript">
+    jQuery(document).ready(function ($) {
+        $(".scroll").click(function (event) {
+            event.preventDefault();
+            $('html,body').animate({scrollTop: $(this.hash).offset().top}, 1000);
+        });
+    });
+</script>
+<!-- here stars scrolling icon -->
+<script type="text/javascript">
+    $(document).ready(function () {
+        /*
+            var defaults = {
+            containerID: 'toTop', // fading element id
+            containerHoverID: 'toTopHover', // fading element hover id
+            scrollSpeed: 1200,
+            easingType: 'linear'
+            };
+        */
+
+        $().UItoTop({easingType: 'easeOutQuart'});
+
+    });
+</script>
+<!-- //here ends scrolling icon -->
+<!-- start-smoth-scrolling -->
+
+<!-- //js-scripts -->
+
+
+<a href="" id="toTop" style="display: none;"><span id="toTopHover"></span>To Top</a></body>
+</html>

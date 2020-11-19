@@ -4,8 +4,14 @@ import (
 	"encoding/base64"
 	"github.com/nbvghost/dandelion/app/play"
 	"github.com/nbvghost/dandelion/app/result"
-	"github.com/nbvghost/dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/service/admin"
+	"github.com/nbvghost/dandelion/app/service/company"
 	"github.com/nbvghost/dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/service/journal"
+	"github.com/nbvghost/dandelion/app/service/manager"
+	"github.com/nbvghost/dandelion/app/service/sms"
+	"github.com/nbvghost/dandelion/app/service/user"
+	"github.com/nbvghost/dandelion/app/service/wechat"
 	"github.com/nbvghost/dandelion/app/util"
 	"github.com/nbvghost/gweb/tool/encryption"
 	"time"
@@ -29,13 +35,13 @@ import (
 
 type Controller struct {
 	gweb.BaseController
-	Admin        service.AdminService
-	Manager      service.ManagerService
-	Organization service.OrganizationService
-	User         service.UserService
-	SMS          service.SMSService
-	Wx           service.WxService
-	Journal      service.JournalService
+	Admin        admin.AdminService
+	Manager      manager.ManagerService
+	Organization company.OrganizationService
+	User         user.UserService
+	SMS          sms.SMSService
+	Wx           wechat.WxService
+	Journal      journal.JournalService
 }
 
 func (controller *Controller) Init() {

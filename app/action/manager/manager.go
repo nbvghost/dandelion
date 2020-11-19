@@ -2,6 +2,12 @@ package manager
 
 import (
 	"github.com/nbvghost/dandelion/app/result"
+	"github.com/nbvghost/dandelion/app/service/activity"
+	"github.com/nbvghost/dandelion/app/service/admin"
+	"github.com/nbvghost/dandelion/app/service/configuration"
+	"github.com/nbvghost/dandelion/app/service/content"
+	"github.com/nbvghost/dandelion/app/service/goods"
+	"github.com/nbvghost/dandelion/app/service/user"
 	"net/url"
 
 	"github.com/nbvghost/glog"
@@ -10,7 +16,6 @@ import (
 
 	"encoding/json"
 	"github.com/nbvghost/dandelion/app/play"
-	"github.com/nbvghost/dandelion/app/service"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"strconv"
 
@@ -20,9 +25,7 @@ import (
 type InterceptorManager struct {
 }
 
-//Execute(Session *Session,Request *http.Request)(bool,Result)
-func (this InterceptorManager) Execute(context *gweb.Context) (bool, gweb.Result) {
-
+func (controller InterceptorManager) ActionBefore(context *gweb.Context) (bool, gweb.Result) {
 	//util.Trace(context.Session,"context.Session")
 	if context.Session.Attributes.Get(play.SessionManager) == nil {
 		//http.SetCookie(context.Response, &http.Cookie{Name: "UID", MaxAge:-1, Path: "/"})
@@ -41,22 +44,28 @@ func (this InterceptorManager) Execute(context *gweb.Context) (bool, gweb.Result
 		return true, nil
 	}
 }
+func (controller InterceptorManager) ActionBeforeServiceName(context *gweb.Context) string {
+	return ""
+}
+func (controller InterceptorManager) ActionAfter(context *gweb.Context, result gweb.Result) gweb.Result {
+	return nil
+}
 
 type Controller struct {
 	gweb.BaseController
-	Content       service.ContentService
-	Admin         service.AdminService
-	User          service.UserService
-	Rank          service.RankService
-	Configuration service.ConfigurationService
-	GiveVoucher   service.GiveVoucherService
-	Voucher       service.VoucherService
-	Goods         service.GoodsService
+	Content       content.ContentService
+	Admin         admin.AdminService
+	User          user.UserService
+	Rank          activity.RankService
+	Configuration configuration.ConfigurationService
+	GiveVoucher   activity.GiveVoucherService
+	Voucher       activity.VoucherService
+	Goods         goods.GoodsService
 }
 
 func (controller *Controller) Init() {
 	//Index.RequestMapping = make(map[string]mvc.Function)
-	controller.Interceptors.Add(&InterceptorManager{})
+	controller.Interceptors.Set(&InterceptorManager{})
 
 	controller.AddHandler(gweb.ALLMethod("index", controller.indexPage))
 	controller.AddHandler(gweb.ALLMethod("articlePage", controller.articlePage))

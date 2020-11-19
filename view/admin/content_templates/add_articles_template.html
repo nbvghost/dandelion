@@ -3,6 +3,7 @@
         margin: 50px auto;
         max-width: 720px;
     }
+
     #editor-container {
         height: 350px;
     }
@@ -36,13 +37,15 @@
         <div class="fields">
             <div class="four wide field">
                 <label>分类</label>
-                <select ng-model="Article.ContentSubTypeID" ng-change="changeContentSubTypes()" ng-options="key as value.SubType.Name for (key , value) in ContentSubTypes" required >
+                <select ng-model="Article.ContentSubTypeID" ng-change="changeContentSubTypes()"
+                        ng-options="key as value.SubType.Name for (key , value) in ContentSubTypes" required>
 
                 </select>
             </div>
             <div class="four wide field">
                 <label>子类</label>
-                <select ng-model="Article.ContentSubTypeChildID" ng-change="changeContentSubTypeChilds()" ng-options="key as value.Name for (key , value) in ContentSubTypes[Article.ContentSubTypeID].SubTypeChildren">
+                <select ng-model="Article.ContentSubTypeChildID" ng-change="changeContentSubTypeChilds()"
+                        ng-options="key as value.Name for (key , value) in ContentSubTypes[Article.ContentSubTypeID].SubTypeChildren">
 
                 </select>
             </div>
@@ -61,20 +64,72 @@
                 <div class="image">
                     <img ng-if="Article.Picture" ng-src="/file/load?path=@{Article.Picture}@">
                 </div>
-                <button type="file"  class="ui green bottom attached button" ngf-select="UploadPictureImage($file,$invalidFiles)" accept="image/*" ngf-max-size="1MB"><i class="add icon"></i>添加缩略图</button>
+                <button type="file" class="ui green bottom attached button"
+                        ngf-select="UploadPictureImage($file,$invalidFiles)" accept="image/*" ngf-max-size="1MB"><i
+                            class="add icon"></i>添加缩略图
+                </button>
             </div>
         </div>
 
         <div class="field">
 
             <label>编辑内容</label>
-            <div id="editor-toolbar-container"></div>
-            <div id="editor-container"></div>
+
+
+            <div id="standalone-container">
+                <div id="toolbar-container">
+    <span class="ql-formats">
+      <select class="ql-font"></select>
+      <select class="ql-size"></select>
+    </span>
+                    <span class="ql-formats">
+      <button class="ql-bold"></button>
+      <button class="ql-italic"></button>
+      <button class="ql-underline"></button>
+      <button class="ql-strike"></button>
+    </span>
+                    <span class="ql-formats">
+      <select class="ql-color"></select>
+      <select class="ql-background"></select>
+    </span>
+                    <span class="ql-formats">
+      <button class="ql-script" value="sub"></button>
+      <button class="ql-script" value="super"></button>
+    </span>
+                    <span class="ql-formats">
+      <button class="ql-header" value="1"></button>
+      <button class="ql-header" value="2"></button>
+      <button class="ql-blockquote"></button>
+      <button class="ql-code-block"></button>
+    </span>
+                    <span class="ql-formats">
+      <button class="ql-list" value="ordered"></button>
+      <button class="ql-list" value="bullet"></button>
+      <button class="ql-indent" value="-1"></button>
+      <button class="ql-indent" value="+1"></button>
+    </span>
+                    <span class="ql-formats">
+      <button class="ql-direction" value="rtl"></button>
+      <select class="ql-align"></select>
+    </span>
+                    <span class="ql-formats">
+      <button class="ql-link"></button>
+      <button class="ql-image"></button>
+      <button class="ql-video"></button>
+      <button class="ql-formula"></button>
+    </span>
+                    <span class="ql-formats">
+      <button class="ql-clean"></button>
+    </span>
+                </div>
+                <div id="editor-container"></div>
+            </div>
+
 
         </div>
 
         <div class="field">
-            <input class="ui fluid red button"  type="submit">
+            <input class="ui fluid red button" type="submit">
         </div>
     </form>
 
@@ -85,10 +140,13 @@
     <div class="content">
         <div class="ui form">
             <div class="field">
-                <button type="file" class="ui fluid button" ngf-select="UploadImages('#upload_edit_images_progress',$files,$invalidFiles)" multiple="multiple"
+                <button type="file" class="ui fluid button"
+                        ngf-select="UploadImages('#upload_edit_images_progress',$files,$invalidFiles)"
+                        multiple="multiple"
                         accept="image/*" ngf-max-size="1MB"><i class="add icon"></i> 添加图片
                 </button>
-                <div class="ui tiny bottom attached  progress" data-value="0" data-total="100" id="upload_edit_images_progress">
+                <div class="ui tiny bottom attached  progress" data-value="0" data-total="100"
+                     id="upload_edit_images_progress">
                     <div class="bar">
                         <div class="progress"></div>
                     </div>
@@ -97,7 +155,8 @@
             </div>
             <div class="field">
                 <div class="ui tiny images">
-                    <img class="ui fluid image" ng-repeat="m in EditImages" ng-src="@{m}@" style="height: 120px;width:120px;object-fit:cover;object-position: center center;">
+                    <img class="ui fluid image" ng-repeat="m in EditImages" ng-src="@{m}@"
+                         style="height: 120px;width:120px;object-fit:cover;object-position: center center;">
                 </div>
             </div>
         </div>

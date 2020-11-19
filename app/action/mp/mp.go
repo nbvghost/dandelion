@@ -2,25 +2,29 @@ package mp
 
 import (
 	"fmt"
+	"github.com/nbvghost/dandelion/app/action/mp/contentAction"
+	"github.com/nbvghost/dandelion/app/action/mp/journalAction"
+	"github.com/nbvghost/dandelion/app/action/mp/orderAction"
+	"github.com/nbvghost/dandelion/app/action/mp/storeAction"
+	"github.com/nbvghost/dandelion/app/action/mp/userAction"
 	"github.com/nbvghost/dandelion/app/play"
 	"github.com/nbvghost/dandelion/app/result"
+	"github.com/nbvghost/dandelion/app/service/activity"
+	"github.com/nbvghost/dandelion/app/service/company"
+	"github.com/nbvghost/dandelion/app/service/configuration"
 	"github.com/nbvghost/dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/service/goods"
+	"github.com/nbvghost/dandelion/app/service/journal"
+	"github.com/nbvghost/dandelion/app/service/order"
+	"github.com/nbvghost/dandelion/app/service/user"
+	"github.com/nbvghost/dandelion/app/service/wechat"
 	"github.com/nbvghost/dandelion/app/util"
 
 	"github.com/nbvghost/glog"
 
-	"github.com/nbvghost/dandelion/app/service"
-
-	"github.com/nbvghost/dandelion/app/action/mp/store"
 	"strconv"
 
-	"github.com/nbvghost/dandelion/app/action/mp/order"
-
 	"encoding/base64"
-
-	"github.com/nbvghost/dandelion/app/action/mp/content"
-	"github.com/nbvghost/dandelion/app/action/mp/journal"
-	"github.com/nbvghost/dandelion/app/action/mp/user"
 
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/tool"
@@ -28,12 +32,10 @@ import (
 )
 
 type InterceptorMp struct {
-	Organization service.OrganizationService
+	Organization company.OrganizationService
 }
 
-//Execute(Session *Session,Request *http.Request)(bool,Result)
-func (controller InterceptorMp) Execute(context *gweb.Context) (bool, gweb.Result) {
-
+func (controller InterceptorMp) ActionBefore(context *gweb.Context) (bool, gweb.Result) {
 	if context.Session.Attributes.Get(play.SessionUser) == nil {
 		//context.Response.Header().Add("Login-Status", "0")
 		//context.Response.Write([]byte(util.StructToJSON(&result.ActionResult{Code: result.ActionFail, Message: "没有登陆", Data: nil})))
@@ -43,27 +45,33 @@ func (controller InterceptorMp) Execute(context *gweb.Context) (bool, gweb.Resul
 		return true, nil
 	}
 }
+func (controller InterceptorMp) ActionBeforeServiceName(context *gweb.Context) string {
+	return ""
+}
+func (controller InterceptorMp) ActionAfter(context *gweb.Context, result gweb.Result) gweb.Result {
+	return nil
+}
 
 type Controller struct {
 	gweb.BaseController
-	User          service.UserService
-	Goods         service.GoodsService
-	Orders        service.OrdersService
-	Store         service.StoreService
-	FullCut       service.FullCutService
-	ShoppingCart  service.ShoppingCartService
-	ScoreGoods    service.ScoreGoodsService
-	Rank          service.RankService
-	CardItem      service.CardItemService
-	Wx            service.WxService
-	Verification  service.VerificationService
-	TimeSell      service.TimeSellService
-	Configuration service.ConfigurationService
-	Journal       service.JournalService
+	User          user.UserService
+	Goods         goods.GoodsService
+	Orders        order.OrdersService
+	Store         company.StoreService
+	FullCut       activity.FullCutService
+	ShoppingCart  order.ShoppingCartService
+	ScoreGoods    activity.ScoreGoodsService
+	Rank          activity.RankService
+	CardItem      activity.CardItemService
+	Wx            wechat.WxService
+	Verification  order.VerificationService
+	TimeSell      activity.TimeSellService
+	Configuration configuration.ConfigurationService
+	Journal       journal.JournalService
 }
 
 func (controller *Controller) Init() {
-	controller.Interceptors.Add(&InterceptorMp{})
+	controller.Interceptors.Set(&InterceptorMp{})
 
 	controller.AddHandler(gweb.ALLMethod("index", controller.indexPage))
 
@@ -90,23 +98,23 @@ func (controller *Controller) Init() {
 	controller.AddHandler(gweb.POSMethod("configuration/list", controller.configurationListAction))
 	controller.AddHandler(gweb.GETMethod("read/share/key", controller.readShareKeyAction))
 
-	OrderController := &order.OrderController{}
+	OrderController := &orderAction.OrderController{}
 	OrderController.Interceptors = controller.Interceptors
 	controller.AddSubController("/order/", OrderController)
 
-	StoreController := &store.StoreController{}
+	StoreController := &storeAction.StoreController{}
 	StoreController.Interceptors = controller.Interceptors
 	controller.AddSubController("/store/", StoreController)
 
-	JournalController := &journal.JournalController{}
+	JournalController := &journalAction.JournalController{}
 	JournalController.Interceptors = controller.Interceptors
 	controller.AddSubController("/journal/", JournalController)
 
-	ContentController := &content.ContentController{}
+	ContentController := &contentAction.ContentController{}
 	ContentController.Interceptors = controller.Interceptors
 	controller.AddSubController("/content/", ContentController)
 
-	UserController := &user.UserController{}
+	UserController := &userAction.UserController{}
 	UserController.Interceptors = controller.Interceptors
 	controller.AddSubController("/user/", UserController)
 
@@ -244,7 +252,7 @@ func (controller *Controller) scoreGoodsExchangeAction(context *gweb.Context) gw
 	//ScoreGoodsID
 	user := context.Session.Attributes.Get(play.SessionUser).(*dao.User)
 	ScoreGoodsID, _ := strconv.ParseUint(context.PathParams["ScoreGoodsID"], 10, 64)
-	err := controller.ScoreGoods.Exchange(user.ID, ScoreGoodsID)
+	err := controller.ScoreGoods.Exchange(user, ScoreGoodsID)
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "兑换成功", nil)}
 }
 func (controller *Controller) scoreGoodsListAction(context *gweb.Context) gweb.Result {

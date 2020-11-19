@@ -2,9 +2,10 @@ package shop
 
 import (
 	"github.com/nbvghost/dandelion/app/result"
+	"github.com/nbvghost/dandelion/app/service/company"
+	"github.com/nbvghost/dandelion/app/service/goods"
 	"strconv"
 
-	"github.com/nbvghost/dandelion/app/service"
 	"github.com/nbvghost/dandelion/app/service/dao"
 
 	"github.com/nbvghost/gweb"
@@ -12,8 +13,8 @@ import (
 
 type Controller struct {
 	gweb.BaseController
-	Goods        service.GoodsService
-	Organization service.OrganizationService
+	Goods        goods.GoodsService
+	Organization company.OrganizationService
 }
 
 func (controller *Controller) Init() {

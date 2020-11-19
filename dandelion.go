@@ -10,7 +10,7 @@ import (
 	"github.com/nbvghost/dandelion/app/action/manager"
 	"github.com/nbvghost/dandelion/app/action/mp"
 	"github.com/nbvghost/dandelion/app/action/payment"
-	"github.com/nbvghost/dandelion/app/action/sites"
+	"github.com/nbvghost/dandelion/app/service"
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/conf"
@@ -23,10 +23,13 @@ func init() {
 	glog.Param.LogFilePath = conf.Config.LogDir
 	glog.Param.StandardOut = true
 	glog.Param.FileStorage = false
+	glog.Param.Level = glog.MoreDebugLevel
 	glog.Start()
 }
 
 func main() {
+
+	service.Init()
 
 	admin := &admin.Controller{}
 	admin.NewController("/admin/", admin)
@@ -51,9 +54,6 @@ func main() {
 
 	api := &api.Controller{}
 	api.NewController("/api", api)
-
-	sites := &sites.Controller{}
-	sites.NewController("/sites/", sites)
 
 	file := &file.Controller{}
 	file.NewController("/file", file)

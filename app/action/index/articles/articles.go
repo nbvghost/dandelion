@@ -3,8 +3,11 @@ package articles
 import (
 	"github.com/nbvghost/dandelion/app/play"
 	"github.com/nbvghost/dandelion/app/result"
-	"github.com/nbvghost/dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/service/company"
+	"github.com/nbvghost/dandelion/app/service/content"
 	"github.com/nbvghost/dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/service/user"
+	"github.com/nbvghost/dandelion/app/service/wechat"
 	"net/http"
 	"strconv"
 
@@ -19,23 +22,19 @@ import (
 )
 
 type InterceptorMp struct {
-	Organization service.OrganizationService
-}
-
-func (controller InterceptorMp) Execute(Context *gweb.Context) (bool, gweb.Result) {
-	return true, nil
+	Organization company.OrganizationService
 }
 
 type Controller struct {
 	gweb.BaseController
-	Content service.ContentService
-	Wx      service.WxService
-	User    service.UserService
+	Content content.ContentService
+	Wx      wechat.WxService
+	User    user.UserService
 }
 
 func (controller *Controller) Init() {
 	//Index.RequestMapping = make(map[string]mvc.Function)
-	controller.Interceptors.Add(&InterceptorMp{})
+	//controller.Interceptors.Set(&InterceptorMp{})
 
 	controller.AddHandler(gweb.GETMethod("list/{OID}/new", controller.listNewAction))
 	controller.AddHandler(gweb.GETMethod("article", controller.articleSeftPage))

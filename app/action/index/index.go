@@ -3,6 +3,12 @@ package index
 import (
 	"fmt"
 	"github.com/nbvghost/dandelion/app/result"
+	"github.com/nbvghost/dandelion/app/service/company"
+	"github.com/nbvghost/dandelion/app/service/configuration"
+	"github.com/nbvghost/dandelion/app/service/content"
+	"github.com/nbvghost/dandelion/app/service/goods"
+	"github.com/nbvghost/dandelion/app/service/user"
+	"github.com/nbvghost/dandelion/app/service/wechat"
 	"github.com/nbvghost/gweb/tool/encryption"
 	"io/ioutil"
 	"strconv"
@@ -11,7 +17,6 @@ import (
 
 	"github.com/nbvghost/dandelion/app/action/index/articles"
 	"github.com/nbvghost/dandelion/app/play"
-	"github.com/nbvghost/dandelion/app/service"
 	"github.com/nbvghost/dandelion/app/service/dao"
 	"github.com/nbvghost/dandelion/app/util"
 
@@ -19,8 +24,8 @@ import (
 )
 
 type InterceptorMp struct {
-	Organization service.OrganizationService
-	Wx           service.WxService
+	Organization company.OrganizationService
+	Wx           wechat.WxService
 }
 
 //Execute(Session *Session,Request *http.Request)(bool,Result)
@@ -49,15 +54,15 @@ func (controller InterceptorMp) Execute(context *gweb.Context) (bool, gweb.Resul
 
 type Controller struct {
 	gweb.BaseController
-	Content       service.ContentService
-	Configuration service.ConfigurationService
-	User          service.UserService
-	Goods         service.GoodsService
+	Content       content.ContentService
+	Configuration configuration.ConfigurationService
+	User          user.UserService
+	Goods         goods.GoodsService
 }
 
 func (controller *Controller) Init() {
 	//Index.RequestMapping = make(map[string]mvc.Function)
-	controller.Interceptors.Add(&InterceptorMp{})
+	//controller.Interceptors.Add(&InterceptorMp{})
 
 	controller.AddHandler(gweb.GETMethod("index", controller.indexPage))
 	controller.AddHandler(gweb.POSMethod("/content/new/article/webhook", controller.newArticleWebhookAction))

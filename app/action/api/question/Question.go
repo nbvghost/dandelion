@@ -1,14 +1,14 @@
 package question
 
 import (
-	"github.com/nbvghost/dandelion/app/service"
+	"github.com/nbvghost/dandelion/app/service/question"
 
 	"github.com/nbvghost/gweb"
 )
 
 type Controller struct {
 	gweb.BaseController
-	Question service.QuestionService
+	Question question.QuestionService
 }
 
 func (controller *Controller) Init() {
