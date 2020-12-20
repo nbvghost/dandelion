@@ -5,6 +5,11 @@ import (
 	"github.com/nbvghost/gweb/tool/encryption"
 )
 
+type SessionKey string
+
+const SessionKeyManager SessionKey = "SessionKeyManager"
+const SessionKeyAdmin SessionKey = "SessionKeyAdmin"
+
 const (
 	SessionAdmin          string = "ADMIN"         //商家后台
 	SessionManager        string = "MANAGER"       //系统管理
@@ -40,15 +45,15 @@ const (
 )
 
 const (
-	ConfigurationKey_component_verify_ticket sqltype.ConfigurationKey = 1001
-	ConfigurationKey_Poster                  sqltype.ConfigurationKey = 1002
-	ConfigurationKey_ScoreConvertGrowValue   sqltype.ConfigurationKey = 1100
-	ConfigurationKey_BrokerageLeve1          sqltype.ConfigurationKey = 1201
-	ConfigurationKey_BrokerageLeve2          sqltype.ConfigurationKey = 1202
-	ConfigurationKey_BrokerageLeve3          sqltype.ConfigurationKey = 1203
-	ConfigurationKey_BrokerageLeve4          sqltype.ConfigurationKey = 1204
-	ConfigurationKey_BrokerageLeve5          sqltype.ConfigurationKey = 1205
-	ConfigurationKey_BrokerageLeve6          sqltype.ConfigurationKey = 1206
+	ConfigurationKeyComponentVerifyTicket sqltype.ConfigurationKey = 1001
+	ConfigurationKeyPoster                sqltype.ConfigurationKey = 1002
+	ConfigurationKeyScoreConvertGrowValue sqltype.ConfigurationKey = 1100
+	ConfigurationKeyBrokerageLeve1        sqltype.ConfigurationKey = 1201
+	ConfigurationKeyBrokerageLeve2        sqltype.ConfigurationKey = 1202
+	ConfigurationKeyBrokerageLeve3        sqltype.ConfigurationKey = 1203
+	ConfigurationKeyBrokerageLeve4        sqltype.ConfigurationKey = 1204
+	ConfigurationKeyBrokerageLeve5        sqltype.ConfigurationKey = 1205
+	ConfigurationKeyBrokerageLeve6        sqltype.ConfigurationKey = 1206
 )
 
 const (
