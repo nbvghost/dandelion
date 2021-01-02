@@ -108,29 +108,27 @@ func Paging(db *gorm.DB, pageIndex, pageSize int, dataType IDataBaseFace) result
 	var _total = 0
 	db.Count(&_total)
 
-	GetOffset := func() (int, int) {
+	GetOffset := func() int {
 
 		//_total, pageIndex, pageSize
 
 		x := float64(_total) / float64(pageSize)
 		totalPage := int(math.Ceil(x))
-
-		if pageIndex >= totalPage {
-			pageIndex = totalPage - 1
+		_pageIndex := pageIndex
+		if _pageIndex >= totalPage {
+			_pageIndex = totalPage - 1
 		}
 
-		offset := pageIndex * pageSize
-
-		return offset, pageIndex
+		return _pageIndex
 	}
 
-	_offset, _pageIndex := GetOffset()
+	_pageIndex := GetOffset()
 
 	dt := reflect.TypeOf(dataType)
 
 	var list = reflect.New(reflect.SliceOf(dt))
 
-	db.Limit(pageSize).Offset(_offset).Find(list.Interface())
+	db.Limit(pageSize).Offset(pageIndex * pageSize).Find(list.Interface())
 
 	pager := result.Pager{
 		Data:   list.Elem().Interface(),
