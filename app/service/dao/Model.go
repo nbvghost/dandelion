@@ -93,9 +93,9 @@ type GoodsInfo struct {
 
 type Configuration struct {
 	BaseModel
-	OID uint64 `gorm:"column:OID"`
-	K   uint64 `gorm:"column:K"`
-	V   string `gorm:"column:V"`
+	OID uint64                   `gorm:"column:OID"`
+	K   sqltype.ConfigurationKey `gorm:"column:K"`
+	V   string                   `gorm:"column:V"`
 }
 
 func (u *Configuration) BeforeCreate(scope *gorm.Scope) (err error) {

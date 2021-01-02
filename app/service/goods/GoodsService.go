@@ -436,12 +436,6 @@ func (service GoodsService) ListAllGoodsType() []dao.GoodsType {
 	Orm.Model(&dao.GoodsType{}).Where("ID in (?)", gtsIDs).Find(&gts)
 	return gts
 }
-func (service GoodsService) ListGoodsTypeForAdmin(OID uint64) []dao.GoodsType {
-	Orm := dao.Orm()
-	var gts []dao.GoodsType
-	Orm.Model(&dao.GoodsType{}).Where("OID=?", OID).Find(&gts)
-	return gts
-}
 func (service GoodsService) ListGoodsType(OID uint64) []dao.GoodsType {
 	/*Orm := dao.Orm()
 	var gts []dao.GoodsType
@@ -453,6 +447,28 @@ func (service GoodsService) ListGoodsType(OID uint64) []dao.GoodsType {
 	//service.FindWhere(Orm, &gts, dao.GoodsTypeChild{})
 	Orm.Model(&dao.Goods{}).Where("OID=?", OID).Group("GoodsTypeID").Pluck("GoodsTypeID", &gtsIDs)
 	Orm.Model(&dao.GoodsType{}).Where("ID in (?)", gtsIDs).Find(&gts)
+	return gts
+}
+func (service GoodsService) ListGoodsTypeByOIDForAdmin(OID uint64) []dao.GoodsType {
+	Orm := dao.Orm()
+	var gts []dao.GoodsType
+	Orm.Model(&dao.GoodsType{}).Where("OID=?", OID).Find(&gts)
+	return gts
+}
+func (service GoodsService) ListGoodsTypeForAdmin() []dao.GoodsType {
+	Orm := dao.Orm()
+	var gts []dao.GoodsType
+	Orm.Model(&dao.GoodsType{}).Find(&gts)
+	return gts
+}
+
+func (service GoodsService) ListGoodsTypeChildAll(OID uint64) []dao.GoodsTypeChild {
+	Orm := dao.Orm()
+	var gts []dao.GoodsTypeChild
+	var gtsIDs []uint64
+	//service.FindWhere(Orm, &gts, dao.GoodsTypeChild{})
+	Orm.Model(&dao.Goods{}).Where("OID=?", OID).Group("GoodsTypeChildID").Pluck("GoodsTypeChildID", &gtsIDs)
+	Orm.Model(&dao.GoodsTypeChild{}).Where("ID in (?)", gtsIDs).Find(&gts)
 	return gts
 }
 func (service GoodsService) ListAllGoodsTypeChild(GoodsTypeID uint64) []dao.GoodsTypeChild {
@@ -479,15 +495,7 @@ func (service GoodsService) ListGoodsTypeChild(GoodsTypeID uint64) []dao.GoodsTy
 	Orm.Model(&dao.GoodsTypeChild{}).Where("ID in (?)", gtsIDs).Find(&gts)
 	return gts
 }
-func (service GoodsService) ListGoodsTypeChildAll(OID uint64) []dao.GoodsTypeChild {
-	Orm := dao.Orm()
-	var gts []dao.GoodsTypeChild
-	var gtsIDs []uint64
-	//service.FindWhere(Orm, &gts, dao.GoodsTypeChild{})
-	Orm.Model(&dao.Goods{}).Where("OID=?", OID).Group("GoodsTypeChildID").Pluck("GoodsTypeChildID", &gtsIDs)
-	Orm.Model(&dao.GoodsTypeChild{}).Where("ID in (?)", gtsIDs).Find(&gts)
-	return gts
-}
+
 func (service GoodsService) ListGoodsChildByGoodsTypeID(GoodsTypeID, GoodsTypeChildID uint64) []dao.Goods {
 	Orm := dao.Orm()
 	var gts []dao.Goods

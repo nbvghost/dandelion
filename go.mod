@@ -14,7 +14,6 @@ require (
 	github.com/nbvghost/gweb v1.2.16
 	github.com/pkg/errors v0.8.1
 	github.com/satori/go.uuid v1.2.0 // indirect
-	github.com/skip2/go-qrcode v0.0.0-20190110000554-dc11ecdae0a9
 	golang.org/x/net v0.0.0-20190918130420-a8b05e9114ab
 	golang.org/x/text v0.3.2
 )
