@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"github.com/nbvghost/dandelion/app/service/dao"
+	"github.com/nbvghost/dandelion/app/service/dao/sqltype"
 
 	"github.com/nbvghost/glog"
 )
@@ -10,7 +11,7 @@ type ConfigurationService struct {
 	dao.BaseDao
 }
 
-func (b ConfigurationService) GetConfiguration(OID uint64, Key uint64) dao.Configuration {
+func (b ConfigurationService) GetConfiguration(OID uint64, Key sqltype.ConfigurationKey) dao.Configuration {
 	Orm := dao.Orm()
 	var item dao.Configuration
 	err := Orm.Where("K=? and OID=?", Key, OID).First(&item).Error
@@ -18,14 +19,14 @@ func (b ConfigurationService) GetConfiguration(OID uint64, Key uint64) dao.Confi
 	glog.Error(err)
 	return item
 }
-func (b ConfigurationService) GetConfigurations(OID uint64, Keys []uint64) map[uint64]string {
+func (b ConfigurationService) GetConfigurations(OID uint64, Keys []sqltype.ConfigurationKey) map[sqltype.ConfigurationKey]string {
 	Orm := dao.Orm()
 	var items []dao.Configuration
 	err := Orm.Where("K in (?) and OID=?", Keys, OID).Find(&items).Error
 	//db.Where([]int64{20, 21, 22}).Find(&users
 	glog.Error(err)
 
-	list := make(map[uint64]string)
+	list := make(map[sqltype.ConfigurationKey]string)
 	for _, value := range items {
 		list[value.K] = value.V
 	}
@@ -40,7 +41,7 @@ func (b ConfigurationService) GetConfigurations(OID uint64, Keys []uint64) map[u
 	}*/
 
 }
-func (b ConfigurationService) ChangeConfiguration(OID uint64, Key uint64, Value string) error {
+func (b ConfigurationService) ChangeConfiguration(OID uint64, Key sqltype.ConfigurationKey, Value string) error {
 	Orm := dao.Orm()
 	item := b.GetConfiguration(OID, Key)
 	item.V = Value

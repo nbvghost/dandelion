@@ -202,55 +202,55 @@ func (service AdminService) AddAdmin(Name, Password, Domain string) *result.Acti
 
 	var _Configuration dao.Configuration
 
-	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve1, shop.ID)
+	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKeyBrokerageLeve1, shop.ID)
 	if _Configuration.ID == 0 {
-		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve1, V: "0"}
+		a := dao.Configuration{K: play.ConfigurationKeyBrokerageLeve1, V: "0"}
 		a.OID = shop.ID
 		service.Organization.Add(tx, &a)
 	}
 
 	_Configuration = dao.Configuration{}
-	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve2, shop.ID)
+	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKeyBrokerageLeve2, shop.ID)
 	if _Configuration.ID == 0 {
-		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve2, V: "0"}
+		a := dao.Configuration{K: play.ConfigurationKeyBrokerageLeve2, V: "0"}
 		a.OID = shop.ID
 		service.Organization.Add(tx, &a)
 	}
 
 	_Configuration = dao.Configuration{}
-	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve3, shop.ID)
+	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKeyBrokerageLeve3, shop.ID)
 	if _Configuration.ID == 0 {
-		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve3, V: "0"}
+		a := dao.Configuration{K: play.ConfigurationKeyBrokerageLeve3, V: "0"}
 		a.OID = shop.ID
 		service.Organization.Add(tx, &a)
 	}
 
 	_Configuration = dao.Configuration{}
-	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve4, shop.ID)
+	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKeyBrokerageLeve4, shop.ID)
 	if _Configuration.ID == 0 {
-		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve4, V: "0"}
+		a := dao.Configuration{K: play.ConfigurationKeyBrokerageLeve4, V: "0"}
 		a.OID = shop.ID
 		service.Organization.Add(tx, &a)
 	}
 
 	_Configuration = dao.Configuration{}
-	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve5, shop.ID)
+	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKeyBrokerageLeve5, shop.ID)
 	if _Configuration.ID == 0 {
-		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve5, V: "0"}
+		a := dao.Configuration{K: play.ConfigurationKeyBrokerageLeve5, V: "0"}
 		a.OID = shop.ID
 		service.Organization.Add(tx, &a)
 	}
 
 	_Configuration = dao.Configuration{}
-	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve6, shop.ID)
+	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKeyBrokerageLeve6, shop.ID)
 	if _Configuration.ID == 0 {
-		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve6, V: "0"}
+		a := dao.Configuration{K: play.ConfigurationKeyBrokerageLeve6, V: "0"}
 		a.OID = shop.ID
 		service.Organization.Add(tx, &a)
 	}
-	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKey_BrokerageLeve6, shop.ID)
+	service.Organization.FindWhere(tx, &_Configuration, "K=? and OID=?", play.ConfigurationKeyBrokerageLeve6, shop.ID)
 	if _Configuration.ID == 0 {
-		a := dao.Configuration{K: play.ConfigurationKey_BrokerageLeve6, V: "0"}
+		a := dao.Configuration{K: play.ConfigurationKeyBrokerageLeve6, V: "0"}
 		a.OID = shop.ID
 		service.Organization.Add(tx, &a)
 	}
