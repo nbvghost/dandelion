@@ -46,7 +46,7 @@ func (self FileService) DownNetWriteAliyunOSS(url string) string {
 		//return path
 	}
 
-	client, err := oss.New("oss-cn-shenzhen.aliyuncs.com", "tsZrY5eCZh9hQRbj", "CI3p9tiZGYHcN1wYgQBfZqqsAk6r8K")
+	client, err := oss.New("oss-cn-shenzhen.aliyuncs.com", "xx", "xx")
 	if err != nil {
 		// HandleError(err)
 		glog.Error(err)
