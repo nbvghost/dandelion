@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/config"
-	"github.com/nbvghost/dandelion/service/workobject"
+	"github.com/nbvghost/dandelion/service/iservice"
+
+	"github.com/nbvghost/dandelion/service/serviceobject"
 	"github.com/nbvghost/dandelion/utils"
 	"github.com/nbvghost/gweb"
 	"google.golang.org/grpc"
@@ -15,13 +17,14 @@ import (
 )
 
 type service struct {
-	conf config.Config
-	call func(desc workobject.ServerDesc)
+	Conf  config.Config
+	Route iservice.IRoute
+	Call  func(desc serviceobject.ServerDesc)
 }
 
 func (m *service) Listen() {
-	var ip string = m.conf.IP
-	var port int = m.conf.Port
+	var ip = m.Conf.IP
+	var port = m.Conf.Port
 	if ip == "" {
 		ip = utils.NetworkIP()
 		if ip == "" {
@@ -47,7 +50,7 @@ func (m *service) Listen() {
 	s := grpc.NewServer()
 	defer s.Stop()
 	s.RegisterService(&grpc.ServiceDesc{
-		ServiceName: m.conf.ServerName,
+		ServiceName: m.Conf.ServerName,
 		HandlerType: new(gweb.IHandler),
 		Methods: []grpc.MethodDesc{
 			{
@@ -61,9 +64,9 @@ func (m *service) Listen() {
 		Streams:  nil,
 		Metadata: nil,
 	}, nil)
-	if m.call != nil {
-		m.call(workobject.ServerDesc{
-			ServerName: m.conf.ServerName,
+	if m.Call != nil {
+		m.Call(serviceobject.ServerDesc{
+			ServerName: m.Conf.ServerName,
 			Port:       port,
 			IP:         ip,
 		})
@@ -72,6 +75,14 @@ func (m *service) Listen() {
 		log.Fatalln(err)
 	}
 }
-func New(conf config.Config, call func(desc workobject.ServerDesc)) *service {
-	return &service{conf: conf, call: call}
+func New(
+	conf config.Config,
+	route iservice.IRoute,
+	call func(desc serviceobject.ServerDesc),
+) iservice.IGrpc {
+	return &service{
+		Conf:  conf,
+		Route: route,
+		Call:  call,
+	}
 }

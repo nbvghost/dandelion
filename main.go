@@ -4,13 +4,17 @@ import (
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/service/etcd"
 	"github.com/nbvghost/dandelion/service/grpc"
-	"github.com/nbvghost/dandelion/service/workobject"
+	"github.com/nbvghost/dandelion/service/route"
+	"github.com/nbvghost/dandelion/service/serviceobject"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"log"
 	"time"
 )
 
 func main() {
+
+	r := route.New()
+	log.SetFlags(log.LstdFlags)
 
 	conf := config.Config{
 		ServerName: "shop",
@@ -22,9 +26,14 @@ func main() {
 		},
 	}
 
-	grpc.New(conf, func(desc workobject.ServerDesc) {
+	etcdService := etcd.New(conf.Etcd)
 
-		if err := etcd.New(conf.Etcd, desc).Register(); err != nil {
+	defer func() {
+		etcdService.Close()
+	}()
+	grpc.New(conf, r, func(desc serviceobject.ServerDesc) {
+
+		if err := etcdService.Register(desc); err != nil {
 			log.Fatalln(err)
 		}
 

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"log"
 	"net"
 )
 
@@ -10,8 +9,6 @@ func NetworkIP() string {
 	if err != nil {
 		return ""
 	}
-
-	log.Println(net.LookupPort("tcp", "a"))
 
 	for _, inter := range interList {
 		//过滤掉系统网络接口没有启用或是回环的地址

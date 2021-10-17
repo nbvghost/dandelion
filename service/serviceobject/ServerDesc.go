@@ -1,4 +1,4 @@
-package workobject
+package serviceobject
 
 type ServerDesc struct {
 	ServerName string
