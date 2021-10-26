@@ -2,26 +2,28 @@ package etcd
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/nbvghost/dandelion/service/iservice"
 	"github.com/nbvghost/dandelion/service/serviceobject"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"golang.org/x/net/context"
-	"log"
 )
 
-type Service struct {
+type server struct {
 	desc   serviceobject.ServerDesc
-	Config clientv3.Config
+	config clientv3.Config
 	client *clientv3.Client
 }
 
-func (m *Service) Close() error {
+func (m *server) Close() error {
 	return m.client.Close()
 }
-func (m *Service) Register(desc serviceobject.ServerDesc) error {
+
+func (m *server) Register(desc serviceobject.ServerDesc) error {
 	m.desc = desc
 
-	client, err := clientv3.New(m.Config)
+	client, err := clientv3.New(m.config)
 	if err != nil {
 		return err
 	}
@@ -62,8 +64,8 @@ func (m *Service) Register(desc serviceobject.ServerDesc) error {
 	}
 	return nil
 }
-func New(etcdConfig clientv3.Config) iservice.IEtcd {
-	return &Service{
-		Config: etcdConfig,
+func NewServer(etcdConfig clientv3.Config) iservice.IEtcd {
+	return &server{
+		config: etcdConfig,
 	}
 }

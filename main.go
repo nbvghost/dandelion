@@ -1,32 +1,26 @@
 package main
 
-import (
-	"github.com/nbvghost/dandelion/config"
-	"github.com/nbvghost/dandelion/service/etcd"
-	"github.com/nbvghost/dandelion/service/grpc"
-	"github.com/nbvghost/dandelion/service/route"
-	"github.com/nbvghost/dandelion/service/serviceobject"
-	clientv3 "go.etcd.io/etcd/client/v3"
-	"log"
-	"time"
-)
+import "github.com/nbvghost/dandelion/service/http"
 
 func main() {
 
-	r := route.New()
-	log.SetFlags(log.LstdFlags)
+	/*	r := route.New()
+		log.SetFlags(log.LstdFlags)
 
-	conf := config.Config{
-		ServerName: "shop",
-		Port:       0,
-		IP:         "",
-		Etcd: clientv3.Config{
-			Endpoints:   []string{"0.0.0.0:23791", "0.0.0.0:23792", "0.0.0.0:23793"},
-			DialTimeout: 30 * time.Second,
-		},
-	}
+		conf := config.Config{
+			ServerName: "shop",
+			Port:       0,
+			IP:         "",
+			Etcd: clientv3.Config{
+				Endpoints:   []string{"172.17.114.159:23791", "172.17.114.159:23792", "172.17.114.159:23793"},
+				DialTimeout: 30 * time.Second,
+			},
+		}
+	*/
 
-	etcdService := etcd.New(conf.Etcd)
+	http.New(9090).Listen()
+
+	/*etcdService := etcd.New(conf.Etcd)
 
 	defer func() {
 		etcdService.Close()
@@ -37,6 +31,6 @@ func main() {
 			log.Fatalln(err)
 		}
 
-	}).Listen()
+	}).Listen()*/
 
 }

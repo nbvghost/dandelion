@@ -3,6 +3,7 @@ module github.com/nbvghost/dandelion
 go 1.13
 
 require (
+	github.com/gin-gonic/gin v1.7.4
 	github.com/nbvghost/gweb v1.2.16
 	go.etcd.io/etcd/client/v3 v3.5.1
 	golang.org/x/net v0.0.0-20211015174653-db2dff38ab41
@@ -12,11 +13,7 @@ require (
 	google.golang.org/grpc v1.41.0
 )
 
-replace (
-	github.com/nbvghost/glog => ../glog
-	github.com/nbvghost/gpa => ../gpa
-	github.com/nbvghost/gweb => ../gweb
-)
+replace github.com/nbvghost/gweb => ../gweb
 
 //replace github.com/nbvghost/gweb v1.2.13 => C:\Users\nbvghost\Desktop\gweb
 //replace github.com/nbvghost/gweb v1.2.14 => /Users/nbvghost/Desktop/gweb
