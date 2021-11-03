@@ -2,6 +2,8 @@ package utils
 
 import (
 	"net"
+	"net/http"
+	"strings"
 )
 
 func NetworkIP() string {
@@ -28,4 +30,25 @@ func NetworkIP() string {
 		}
 	}
 	return ""
+}
+func RemoteIP(request http.Request) string {
+	//fmt.Println(context.Request)
+	//fmt.Println(context.Request.Header.Get("X-Forwarded-For"))
+	//fmt.Println(context.Request.RemoteAddr)
+	//Ali-Cdn-Real-Ip
+	IP := request.Header.Get("Ali-Cdn-Real-Ip")
+	if strings.EqualFold(IP, "") {
+		//_IP := context.Request.Header.Get("X-Forwarded-For")
+
+		IP = strings.Split(request.Header.Get("X-Forwarded-For"), ",")[0]
+		if strings.EqualFold(IP, "") {
+			text := request.RemoteAddr
+			if strings.Contains(text, "::") {
+				IP = "0.0.0.0"
+			} else {
+				IP = strings.Split(text, ":")[0]
+			}
+		}
+	}
+	return IP
 }

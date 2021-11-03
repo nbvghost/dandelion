@@ -11,5 +11,5 @@ type IGrpc interface {
 }
 
 type IGrpcClient interface {
-	Call(ctx context.Context, appName string, request serviceobject.GrpcRequest, response *serviceobject.GrpcResponse) error
+	Call(ctx context.Context, appName string, request *serviceobject.GrpcRequest) (*serviceobject.GrpcResponse, error)
 }

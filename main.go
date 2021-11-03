@@ -1,24 +1,22 @@
 package main
 
-import "github.com/nbvghost/dandelion/service/http"
+import (
+	"github.com/nbvghost/dandelion/service/etcd"
+	"github.com/nbvghost/dandelion/service/grpc"
+	"github.com/nbvghost/dandelion/service/http"
+	"log"
+)
 
 func main() {
 
-	/*	r := route.New()
-		log.SetFlags(log.LstdFlags)
+	//r := route.New()
+	log.SetFlags(log.LstdFlags)
 
-		conf := config.Config{
-			ServerName: "shop",
-			Port:       0,
-			IP:         "",
-			Etcd: clientv3.Config{
-				Endpoints:   []string{"172.17.114.159:23791", "172.17.114.159:23792", "172.17.114.159:23793"},
-				DialTimeout: 30 * time.Second,
-			},
-		}
-	*/
+	conf := etcd.New("config.json")
 
-	http.New(9090).Listen()
+	etcdService := etcd.NewServer(conf.Etcd)
+
+	http.New(9090, grpc.NewClient(etcdService)).Listen()
 
 	/*etcdService := etcd.New(conf.Etcd)
 

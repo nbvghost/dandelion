@@ -1,10 +1,12 @@
 package config
 
-import clientv3 "go.etcd.io/etcd/client/v3"
+import (
+	clientv3 "go.etcd.io/etcd/client/v3"
+)
 
-type Config struct {
+type ServerConfig struct {
 	ServerName string
 	Port       int
 	IP         string
-	Etcd       clientv3.Config
+	Etcd       *clientv3.Config
 }

@@ -4,28 +4,46 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/nbvghost/dandelion/config"
+	"github.com/nbvghost/dandelion/library/result"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"log"
 	"net"
 	"strconv"
 
-	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/service/iservice"
 
 	"github.com/nbvghost/dandelion/service/serviceobject"
 	"github.com/nbvghost/dandelion/utils"
-	"github.com/nbvghost/gweb"
 	"google.golang.org/grpc"
 )
 
+type Option func(serviceobject.ServerDesc) error
 type service struct {
-	Conf  config.Config
-	Route iservice.IRoute
-	Call  func(desc serviceobject.ServerDesc)
+	serviceobject.UnimplementedServerServer
+
+	conf    *config.ServerConfig
+	route   iservice.IRoute
+	options []Option
+}
+
+func (m *service) Call(ctx context.Context, request *serviceobject.GrpcRequest) (*serviceobject.GrpcResponse, error) {
+	response, err := m.route.Handle(ctx, request)
+	if err != nil {
+		if v, ok := err.(*result.ActionResult); ok {
+			return nil, status.Error(codes.DataLoss, v.Message)
+		} else {
+			return nil, status.Error(codes.DataLoss, err.Error())
+		}
+	}
+
+	return response, nil
 }
 
 func (m *service) Listen() {
-	var ip = m.Conf.IP
-	var port = m.Conf.Port
+	var ip = m.conf.IP
+	var port = m.conf.Port
 	if ip == "" {
 		ip = utils.NetworkIP()
 		if ip == "" {
@@ -48,42 +66,33 @@ func (m *service) Listen() {
 		port, _ = strconv.Atoi(_port)
 	}
 
+	desc := serviceobject.ServerDesc{
+		ServerName: m.conf.ServerName,
+		Port:       port,
+		IP:         ip,
+	}
+	for i := range m.options {
+		if err = m.options[i](desc); err != nil {
+			log.Fatalln(err)
+		}
+	}
+
 	s := grpc.NewServer()
 	defer s.Stop()
-	s.RegisterService(&grpc.ServiceDesc{
-		ServiceName: m.Conf.ServerName,
-		HandlerType: new(gweb.IHandler),
-		Methods: []grpc.MethodDesc{
-			{
-				MethodName: "/",
-				Handler: func(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-					log.Println(srv, ctx)
-					return nil, nil
-				},
-			},
-		},
-		Streams:  nil,
-		Metadata: nil,
-	}, nil)
-	if m.Call != nil {
-		m.Call(serviceobject.ServerDesc{
-			ServerName: m.Conf.ServerName,
-			Port:       port,
-			IP:         ip,
-		})
-	}
+
+	serviceobject.RegisterServerServer(s, m)
 	if err = s.Serve(lis); err != nil {
 		log.Fatalln(err)
 	}
 }
 func New(
-	conf config.Config,
+	conf *config.ServerConfig,
 	route iservice.IRoute,
-	call func(desc serviceobject.ServerDesc),
+	options ...Option,
 ) iservice.IGrpc {
 	return &service{
-		Conf:  conf,
-		Route: route,
-		Call:  call,
+		conf:    conf,
+		route:   route,
+		options: options,
 	}
 }

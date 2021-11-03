@@ -1,9 +1,11 @@
 package iservice
 
 import (
-	"github.com/nbvghost/gweb"
+	"context"
+	"github.com/nbvghost/dandelion/service/serviceobject"
 )
 
 type IRoute interface {
-	RegisterRoute(path string, handler gweb.IHandler)
+	RegisterRoute(path string, handler IHandler, withoutAuth ...bool)
+	Handle(ctx context.Context, desc *serviceobject.GrpcRequest) (*serviceobject.GrpcResponse, error)
 }

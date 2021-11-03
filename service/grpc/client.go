@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"log"
 
 	"github.com/nbvghost/dandelion/service/iservice"
 	"github.com/nbvghost/dandelion/service/serviceobject"
@@ -9,17 +10,21 @@ import (
 )
 
 type client struct {
-	etcd iservice.IEtcdClient
+	etcd iservice.IEtcd
 }
 
-func (m *client) Call(ctx context.Context, appName string, request serviceobject.GrpcRequest, response *serviceobject.GrpcResponse) error {
-	endpoint := m.etcd.SelectServer(appName)
-	cl, err := grpc.Dial(endpoint)
+func (m *client) Call(ctx context.Context, appName string, request *serviceobject.GrpcRequest) (*serviceobject.GrpcResponse, error) {
+	endpoint, err := m.etcd.SelectServer(appName)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return cl.Invoke(ctx, "/", request, response)
+	log.Printf("call server addres:%s", endpoint)
+	cl, err := grpc.Dial(endpoint, grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	return serviceobject.NewServerClient(cl).Call(ctx, request)
 }
-func NewClient(etcd iservice.IEtcdClient) iservice.IGrpcClient {
+func NewClient(etcd iservice.IEtcd) iservice.IGrpcClient {
 	return &client{etcd: etcd}
 }

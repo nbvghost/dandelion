@@ -1,0 +1,23 @@
+{
+  "Server": {
+    "ServerName": "xxx",
+    "Port": 3333,
+    "IP": "sdxx",
+    "Etcd": {
+      "endpoints": [
+        "172.17.114.159:23791",
+        "172.17.114.159:23792",
+        "172.17.114.159:23793"
+      ],
+      "dial-timeout": 1800
+    }
+  },
+  "MySQL": {
+    "DSN": "root:274455411@tcp(127.0.0.1:3306)/dandelion?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
+  },
+  "Redis": {
+    "Addr": "127.0.0.1:6379",
+    "Password": "",
+    "DB": 0
+  }
+}
