@@ -3,8 +3,8 @@ package redis
 import (
 	"context"
 	"github.com/go-redis/redis/v8"
-	"github.com/nbvghost/dandelion/service/iservice"
-	clientv3 "go.etcd.io/etcd/client/v3"
+	"github.com/nbvghost/dandelion/config"
+	"github.com/nbvghost/dandelion/service/etcd"
 	"log"
 	"sync"
 	"time"
@@ -13,10 +13,14 @@ import (
 type client struct {
 	sync.RWMutex
 	once   sync.Once
-	client *redis.ClusterClient
-	etcd   iservice.IEtcd
+	client *redis.Client
+	etcd   etcd.IEtcd
+	redis  config.RedisOptions
 }
 
+func (m *client) GetEtcd() etcd.IEtcd {
+	return m.etcd
+}
 func (m *client) Get(ctx context.Context, key string) (string, error) {
 	return m.getClient().Get(ctx, key).Result()
 }
@@ -30,7 +34,14 @@ func (m *client) getClient() redis.Cmdable {
 		var wg sync.WaitGroup
 		wg.Add(1)
 		m.once.Do(func() {
-			go m.etcd.SyncConfig(context.TODO(), "redis", func(kvs []*clientv3.Event) {
+			op := m.redis.ToOptions()
+			c := redis.NewClient(&op)
+			if r := c.Ping(context.TODO()); r.Err() != nil {
+				log.Fatalln(r.Err())
+			}
+			m.client = c
+			wg.Done()
+			/*go m.etcd.SyncConfig(context.TODO(), "redis", func(kvs []*clientv3.Event) {
 				m.Lock()
 				defer m.Unlock()
 
@@ -44,12 +55,12 @@ func (m *client) getClient() redis.Cmdable {
 				}
 				m.client = c
 				wg.Done()
-			}, clientv3.WithPrefix())
+			}, clientv3.WithPrefix())*/
 		})
 		wg.Wait()
 	}
 	return m.client
 }
-func NewClient(etcd iservice.IEtcd) iservice.IRedis {
-	return &client{etcd: etcd}
+func NewClient(redis config.RedisOptions, etcd etcd.IEtcd) IRedis {
+	return &client{redis: redis, etcd: etcd}
 }

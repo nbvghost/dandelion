@@ -1,19 +1,24 @@
 package result
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"github.com/nbvghost/dandelion/library/context"
+)
 
 var _ Result = (*JsonResult)(nil)
 
 type Result interface {
-	Apply() ([]byte, error)
-}
-type JsonResult struct {
-	error
-	Data interface{}
-	///sync.RWMutex
+	Apply(context.IContext) ([]byte, error)
 }
 
-func (r *JsonResult) Apply() ([]byte, error) {
+type JsonResult struct {
+	Data interface{}
+}
+
+func (r *JsonResult) Apply(context context.IContext) ([]byte, error) {
 	b, err := json.Marshal(r.Data)
-	return b, err
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
 }

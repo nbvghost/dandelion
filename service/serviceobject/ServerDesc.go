@@ -1,7 +1,7 @@
 package serviceobject
 
 type ServerDesc struct {
-	ServerName string
-	Port       int
-	IP         string
+	Name string
+	Port int
+	IP   string
 }

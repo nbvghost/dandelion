@@ -5,14 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/config"
-	"github.com/nbvghost/dandelion/library/result"
+	"github.com/nbvghost/dandelion/library/action"
+	"github.com/nbvghost/dandelion/service/route"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
 	"net"
 	"strconv"
-
-	"github.com/nbvghost/dandelion/service/iservice"
 
 	"github.com/nbvghost/dandelion/service/serviceobject"
 	"github.com/nbvghost/dandelion/utils"
@@ -23,15 +22,15 @@ type Option func(serviceobject.ServerDesc) error
 type service struct {
 	serviceobject.UnimplementedServerServer
 
-	conf    *config.ServerConfig
-	route   iservice.IRoute
+	server  config.MicroServerConfig
+	route   route.IRoute
 	options []Option
 }
 
 func (m *service) Call(ctx context.Context, request *serviceobject.GrpcRequest) (*serviceobject.GrpcResponse, error) {
 	response, err := m.route.Handle(ctx, request)
 	if err != nil {
-		if v, ok := err.(*result.ActionResult); ok {
+		if v, ok := err.(*action.ActionResult); ok {
 			return nil, status.Error(codes.DataLoss, v.Message)
 		} else {
 			return nil, status.Error(codes.DataLoss, err.Error())
@@ -42,8 +41,8 @@ func (m *service) Call(ctx context.Context, request *serviceobject.GrpcRequest) 
 }
 
 func (m *service) Listen() {
-	var ip = m.conf.IP
-	var port = m.conf.Port
+	var ip = m.server.IP
+	var port = m.server.Port
 	if ip == "" {
 		ip = utils.NetworkIP()
 		if ip == "" {
@@ -67,10 +66,11 @@ func (m *service) Listen() {
 	}
 
 	desc := serviceobject.ServerDesc{
-		ServerName: m.conf.ServerName,
-		Port:       port,
-		IP:         ip,
+		Name: m.server.Name,
+		Port: port,
+		IP:   ip,
 	}
+
 	for i := range m.options {
 		if err = m.options[i](desc); err != nil {
 			log.Fatalln(err)
@@ -86,12 +86,12 @@ func (m *service) Listen() {
 	}
 }
 func New(
-	conf *config.ServerConfig,
-	route iservice.IRoute,
+	server config.MicroServerConfig,
+	route route.IRoute,
 	options ...Option,
-) iservice.IGrpc {
+) IGrpc {
 	return &service{
-		conf:    conf,
+		server:  server,
 		route:   route,
 		options: options,
 	}

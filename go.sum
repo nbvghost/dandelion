@@ -154,8 +154,6 @@ github.com/nbvghost/glog v1.0.17/go.mod h1:MpQrW1hH71geowXb/iED845KLTgcqEXETwLmq
 github.com/nbvghost/tool v0.0.0-20210202062235-ac72a32e5005/go.mod h1:eNCz/e5lTLSSPFvmQClKDElH27AH1JhaleTtg5uCmJo=
 github.com/nbvghost/tool v0.0.0-20210205100218-d99aeb6cf016 h1:Ba6uJJ3cGApZkcxmVKVX51FR1qN9+qL6uJ5M5Iy72Rw=
 github.com/nbvghost/tool v0.0.0-20210205100218-d99aeb6cf016/go.mod h1:eNCz/e5lTLSSPFvmQClKDElH27AH1JhaleTtg5uCmJo=
-github.com/nbvghost/yaml v0.0.0-20210423010830-2ac2f61268af h1:OPmvlWj3d3kQJrFKN6YkGyyYydHZ2TkLit0sOWGpHUs=
-github.com/nbvghost/yaml v0.0.0-20210423010830-2ac2f61268af/go.mod h1:lblIHdem3KHlrm0n9WUFyUnj7TKI5JtaGNXBvQklzAA=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=

@@ -2,15 +2,15 @@ package grpc
 
 import (
 	"context"
+	"github.com/nbvghost/dandelion/service/etcd"
 	"log"
 
-	"github.com/nbvghost/dandelion/service/iservice"
 	"github.com/nbvghost/dandelion/service/serviceobject"
 	"google.golang.org/grpc"
 )
 
 type client struct {
-	etcd iservice.IEtcd
+	etcd etcd.IEtcd
 }
 
 func (m *client) Call(ctx context.Context, appName string, request *serviceobject.GrpcRequest) (*serviceobject.GrpcResponse, error) {
@@ -25,6 +25,6 @@ func (m *client) Call(ctx context.Context, appName string, request *serviceobjec
 	}
 	return serviceobject.NewServerClient(cl).Call(ctx, request)
 }
-func NewClient(etcd iservice.IEtcd) iservice.IGrpcClient {
+func NewClient(etcd etcd.IEtcd) IGrpcClient {
 	return &client{etcd: etcd}
 }

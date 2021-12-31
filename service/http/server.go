@@ -1,32 +1,66 @@
 package http
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"html/template"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"runtime/debug"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/gin-gonic/gin"
-	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/iservice"
+	"github.com/nbvghost/dandelion/library/action"
+	icontext "github.com/nbvghost/dandelion/library/context"
+	"github.com/nbvghost/dandelion/library/funcmap"
+	"github.com/nbvghost/dandelion/library/gobext"
+	"github.com/nbvghost/dandelion/service/grpc"
 	"github.com/nbvghost/dandelion/service/redis"
 	"github.com/nbvghost/dandelion/service/serviceobject"
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/gweb/conf"
 	"github.com/nbvghost/tool/encryption"
-	"log"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type service struct {
 	port       int
-	grpcClient iservice.IGrpcClient
-	redis      iservice.IRedis
+	grpcClient grpc.IGrpcClient
+	redis      redis.IRedis
+	engine     *gin.Engine
 }
 
+const html_404 = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body{
+            font-family: "微软雅黑", "Helvetica Neue", Arial, Verdana, sans-serif;
+        }
+    </style>
+</head>
+<body>
+<h3>ErrorText:</h3>
+<p>{{.ErrorText}}</p>
+<h3>Data:</h3>
+<p style="width: 100%;white-space: pre-wrap;">{{.Data}}</p>
+<h3>Stack:</h3>
+<p style="width: 100%;white-space: pre-wrap;">{{.Stack}}</p>
+</body>
+</html>
+`
+
 func (m *service) Listen() {
-	engine := gin.Default()
+	engine := m.engine
+
 	engine.Use(func(ginContext *gin.Context) {
 		paths := strings.Split(ginContext.Request.URL.Path, "/")
 		var path string
@@ -52,42 +86,24 @@ func (m *service) Listen() {
 		}
 
 	})
+
 	engine.Use(func(ginContext *gin.Context) {
 		var err error
-		var isApi bool
-
-		defer func() {
-			if err != nil {
-				if isApi {
-					ginContext.JSON(http.StatusOK, result.NewError(err))
-				} else {
-					ginContext.Redirect(http.StatusNotFound, "/error/404")
-				}
-				ginContext.Abort()
-			}
-		}()
-
 		cookie, err := ginContext.Request.Cookie("token")
 		var token string
 		if err != nil || strings.EqualFold(cookie.Value, "") {
 			token = encryption.CipherEncrypter(encryption.NewSecretKey(conf.Config.SecureKey), fmt.Sprintf("%s", time.Now().Format("2006-01-02 15:04:05")))
 			http.SetCookie(ginContext.Writer, &http.Cookie{Name: "token", Value: token, Path: "/", MaxAge: conf.Config.SessionExpires})
-
 		} else {
 			token = cookie.Value
 		}
-
-		if v, ok := ginContext.Get("IsApi"); ok {
-			isApi = v.(bool)
-		}
-
 		sessionText, _ := m.redis.Get(ginContext, redis.NewTokenKey(token))
 		if sessionText != "" {
 			session := &gweb.Session{}
 			if err = json.Unmarshal([]byte(sessionText), session); err != nil {
 				return
 			}
-			ginContext.Set("ID", session.ID)
+			ginContext.Set("UID", session.ID)
 		}
 
 	})
@@ -112,16 +128,38 @@ func (m *service) Listen() {
 		}
 
 		var err error
+		response := &serviceobject.GrpcResponse{}
 
 		defer func() {
 			if err != nil {
 				if isApi {
-					ginContext.JSON(http.StatusOK, result.NewError(err))
+					ginContext.JSON(http.StatusOK, action.NewError(err))
 				} else {
-					ginContext.Redirect(http.StatusNotFound, "/error/404")
+					//ginContext.Redirect(http.StatusFound, "/error/404")
+					t, errTemplate := template.New("").Parse(html_404)
+					buffer := bytes.NewBuffer(nil)
+					if errTemplate == nil {
+						d := map[string]interface{}{
+							"ErrorText": err.Error(),
+							"Stack":     string(debug.Stack()),
+						}
+						if response != nil {
+							d["Data"] = string(response.Data)
+						}
+						errTemplate = t.Execute(buffer, d)
+					}
+					if errTemplate != nil {
+						ginContext.Data(http.StatusNotFound, "text/html; charset=utf-8", []byte(errTemplate.Error()))
+					} else {
+						ginContext.Data(http.StatusNotFound, "text/html; charset=utf-8", buffer.Bytes())
+					}
+
 				}
+				ginContext.Abort()
 			}
 		}()
+
+		ctx := icontext.New(context.TODO(), appName, UID, path, ginContext.Request.URL.RawQuery, m.redis)
 
 		var bodyBytes []byte
 		bodyBytes, err = ginContext.GetRawData()
@@ -131,15 +169,14 @@ func (m *service) Listen() {
 
 		Timeout, _ := strconv.ParseUint(ginContext.Request.Header.Get("Timeout"), 10, 64)
 
-		ctx := context.Background()
-		response := &serviceobject.GrpcResponse{}
-		response, err = m.grpcClient.Call(ctx, appName, &serviceobject.GrpcRequest{
+		response, err = m.grpcClient.Call(context.TODO(), appName, &serviceobject.GrpcRequest{
+			AppName:    appName,
 			Route:      path,
 			HttpMethod: ginContext.Request.Method,
 			Timeout:    uint64(Timeout),
-			Header:     nil,
+			Header:     map[string]string{"ContentType": ginContext.ContentType()},
 			Body:       bodyBytes,
-			Uri:        ginContext.Request.URL.RawQuery,
+			Query:      ginContext.Request.URL.RawQuery,
 			UID:        UID,
 		})
 		if err != nil {
@@ -149,14 +186,17 @@ func (m *service) Listen() {
 		if isApi {
 			ginContext.JSON(http.StatusOK, response)
 		} else {
+			v := gobext.NewGob(response.Name)
+			if err = gob.NewDecoder(bytes.NewReader(response.Data)).Decode(v); err != nil {
+				return
+			}
+			var bytes []byte
+			if bytes, err = m.Render(ctx, v); err != nil {
+				return
+			}
+			ginContext.Data(http.StatusOK, "text/html; charset=utf-8", bytes)
 
 		}
-		if err != nil {
-			//panic(err)
-			return
-		}
-
-		log.Println(path)
 
 		ginContext.Abort()
 
@@ -166,6 +206,36 @@ func (m *service) Listen() {
 		log.Fatalln(err)
 	}
 }
-func New(port int, grpcClient iservice.IGrpcClient, redis iservice.IRedis) *service {
-	return &service{port: port, grpcClient: grpcClient, redis: redis}
+func (m *service) Render(context icontext.IContext, data interface{}) ([]byte, error) {
+	var err error
+	var fileByte []byte
+	fileByte, err = ioutil.ReadFile(fmt.Sprintf("view/%s/%s.html", context.AppName(), strings.TrimSuffix(context.Route(), "/")))
+	if err != nil {
+		return nil, err
+	}
+
+	var t *template.Template
+	t, err = template.New("").Funcs(funcmap.NewFuncMap(context)).Parse(string(fileByte))
+	if err != nil {
+		return nil, err
+	}
+	t, err = t.ParseGlob("view/template/*.gohtml")
+	if err != nil {
+		return nil, err
+	}
+
+	buffer := bytes.NewBuffer(nil)
+	err = t.Execute(buffer, map[string]interface{}{
+		"Query": context.Query(),
+		"Data":  data,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return buffer.Bytes(), nil
+
+}
+func New(engine *gin.Engine, port int, grpcClient grpc.IGrpcClient, redis redis.IRedis) *service {
+	return &service{port: port, engine: engine, grpcClient: grpcClient, redis: redis}
 }

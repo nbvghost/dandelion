@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option go_package = "github.com/nbvghost/dandelion/service/serviceobject";
+
+package serviceobject;
+
+//import "google/protobuf/any.proto";
+
+service Server {
+  rpc Call (GrpcRequest) returns (GrpcResponse) {}
+}
+
+message GrpcRequest {
+  string AppName = 1;
+  string Route = 2;
+  string HttpMethod = 3;
+  uint64 Timeout = 4;
+  map<string, string> Header = 5;
+  bytes Body = 6;
+  string Query = 7;
+  string UID = 8;
+}
+
+message GrpcResponse {
+  int64  Error = 1;
+  bytes Data = 2;
+  string Name = 3;
+}

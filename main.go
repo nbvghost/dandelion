@@ -1,34 +1,35 @@
 package main
 
 import (
-	"github.com/nbvghost/dandelion/service/etcd"
-	"github.com/nbvghost/dandelion/service/grpc"
-	"github.com/nbvghost/dandelion/service/http"
+	"bytes"
+	"encoding/gob"
 	"log"
+	"reflect"
 )
+
+type User struct {
+	Nm string
+	U  int
+	F  float64
+}
 
 func main() {
 
-	//r := route.New()
-	log.SetFlags(log.LstdFlags)
+	u := &User{
+		Nm: "xx",
+		U:  5455,
+		F:  2.10,
+	}
 
-	conf := etcd.New("config.json")
+	buffer := bytes.NewBuffer(nil)
+	err := gob.NewEncoder(buffer).Encode(u)
+	log.Println(err, string(buffer.Bytes()))
 
-	etcdService := etcd.NewServer(conf.Etcd)
+	gob.Register(map[string]interface{}{})
 
-	http.New(9090, grpc.NewClient(etcdService)).Listen()
+	var ms = reflect.New(reflect.TypeOf(struct{}{}))
 
-	/*etcdService := etcd.New(conf.Etcd)
-
-	defer func() {
-		etcdService.Close()
-	}()
-	grpc.New(conf, r, func(desc serviceobject.ServerDesc) {
-
-		if err := etcdService.Register(desc); err != nil {
-			log.Fatalln(err)
-		}
-
-	}).Listen()*/
+	err = gob.NewDecoder(buffer).DecodeValue(ms)
+	log.Println(err, ms.Interface())
 
 }
