@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/nbvghost/dandelion/constrain"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -17,7 +18,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nbvghost/dandelion/library/context"
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb/conf"
 	"github.com/nbvghost/tool/object"
@@ -77,7 +77,7 @@ func NewStringArrayFuncResult(args []string) IFuncResult {
 }
 
 type IFunc interface {
-	Call(ctx context.IContext) IFuncResult
+	Call(ctx constrain.IContext) IFuncResult
 }
 
 /*var FunctionMap = template.FuncMap{
@@ -127,10 +127,10 @@ func RegisterWidget(funcName string, widget IWidget) {
 
 type FuncObject struct {
 	funcMap template.FuncMap
-	c       context.IContext
+	c       constrain.IContext
 }
 
-func NewFuncMap(context context.IContext) template.FuncMap {
+func NewFuncMap(context constrain.IContext) template.FuncMap {
 	fm := &FuncObject{}
 	fm.c = context
 	fm.funcMap = make(template.FuncMap)

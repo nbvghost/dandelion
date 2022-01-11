@@ -1,9 +1,9 @@
 package funcmap
 
 import (
-	"github.com/nbvghost/dandelion/library/context"
+	"github.com/nbvghost/dandelion/constrain"
 )
 
 type IWidget interface {
-	Render(ctx context.IContext) (map[string]interface{}, error)
+	Render(ctx constrain.IContext) (map[string]interface{}, error)
 }

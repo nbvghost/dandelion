@@ -5,7 +5,7 @@ import (
 	"github.com/nbvghost/gpa/types"
 )
 
-//商品规格
+// Specification 商品规格
 type Specification struct {
 	base.BaseModel
 	GoodsID     types.PrimaryKey `gorm:"column:GoodsID"`

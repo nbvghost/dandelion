@@ -118,8 +118,7 @@ func (m RedisOptions) ToOptions() redis.Options {
 }
 
 type ServerConfig struct {
-	Server     MicroServerConfig
-	Etcd       clientv3.Config
-	Redis      RedisOptions
-	Postgresql string
+	Server MicroServerConfig
+	Etcd   clientv3.Config
+	Redis  RedisOptions
 }

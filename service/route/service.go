@@ -2,121 +2,190 @@ package route
 
 import (
 	"bytes"
-	"context"
 	"encoding/gob"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/library/util"
 	"net/http"
-	"net/url"
 	"reflect"
-	"strings"
 
-	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
 	"github.com/nbvghost/dandelion/library/action"
-	icontext "github.com/nbvghost/dandelion/library/context"
 	"github.com/nbvghost/dandelion/library/gobext"
-	"github.com/nbvghost/dandelion/library/handler"
-	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/redis"
 	"github.com/nbvghost/dandelion/service/serviceobject"
 )
 
 type service struct {
-	Routes map[string]Info
-	redis  redis.IRedis
+	Routes       map[string]*info
+	ViewRoutes   map[string]*info
+	redis        redis.IRedis
+	callbacks    []constrain.ICallback
+	interceptors map[string][]constrain.IInterceptor
 }
 
 var validate = validator.New()
 
-func (m *service) encodingViewData(r result.ViewResult) ([]byte, string, error) {
+func (m *service) encodingViewData(ctx constrain.IContext, r constrain.IViewResult) ([]byte, string, error) {
 	buffer := bytes.NewBuffer(nil)
-	structName := gobext.GetStructName(r)
-	r.SetName(structName)
+	structName := util.GetPkgPath(r)
+	r.SetPkgPath(structName)
 	if err := gob.NewEncoder(buffer).Encode(r); err != nil {
 		return nil, "", err
 	}
 	return buffer.Bytes(), structName, nil
 
 }
-func (m *service) Handle(ctx context.Context, desc *serviceobject.GrpcRequest) (*serviceobject.GrpcResponse, error) {
-	if v, ok := m.Routes[desc.Route]; !ok {
-
-		return nil, action.NewCodeWithError(action.NotFoundRoute, errors.New("没有找到路由"))
-
-	} else {
-
-		var err error
-
-		handlerValue := reflect.New(v.HandlerType)
-
-		if !v.WithoutAuth {
-			if desc.UID == "" {
-				return nil, action.NewCodeWithError(action.AuthError, errors.New("用户没有授权"))
-			}
-		}
-
-		var paramBodyFieldName string
-		var paramQueryFieldName string
-
-		if field, ok := v.HandlerType.FieldByName(desc.HttpMethod); ok {
-			paramBodyFieldName = field.Name
-		}
-		if field, ok := v.HandlerType.FieldByName("QUERY"); ok {
-			paramQueryFieldName = field.Name
-		}
-		{
-			numField := v.HandlerType.NumField()
-			for i := 0; i < numField; i++ {
-				if tag, ok := v.HandlerType.Field(i).Tag.Lookup("param"); ok {
-					if paramBodyFieldName == "" && strings.EqualFold(desc.HttpMethod, tag) {
-						paramBodyFieldName = v.HandlerType.Field(i).Name
-					}
-					if paramQueryFieldName == "" && strings.EqualFold("QUERY", tag) {
-						paramQueryFieldName = v.HandlerType.Field(i).Name
-					}
+func (m *service) ExecuteInterceptor(context constrain.IContext, info constrain.IRouteInfo, ginContext *gin.Context) (bool, error) {
+	for k := range m.interceptors {
+		l := len(k)
+		route := context.Route()
+		if l > 0 && l <= len(route) {
+			if k == route[:l] {
+				for i := range m.interceptors[k] {
+					return m.interceptors[k][i].Execute(context, info, ginContext)
 				}
 			}
 		}
-		var newFieldValue reflect.Value
-		if paramQueryFieldName != "" {
-			uriFieldValue := handlerValue.Elem().FieldByName(paramQueryFieldName)
-			newFieldValue = reflect.New(uriFieldValue.Type())
-			err = binding.Query.Bind(&http.Request{
-				URL: &url.URL{
-					RawQuery: desc.Query,
-				},
-			}, newFieldValue.Interface())
-			if err != nil {
-				return nil, err
+	}
+	return false, nil
+
+}
+
+type info struct {
+	HandlerType reflect.Type
+	WithoutAuth bool
+}
+
+func (m *info) GetHandlerType() reflect.Type {
+	return m.HandlerType
+}
+
+func (m *info) GetWithoutAuth() bool {
+	return m.WithoutAuth
+}
+
+func (m *service) GetInfo(desc *serviceobject.GrpcRequest) (constrain.IRouteInfo, error) {
+	var routeInfo *info
+	var ok bool
+	var err error
+	if desc.IsApi {
+		if routeInfo, ok = m.Routes[desc.Route]; !ok {
+			err = action.NewCodeWithError(action.NotFoundRoute, errors.New("没有找到路由"))
+		}
+	} else {
+		if routeInfo, ok = m.ViewRoutes[desc.Route]; !ok {
+			err = action.NewCodeWithError(action.NotFoundRoute, errors.New("没有找到路由"))
+		}
+	}
+
+	return routeInfo, err
+}
+
+func (m *service) Handle(parent constrain.IContext, routeInfo constrain.IRouteInfo, desc *serviceobject.GrpcRequest) (*serviceobject.GrpcResponse, error) {
+	if !routeInfo.GetWithoutAuth() {
+		if desc.UID == "" {
+			return nil, action.NewCodeWithError(action.AuthError, errors.New("用户没有授权"))
+		}
+	}
+
+	var err error
+	var apiHandler interface{}
+
+	apiHandler, err = Bind(routeInfo.GetHandlerType(), desc)
+	if err != nil {
+		return nil, err
+	}
+
+	for index := range m.callbacks {
+		item := m.callbacks[index]
+		if err = item.Before(parent, apiHandler); err != nil {
+			return nil, err
+		}
+	}
+
+	if desc.IsApi {
+		var handle func(ctx constrain.IContext) (constrain.IResult, error)
+		switch desc.HttpMethod {
+		case http.MethodGet:
+			if v, ok := apiHandler.(constrain.IHandler); ok {
+				handle = v.Handle
 			}
-			uriFieldValue.Set(newFieldValue.Elem())
+		case http.MethodPost:
+			if v, ok := apiHandler.(constrain.IHandlerPost); ok {
+				handle = v.HandlePost
+			}
+		case http.MethodHead:
+			if v, ok := apiHandler.(constrain.IHandlerHead); ok {
+				handle = v.HandleHead
+			}
+		case http.MethodPut:
+			if v, ok := apiHandler.(constrain.IHandlerPut); ok {
+				handle = v.HandlePut
+			}
+		case http.MethodPatch:
+			if v, ok := apiHandler.(constrain.IHandlerPatch); ok {
+				handle = v.HandlePatch
+			}
+		case http.MethodDelete:
+			if v, ok := apiHandler.(constrain.IHandlerDelete); ok {
+				handle = v.HandleDelete
+			}
+		case http.MethodConnect:
+			if v, ok := apiHandler.(constrain.IHandlerConnect); ok {
+				handle = v.HandleConnect
+			}
+		case http.MethodOptions:
+			if v, ok := apiHandler.(constrain.IHandlerOptions); ok {
+				handle = v.HandleOptions
+			}
+		case http.MethodTrace:
+			if v, ok := apiHandler.(constrain.IHandlerTrace); ok {
+				handle = v.HandleTrace
+			}
+		default:
+			return nil, action.NewCodeWithError(action.HttpError, errors.New(fmt.Sprintf("错误的http方法:%s", desc.HttpMethod)))
+
+		}
+		if handle == nil {
+			return nil, action.NewCodeWithError(action.HttpError, errors.New(fmt.Sprintf("找不到http方法:%s的handle", desc.HttpMethod)))
+		}
+		var returnResult constrain.IResult
+		returnResult, err = handle(parent)
+		if err == nil && returnResult == nil {
+			return &serviceobject.GrpcResponse{
+				Code: 0,
+				Data: []byte("{}"),
+				Name: "",
+			}, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		if returnResult == nil {
+			//returnResult, err = apiHandler.(constrain.IHandler).Handle(parent)
+			return nil, fmt.Errorf("对Api访问的类型：%v不支持", apiHandler)
+		}
+		if err != nil {
+			return nil, err
 		}
 
-		if paramBodyFieldName != "" {
-
-			if err = json.Unmarshal(desc.Body, handlerValue.Interface()); err != nil {
-				return nil, err
-			}
-			if err = validate.Struct(handlerValue.Interface()); err != nil {
-				return nil, action.NewCodeWithError(action.ValidateError, err)
-			}
+		var data []byte
+		if data, err = returnResult.Apply(parent); err != nil {
+			return nil, action.NewError(err)
 		}
 
-		var query interface{}
-		if newFieldValue.IsValid() {
-			query = newFieldValue.Interface()
-		}
-
-		context := icontext.New(ctx, desc.AppName, desc.UID, desc.Route, query, m.redis)
-
-		apiHandler := handlerValue.Interface()
-		var returnResult result.Result
-
-		if v, ok := apiHandler.(handler.IViewHandler); ok {
-			var r result.ViewResult
-			r, err = v.Render(context)
+		return &serviceobject.GrpcResponse{
+			Code: 0,
+			Data: data,
+			Name: "",
+		}, nil
+	} else {
+		if v, ok := apiHandler.(constrain.IViewHandler); ok {
+			var r constrain.IViewResult
+			r, err = v.Render(parent)
 			if err != nil {
 				return nil, err
 			}
@@ -124,89 +193,28 @@ func (m *service) Handle(ctx context.Context, desc *serviceobject.GrpcRequest) (
 			var data []byte
 			var structName string
 
-			if data, structName, err = m.encodingViewData(r); err != nil {
+			if data, structName, err = m.encodingViewData(parent, r); err != nil {
 				return nil, action.NewError(err)
 			}
+			for index := range m.callbacks {
+				item := m.callbacks[index]
+				if err = item.ViewAfter(parent, r); err != nil {
+					return nil, err
+				}
+			}
 			return &serviceobject.GrpcResponse{
-				Error: 0,
-				Data:  data,
-				Name:  structName,
+				Code: 0,
+				Data: data,
+				Name: structName,
 			}, nil
 		} else {
-			switch desc.HttpMethod {
-			case http.MethodGet:
-				if v, ok := apiHandler.(handler.IHandlerGet); ok {
-					returnResult, err = v.HandleGet(context)
-				}
-			case http.MethodPost:
-				if v, ok := apiHandler.(handler.IHandlerPost); ok {
-					returnResult, err = v.HandlePost(context)
-				}
-			case http.MethodHead:
-				if v, ok := apiHandler.(handler.IHandlerHead); ok {
-					returnResult, err = v.HandleHead(context)
-				}
-			case http.MethodPut:
-				if v, ok := apiHandler.(handler.IHandlerPut); ok {
-					returnResult, err = v.HandlePut(context)
-				}
-			case http.MethodPatch:
-				if v, ok := apiHandler.(handler.IHandlerPatch); ok {
-					returnResult, err = v.HandlePatch(context)
-				}
-			case http.MethodDelete:
-				if v, ok := apiHandler.(handler.IHandlerDelete); ok {
-					returnResult, err = v.HandleDelete(context)
-				}
-			case http.MethodConnect:
-				if v, ok := apiHandler.(handler.IHandlerConnect); ok {
-					returnResult, err = v.HandleConnect(context)
-				}
-			case http.MethodOptions:
-				if v, ok := apiHandler.(handler.IHandlerOptions); ok {
-					returnResult, err = v.HandleOptions(context)
-				}
-			case http.MethodTrace:
-				if v, ok := apiHandler.(handler.IHandlerTrace); ok {
-					returnResult, err = v.HandleTrace(context)
-				}
-			default:
-				return nil, action.NewCodeWithError(action.HttpError, errors.New(fmt.Sprintf("错误的http方法:%s", desc.HttpMethod)))
-
-			}
-
-			if err != nil {
-				return nil, err
-			}
-			if returnResult == nil {
-				returnResult, err = apiHandler.(handler.IHandler).Handle(context)
-			}
-			if err != nil {
-				return nil, err
-			}
-
-			var data []byte
-			if data, err = returnResult.Apply(context); err != nil {
-				return nil, action.NewError(err)
-			}
-
-			return &serviceobject.GrpcResponse{
-				Error: 0,
-				Data:  data,
-				Name:  "",
-			}, nil
+			return nil, fmt.Errorf("对视图访问的类型：%v不支持", apiHandler)
 		}
-
 	}
 
 }
 
-type Info struct {
-	HandlerType reflect.Type
-	WithoutAuth bool
-}
-
-func (m *service) RegisterRoute(path string, handler handler.IHandler, withoutAuth ...bool) {
+func (m *service) RegisterRoute(path string, handler constrain.IHandler, withoutAuth ...bool) {
 	path = "/" + path
 	if _, ok := m.Routes[path]; ok {
 		panic(errors.New(fmt.Sprintf("存在相同的路由:%s", path)))
@@ -215,26 +223,36 @@ func (m *service) RegisterRoute(path string, handler handler.IHandler, withoutAu
 	if len(withoutAuth) > 0 {
 		_withoutAuth = withoutAuth[0]
 	}
-	m.Routes[path] = Info{
+	m.Routes[path] = &info{
 		HandlerType: reflect.TypeOf(handler).Elem(),
 		WithoutAuth: _withoutAuth,
 	}
 }
-func (m *service) RegisterView(path string, handler handler.IViewHandler, withoutAuth ...bool) {
+func (m *service) RegisterInterceptors(prefixPath string, interceptors ...constrain.IInterceptor) {
+	if len(prefixPath) == 0 {
+		panic(fmt.Errorf("prefixPath 不能为空"))
+	}
+	if _, ok := m.interceptors[prefixPath]; !ok {
+		m.interceptors[prefixPath] = make([]constrain.IInterceptor, 0)
+	}
+	m.interceptors[prefixPath] = append(m.interceptors[prefixPath], interceptors...)
+}
+func (m *service) RegisterView(path string, handler constrain.IViewHandler, result constrain.IViewResult, withoutAuth ...bool) {
 	path = "/" + path
-	if _, ok := m.Routes[path]; ok {
+	if _, ok := m.ViewRoutes[path]; ok {
 		panic(errors.New(fmt.Sprintf("存在相同的路由:%s", path)))
 	}
 	var _withoutAuth bool
 	if len(withoutAuth) > 0 {
 		_withoutAuth = withoutAuth[0]
 	}
-	m.Routes[path] = Info{
+	m.ViewRoutes[path] = &info{
 		HandlerType: reflect.TypeOf(handler).Elem(),
 		WithoutAuth: _withoutAuth,
 	}
+	gobext.Register(result)
 }
 
-func New(redis redis.IRedis) IRoute {
-	return &service{Routes: map[string]Info{}, redis: redis}
+func New(redis redis.IRedis, callbacks ...constrain.ICallback) IRoute {
+	return &service{Routes: map[string]*info{}, ViewRoutes: map[string]*info{}, redis: redis, callbacks: callbacks, interceptors: make(map[string][]constrain.IInterceptor)}
 }

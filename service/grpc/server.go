@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/library/action"
+	"github.com/nbvghost/dandelion/library/contexext"
+	"github.com/nbvghost/dandelion/service/redis"
 	"github.com/nbvghost/dandelion/service/route"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"log"
 	"net"
+	"net/url"
 	"strconv"
 
 	"github.com/nbvghost/dandelion/service/serviceobject"
@@ -24,11 +27,25 @@ type service struct {
 
 	server  config.MicroServerConfig
 	route   route.IRoute
+	redis   redis.IRedis
 	options []Option
 }
 
 func (m *service) Call(ctx context.Context, request *serviceobject.GrpcRequest) (*serviceobject.GrpcResponse, error) {
-	response, err := m.route.Handle(ctx, request)
+
+	query, err := url.ParseQuery(request.Query)
+	if err != nil {
+		return nil, err
+	}
+
+	currentContext := contexext.New(ctx, request.AppName, request.UID, request.Route, query, m.redis)
+
+	info, err := m.route.GetInfo(request)
+	if err != nil {
+		return nil, err
+	}
+
+	response, err := m.route.Handle(currentContext, info, request)
 	if err != nil {
 		if v, ok := err.(*action.ActionResult); ok {
 			return nil, status.Error(codes.DataLoss, v.Message)

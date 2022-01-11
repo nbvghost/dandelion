@@ -62,8 +62,8 @@ func (m *server) getClient() *clientv3.Client {
 func (m *server) ObtainRedis() (*config.RedisOptions, error) {
 	var err error
 	client := m.getClient()
-	ctx := context.Background()
-
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
 	resp, err := client.Get(ctx, "Redis")
 	if err != nil {
 		return nil, err
@@ -94,11 +94,12 @@ func (m *server) RegisterRedis(config config.RedisOptions) error {
 	}
 	return nil
 }
-func (m *server) ObtainPostgresql() (string, error) {
+func (m *server) ObtainPostgresql(serverName string) (string, error) {
 	var err error
 	client := m.getClient()
-	ctx := context.Background()
-	resp, err := client.Get(ctx, "Postgresql")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+	resp, err := client.Get(ctx, fmt.Sprintf("%s/%s", "Postgresql", serverName))
 	if err != nil {
 		return "", err
 	}
@@ -109,12 +110,12 @@ func (m *server) ObtainPostgresql() (string, error) {
 
 	return string(resp.Kvs[0].Value), err
 }
-func (m *server) RegisterPostgresql(dsn string) error {
+func (m *server) RegisterPostgresql(dsn string, serverName string) error {
 	var err error
 	client := m.getClient()
 	ctx := context.Background()
 
-	_, err = client.Put(ctx, "Postgresql", dsn)
+	_, err = client.Put(ctx, fmt.Sprintf("%s/%s", "Postgresql", serverName), dsn)
 	if err != nil {
 		return err
 	}
