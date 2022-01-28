@@ -934,7 +934,7 @@ For each endpoints, prints a message indicating whether the endpoint was success
 ```bash
 ./etcdctl --endpoints=localhost:2379,badendpoint:2379 defrag
 # Finished defragmenting etcd member[localhost:2379]
-# Failed to defragment etcd member[badendpoint:2379] (grpc: timed out trying to connect)
+# Failed to defragment etcd member[badendpoint:2379] (grpcext: timed out trying to connect)
 ```
 
 Run defragment operations for all endpoints in the cluster associated with the default endpoint:

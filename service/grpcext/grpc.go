@@ -1,0 +1,19 @@
+package grpcext
+
+import (
+	"context"
+	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/service/serviceobject"
+	"google.golang.org/grpc"
+)
+
+type Register func(serviceDesc grpc.ServiceDesc, handlers []constrain.IGrpcHandler, withoutAuth ...bool)
+type IGrpc interface {
+	Register(serviceDesc grpc.ServiceDesc, handlers []constrain.IGrpcHandler, withoutAuth ...bool)
+	AddCallback(callbacks ...constrain.ICallback)
+	Listen()
+}
+
+type IGrpcClient interface {
+	Call(ctx context.Context, appName string, request *serviceobject.GrpcRequest) (*serviceobject.GrpcResponse, error)
+}

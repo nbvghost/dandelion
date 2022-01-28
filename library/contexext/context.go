@@ -4,25 +4,37 @@ import (
 	"context"
 	"github.com/nbvghost/dandelion/constrain"
 	"net/url"
+	"time"
 
 	"github.com/nbvghost/dandelion/service/redis"
 	"github.com/nbvghost/gpa/types"
-	"github.com/nbvghost/gweb"
 )
 
 type handlerContext struct {
-	uid        types.PrimaryKey
-	parent     context.Context
-	redis      redis.IRedis
-	appName    string
-	route      string
-	query      url.Values
-	attributes *gweb.Attributes
+	uid     types.PrimaryKey
+	parent  context.Context
+	redis   redis.IRedis
+	appName string
+	route   string
+	query   url.Values
 }
 
-func (m *handlerContext) Attributes() *gweb.Attributes {
-	return m.attributes
+func (m *handlerContext) Deadline() (deadline time.Time, ok bool) {
+	return m.parent.Deadline()
 }
+
+func (m *handlerContext) Done() <-chan struct{} {
+	return m.parent.Done()
+}
+
+func (m *handlerContext) Err() error {
+	return m.parent.Err()
+}
+
+func (m *handlerContext) Value(key interface{}) interface{} {
+	return m.parent.Value(key)
+}
+
 func (m *handlerContext) Query() url.Values {
 	return m.query
 }
@@ -32,7 +44,6 @@ func (m *handlerContext) Route() string {
 func (m *handlerContext) AppName() string {
 	return m.appName
 }
-
 func (m *handlerContext) UID() types.PrimaryKey {
 	return m.uid
 }
@@ -48,8 +59,7 @@ func (m *handlerContext) SelectServer(appName string) (string, error) {
 func (m *handlerContext) SelectFileServer() string {
 	return m.redis.GetEtcd().SelectFileServer()
 }
-
 func New(parent context.Context, appName, uid string, route string, query url.Values, redis redis.IRedis) constrain.IContext {
 
-	return &handlerContext{parent: parent, uid: types.NewFromString(uid), query: query, route: route, redis: redis, appName: appName, attributes: &gweb.Attributes{}}
+	return &handlerContext{parent: parent, uid: types.NewFromString(uid), query: query, route: route, redis: redis, appName: appName}
 }

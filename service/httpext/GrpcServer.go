@@ -22,7 +22,7 @@ import (
 
 	"github.com/nbvghost/dandelion/library/funcmap"
 	"github.com/nbvghost/dandelion/library/gobext"
-	"github.com/nbvghost/dandelion/service/grpc"
+	"github.com/nbvghost/dandelion/service/grpcext"
 	"github.com/nbvghost/dandelion/service/redis"
 	"github.com/nbvghost/dandelion/service/serviceobject"
 	"github.com/nbvghost/gweb"
@@ -32,7 +32,7 @@ import (
 
 type grpcServer struct {
 	port       int
-	grpcClient grpc.IGrpcClient
+	grpcClient grpcext.IGrpcClient
 	redis      redis.IRedis
 	engine     *gin.Engine
 }
@@ -239,6 +239,6 @@ func (m *grpcServer) Render(context constrain.IContext, data interface{}) ([]byt
 	return buffer.Bytes(), nil
 
 }
-func NewGrpcServer(engine *gin.Engine, port int, grpcClient grpc.IGrpcClient, redis redis.IRedis) *grpcServer {
+func NewGrpcServer(engine *gin.Engine, port int, grpcClient grpcext.IGrpcClient, redis redis.IRedis) *grpcServer {
 	return &grpcServer{port: port, engine: engine, grpcClient: grpcClient, redis: redis}
 }

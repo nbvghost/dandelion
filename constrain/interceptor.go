@@ -1,7 +1,9 @@
 package constrain
 
-import "github.com/gin-gonic/gin"
+import (
+	"net/http"
+)
 
 type IInterceptor interface {
-	Execute(context IContext, info IRouteInfo, ginContext *gin.Context) (broken bool, err error)
+	Execute(context IContext, info IRouteInfo, writer http.ResponseWriter, request *http.Request) (broken bool, err error)
 }

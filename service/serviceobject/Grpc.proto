@@ -17,7 +17,7 @@ message GrpcRequest {
   uint64 Timeout = 4;
   string Header = 5;
   string Query = 6;
-  repeated Param Uri = 7;
+  map<string, string>  Uri = 7;
   string Form = 8;
   bytes Body = 9;
   string UID = 10;
@@ -28,9 +28,4 @@ message GrpcResponse {
   int64  Code = 1;
   bytes Data = 2;
   string Name = 3;
-}
-
-message Param  {
-  string Key = 1;
-  string Value = 2;
 }

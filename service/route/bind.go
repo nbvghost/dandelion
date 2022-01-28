@@ -38,8 +38,8 @@ func Bind(handlerType reflect.Type, desc *serviceobject.GrpcRequest) (interface{
 					{
 						//path params uri
 						m := make(map[string][]string)
-						for _, v := range desc.Uri {
-							m[v.Key] = []string{v.Value}
+						for k := range desc.Uri {
+							m[k] = []string{desc.Uri[k]}
 						}
 						if err = mapUri(obj, m); err != nil {
 							return nil, err

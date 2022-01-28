@@ -24,6 +24,16 @@ func (m *client) GetEtcd() etcd.IEtcd {
 func (m *client) Get(ctx context.Context, key string) (string, error) {
 	return m.getClient().Get(ctx, key).Result()
 }
+func (m *client) GenerateUID(ctx context.Context) uint64 {
+	key := NewUIDKey()
+	mUID := m.getClient().Get(ctx, key)
+	v, _ := mUID.Uint64()
+	if v == 0 {
+		v, _ = m.getClient().IncrBy(ctx, key, 100000).Uint64()
+	}
+	v, _ = m.getClient().Incr(ctx, key).Uint64()
+	return v
+}
 func (m *client) GetEx(ctx context.Context, key string, expiration time.Duration) (string, error) {
 	return m.getClient().GetEx(ctx, key, expiration).Result()
 }

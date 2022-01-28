@@ -5,7 +5,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
+	"github.com/gorilla/mux"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/util"
 	"net/http"
@@ -18,15 +18,30 @@ import (
 	"github.com/nbvghost/dandelion/service/serviceobject"
 )
 
+var validate = validator.New()
+
+type Info struct {
+	HandlerType reflect.Type
+	WithoutAuth bool
+}
+
+func (m *Info) GetHandlerType() reflect.Type {
+	return m.HandlerType
+}
+
+func (m *Info) GetWithoutAuth() bool {
+	return m.WithoutAuth
+}
+
 type service struct {
-	Routes       map[string]*info
-	ViewRoutes   map[string]*info
+	Routes     map[string]*Info
+	ViewRoutes map[string]*Info
+
 	redis        redis.IRedis
 	callbacks    []constrain.ICallback
 	interceptors map[string][]constrain.IInterceptor
+	router       *mux.Router
 }
-
-var validate = validator.New()
 
 func (m *service) encodingViewData(ctx constrain.IContext, r constrain.IViewResult) ([]byte, string, error) {
 	buffer := bytes.NewBuffer(nil)
@@ -38,14 +53,23 @@ func (m *service) encodingViewData(ctx constrain.IContext, r constrain.IViewResu
 	return buffer.Bytes(), structName, nil
 
 }
-func (m *service) ExecuteInterceptor(context constrain.IContext, info constrain.IRouteInfo, ginContext *gin.Context) (bool, error) {
+func (m *service) RegisterInterceptors(prefixPath string, interceptors ...constrain.IInterceptor) {
+	if len(prefixPath) == 0 {
+		panic(fmt.Errorf("prefixPath 不能为空"))
+	}
+	if _, ok := m.interceptors[prefixPath]; !ok {
+		m.interceptors[prefixPath] = make([]constrain.IInterceptor, 0)
+	}
+	m.interceptors[prefixPath] = append(m.interceptors[prefixPath], interceptors...)
+}
+func (m *service) ExecuteInterceptor(context constrain.IContext, info constrain.IRouteInfo, writer http.ResponseWriter, request *http.Request) (bool, error) {
 	for k := range m.interceptors {
 		l := len(k)
 		route := context.Route()
 		if l > 0 && l <= len(route) {
 			if k == route[:l] {
 				for i := range m.interceptors[k] {
-					return m.interceptors[k][i].Execute(context, info, ginContext)
+					return m.interceptors[k][i].Execute(context, info, writer, request)
 				}
 			}
 		}
@@ -54,21 +78,8 @@ func (m *service) ExecuteInterceptor(context constrain.IContext, info constrain.
 
 }
 
-type info struct {
-	HandlerType reflect.Type
-	WithoutAuth bool
-}
-
-func (m *info) GetHandlerType() reflect.Type {
-	return m.HandlerType
-}
-
-func (m *info) GetWithoutAuth() bool {
-	return m.WithoutAuth
-}
-
 func (m *service) GetInfo(desc *serviceobject.GrpcRequest) (constrain.IRouteInfo, error) {
-	var routeInfo *info
+	var routeInfo *Info
 	var ok bool
 	var err error
 	if desc.IsApi {
@@ -223,20 +234,15 @@ func (m *service) RegisterRoute(path string, handler constrain.IHandler, without
 	if len(withoutAuth) > 0 {
 		_withoutAuth = withoutAuth[0]
 	}
-	m.Routes[path] = &info{
+	m.router.HandleFunc("/api"+path, func(writer http.ResponseWriter, request *http.Request) {
+
+	})
+	m.Routes[path] = &Info{
 		HandlerType: reflect.TypeOf(handler).Elem(),
 		WithoutAuth: _withoutAuth,
 	}
 }
-func (m *service) RegisterInterceptors(prefixPath string, interceptors ...constrain.IInterceptor) {
-	if len(prefixPath) == 0 {
-		panic(fmt.Errorf("prefixPath 不能为空"))
-	}
-	if _, ok := m.interceptors[prefixPath]; !ok {
-		m.interceptors[prefixPath] = make([]constrain.IInterceptor, 0)
-	}
-	m.interceptors[prefixPath] = append(m.interceptors[prefixPath], interceptors...)
-}
+
 func (m *service) RegisterView(path string, handler constrain.IViewHandler, result constrain.IViewResult, withoutAuth ...bool) {
 	path = "/" + path
 	if _, ok := m.ViewRoutes[path]; ok {
@@ -246,13 +252,16 @@ func (m *service) RegisterView(path string, handler constrain.IViewHandler, resu
 	if len(withoutAuth) > 0 {
 		_withoutAuth = withoutAuth[0]
 	}
-	m.ViewRoutes[path] = &info{
+	m.router.HandleFunc(path, func(writer http.ResponseWriter, request *http.Request) {
+
+	})
+	m.ViewRoutes[path] = &Info{
 		HandlerType: reflect.TypeOf(handler).Elem(),
 		WithoutAuth: _withoutAuth,
 	}
 	gobext.Register(result)
 }
 
-func New(redis redis.IRedis, callbacks ...constrain.ICallback) IRoute {
-	return &service{Routes: map[string]*info{}, ViewRoutes: map[string]*info{}, redis: redis, callbacks: callbacks, interceptors: make(map[string][]constrain.IInterceptor)}
+func New(router *mux.Router, redis redis.IRedis, callbacks ...constrain.ICallback) IRoute {
+	return &service{router: router, Routes: map[string]*Info{}, ViewRoutes: map[string]*Info{}, redis: redis, callbacks: callbacks, interceptors: make(map[string][]constrain.IInterceptor)}
 }

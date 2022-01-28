@@ -1,5 +1,10 @@
 package constrain
 
+import (
+	"github.com/golang/protobuf/proto"
+	"google.golang.org/grpc/status"
+)
+
 type IHandlerPost interface {
 	IHandler
 	HandlePost(ctx IContext) (IResult, error)
@@ -37,4 +42,7 @@ type IHandler interface {
 }
 type IViewHandler interface {
 	Render(ctx IContext) (IViewResult, error)
+}
+type IGrpcHandler interface {
+	Handle(ctx IContext) (proto.Message, *status.Status)
 }

@@ -11,4 +11,5 @@ type IRedis interface {
 	GetEx(ctx context.Context, key string, expiration time.Duration) (string, error)
 	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
 	GetEtcd() etcd.IEtcd
+	GenerateUID(ctx context.Context) uint64
 }
