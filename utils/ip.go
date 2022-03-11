@@ -1,11 +1,27 @@
 package utils
 
 import (
+	"fmt"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
+func RandomNetworkPort() (int, error) {
+	lis, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:0"))
+	if err != nil {
+		return 0, err
+	}
+	defer lis.Close()
+
+	_, _port, err := net.SplitHostPort(lis.Addr().String())
+	if err != nil {
+		return 0, err
+	}
+	port, _ := strconv.Atoi(_port)
+	return port, nil
+}
 func NetworkIP() string {
 	interList, err := net.Interfaces()
 	if err != nil {

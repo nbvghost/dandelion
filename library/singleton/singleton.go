@@ -1,12 +1,12 @@
 package singleton
 
 import (
+	"github.com/nbvghost/dandelion/constrain"
 	"sync"
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/service/etcd"
-	"github.com/nbvghost/dandelion/service/postgres"
+	"github.com/nbvghost/dandelion/server/postgres"
 	"github.com/nbvghost/gpa"
 )
 
@@ -22,14 +22,17 @@ func GPA() gpa.IDataBase {
 
 	return instance.pq.GPA()
 }
-func Init(etcd etcd.IEtcd, serverName string) {
+func Init(etcd constrain.IEtcd, serverName string) error {
+	var err error
 	once.Do(func() {
 		var dns string
-		var err error
+
 		if dns, err = etcd.ObtainPostgresql(serverName); err != nil {
 			panic(err)
 		}
 		instance.pq = postgres.New(dns)
 
 	})
+
+	return err
 }

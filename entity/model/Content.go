@@ -26,12 +26,14 @@ func (ContentItem) TableName() string {
 
 type ContentTypeType string
 
-const ContentTypeContents ContentTypeType = "contents"
-const ContentTypeContent ContentTypeType = "content"
-const ContentTypeIndex ContentTypeType = "index"
-const ContentTypeGallery ContentTypeType = "gallery"
-const ContentTypeProducts ContentTypeType = "products"
-const ContentTypeBlog ContentTypeType = "blog"
+const (
+	ContentTypeContents ContentTypeType = "contents"
+	ContentTypeContent  ContentTypeType = "content"
+	ContentTypeIndex    ContentTypeType = "index"
+	ContentTypeGallery  ContentTypeType = "gallery"
+	ContentTypeProducts ContentTypeType = "products"
+	ContentTypeBlog     ContentTypeType = "blog"
+)
 
 //MenuType
 type ContentType struct {
@@ -46,7 +48,7 @@ func (ContentType) TableName() string {
 
 //Classify
 type ContentSubType struct {
-	base.BaseModel
+	types.Entity
 	Name                   string           `gorm:"column:Name"`
 	ContentItemID          types.PrimaryKey `gorm:"column:ContentItemID"`
 	ParentContentSubTypeID types.PrimaryKey `gorm:"column:ParentContentSubTypeID"`
@@ -58,7 +60,8 @@ func (ContentSubType) TableName() string {
 }
 
 type Content struct {
-	base.BaseModel
+	types.Entity
+	OID              types.PrimaryKey `gorm:"column:OID"`
 	Title            string           `gorm:"column:Title"`
 	Keywords         string           `gorm:"column:Keywords"`
 	Description      string           `gorm:"column:Description"`
@@ -77,7 +80,7 @@ func (Content) TableName() string {
 }
 
 type ContentConfig struct {
-	base.BaseModel
+	types.Entity
 	OID             types.PrimaryKey            `gorm:"column:OID;unique"`
 	Name            string                      `gorm:"column:Name"`
 	Logo            string                      `gorm:"column:Logo"`

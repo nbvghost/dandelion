@@ -1,14 +1,12 @@
 package model
 
 import (
-	"time"
-
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
+	"time"
 )
 
 type Admin struct {
-	base.BaseModel
+	types.Entity
 	OID         types.PrimaryKey `gorm:"column:OID"`
 	Account     string           `gorm:"column:Account;not null;unique"`
 	PassWord    string           `gorm:"column:PassWord;not null"`

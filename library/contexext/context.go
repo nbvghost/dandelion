@@ -3,20 +3,41 @@ package contexext
 import (
 	"context"
 	"github.com/nbvghost/dandelion/constrain"
+	"net/http"
 	"net/url"
 	"time"
 
-	"github.com/nbvghost/dandelion/service/redis"
 	"github.com/nbvghost/gpa/types"
 )
 
 type handlerContext struct {
 	uid     types.PrimaryKey
 	parent  context.Context
-	redis   redis.IRedis
+	redis   constrain.IRedis
 	appName string
 	route   string
 	query   url.Values
+	token   string
+}
+
+type ContextKey struct {
+}
+type ContextValue struct {
+	Mapping    constrain.IMappingCallback
+	Timeout    uint64
+	Response   http.ResponseWriter
+	Request    *http.Request
+	DomainName string
+}
+
+func NewContext(v *ContextValue) context.Context {
+	return context.WithValue(context.TODO(), ContextKey{}, v)
+}
+
+func FromContext(context constrain.IContext) *ContextValue {
+	m := context.Value(ContextKey{})
+	v, _ := m.(*ContextValue)
+	return v
 }
 
 func (m *handlerContext) Deadline() (deadline time.Time, ok bool) {
@@ -50,16 +71,18 @@ func (m *handlerContext) UID() types.PrimaryKey {
 func (m *handlerContext) Context() context.Context {
 	return m.parent
 }
-func (m *handlerContext) Redis() redis.IRedis {
+func (m *handlerContext) Redis() constrain.IRedis {
 	return m.redis
 }
-func (m *handlerContext) SelectServer(appName string) (string, error) {
+func (m *handlerContext) SelectServer(appName constrain.MicroServerKey) (string, error) {
 	return m.redis.GetEtcd().SelectServer(appName)
 }
 func (m *handlerContext) SelectFileServer() string {
 	return m.redis.GetEtcd().SelectFileServer()
 }
-func New(parent context.Context, appName, uid string, route string, query url.Values, redis redis.IRedis) constrain.IContext {
-
-	return &handlerContext{parent: parent, uid: types.NewFromString(uid), query: query, route: route, redis: redis, appName: appName}
+func (m *handlerContext) Token() string {
+	return m.token
+}
+func New(parent context.Context, appName, uid string, route string, query url.Values, redis constrain.IRedis, token string) constrain.IContext {
+	return &handlerContext{parent: parent, uid: types.NewFromString(uid), query: query, route: route, redis: redis, appName: appName, token: token}
 }

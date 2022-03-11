@@ -23,10 +23,10 @@ type BaseDao struct {
 
 	return DB.Unscoped().Delete(target, "ID=?", ID).Error
 }*/
-func (b BaseDao) DeleteWhere(DB *gorm.DB, target interface{}, where interface{}, args ...interface{}) error {
+func (b BaseDao) DeleteWhere(DB *gorm.DB, target interface{}, where map[string]interface{}) error {
 	//db.Where("email LIKE ?", "%jinzhu%").Delete(Email{})
 	//DB *gorm.DB, target interface{}, where interface{}
-	return DB.Where(where, args...).Delete(target).Error
+	return DB.Where(where).Delete(target).Error
 }
 func (b BaseDao) Delete(DB *gorm.DB, target interface{}, ID types.PrimaryKey) error {
 

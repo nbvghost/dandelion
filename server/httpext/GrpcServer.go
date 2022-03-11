@@ -1,0 +1,244 @@
+package httpext
+
+import (
+	"bytes"
+	"context"
+	"encoding/gob"
+	"encoding/json"
+	"fmt"
+	"github.com/nbvghost/dandelion/constrain"
+	"html/template"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"runtime/debug"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/nbvghost/dandelion/library/action"
+	"github.com/nbvghost/dandelion/library/contexext"
+
+	"github.com/nbvghost/dandelion/library/funcmap"
+	"github.com/nbvghost/dandelion/library/gobext"
+	"github.com/nbvghost/dandelion/server/grpcext"
+	"github.com/nbvghost/dandelion/server/redis"
+	"github.com/nbvghost/dandelion/server/serviceobject"
+	"github.com/nbvghost/gweb"
+	"github.com/nbvghost/gweb/conf"
+	"github.com/nbvghost/tool/encryption"
+)
+
+type grpcServer struct {
+	port       int
+	grpcClient grpcext.IGrpcClient
+	redis      constrain.IRedis
+	engine     *gin.Engine
+}
+
+const html_404 = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        body{
+            font-family: "微软雅黑", "Helvetica Neue", Arial, Verdana, sans-serif;
+        }
+    </style>
+</head>
+<body>
+<h3>ErrorText:</h3>
+<p>{{.ErrorText}}</p>
+<h3>Data:</h3>
+<p style="width: 100%;white-space: pre-wrap;">{{.Data}}</p>
+<h3>Stack:</h3>
+<p style="width: 100%;white-space: pre-wrap;">{{.Stack}}</p>
+</body>
+</html>
+`
+
+func (m *grpcServer) Listen() {
+	engine := m.engine
+
+	engine.Use(func(ginContext *gin.Context) {
+		paths := strings.Split(ginContext.Request.URL.Path, "/")
+		var path string
+		if len(paths) >= 3 {
+			appName := paths[1]
+			endpointName := paths[2]
+
+			if endpointName == "api" {
+				//api请求
+				path = "/" + strings.Join(paths[3:], "/")
+			} else {
+				//api请求并返回相关的页面
+				path = "/" + strings.Join(paths[2:], "/")
+			}
+
+			ginContext.Set("AppName", appName)
+			ginContext.Set("IsApi", endpointName == "api")
+			ginContext.Set("Path", path)
+
+		} else {
+
+			ginContext.Abort()
+		}
+
+	})
+
+	engine.Use(func(ginContext *gin.Context) {
+		var err error
+		cookie, err := ginContext.Request.Cookie("token")
+		var token string
+		if err != nil || strings.EqualFold(cookie.Value, "") {
+			token = encryption.CipherEncrypter(encryption.NewSecretKey(conf.Config.SecureKey), fmt.Sprintf("%s", time.Now().Format("2006-01-02 15:04:05")))
+			http.SetCookie(ginContext.Writer, &http.Cookie{Name: "token", Value: token, Path: "/", MaxAge: conf.Config.SessionExpires})
+		} else {
+			token = cookie.Value
+		}
+		sessionText, _ := m.redis.Get(ginContext, redis.NewTokenKey(token))
+		if sessionText != "" {
+			session := &gweb.Session{}
+			if err = json.Unmarshal([]byte(sessionText), session); err != nil {
+				return
+			}
+			ginContext.Set("UID", session.ID)
+		}
+
+	})
+	engine.Use(func(ginContext *gin.Context) {
+		var isApi bool
+		var appName string
+		var path string
+		var UID string
+
+		if v, ok := ginContext.Get("IsApi"); ok {
+			isApi = v.(bool)
+		}
+		if v, ok := ginContext.Get("AppName"); ok {
+			appName = v.(string)
+		}
+		if v, ok := ginContext.Get("Path"); ok {
+			path = v.(string)
+		}
+
+		if v, ok := ginContext.Get("UID"); ok {
+			UID = v.(string)
+		}
+
+		var err error
+		response := &serviceobject.GrpcResponse{}
+
+		defer func() {
+			if err != nil {
+				if isApi {
+					ginContext.JSON(http.StatusOK, action.NewError(err))
+				} else {
+					//ginContext.Redirect(http.StatusFound, "/error/404")
+					t, errTemplate := template.New("").Parse(html_404)
+					buffer := bytes.NewBuffer(nil)
+					if errTemplate == nil {
+						d := map[string]interface{}{
+							"ErrorText": err.Error(),
+							"Stack":     string(debug.Stack()),
+						}
+						if response != nil {
+							d["Data"] = string(response.Data)
+						}
+						errTemplate = t.Execute(buffer, d)
+					}
+					if errTemplate != nil {
+						ginContext.Data(http.StatusNotFound, "text/html; charset=utf-8", []byte(errTemplate.Error()))
+					} else {
+						ginContext.Data(http.StatusNotFound, "text/html; charset=utf-8", buffer.Bytes())
+					}
+
+				}
+				ginContext.Abort()
+			}
+		}()
+
+		//todo
+		ctx := contexext.New(context.TODO(), appName, UID, path, nil, m.redis, "")
+
+		var bodyBytes []byte
+		bodyBytes, err = ginContext.GetRawData()
+		if err != nil {
+			return
+		}
+
+		Timeout, _ := strconv.ParseUint(ginContext.Request.Header.Get("Timeout"), 10, 64)
+
+		response, err = m.grpcClient.Call(context.TODO(), constrain.MicroServerKey(appName), &serviceobject.GrpcRequest{
+			AppName:    appName,
+			Route:      path,
+			HttpMethod: ginContext.Request.Method,
+			Timeout:    uint64(Timeout),
+			//Header:     map[string]string{"ContentType": ginContext.ContentType()},//todo
+			Body:  bodyBytes,
+			Query: ginContext.Request.URL.RawQuery,
+			UID:   UID,
+		})
+		if err != nil {
+			return
+		}
+
+		if isApi {
+			ginContext.JSON(http.StatusOK, response)
+		} else {
+			v := gobext.NewGob(response.Name)
+			if err = gob.NewDecoder(bytes.NewReader(response.Data)).Decode(v); err != nil {
+				return
+			}
+			var bytes []byte
+			if bytes, err = m.Render(ctx, v); err != nil {
+				return
+			}
+			ginContext.Data(http.StatusOK, "text/html; charset=utf-8", bytes)
+
+		}
+
+		ginContext.Abort()
+
+	})
+	err := engine.Run(fmt.Sprintf(":%d", m.port))
+	if err != nil {
+		log.Fatalln(err)
+	}
+}
+func (m *grpcServer) Render(context constrain.IContext, data interface{}) ([]byte, error) {
+	var err error
+	var fileByte []byte
+	fileByte, err = ioutil.ReadFile(fmt.Sprintf("view/%s/%s.html", context.AppName(), strings.TrimSuffix(context.Route(), "/")))
+	if err != nil {
+		return nil, err
+	}
+
+	var t *template.Template
+	t, err = template.New("").Funcs(funcmap.NewFuncMap(context)).Parse(string(fileByte))
+	if err != nil {
+		return nil, err
+	}
+	t, err = t.ParseGlob(fmt.Sprintf("view/%s/template/*.gohtml", context.AppName()))
+	if err != nil {
+		return nil, err
+	}
+
+	buffer := bytes.NewBuffer(nil)
+	err = t.Execute(buffer, map[string]interface{}{
+		"Query": context.Query(),
+		"Data":  data,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return buffer.Bytes(), nil
+
+}
+func NewGrpcServer(engine *gin.Engine, port int, grpcClient grpcext.IGrpcClient, redis constrain.IRedis) *grpcServer {
+	return &grpcServer{port: port, engine: engine, grpcClient: grpcClient, redis: redis}
+}

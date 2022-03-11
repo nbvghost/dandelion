@@ -114,7 +114,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 		return accessToken.Access_token
 	}
 
-	WxConfig := service.WxConfigService{}.GlobalWXAConfig()
+	WxConfig := server.WxConfigService{}.GlobalWXAConfig()
 
 	url := "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + WxConfig.AppID + "&secret=" + WxConfig.AppSecret
 
@@ -173,7 +173,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 /*
 
 func OrderQuery(OrderNo uint) (return_code, result_code, trade_state, time_end string, total_fee uint) {
-	WxConfig := service.WxConfigService{}.GlobalWXAConfig()
+	WxConfig := server.WxConfigService{}.GlobalWXAConfig()
 
 	outMap := make(map[string]string)
 	outMap["appid"] = WxConfig.AppID
@@ -218,7 +218,7 @@ func OrderQuery(OrderNo uint) (return_code, result_code, trade_state, time_end s
 
 
 func GetWXJSConfig(url string) (appId string, timestamp int64, nonceStr string, signature string) {
-	WxConfig := service.WxConfigService{}.GlobalWXAConfig()
+	WxConfig := server.WxConfigService{}.GlobalWXAConfig()
 
 	appId = WxConfig.AppID
 	timestamp = time.Now().Unix()

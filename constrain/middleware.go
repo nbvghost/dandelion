@@ -8,3 +8,6 @@ type IMiddleware interface {
 	Handle(w http.ResponseWriter, r *http.Request) (bool, error)
 	Defer(w http.ResponseWriter, r *http.Request, err error)
 }
+type IViewRender interface {
+	Render(context IContext, request *http.Request, writer http.ResponseWriter, viewData interface{}) error
+}

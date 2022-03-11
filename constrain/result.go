@@ -1,7 +1,7 @@
 package constrain
 
 type IResult interface {
-	Apply(IContext) ([]byte, error)
+	Apply(IContext)
 }
 type IViewResult interface {
 	GetName() string

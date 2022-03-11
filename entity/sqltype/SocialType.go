@@ -2,13 +2,16 @@ package sqltype
 
 type SocialType string
 
-const Facebook SocialType = "facebook"
-const Twitter SocialType = "twitter"
-const Linkedin SocialType = "linkedin"
-const Instagram SocialType = "instagram"
-const Skype SocialType = "skype"
-const Wechat SocialType = "wechat"
-const Qq SocialType = "qq"
-const Email SocialType = "email"
-const Phone SocialType = "phone"
-const Whatsapp SocialType = "whatsapp"
+const (
+	SocialTypeFacebook  SocialType = "facebook"
+	SocialTypeTwitter   SocialType = "twitter"
+	SocialTypeLinkedin  SocialType = "linkedin"
+	SocialTypeInstagram SocialType = "instagram"
+	SocialTypeSkype     SocialType = "skype"
+	SocialTypeWechat    SocialType = "wechat"
+	SocialTypeQq        SocialType = "qq"
+	SocialTypeEmail     SocialType = "email"
+	SocialTypePhone     SocialType = "phone"
+	SocialTypeWhatsapp  SocialType = "whatsapp"
+	SocialTypeOther     SocialType = "other"
+)

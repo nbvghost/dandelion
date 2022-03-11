@@ -12,7 +12,7 @@ import (
 
 //商品
 type Goods struct {
-	base.BaseModel
+	types.Entity
 	OID              types.PrimaryKey `gorm:"column:OID"`
 	Title            string           `gorm:"column:Title"`
 	GoodsTypeID      types.PrimaryKey `gorm:"column:GoodsTypeID"`
@@ -35,7 +35,10 @@ type Goods struct {
 
 func (u *Goods) BeforeCreate(scope *gorm.DB) (err error) {
 	var gt Goods
-	scope.Model(u).Where("OID=?", u.OID).Where("Title=?", u.Title).Find(&gt)
+	scope.Model(u).Where(map[string]interface{}{
+		"OID":   u.OID,
+		"Title": u.Title,
+	}).Find(&gt)
 	if gt.ID != 0 {
 		err = errors.New("名字重复")
 	}
@@ -55,10 +58,10 @@ func (u Goods) TableName() string {
 }
 
 type GoodsType struct {
-	base.BaseModel
-	//OID  uint `gorm:"column:OID"`
-	Name  string `gorm:"column:Name"`
-	Image string `gorm:"column:Image"`
+	types.Entity
+	OID   types.PrimaryKey `gorm:"column:OID"`
+	Name  string           `gorm:"column:Name"`
+	Image string           `gorm:"column:Image"`
 }
 
 func (GoodsType) TableName() string {
@@ -88,7 +91,7 @@ func (GoodsType) TableName() string {
 
 type GoodsTypeChild struct {
 	base.BaseModel
-	//OID         uint `gorm:"column:OID"`
+	OID         types.PrimaryKey `gorm:"column:OID"`
 	Name        string           `gorm:"column:Name"`
 	Image       string           `gorm:"column:Image"`
 	GoodsTypeID types.PrimaryKey `gorm:"column:GoodsTypeID"`

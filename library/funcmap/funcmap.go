@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/library/contexext"
 	"html/template"
 
 	"io/ioutil"
@@ -178,7 +179,8 @@ func NewFuncMap(context constrain.IContext) template.FuncMap {
 			case IFunc:
 				makeFuncType = reflect.FuncOf(argsIn, []reflect.Type{reflect.TypeOf(new(interface{})).Elem()}, false)
 			case IWidget:
-				makeFuncType = reflect.FuncOf(argsIn, []reflect.Type{reflect.TypeOf(new(template.HTML)).Elem()}, false)
+
+				makeFuncType = reflect.FuncOf(argsIn, []reflect.Type{reflect.TypeOf(new(interface{})).Elem()}, false)
 			}
 
 			backCallFunc := reflect.MakeFunc(makeFuncType, func(args []reflect.Value) (results []reflect.Value) {
@@ -188,31 +190,35 @@ func NewFuncMap(context constrain.IContext) template.FuncMap {
 
 				var result interface{}
 
+				contextValue := contexext.FromContext(context)
+
+				err := contextValue.Mapping.Before(context, function)
+				if err != nil {
+					return []reflect.Value{reflect.ValueOf(err)}
+				}
+
 				switch function.(type) {
 				case IWidget:
 					resultData, err := function.(IWidget).Render(fm.c)
 					if err != nil {
-						log.Println(err)
-						return
+						return []reflect.Value{reflect.ValueOf(err)}
 					}
-					resultData["Query"] = fm.c.Query()
-					fileName := filepath.Join("view", "template", "widget", fmt.Sprintf("%s.%s", funcName, "gohtml"))
-					b, err := ioutil.ReadFile(fileName)
+					//todo resultData["Query"] = fm.c.Query()
+					fileName := filepath.Join("view", contextValue.DomainName, "template", "widget", fmt.Sprintf("%s.%s", funcName, "gohtml"))
+					var b []byte
+					b, err = ioutil.ReadFile(fileName)
 					if err != nil {
-						log.Println(err)
-						return
+						return []reflect.Value{reflect.ValueOf(err)}
 					}
-					t, err := template.New(funcName).Funcs(NewFuncMap(fm.c)).Parse(string(b))
+					var t *template.Template
+					t, err = template.New(funcName).Funcs(NewFuncMap(fm.c)).Parse(string(b))
 					if err != nil {
-						log.Println(err)
-						return
+						return []reflect.Value{reflect.ValueOf(err)}
 					}
 					buffer := bytes.NewBuffer(nil)
-					if err := t.Execute(buffer, resultData); err != nil {
-						log.Println(err)
-						return
+					if err = t.Execute(buffer, resultData); err != nil {
+						return []reflect.Value{reflect.ValueOf(err)}
 					}
-
 					result = template.HTML(buffer.Bytes())
 
 				case IFunc:

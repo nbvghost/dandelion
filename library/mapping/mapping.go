@@ -4,22 +4,24 @@ import (
 	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/util"
+	"github.com/nbvghost/gpa/types"
+	"log"
 	"reflect"
 )
 
-type Call func(context constrain.IContext) (instance interface{}, err error)
+type Call func(context constrain.IContext) (instance types.IEntity, err error)
 
 type IMapping interface {
-	Call(context constrain.IContext) (instance interface{}, err error)
+	Call(context constrain.IContext) (instance types.IEntity, err error)
 	Name() string
-	Instance() interface{}
+	Instance() types.IEntity
 }
 
 type mapping struct {
 	poolList map[string]map[string]Call
 }
 
-func (m *mapping) Register(instance interface{}, call Call, mappingName string) error {
+func (m *mapping) register(instance types.IEntity, call Call, mappingName string) error {
 	path := util.GetPkgPath(instance)
 	if _, ok := m.poolList[path]; !ok {
 		m.poolList[path] = make(map[string]Call)
@@ -51,7 +53,23 @@ func (m *mapping) Before(context constrain.IContext, handler interface{}) error 
 				if err != nil {
 					return err
 				}
-				fieldV.Set(reflect.ValueOf(instance))
+
+				mappingValue := reflect.ValueOf(instance)
+				if fieldV.Kind() == reflect.Ptr {
+					if mappingValue.Kind() == reflect.Ptr {
+						fieldV.Set(mappingValue)
+					} else {
+						log.Println(mappingValue)
+						fieldV.Set(reflect.ValueOf(mappingValue.Interface()).Addr())
+					}
+				} else {
+					if mappingValue.Kind() == reflect.Ptr {
+						fieldV.Set(mappingValue.Elem())
+					} else {
+						fieldV.Set(mappingValue)
+					}
+				}
+
 			}
 		}
 	}
@@ -61,12 +79,17 @@ func (m *mapping) Before(context constrain.IContext, handler interface{}) error 
 func (m *mapping) ViewAfter(context constrain.IContext, r constrain.IViewResult) error {
 	return m.Before(context, r)
 }
+func (m *mapping) AddMapping(mapping IMapping) {
+	if err := m.register(mapping.Instance(), mapping.Call, mapping.Name()); err != nil {
+		panic(err)
+	}
+}
 
-func New(mappings ...IMapping) *mapping {
+func New(mappings ...IMapping) constrain.IMappingCallback {
 	v := &mapping{poolList: make(map[string]map[string]Call)}
 	for index := range mappings {
 		mapping := mappings[index]
-		if err := v.Register(mapping.Instance(), mapping.Call, mapping.Name()); err != nil {
+		if err := v.register(mapping.Instance(), mapping.Call, mapping.Name()); err != nil {
 			panic(err)
 		}
 	}
