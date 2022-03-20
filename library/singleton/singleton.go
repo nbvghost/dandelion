@@ -32,6 +32,10 @@ func Init(etcd constrain.IEtcd, serverName string) error {
 		}
 		instance.pq = postgres.New(dns)
 
+		gpa.Init(func() gpa.IDataBase {
+			return gpa.Open("postgres", dns, nil)
+		})
+
 	})
 
 	return err

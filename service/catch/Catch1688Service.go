@@ -214,7 +214,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 	if _goods.ID != 0 {
 		return
 	}
-	goods.Mark = Mark
+	//goods.Mark = Mark
 	goods.OID = haveAdmin.OID
 	goods.ExpressTemplateID = express.ID
 
@@ -323,7 +323,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 		imageLists := strings.Split(imageList, ",")
 		glog.Trace(imageLists)
 
-		images := make([]string, 0)
+		//images := make([]string, 0)
 		for i := 0; i < len(imageLists); i++ {
 			if strings.EqualFold(imageLists[i], "") == false {
 				imgPath := "" //todo tool.DownloadInternetImage(imageLists[i], "", "")
@@ -337,9 +337,9 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 
 		}
 
-		goods.Images = util.StructToJSON(images)
+		//goods.Images = util.StructToJSON(images)
 	} else {
-		images := make([]string, 0)
+		//images := make([]string, 0)
 		doc.Find("div.mod-detail-gallery li.tab-trigger").Each(func(i int, selection *goquery.Selection) {
 
 			imgPath, exist := selection.Attr("data-imgs")
@@ -355,7 +355,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 			}
 
 		})
-		goods.Images = util.StructToJSON(images)
+		//goods.Images = util.StructToJSON(images)
 
 	}
 
@@ -431,7 +431,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 			imgsDoc, err := goquery.NewDocumentFromReader(red)
 			glog.Error(err)
 
-			images := make([]string, 0)
+			//images := make([]string, 0)
 			imgsDoc.Find("img").Each(func(i int, s *goquery.Selection) {
 				pimgUrl, exits := s.Attr("src")
 				if exits && strings.EqualFold(pimgUrl, "") == false {
@@ -447,13 +447,13 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 				}
 			})
 
-			goods.Pictures = util.StructToJSON(images)
+			//goods.Pictures = util.StructToJSON(images)
 
 		}
 
 	})
 
-	goods.Videos = "[]"
+	//goods.Videos = "[]"
 
 	service.Goods.Add(singleton.Orm(), goods)
 	for s := 0; s < len(specifications); s++ {

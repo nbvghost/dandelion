@@ -2,6 +2,8 @@ package model
 
 import (
 	"errors"
+	"github.com/lib/pq"
+	"github.com/nbvghost/dandelion/entity/sqltype"
 	"runtime/debug"
 
 	"gorm.io/gorm"
@@ -13,24 +15,24 @@ import (
 //商品
 type Goods struct {
 	types.Entity
-	OID              types.PrimaryKey `gorm:"column:OID"`
-	Title            string           `gorm:"column:Title"`
-	GoodsTypeID      types.PrimaryKey `gorm:"column:GoodsTypeID"`
-	GoodsTypeChildID types.PrimaryKey `gorm:"column:GoodsTypeChildID"`
-	Price            uint             `gorm:"column:Price"`
-	Stock            uint             `gorm:"column:Stock"`
-	Hide             uint             `gorm:"column:Hide"`
-	Images           string           `gorm:"column:Images;type:text;"` //json array
-	Videos           string           `gorm:"column:Videos;type:text;"` //json array
-	Summary          string           `gorm:"column:Summary;type:text"`
-	Introduce        string           `gorm:"column:Introduce;type:text"`
-	Pictures         string           `gorm:"column:Pictures;type:text;"` //json array
-	Params           string           `gorm:"column:Params;type:text;"`   //json array
+	OID               types.PrimaryKey    `gorm:"column:OID"`                 //
+	Title             string              `gorm:"column:Title"`               //
+	GoodsTypeID       types.PrimaryKey    `gorm:"column:GoodsTypeID"`         //
+	GoodsTypeChildID  types.PrimaryKey    `gorm:"column:GoodsTypeChildID"`    //
+	Price             uint                `gorm:"column:Price"`               //
+	Stock             uint                `gorm:"column:Stock"`               //
+	Hide              uint                `gorm:"column:Hide"`                //
+	Images            sqltype.StringArray `gorm:"column:Images;type:JSON;"`   //json array
+	Videos            sqltype.StringArray `gorm:"column:Videos;type:JSON;"`   //json array
+	Summary           string              `gorm:"column:Summary;type:text"`   //
+	Introduce         string              `gorm:"column:Introduce;type:text"` //
+	Pictures          sqltype.StringArray `gorm:"column:Pictures;type:JSON"`  //json array
+	Params            string              `gorm:"column:Params;type:text;"`   //json array
+	ExpressTemplateID types.PrimaryKey    `gorm:"column:ExpressTemplateID"`   //
+	CountSale         uint                `gorm:"column:CountSale"`           //销售量
+	CountView         uint                `gorm:"column:CountView"`           //查看数量
+	Tags              pq.StringArray      `gorm:"column:Tags;type:text[]"`    //
 	//TimeSellID        uint `gorm:"column:TimeSellID"`                          //
-	ExpressTemplateID types.PrimaryKey `gorm:"column:ExpressTemplateID"` //
-	CountSale         uint             `gorm:"column:CountSale"`         //销售量
-	CountView         uint             `gorm:"column:CountView"`         //查看数量
-	Mark              string           `gorm:"column:Mark"`
 }
 
 func (u *Goods) BeforeCreate(scope *gorm.DB) (err error) {

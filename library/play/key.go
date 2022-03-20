@@ -114,7 +114,7 @@ const (
 	ScoreJournal_Type_DH           = 2 //积分兑换商品
 	ScoreJournal_Type_LEVE         = 3 //上下级结算佣金,获取的积分
 	ScoreJournal_Type_DaySign      = 4 //签到送积分
-	ScoreJournal_Type_Look_Article = 5 //看文章
+	ScoreJournal_Type_Look_Article = 5
 	ScoreJournal_Type_Share        = 6 //转发获历
 	ScoreJournal_Type_InviteUser   = 7 //邀请好友
 )

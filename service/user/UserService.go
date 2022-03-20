@@ -11,6 +11,7 @@ import (
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/dandelion/service/configuration"
 	"github.com/nbvghost/dandelion/service/journal"
+	"log"
 
 	"gorm.io/gorm"
 
@@ -38,9 +39,13 @@ type UserService struct {
 }
 
 func (service UserService) Login(account string) (user *model.User) {
+	var err error
+	if user, err = repository.User.GetByTel(account); user.IsZero() {
 
-	if user = repository.User.GetByTel(account); user.IsZero() {
-		user = repository.User.GetByEmail(account)
+		user, err = repository.User.GetByEmail(account)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 	return user
 
@@ -52,13 +57,13 @@ func (service UserService) UpdateLoginStatus(userID types.PrimaryKey) error {
 }
 func (service UserService) AddUser(name, email, password string) error {
 
-	hasUser := repository.User.GetByEmail(email)
+	hasUser, err := repository.User.GetByEmail(email)
 	if hasUser.IsZero() == false {
 		return errors.New("record is exist")
 	}
 	user := &model.User{Name: name, Email: email, Password: encryption.Md5ByString(password)}
 
-	err := repository.User.Create(user)
+	err = repository.User.Create(user)
 	return err
 
 }

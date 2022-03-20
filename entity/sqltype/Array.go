@@ -3,8 +3,6 @@ package sqltype
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
-	"fmt"
 )
 
 type StringArray []string
@@ -13,7 +11,7 @@ type StringArray []string
 func (j *StringArray) Scan(value interface{}) error {
 	bytes, ok := value.([]byte)
 	if !ok {
-		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
+		bytes = []byte("[]")
 	}
 	err := json.Unmarshal(bytes, j)
 	return err
@@ -27,3 +25,22 @@ func (j StringArray) Value() (driver.Value, error) {
 
 	return json.Marshal(j)
 }
+
+/*type InterfaceArray []interface{}
+
+// 实现 driver.Valuer 接口，Value 返回 json value
+func (j InterfaceArray) ConvertValue(v interface{}) (driver.Value, error) {
+	if j == nil {
+		j = make(InterfaceArray, 0)
+	}
+
+	return "1,3", nil
+}
+func (j InterfaceArray) Value() (driver.Value, error) {
+	if j == nil {
+		j = make(InterfaceArray, 0)
+	}
+
+	return "1,3", nil
+}
+*/

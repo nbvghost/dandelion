@@ -150,42 +150,48 @@ func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, e
 	var broken bool
 	var apiHandler interface{}
 	broken, apiHandler, err = m.route.Handle(ctx, m.isApi, m.pathTemplate, func(apiHandler interface{}) error {
-		/*if err = validate.Struct(obj); err != nil {
-			return nil, action.NewCodeWithError(action.ValidateError, err)
-		}*/
-
-		//b, err := ioutil.ReadAll(r.Body)
-		//log.Println(string(b), err)
-
 		v := reflect.ValueOf(apiHandler)
 		t := reflect.TypeOf(apiHandler).Elem()
 		num := t.NumField()
+		fieldIndex := -1
 		for i := 0; i < num; i++ {
 			method := t.Field(i).Tag.Get("method")
 			if strings.EqualFold(method, r.Method) {
-				vv := v.Elem().Field(i)
-				err := binding.Default(r.Method, filterFlags(r.Header.Get("Content-Type"))).Bind(r, vv.Addr().Interface())
-				if err != nil {
-					return err
-				}
-				err = binding.Header.Bind(r, vv.Addr().Interface())
-				if err != nil {
-					return err
-				}
-
-				uriVars := mux.Vars(r)
-				uriMap := make(map[string][]string)
-				for uriKey := range uriVars {
-					uriMap[uriKey] = []string{uriVars[uriKey]}
-				}
-				err = binding.Uri.BindUri(uriMap, vv.Addr().Interface())
-				if err != nil {
-					return err
-				}
-				return err
+				fieldIndex = i
+				break
 			}
 		}
-		return nil
+
+		var vv reflect.Value
+		if fieldIndex >= 0 {
+			vv = v.Elem().Field(fieldIndex)
+		} else {
+			vv = v.Elem()
+		}
+
+		err := binding.Default(r.Method, filterFlags(r.Header.Get("Content-Type"))).Bind(r, vv.Addr().Interface())
+		if err != nil {
+			return err
+		}
+		err = binding.Header.Bind(r, vv.Addr().Interface())
+		if err != nil {
+			return err
+		}
+
+		uriVars := mux.Vars(r)
+		uriMap := make(map[string][]string)
+		for uriKey := range uriVars {
+			uriMap[uriKey] = []string{uriVars[uriKey]}
+		}
+		err = binding.Uri.BindUri(uriMap, vv.Addr().Interface())
+		if err != nil {
+			return err
+		}
+		err = binding.Query.Bind(r, vv.Addr().Interface())
+		if err != nil {
+			return err
+		}
+		return err
 	})
 	if err != nil {
 		if v, ok := err.(*action.ActionResult); ok {
@@ -266,7 +272,7 @@ func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, e
 	} else {
 		if v, ok := apiHandler.(constrain.IViewHandler); ok {
 
-			uriVars := mux.Vars(r)
+			/*uriVars := mux.Vars(r)
 			uriMap := make(map[string][]string)
 			for uriKey := range uriVars {
 				uriMap[uriKey] = []string{uriVars[uriKey]}
@@ -274,7 +280,7 @@ func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, e
 			err = binding.Uri.BindUri(uriMap, v)
 			if err != nil {
 				return false, err
-			}
+			}*/
 
 			var viewResult constrain.IViewResult
 			viewResult, err = v.Render(ctx)

@@ -154,7 +154,7 @@ func (b BaseDao) DatatablesListOrder(Orm *gorm.DB, params *Datatables, target in
 		}
 
 		if !strings.EqualFold(value.Search.Value, "") {
-			wheres = append(wheres, value.Data+"="+value.Search.Value)
+			wheres = append(wheres, fmt.Sprintf(`"%s"='%s'`, value.Data, value.Search.Value))
 
 		}
 		if value.Searchable && !strings.EqualFold(value.Data, "") {

@@ -8,5 +8,5 @@ import (
 
 type IPostgres interface {
 	Orm() *gorm.DB
-	GPA() gpa.IDataBaseOperation
+	GPA() gpa.IDataBase
 }

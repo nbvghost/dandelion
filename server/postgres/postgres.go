@@ -21,7 +21,7 @@ type server struct {
 	gpaOnce sync.Once
 
 	orm *gorm.DB
-	gpa gpa.IDataBaseOperation
+	gpa gpa.IDataBase
 
 	logger logger.Interface
 }
@@ -39,7 +39,7 @@ func (p *server) Orm() *gorm.DB {
 	return p.orm
 }
 
-func (p *server) GPA() gpa.IDataBaseOperation {
+func (p *server) GPA() gpa.IDataBase {
 	p.gpaOnce.Do(func() {
 		p.gpa = gpa.Open("postgres", p.dns, nil)
 	})

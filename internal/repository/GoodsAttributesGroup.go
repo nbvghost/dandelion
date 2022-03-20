@@ -10,8 +10,8 @@ var GoodsAttributesGroup = gpa.Bind(&GoodsAttributesGroupRepository{}, &model.Go
 
 type GoodsAttributesGroupRepository struct {
 	gpa.IRepository
-	FindByGoodsID       func(goodsID types.PrimaryKey) []*model.GoodsAttributesGroup            `gpa:"AutoCrate"`
-	GetByGoodsIDAndName func(goodsID types.PrimaryKey, name string) *model.GoodsAttributesGroup `gpa:"AutoCrate"`
+	FindByGoodsID       func(goodsID types.PrimaryKey) ([]*model.GoodsAttributesGroup, error)            `gpa:"AutoCrate"`
+	GetByGoodsIDAndName func(goodsID types.PrimaryKey, name string) (*model.GoodsAttributesGroup, error) `gpa:"AutoCrate"`
 }
 
 func (u *GoodsAttributesGroupRepository) Repository() gpa.IRepository {

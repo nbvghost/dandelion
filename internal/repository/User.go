@@ -9,10 +9,10 @@ var User = gpa.Bind(&UserRepository{}, &model.User{}).(*UserRepository)
 
 type UserRepository struct {
 	gpa.IRepository
-	GetByEmail func(email string) *model.User `gpa:"AutoCrate"`
+	GetByEmail func(email string) (*model.User, error) `gpa:"AutoCrate"`
 	//UpdateByAge    func(age int, update *params.Update) *result.Update                                   `gpa:"AutoCreate"`
 
-	GetByTel func(tel string) *model.User `gpa:"AutoCreate"`
+	GetByTel func(tel string) (*model.User, error) `gpa:"AutoCreate"`
 }
 
 func (u *UserRepository) Repository() gpa.IRepository {

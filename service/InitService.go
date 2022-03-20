@@ -1,13 +1,15 @@
 package service
 
 import (
+	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/environments"
 	"github.com/nbvghost/dandelion/library/singleton"
+	"github.com/nbvghost/dandelion/library/util"
 	"log"
 
 	"github.com/nbvghost/glog"
-	"github.com/nbvghost/gweb/conf"
 	"github.com/nbvghost/tool/encryption"
 )
 
@@ -97,19 +99,95 @@ func Init(etcd constrain.IEtcd, dbName string) {
 	models = append(models, model.GoodsWish{})
 	models = append(models, model.LeaveMessage{})
 	models = append(models, model.Subscribe{})
+	models = append(models, model.FullTextSearch{})
+
+	dbContentFunc := `CREATE OR REPLACE FUNCTION process_content_full_text_search() RETURNS TRIGGER AS
+$Content$
+BEGIN
+    IF (TG_OP = 'DELETE') THEN
+        Delete from "FullTextSearch" where "TID" = OLD."ID" and "Type" = 'content';
+    ELSIF (TG_OP = 'UPDATE') THEN
+        update "FullTextSearch"
+        set "UpdatedAt"=NEW."UpdatedAt",
+            "Title"=NEW."Title",
+            "Content"=NEW."Content",
+            "Picture"=NEW."Picture",
+            "Index"=setweight(to_tsvector('english', coalesce(NEW."Title", '')),'A') || setweight(to_tsvector('english', coalesce(NEW."Content", '')),'B')
+        where "TID" = NEW."ID"
+          and "Type" = 'content';
+    ELSIF (TG_OP = 'INSERT') THEN
+        INSERT INTO "FullTextSearch" ("ID", "CreatedAt", "UpdatedAt", "OID", "TID", "Title", "Content", "Picture",
+                                      "Type", "Index")
+        values (DEFAULT, NEW."CreatedAt", NEW."UpdatedAt", NEW."OID", NEW."ID", NEW."Title", NEW."Content",
+                NEW."Picture", 'content',
+                setweight(to_tsvector('english', coalesce(NEW."Title", '')),'A') || setweight(to_tsvector('english', coalesce(NEW."Content", '')),'B'));
+    END IF;
+    RETURN NULL;
+END;
+$Content$ LANGUAGE plpgsql;`
+	dbGoodsFunc := `CREATE OR REPLACE FUNCTION process_goods_full_text_search() RETURNS TRIGGER AS
+$Goods$
+BEGIN
+    IF (TG_OP = 'DELETE') THEN
+        Delete from "FullTextSearch" where "TID" = OLD."ID" and "Type" = 'product';
+    ELSIF (TG_OP = 'UPDATE') THEN
+        update "FullTextSearch"
+        set "UpdatedAt"=NEW."UpdatedAt",
+            "Title"=NEW."Title",
+            "Content"=NEW."Introduce",
+            "Picture"=json_array_element(NEW."Images",0),
+            "Index"=setweight(to_tsvector('english', coalesce(NEW."Title", '')),'A') || setweight(to_tsvector('english', coalesce(NEW."Introduce", '')),'B')
+        where "TID" = NEW."ID"
+          and "Type" = 'product';
+    ELSIF (TG_OP = 'INSERT') THEN
+        INSERT INTO "FullTextSearch" ("ID", "CreatedAt", "UpdatedAt", "OID", "TID", "Title", "Content", "Picture",
+                                      "Type", "Index")
+        values (DEFAULT, NEW."CreatedAt", NEW."UpdatedAt", NEW."OID", NEW."ID", NEW."Title", NEW."Introduce",
+                json_array_element(NEW."Images",0), 'product',
+                setweight(to_tsvector('english', coalesce(NEW."Title", '')),'A') || setweight(to_tsvector('english', coalesce(NEW."Introduce", '')),'B'));
+    END IF;
+    RETURN NULL;
+END;
+$Goods$ LANGUAGE plpgsql;`
+
+	dbAddContentFunc := `CREATE TRIGGER "Content" AFTER INSERT OR UPDATE OR DELETE ON "Content" FOR EACH ROW EXECUTE FUNCTION process_content_full_text_search();`
+	dbAddGoodsFunc := `CREATE TRIGGER "Goods" AFTER INSERT OR UPDATE OR DELETE ON "Goods" FOR EACH ROW EXECUTE FUNCTION process_goods_full_text_search();`
 
 	for index := range models {
 
 		if _database.Migrator().HasTable(models[index]) == false {
 			//_database.Set("gorm:table_options", "AUTO_INCREMENT=1000").CreateTable(models[index])
 			if err := _database.Migrator().CreateTable(models[index]); err != nil {
-				glog.Error(err)
+				panic(err)
+			}
+			if models[index].TableName() == (model.FullTextSearch{}).TableName() {
+				if err = _database.Exec(`create index idx_FullTextSearch_Index on "FullTextSearch" using gin("Index")`).Error; err != nil {
+					panic(err)
+				}
+				if err = _database.Exec(dbContentFunc).Error; err != nil {
+					panic(err)
+				}
+				if err = _database.Exec(dbGoodsFunc).Error; err != nil {
+					panic(err)
+				}
+				if err = _database.Exec(dbAddContentFunc).Error; err != nil {
+					panic(err)
+				}
+				if err = _database.Exec(dbAddGoodsFunc).Error; err != nil {
+					panic(err)
+				}
 			}
 		}
-		if conf.Config.Debug {
+		if !environments.Release() {
 			glog.Debug("migrate:", models[index].TableName())
 			if err := _database.AutoMigrate(models[index]); err != nil {
-				glog.Error(err)
+				panic(err)
+			}
+			if err = _database.Exec(dbContentFunc).Error; err != nil {
+				panic(err)
+			}
+			if err = _database.Exec(dbGoodsFunc).Error; err != nil {
+				panic(err)
 			}
 		}
 
@@ -119,7 +197,9 @@ func Init(etcd constrain.IEtcd, dbName string) {
 	_database.Where(&model.Manager{Account: "manager"}).First(&_manager)
 	if _manager.ID == 0 {
 		a := model.Manager{Account: "manager", PassWord: encryption.Md5ByString("274455411")}
-		_database.Create(&a)
+		if err = _database.Create(&a).Error; err != nil {
+			panic(err)
+		}
 	}
 
 	//this.Admin.AddAdmin(Name, Password)
@@ -148,13 +228,72 @@ func Init(etcd constrain.IEtcd, dbName string) {
 		{Type: model.ContentTypeGallery, Label: "画廊"},
 		{Type: model.ContentTypeProducts, Label: "产品"},
 		{Type: model.ContentTypeBlog, Label: "博客"},
+		{Type: model.ContentTypePage, Label: "页面"},
 	}
 	for index := range contentTypeList {
 		var _contenttype = contentTypeList[index]
 		_database.Where(&model.ContentType{Type: _contenttype.Type}).First(&_contenttype)
 		if _contenttype.ID == 0 {
-			_database.Create(&_contenttype)
+			if err = _database.Create(&_contenttype).Error; err != nil {
+				panic(err)
+			}
 		}
 	}
 
+	if !environments.Release() {
+		//index full text
+		go func() {
+			var goodsList []model.Goods
+			singleton.Orm().Model(model.Goods{}).Find(&goodsList)
+			for _, v := range goodsList {
+				var picture string
+				if len(v.Images) > 0 {
+					picture = v.Images[0]
+				}
+
+				fts := model.FullTextSearch{}
+				singleton.Orm().Model(model.FullTextSearch{}).Where(`"TID"=? and "Type"=?`, v.ID, model.FullTextSearchTypeProducts).First(&fts)
+
+				fts.CreatedAt = v.CreatedAt
+				fts.UpdatedAt = v.UpdatedAt
+				fts.OID = v.OID
+				fts.TID = v.ID
+				fts.Title = v.Title
+				fts.Content = util.TrimHtml(v.Introduce)
+				fts.Picture = picture
+				fts.Type = model.FullTextSearchTypeProducts
+
+				if err = singleton.Orm().Model(&fts).Save(&fts).Error; err != nil {
+					panic(err)
+				}
+				if err = singleton.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
+					panic(err)
+				}
+			}
+
+			var contentList []model.Content
+			singleton.Orm().Model(model.Content{}).Find(&contentList)
+			for _, v := range contentList {
+
+				fts := model.FullTextSearch{}
+				singleton.Orm().Model(model.FullTextSearch{}).Where(`"TID"=? and "Type"=?`, v.ID, model.FullTextSearchTypeContent).First(&fts)
+
+				fts.CreatedAt = v.CreatedAt
+				fts.UpdatedAt = v.UpdatedAt
+				fts.OID = v.OID
+				fts.TID = v.ID
+				fts.Title = v.Title
+				fts.Content = util.TrimHtml(v.Content)
+				fts.Picture = v.Picture
+				fts.Type = model.FullTextSearchTypeContent
+
+				if err = singleton.Orm().Model(&fts).Save(&fts).Error; err != nil {
+					panic(err)
+				}
+				if err = singleton.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
+					panic(err)
+				}
+			}
+		}()
+	}
 }

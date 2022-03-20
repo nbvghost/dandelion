@@ -13,8 +13,9 @@ var GoodsAttributes = gpa.Bind(&GoodsAttributesRepository{}, &model.GoodsAttribu
 
 type GoodsAttributesRepository struct {
 	gpa.IRepository
-	FindByGoodsID       func(goodsID types.PrimaryKey) []*model.GoodsAttributes            `gpa:"AutoCrate"`
-	GetByGoodsIDAndName func(goodsID types.PrimaryKey, name string) *model.GoodsAttributes `gpa:"AutoCrate"`
+	FindByGoodsID       func(goodsID types.PrimaryKey) ([]*model.GoodsAttributes, error)            `gpa:"AutoCrate"`
+	FindByGroupID       func(groupID types.PrimaryKey) ([]*model.GoodsAttributes, error)            `gpa:"AutoCrate"`
+	GetByGoodsIDAndName func(goodsID types.PrimaryKey, name string) (*model.GoodsAttributes, error) `gpa:"AutoCrate"`
 	//UpdateByAge    func(age int, update *params.Update) *result.Update                                   `gpa:"AutoCreate"`
 	//GetByTel func(tel string) *entity.User `gpa:"AutoCreate"`
 }
@@ -27,7 +28,7 @@ func (u *GoodsAttributesRepository) QueryGoodsAttributesNameInfo() ([]*extends.G
 	if glog.Error(err) {
 		return nil, err
 	}
-	d, err := gpa.Scans(rows, reflect.TypeOf(new(extends.GoodsAttributesNameInfo)), true)
+	d, err := gpa.ScanRows(rows, reflect.TypeOf(new(extends.GoodsAttributesNameInfo)), true)
 	if glog.Error(err) {
 		return nil, err
 	}
@@ -42,7 +43,7 @@ func (u *GoodsAttributesRepository) QueryGoodsAttributesValueInfoByName(name str
 	if glog.Error(err) {
 		return nil, err
 	}
-	d, err := gpa.Scans(rows, reflect.TypeOf(new(extends.GoodsAttributesValueInfo)), true)
+	d, err := gpa.ScanRows(rows, reflect.TypeOf(new(extends.GoodsAttributesValueInfo)), true)
 	if glog.Error(err) {
 		return nil, err
 	}

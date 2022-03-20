@@ -21,15 +21,15 @@ func (service TimeSellService) GetTimeSellByHash(Hash string, OID types.PrimaryK
 func (service TimeSellService) GetTimeSellByGoodsID(GoodsID types.PrimaryKey, OID types.PrimaryKey) *model.TimeSell {
 	//timesellGoods := service.GetTimeSellGoodsByGoodsID(GoodsID, OID)
 	var timesellGoods model.TimeSellGoods
-	singleton.Orm().Model(&model.TimeSellGoods{}).Where("GoodsID=? and OID=?", GoodsID, OID).First(&timesellGoods)
+	singleton.Orm().Model(&model.TimeSellGoods{}).Where(`"GoodsID"=? and "OID"=?`, GoodsID, OID).First(&timesellGoods)
 
 	var timesell model.TimeSell
-	singleton.Orm().Model(&model.TimeSell{}).Where("Hash=? and OID=?", timesellGoods.TimeSellHash, timesellGoods.OID).First(&timesell)
+	singleton.Orm().Model(&model.TimeSell{}).Where(`"Hash"=? and "OID"=?`, timesellGoods.TimeSellHash, timesellGoods.OID).First(&timesell)
 	return &timesell
 }
 func (service TimeSellService) GetTimeSellGoodsByGoodsID(GoodsID types.PrimaryKey, OID types.PrimaryKey) model.TimeSellGoods {
 	var timesellGoods model.TimeSellGoods
-	singleton.Orm().Model(&model.TimeSellGoods{}).Where("GoodsID=? and OID=?", GoodsID, OID).First(&timesellGoods)
+	singleton.Orm().Model(&model.TimeSellGoods{}).Where(`"GoodsID"=? and "OID"=?`, GoodsID, OID).First(&timesellGoods)
 	return timesellGoods
 }
 

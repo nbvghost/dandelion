@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/lib/pq"
 	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/gpa/types"
@@ -33,6 +34,7 @@ const (
 	ContentTypeGallery  ContentTypeType = "gallery"
 	ContentTypeProducts ContentTypeType = "products"
 	ContentTypeBlog     ContentTypeType = "blog"
+	ContentTypePage     ContentTypeType = "page"
 )
 
 //MenuType
@@ -46,9 +48,9 @@ func (ContentType) TableName() string {
 	return "ContentType"
 }
 
-//Classify
 type ContentSubType struct {
 	types.Entity
+	OID                    types.PrimaryKey `gorm:"column:OID"`
 	Name                   string           `gorm:"column:Name"`
 	ContentItemID          types.PrimaryKey `gorm:"column:ContentItemID"`
 	ParentContentSubTypeID types.PrimaryKey `gorm:"column:ParentContentSubTypeID"`
@@ -65,14 +67,16 @@ type Content struct {
 	Title            string           `gorm:"column:Title"`
 	Keywords         string           `gorm:"column:Keywords"`
 	Description      string           `gorm:"column:Description"`
-	Introduce        string           `gorm:"column:Introduce"`
+	Summary          string           `gorm:"column:Summary"`
 	Content          string           `gorm:"column:Content"`
 	Picture          string           `gorm:"column:Picture"`
 	ContentItemID    types.PrimaryKey `gorm:"column:ContentItemID"`
 	ContentSubTypeID types.PrimaryKey `gorm:"column:ContentSubTypeID"`
 	FromUrl          string           `gorm:"column:FromUrl"`
 	Author           string           `gorm:"column:Author"`
-	Look             int              `gorm:"column:Look"`
+	CountView        int              `gorm:"column:CountView"`
+	CountLike        int              `gorm:"column:CountLike"`
+	Tags             pq.StringArray   `gorm:"column:Tags;type:text[];default:'{}'"` //
 }
 
 func (Content) TableName() string {

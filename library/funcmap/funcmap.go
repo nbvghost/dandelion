@@ -49,6 +49,18 @@ func NewStringFuncResult(arg string) IFuncResult {
 	return &stringFuncResult{arg: arg}
 }
 
+type result struct {
+	data interface{}
+}
+
+func (m *result) Result() interface{} {
+	return m.data
+}
+func NewResult(data interface{}) IFuncResult {
+
+	return &result{data: data}
+}
+
 type mapFuncResult struct {
 	m map[string]interface{}
 }
@@ -152,6 +164,7 @@ func NewFuncMap(context constrain.IContext) template.FuncMap {
 	fm.funcMap["DigitDiv"] = fm.digitDiv
 	fm.funcMap["MakeArray"] = fm.makeArray
 	fm.funcMap["DigitMod"] = fm.digitMod
+	fm.funcMap["Map"] = fm.mapFunc
 	fm.funcMap["Test"] = fm.test
 
 	for funcName := range regMap {
@@ -261,6 +274,13 @@ func (fo *FuncObject) digitDiv(a, b interface{}, prec int) float64 {
 	//f, _ := strconv.ParseFloat(strconv.FormatFloat(_a/_b, 'f', prec, 64), 64)
 	f, _ := strconv.ParseFloat(strconv.FormatFloat(_a/_b, 'f', prec, 64), 64)
 	return f
+}
+func (fo *FuncObject) mapFunc(m interface{}, key interface{}) interface{} {
+	v := reflect.ValueOf(m)
+	if v.Kind() == reflect.Map {
+		return v.MapIndex(reflect.ValueOf(key)).Interface()
+	}
+	panic(fmt.Errorf("Map不能处理%v数据", v.Kind()))
 }
 func (fo *FuncObject) digitMod(a, b interface{}) uint64 {
 	_a := reflect.ValueOf(a).Convert(reflect.TypeOf(float64(0))).Float()

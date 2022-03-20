@@ -3,15 +3,16 @@ package goods
 import (
 	"errors"
 	"fmt"
+	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/domain/tag"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/internal/repository"
-	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/activity"
-
+	"github.com/nbvghost/gpa/params"
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/object"
 	"gorm.io/gorm"
@@ -28,6 +29,49 @@ type GoodsService struct {
 	Collage  activity.CollageService
 }
 
+func (service GoodsService) ListGoodsByOID(OID types.PrimaryKey) []model.GoodsType {
+	Orm := singleton.Orm()
+	var menus []model.GoodsType
+	Orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID}).Find(&menus)
+	return menus
+}
+func (service GoodsService) FindGoodsTags(OID types.PrimaryKey) ([]extends.Tag, error) {
+	//SELECT unnest("Tags") as Tag,count("Tags") as Count FROM "Content" where  group by unnest("Tags");
+	var tags []extends.Tag
+	err := singleton.Orm().Model(model.Goods{}).Select(`unnest("Tags") as "Name",count("Tags") as "Count"`).Where(map[string]interface{}{
+		"OID": OID,
+	}).Where(`array_length("Tags",1)>0`).Group(`unnest("Tags")`).Find(&tags).Error
+	tags = tag.CreateUri(tags)
+	return tags, err
+}
+func (service GoodsService) FindGoodsByTag(OID types.PrimaryKey, tag extends.Tag, _pageIndex int, orders ...extends.Order) (pageIndex, pageSize int, total int64, list []model.Goods, err error) {
+	//select * from "Content" where array_length("Tags",1) is null;
+	db := singleton.Orm().Model(model.Goods{}).Where(`"OID"=?`, OID).
+		Where(`array_length("Tags",1) is not null`).
+		Where(`"Tags" @> array[?]`, tag.Name)
+
+	db.Count(&total)
+
+	for _, v := range orders {
+		db.Order(fmt.Sprintf(`"%s" %s`, v.ColumnName, v.Method))
+	}
+
+	pageSize = 20
+
+	err = db.Limit(pageSize).Offset(_pageIndex * pageSize).Find(&list).Error
+	pageIndex = _pageIndex
+
+	return
+}
+func (service GoodsService) PaginationGoods(OID, GoodsTypeID, GoodsTypeChildID types.PrimaryKey, pageIndex int) (int, int, int, []*model.Goods, error) {
+	if GoodsTypeID == 0 {
+		return repository.Goods.FindByOIDLimit(OID, params.NewLimit(pageIndex, 18))
+	}
+	if GoodsTypeChildID == 0 {
+		return repository.Goods.FindByOIDAndGoodsTypeIDLimit(OID, GoodsTypeID, params.NewLimit(pageIndex, 18))
+	}
+	return repository.Goods.FindByOIDAndGoodsTypeIDAndGoodsTypeChildIDLimit(OID, GoodsTypeID, GoodsTypeChildID, params.NewLimit(pageIndex, 20))
+}
 func (service GoodsService) GetSpecification(ID types.PrimaryKey, target *model.Specification) error {
 	Orm := singleton.Orm()
 	err := service.Get(Orm, ID, &target)
@@ -59,33 +103,71 @@ func (service GoodsService) DeleteGoodsAttributes(ID types.PrimaryKey) error {
 
 	return repository.GoodsAttributes.DeleteByID(ID).Err
 }
-func (service GoodsService) AddGoodsAttributes(goodsID types.PrimaryKey, groupName, name, value string) error {
-
-	if goodsID == 0 {
-		return errors.New(fmt.Sprintf("产品ID不能为空"))
+func (service GoodsService) AddGoodsAttributes(goodsID, groupID types.PrimaryKey, name, value string) error {
+	if goodsID == 0 || groupID == 0 {
+		return errors.New(fmt.Sprintf("产品ID不能为空或组ID不能为空"))
 	}
-
 	if strings.EqualFold(name, "") || strings.EqualFold(value, "") {
 		return nil
 	}
-
-	hasAttr := repository.GoodsAttributes.GetByGoodsIDAndName(goodsID, name)
+	hasAttr, err := repository.GoodsAttributes.GetByGoodsIDAndName(goodsID, name)
 	if hasAttr.IsZero() == false {
 		return errors.New(fmt.Sprintf("属性名：%v已经存在", name))
 	}
-
-	err := repository.GoodsAttributes.Save(&model.GoodsAttributes{
-		GoodsID:   goodsID,
-		GroupName: groupName,
-		Name:      name,
-		Value:     value,
+	err = repository.GoodsAttributes.Save(&model.GoodsAttributes{
+		GoodsID: goodsID,
+		GroupID: groupID,
+		Name:    name,
+		Value:   value,
 	})
 	if glog.Error(err) {
 		return err
 	}
-
 	return nil
+}
+func (service GoodsService) ListGoodsAttributesGroupByGoodsID(goodsID types.PrimaryKey) ([]*model.GoodsAttributesGroup, error) {
 
+	return repository.GoodsAttributesGroup.FindByGoodsID(goodsID)
+}
+func (service GoodsService) GetGoodsAttributesGroup(ID types.PrimaryKey) types.IEntity {
+	return repository.GoodsAttributesGroup.GetByID(ID)
+}
+func (service GoodsService) DeleteGoodsAttributesGroup(ID types.PrimaryKey) error {
+	attrs, err := service.ListGoodsAttributesByGroupID(ID)
+	if err != nil {
+		return err
+	}
+	if len(attrs) > 0 {
+		return errors.New(fmt.Sprintf("属性组包含子属性，无法删除"))
+	}
+	del := repository.GoodsAttributesGroup.DeleteByID(ID)
+	return del.Err
+}
+func (service GoodsService) ListGoodsAttributesByGroupID(attributesGroupID types.PrimaryKey) ([]*model.GoodsAttributes, error) {
+	return repository.GoodsAttributes.FindByGroupID(attributesGroupID)
+}
+func (service GoodsService) AddGoodsAttributesGroup(goodsID types.PrimaryKey, groupName string) error {
+	if goodsID == 0 {
+		return errors.New(fmt.Sprintf("产品ID不能为空"))
+	}
+	if strings.EqualFold(groupName, "") {
+		return nil
+	}
+	hasAttr, err := repository.GoodsAttributesGroup.GetByGoodsIDAndName(goodsID, groupName)
+	if err != nil {
+		return err
+	}
+	if hasAttr.IsZero() == false {
+		return errors.New(fmt.Sprintf("属性名：%v已经存在", groupName))
+	}
+	err = repository.GoodsAttributesGroup.Save(&model.GoodsAttributesGroup{
+		GoodsID: goodsID,
+		Name:    groupName,
+	})
+	if glog.Error(err) {
+		return err
+	}
+	return nil
 }
 func (service GoodsService) ChangeSpecification(context *gweb.Context) (r gweb.Result, err error) {
 	Orm := singleton.Orm()
@@ -99,7 +181,7 @@ func (service GoodsService) ChangeSpecification(context *gweb.Context) (r gweb.R
 	err = service.ChangeModel(Orm, types.PrimaryKey(GoodsID), item)
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
 }
-func (service GoodsService) SaveGoods(goods model.Goods, specifications []model.Specification, gps []model.GoodsAttributes) error {
+func (service GoodsService) SaveGoods(goods model.Goods, specifications []model.Specification) error {
 	Orm := singleton.Orm()
 	var err error
 	tx := Orm.Begin()
@@ -153,30 +235,9 @@ func (service GoodsService) SaveGoods(goods model.Goods, specifications []model.
 
 	err = tx.Save(&goods).Error
 
-	if glog.Error(err) == false {
-		for index := range gps {
-			item := &gps[index]
-
-			hasAttr := repository.GoodsAttributes.GetByGoodsIDAndName(goods.ID, item.Name)
-			if hasAttr.IsZero() == false {
-				continue
-			}
-
-			err = repository.GoodsAttributes.Save(&model.GoodsAttributes{
-				GoodsID:   goods.ID,
-				GroupName: item.GroupName,
-				Name:      item.Name,
-				Value:     item.Value,
-			})
-			if glog.Error(err) {
-				return err
-			}
-		}
-	}
-
 	return err
 }
-func (service GoodsService) GetGoodsInfo(goods model.Goods) extends.GoodsInfo {
+func (service GoodsService) GetGoodsInfo(goods model.Goods) (*extends.GoodsInfo, error) {
 	Orm := singleton.Orm()
 
 	//Orm := singleton.Orm()
@@ -206,62 +267,60 @@ func (service GoodsService) GetGoodsInfo(goods model.Goods) extends.GoodsInfo {
 	}
 
 	var specifications []model.Specification
-	service.FindWhere(Orm, &specifications, model.Specification{GoodsID: goods.ID})
+	err := service.FindWhere(Orm, &specifications, model.Specification{GoodsID: goods.ID})
+	if err != nil {
+		return nil, err
+	}
 
 	goodsInfo.Specifications = specifications
 
-	//goodsInfo.Specs = spec
+	attributesGroup, err := repository.GoodsAttributesGroup.FindByGoodsID(goods.ID)
+	if err != nil {
+		return nil, err
+	}
+	attributes, err := repository.GoodsAttributes.FindByGoodsID(goods.ID)
+	if err != nil {
+		return nil, err
+	}
+	for _, v := range attributesGroup {
+		goodsAttributes := extends.GoodsAttributes{}
+		goodsAttributes.GroupID = v.ID
+		goodsAttributes.GroupName = v.Name
+		for _, vv := range attributes {
+			if vv.GroupID == v.GoodsID {
+				goodsAttribute := extends.GoodsAttribute{}
+				goodsAttribute.ID = vv.ID
+				goodsAttribute.Name = vv.Name
+				goodsAttribute.Value = vv.Value
+				goodsAttributes.Attrs = append(goodsAttributes.Attrs, goodsAttribute)
+			}
+		}
+		goodsInfo.Attributes = append(goodsInfo.Attributes, goodsAttributes)
+	}
 
-	return goodsInfo
+	return &goodsInfo, nil
 }
-func (service GoodsService) GetGoods(DB *gorm.DB, context *gweb.Context, ID types.PrimaryKey, addViewCount bool) extends.GoodsInfo {
+func (service GoodsService) GetGoodsInfoList(goodsList []model.Goods) []extends.GoodsInfo {
+
+	var results = make([]extends.GoodsInfo, 0)
+
+	for _, value := range goodsList {
+		goodsInfo := extends.GoodsInfo{}
+		goodsInfo.Goods = value
+		goodsInfo.Discounts = service.GetDiscounts(value.ID, value.OID)
+		goodsInfo.GoodsType = service.GetGoodsType(value.GoodsTypeID)
+		goodsInfo.GoodsTypeChild = service.GetGoodsTypeChild(value.GoodsTypeChildID)
+		results = append(results, goodsInfo)
+	}
+
+	return results
+}
+func (service GoodsService) GetGoods(DB *gorm.DB, context constrain.IContext, ID types.PrimaryKey) (*extends.GoodsInfo, error) {
 	Orm := singleton.Orm()
 	var goods model.Goods
 	err := service.Get(Orm, ID, &goods)
 	glog.Error(err)
-	if addViewCount {
-		if glog.CheckError(err) == false {
-			viewCount := object.ParseUint(context.Session.Attributes.Get(play.SessionGoodsViewFunc(uint(ID))))
-			if viewCount <= 0 {
-				goods.CountView++
-				err = Orm.Model(&model.Goods{}).Where("ID=?", goods.ID).Updates(map[string]interface{}{"CountView": goods.CountView}).Error
-				glog.Error(err)
-			}
-
-		}
-	}
-
-	goodsInfo := service.GetGoodsInfo(goods)
-	goodsInfo.Attributes = repository.GoodsAttributes.FindByGoodsID(goods.ID)
-	/*var mtimeSell model.TimeSell
-	err=TimeSellService{}.Get(Orm,goods.TimeSellID,&mtimeSell)
-	glog.Trace(err)
-	if mtimeSell.IsEnable(){
-		timeSell = mtimeSell
-	}else {
-		timeSell = model.TimeSell{}
-	}*/
-
-	return goodsInfo
-	//return DB.Model(target).Related(&model.Specification{}).Where("ID=?", ID).First(target).Error
-	/*Orm := singleton.Orm()
-	err := service.Get(Orm, ID, &goods)
-	glog.Trace(err)
-
-	err = service.FindWhere(Orm, &specifications, model.Specification{GoodsID: ID})
-	glog.Trace(err)
-
-	var mtimeSell model.TimeSell
-	err = TimeSellService{}.Get(Orm, goods.TimeSellID, &mtimeSell)
-	glog.Trace(err)
-	if mtimeSell.IsEnable() {
-		timeSell = mtimeSell
-	} else {
-		timeSell = model.TimeSell{}
-	}
-
-	return*/
-	//return DB.Model(target).Related(&model.Specification{}).Where("ID=?", ID).First(target).Error
+	return service.GetGoodsInfo(goods)
 }
 
 func (service GoodsService) DeleteGoods(ID types.PrimaryKey) *result.ActionResult {
@@ -427,21 +486,6 @@ func (service GoodsService) GetDiscounts(GoodsID, OID types.PrimaryKey) []extend
 	}
 	return discounts
 }
-func (service GoodsService) GetGoodsInfoList(goodsList []model.Goods) []extends.GoodsInfo {
-
-	var results = make([]extends.GoodsInfo, 0)
-
-	for _, value := range goodsList {
-		goodsInfo := extends.GoodsInfo{}
-		goodsInfo.Goods = value
-		goodsInfo.Discounts = service.GetDiscounts(value.ID, value.OID)
-		goodsInfo.GoodsType = service.GetGoodsType(value.GoodsTypeID)
-		goodsInfo.GoodsTypeChild = service.GetGoodsTypeChild(value.GoodsTypeChildID)
-		results = append(results, goodsInfo)
-	}
-
-	return results
-}
 
 type TopGoodsTypeChild struct {
 	Name             string `gorm:"column:Name"`
@@ -505,29 +549,30 @@ func (service GoodsService) NewListByGoodsTypeIDAndGoodsTypeChildID(GoodsTypeID,
 	return result
 
 }
-func (service GoodsService) HotList(count uint) []model.Goods {
-
+func (service GoodsService) HotSaleList(OID types.PrimaryKey, count uint) []model.Goods {
 	Orm := singleton.Orm()
-
 	var result []model.Goods
-
-	db := Orm.Model(&model.Goods{}).Order("CountSale desc").Limit(int(count))
-
+	db := Orm.Model(&model.Goods{}).Where(map[string]interface{}{"OID": OID}).Order(`"CountSale" desc`).Limit(int(count))
 	db.Find(&result)
-
 	return result
-
+}
+func (service GoodsService) HotViewList(OID types.PrimaryKey, count uint) []model.Goods {
+	Orm := singleton.Orm()
+	var result []model.Goods
+	db := Orm.Model(&model.Goods{}).Where(map[string]interface{}{"OID": OID}).Order(`"CountView" desc`).Limit(int(count))
+	db.Find(&result)
+	return result
 }
 func (service GoodsService) GetGoodsType(ID types.PrimaryKey) model.GoodsType {
 	Orm := singleton.Orm()
 	var result model.GoodsType
-	Orm.Model(&model.GoodsType{}).Where("ID=?", ID).First(&result)
+	Orm.Model(&model.GoodsType{}).Where(map[string]interface{}{"ID": ID}).First(&result)
 	return result
 }
 func (service GoodsService) GetGoodsTypeChild(ID types.PrimaryKey) model.GoodsTypeChild {
 	Orm := singleton.Orm()
 	var result model.GoodsTypeChild
-	Orm.Model(&model.GoodsTypeChild{}).Where("ID=?", ID).First(&result)
+	Orm.Model(&model.GoodsTypeChild{}).Where(map[string]interface{}{"ID": ID}).First(&result)
 	return result
 }
 func (service GoodsService) AllGoodsType() []extends.AllGoodsType {
@@ -684,19 +729,18 @@ func (service GoodsService) ListGoodsByType(OID, GoodsTypeID, GoodsTypeChildID t
 	var contentList []model.Goods
 
 	if GoodsTypeID == 0 {
-		singleton.Orm().Model(&model.Goods{}).Where("OID=?", OID).
-			Order("CreatedAt desc").Order("ID desc").Find(&contentList)
+		singleton.Orm().Model(&model.Goods{}).Where(`"OID"=?`, OID).
+			Order(`"CreatedAt" desc`).Order(`"ID" desc`).Find(&contentList)
 		return contentList
 	}
 
 	if GoodsTypeChildID > 0 {
-
-		singleton.Orm().Model(&model.Goods{}).Where("OID=? and GoodsTypeID=? and GoodsTypeChildID=?", OID, GoodsTypeID, GoodsTypeChildID).
-			Order("CreatedAt desc").Order("ID desc").Find(&contentList)
+		singleton.Orm().Model(&model.Goods{}).Where(`"OID"=? and "GoodsTypeID"=? and "GoodsTypeChildID"=?`, OID, GoodsTypeID, GoodsTypeChildID).
+			Order(`"CreatedAt" desc`).Order(`"ID" desc`).Find(&contentList)
 		return contentList
 	} else {
-		singleton.Orm().Model(&model.Goods{}).Where("OID=? and GoodsTypeID=?", OID, GoodsTypeID).
-			Order("CreatedAt desc").Order("ID desc").Find(&contentList)
+		singleton.Orm().Model(&model.Goods{}).Where(`"OID"=? and "GoodsTypeID"=?`, OID, GoodsTypeID).
+			Order(`"CreatedAt" desc`).Order(`"ID" desc`).Find(&contentList)
 		return contentList
 	}
 

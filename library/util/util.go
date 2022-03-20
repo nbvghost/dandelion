@@ -12,12 +12,12 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/nbvghost/captcha"
 	"github.com/nbvghost/glog"
-	"github.com/nbvghost/gweb"
 )
 
 type Hashids struct {
@@ -135,17 +135,17 @@ func GetFullPath(Request *http.Request) string {
 	}
 	return url.QueryEscape(redirect)
 }
-func GetFullUrl(Request *http.Request) string {
+func GetFullUrl(request *http.Request) string {
 
-	if Request.TLS == nil {
-		return "http://" + Request.Host + Request.RequestURI
+	if request.TLS == nil {
+		return "http://" + request.Host + request.RequestURI
 	} else {
-		return "https://" + Request.Host + Request.RequestURI
+		return "https://" + request.Host + request.RequestURI
 	}
 
 }
-func IsMobile(context *gweb.Context) bool {
-	UserAgent := context.Request.Header.Get("User-Agent")
+func IsMobile(request *http.Request) bool {
+	UserAgent := request.Header.Get("User-Agent")
 	//fmt.Println(UserAgent)
 	if strings.Contains(strings.ToLower(UserAgent), "mobile") {
 		//FrameworkHttp.OutHtmlFileWithPath(context,"game/web/ssc.html")
@@ -154,18 +154,18 @@ func IsMobile(context *gweb.Context) bool {
 		return false
 	}
 }
-func GetIP(context *gweb.Context) string {
+func GetIP(request *http.Request) string {
 	//fmt.Println(context.Request)
 	//fmt.Println(context.Request.Header.Get("X-Forwarded-For"))
 	//fmt.Println(context.Request.RemoteAddr)
 	//Ali-Cdn-Real-Ip
-	IP := context.Request.Header.Get("Ali-Cdn-Real-Ip")
+	IP := request.Header.Get("Ali-Cdn-Real-Ip")
 	if strings.EqualFold(IP, "") {
 		//_IP := context.Request.Header.Get("X-Forwarded-For")
 
-		IP = strings.Split(context.Request.Header.Get("X-Forwarded-For"), ",")[0]
+		IP = strings.Split(request.Header.Get("X-Forwarded-For"), ",")[0]
 		if strings.EqualFold(IP, "") {
-			text := context.Request.RemoteAddr
+			text := request.RemoteAddr
 			if strings.Contains(text, "::") {
 				IP = "0.0.0.0"
 			} else {
@@ -264,3 +264,21 @@ func Rounding45(rounding float64, prec int) float64 {
 	//ProductID, _ = strconv.ParseUint(arrs[1], 10, 64)
 	return
 }*/
+func TrimHtml(src string) string {
+	//将HTML标签全转换成小写
+	re, _ := regexp.Compile(`\<[\S\s]+?\>`)
+	src = re.ReplaceAllStringFunc(src, strings.ToLower)
+	//去除STYLE
+	re, _ = regexp.Compile(`\<style[\S\s]+?\</style\>`)
+	src = re.ReplaceAllString(src, "")
+	//去除SCRIPT
+	re, _ = regexp.Compile(`\<script[\S\s]+?\</script\>`)
+	src = re.ReplaceAllString(src, "")
+	//去除所有尖括号内的HTML代码，并换成换行符
+	re, _ = regexp.Compile(`\<[\S\s]+?\>`)
+	src = re.ReplaceAllString(src, "")
+	//去除连续的换行符
+	re, _ = regexp.Compile(`\s{2,}`)
+	src = re.ReplaceAllString(src, "")
+	return strings.TrimSpace(src)
+}

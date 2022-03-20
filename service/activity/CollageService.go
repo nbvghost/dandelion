@@ -45,10 +45,10 @@ func (service CollageService) GetItemByHash(Hash string) model.Collage {
 func (service CollageService) GetCollageByGoodsID(GoodsID types.PrimaryKey, OID types.PrimaryKey) model.Collage {
 	//timesellGoods := service.GetTimeSellGoodsByGoodsID(GoodsID, OID)
 	var timesellGoods model.CollageGoods
-	singleton.Orm().Model(&model.CollageGoods{}).Where("GoodsID=? and OID=?", GoodsID, OID).First(&timesellGoods)
+	singleton.Orm().Model(&model.CollageGoods{}).Where(`"GoodsID"=? and "OID"=?`, GoodsID, OID).First(&timesellGoods)
 
 	var timesell model.Collage
-	singleton.Orm().Model(&model.Collage{}).Where("Hash=? and OID=?", timesellGoods.CollageHash, timesellGoods.OID).First(&timesell)
+	singleton.Orm().Model(&model.Collage{}).Where(`"Hash"=? and "OID"=?`, timesellGoods.CollageHash, timesellGoods.OID).First(&timesell)
 	return timesell
 
 	/*var timesell model.Collage
