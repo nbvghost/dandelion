@@ -198,59 +198,62 @@ $Goods$ LANGUAGE plpgsql;`
 	}
 
 	if !environments.Release() {
-		//index full text
 		go func() {
-			var goodsList []model.Goods
-			singleton.Orm().Model(model.Goods{}).Find(&goodsList)
-			for _, v := range goodsList {
-				var picture string
-				if len(v.Images) > 0 {
-					picture = v.Images[0]
-				}
-
-				fts := model.FullTextSearch{}
-				singleton.Orm().Model(model.FullTextSearch{}).Where(`"TID"=? and "Type"=?`, v.ID, model.FullTextSearchTypeProducts).First(&fts)
-
-				fts.CreatedAt = v.CreatedAt
-				fts.UpdatedAt = v.UpdatedAt
-				fts.OID = v.OID
-				fts.TID = v.ID
-				fts.Title = v.Title
-				fts.Content = util.TrimHtml(v.Introduce)
-				fts.Picture = picture
-				fts.Type = model.FullTextSearchTypeProducts
-
-				if err = singleton.Orm().Model(&fts).Save(&fts).Error; err != nil {
-					panic(err)
-				}
-				if err = singleton.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
-					panic(err)
-				}
-			}
-
-			var contentList []model.Content
-			singleton.Orm().Model(model.Content{}).Find(&contentList)
-			for _, v := range contentList {
-
-				fts := model.FullTextSearch{}
-				singleton.Orm().Model(model.FullTextSearch{}).Where(`"TID"=? and "Type"=?`, v.ID, model.FullTextSearchTypeContent).First(&fts)
-
-				fts.CreatedAt = v.CreatedAt
-				fts.UpdatedAt = v.UpdatedAt
-				fts.OID = v.OID
-				fts.TID = v.ID
-				fts.Title = v.Title
-				fts.Content = util.TrimHtml(v.Content)
-				fts.Picture = v.Picture
-				fts.Type = model.FullTextSearchTypeContent
-
-				if err = singleton.Orm().Model(&fts).Save(&fts).Error; err != nil {
-					panic(err)
-				}
-				if err = singleton.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
-					panic(err)
-				}
-			}
+			//rebuildFullTextSearch()
 		}()
+	}
+}
+func rebuildFullTextSearch() {
+	var err error
+	var goodsList []model.Goods
+	singleton.Orm().Model(model.Goods{}).Find(&goodsList)
+	for _, v := range goodsList {
+		var picture string
+		if len(v.Images) > 0 {
+			picture = v.Images[0]
+		}
+
+		fts := model.FullTextSearch{}
+		singleton.Orm().Model(model.FullTextSearch{}).Where(`"TID"=? and "Type"=?`, v.ID, model.FullTextSearchTypeProducts).First(&fts)
+
+		fts.CreatedAt = v.CreatedAt
+		fts.UpdatedAt = v.UpdatedAt
+		fts.OID = v.OID
+		fts.TID = v.ID
+		fts.Title = v.Title
+		fts.Content = util.TrimHtml(v.Introduce)
+		fts.Picture = picture
+		fts.Type = model.FullTextSearchTypeProducts
+
+		if err = singleton.Orm().Model(&fts).Save(&fts).Error; err != nil {
+			panic(err)
+		}
+		if err = singleton.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
+			panic(err)
+		}
+	}
+
+	var contentList []model.Content
+	singleton.Orm().Model(model.Content{}).Find(&contentList)
+	for _, v := range contentList {
+
+		fts := model.FullTextSearch{}
+		singleton.Orm().Model(model.FullTextSearch{}).Where(`"TID"=? and "Type"=?`, v.ID, model.FullTextSearchTypeContent).First(&fts)
+
+		fts.CreatedAt = v.CreatedAt
+		fts.UpdatedAt = v.UpdatedAt
+		fts.OID = v.OID
+		fts.TID = v.ID
+		fts.Title = v.Title
+		fts.Content = util.TrimHtml(v.Content)
+		fts.Picture = v.Picture
+		fts.Type = model.FullTextSearchTypeContent
+
+		if err = singleton.Orm().Model(&fts).Save(&fts).Error; err != nil {
+			panic(err)
+		}
+		if err = singleton.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
+			panic(err)
+		}
 	}
 }
