@@ -13,39 +13,15 @@ import (
 	"github.com/nbvghost/tool/encryption"
 )
 
-//var GlobalGoodsService = GoodsService{}
-
 func Init(etcd constrain.IEtcd, dbName string) {
-
 	err := singleton.Init(etcd, dbName)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	//var err error
-	//_db, err := sql.Open("mysql", "tcp:localhost:3306*dandelion/root/123456")
-	//_db, err := sql.Open("mysql", "root:123456@tcp(localhost:3306)/dandelion?charset=utf8mb4&parseTime=True")
-	//_db, err := sql.Open("postgres", "postgres://postgres:123456@localhost:5433/dandelion?sslmode=disable")
-	//glog.Error(err)
-	//dbMap = &gorp.DbMap{Db: _db, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "utf8mb4"}}
-
-	//db, err = gorm.Open("mysql", "root:123456@/dandelion?charset=utf8mb4&parseTime=True") //&loc=Local
-	//db.SingularTable(true)
-	//db = db.Debug()
-	//fmt.Println(db)
-	//glog.Error(err)
-	//defer db.Close()
-	//fmt.Println(conf.Config.DBUrl)
-
 	_database := singleton.Orm()
 
 	models := make([]model.IDataBaseFace, 0)
-
-	/*user := &model.User{}
-	if _database.HasTable(user) == false {
-		_database.Set("gorm:table_options", "AUTO_INCREMENT=1000").CreateTable(user)
-	}
-	_database.AutoMigrate(user)*/
 
 	models = append(models, &model.User{})
 	models = append(models, model.UserInfo{})
@@ -201,25 +177,6 @@ $Goods$ LANGUAGE plpgsql;`
 			panic(err)
 		}
 	}
-
-	//this.Admin.AddAdmin(Name, Password)
-
-	/*var goodsList []model.Goods
-	_database.Model(&model.Goods{}).Find(&goodsList)
-	for index:=range goodsList{
-		goodsItem:=goodsList[index]
-
-
-		var goodsAtt []model.GoodsAttributes
-		json.Unmarshal([]byte(goodsItem.Params),&goodsAtt)
-
-		for iiii:=range goodsAtt{
-			attItem:=goodsAtt[iiii]
-			glog.Error(goods.GoodsService{}.AddGoodsAttributes(goodsItem.ID,attItem.Name,attItem.Value))
-		}
-
-
-	}*/
 
 	contentTypeList := []model.ContentType{
 		{Type: model.ContentTypeContents, Label: "文章列表"},
