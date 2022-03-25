@@ -171,8 +171,6 @@ github.com/jackc/puddle v0.0.0-20190413234325-e4ced69a3a2b/go.mod h1:m4B5Dj62Y0f
 github.com/jackc/puddle v0.0.0-20190608224051-11cab39313c9/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
 github.com/jackc/puddle v1.1.3/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
 github.com/jackc/puddle v1.2.0/go.mod h1:m4B5Dj62Y0fbyuIc15OsIqK0+JU8nkqQjsgx7dvjSWk=
-github.com/jinzhu/copier v0.3.5 h1:GlvfUwHk62RokgqVNvYsku0TATCF7bAHVwEXoBh3iJg=
-github.com/jinzhu/copier v0.3.5/go.mod h1:DfbEm0FYsaqBcKcFuvmOZb218JkPGtvSHsKg8S8hyyg=
 github.com/jinzhu/inflection v1.0.0 h1:K317FqzuhWc8YvSVlFMCCUb36O/S9MCKRDI7QkRKD/E=
 github.com/jinzhu/inflection v1.0.0/go.mod h1:h+uFLlag+Qp1Va5pdKtLDYj+kHp5pxUVkryuEj+Srlc=
 github.com/jinzhu/now v1.1.1/go.mod h1:d3SSVoowX0Lcu0IBviAWJpolVfI5UJVZZ7cO71lE/z8=
@@ -233,9 +231,8 @@ github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89/go.mod h1:+W4H7/2
 github.com/nbvghost/glog v1.0.15/go.mod h1:MpQrW1hH71geowXb/iED845KLTgcqEXETwLmqZH7vVE=
 github.com/nbvghost/glog v1.0.17 h1:g6AkuqhfVOnEaCbzKNScQX4L5BctXCJBZ2SY3Mjv+1I=
 github.com/nbvghost/glog v1.0.17/go.mod h1:MpQrW1hH71geowXb/iED845KLTgcqEXETwLmqZH7vVE=
-github.com/nbvghost/tool v0.0.0-20210202062235-ac72a32e5005/go.mod h1:eNCz/e5lTLSSPFvmQClKDElH27AH1JhaleTtg5uCmJo=
-github.com/nbvghost/tool v0.0.0-20210205100218-d99aeb6cf016 h1:Ba6uJJ3cGApZkcxmVKVX51FR1qN9+qL6uJ5M5Iy72Rw=
-github.com/nbvghost/tool v0.0.0-20210205100218-d99aeb6cf016/go.mod h1:eNCz/e5lTLSSPFvmQClKDElH27AH1JhaleTtg5uCmJo=
+github.com/nbvghost/gweb v1.3.0 h1:BjZMDnHAFTScgTNNf+Q+ZbDdKwhUXKyJZ+IcM1XOX30=
+github.com/nbvghost/gweb v1.3.0/go.mod h1:7PXYanmrqCFs2gvceq7JcoGsZMx9oBX/gmmF2o47KQ4=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=

@@ -15,7 +15,7 @@ require (
 	github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89
 	github.com/nbvghost/glog v1.0.17
 	github.com/nbvghost/gpa v0.0.0-20210616142117-afb9b836a1c4
-	github.com/nbvghost/gweb v1.2.16
+	github.com/nbvghost/gweb v1.3.0
 	github.com/nbvghost/tool v0.0.0-20210205100218-d99aeb6cf016
 	github.com/pkg/errors v0.9.1
 	go.etcd.io/etcd/client/v3 v3.5.1
@@ -46,7 +46,6 @@ require (
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/pgtype v1.9.0 // indirect
 	github.com/jackc/pgx/v4 v4.14.0 // indirect
-	github.com/jinzhu/copier v0.3.5 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
@@ -66,12 +65,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
-replace github.com/nbvghost/gweb => ../../framework/gweb
-
 replace github.com/nbvghost/gpa => ../../framework/gpa
 
 replace github.com/nbvghost/tool => ../../framework/tool
-
-//replace github.com/nbvghost/gweb v1.2.13 => C:\Users\nbvghost\Desktop\gweb
-//replace github.com/nbvghost/gweb v1.2.14 => /Users/nbvghost/Desktop/gweb
-//replace github.com/nbvghost/gweb v1.2.14 => /home/nbvghost/datas/projects/gweb
