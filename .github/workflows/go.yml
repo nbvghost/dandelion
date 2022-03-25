@@ -1,8 +1,8 @@
 name: Go
 on: [push]
-
+env:
+  APPVERSION: ${{github.run_number}}
 jobs:
-
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -29,14 +29,13 @@ jobs:
       run: CGO_ENABLED=0 go build -v .
 
     - name: Set version code
-      run: |
-        $APPVERSION=${{github.run_number}}
-        echo $APPVERSION
+      run: |        
+        echo ${{env.APPVERSION}}
     - name: Docker
-      run: docker build -t docker.pkg.github.com/nbvghost/${{github.repository}}:$APPVERSION .
+      run: docker build -t docker.pkg.github.com/${{github.repository}}:${{env.APPVERSION}} .
 
     - name: Login Github Docker
       run: echo ${{ secrets.TOKEN }} | docker login docker.pkg.github.com -u nbvghost --password-stdin
 
     - name: Docker Push
-      run: docker push docker.pkg.github.com/nbvghost/${{github.repository}}:$APPVERSION
+      run: docker push docker.pkg.github.com/${{github.repository}}:${{env.APPVERSION}}

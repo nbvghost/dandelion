@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/aliyun/aliyun-oss-go-sdk v2.2.1+incompatible
-	github.com/gin-gonic/gin v1.7.4
+	github.com/gin-gonic/gin v1.7.7
 	github.com/go-playground/validator/v10 v10.9.0
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/golang/protobuf v1.5.2
@@ -13,16 +13,15 @@ require (
 	github.com/json-iterator/go v1.1.11
 	github.com/lib/pq v1.10.4
 	github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89
-	github.com/nbvghost/glog v1.0.17
-	github.com/nbvghost/gpa v0.0.0-20210616142117-afb9b836a1c4
-	github.com/nbvghost/gweb v1.3.0
-	github.com/nbvghost/tool v0.0.0-20210205100218-d99aeb6cf016
+	github.com/nbvghost/glog v0.0.0-20220325163842-3accd57fda66
+	github.com/nbvghost/gweb v0.0.0-20220325183229-6c8eee4ff8a5
+	github.com/nbvghost/tool v0.0.0-20220325180651-f5c6376d74d4
 	github.com/pkg/errors v0.9.1
 	go.etcd.io/etcd/client/v3 v3.5.1
 	golang.org/x/net v0.0.0-20210916014120-12bc252f5db8
 	golang.org/x/text v0.3.7
 	google.golang.org/grpc v1.41.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/protobuf v1.26.0
 	gorm.io/driver/postgres v1.2.3
 	gorm.io/gorm v1.22.3
 )
