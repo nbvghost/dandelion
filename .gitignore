@@ -3,3 +3,10 @@
 \/dandelion
 \/debug
 /.idea/
+/third_software/etcd/s1.etcd/
+/third_software/etcd/s2.etcd/
+/third_software/etcd/s3.etcd/
+/third_software/etcd/s1.out
+/third_software/etcd/s2.out
+/third_software/etcd/s3.out
+/third_software/redis/redis.out
