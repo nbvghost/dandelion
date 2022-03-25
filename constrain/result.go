@@ -5,8 +5,9 @@ type IResult interface {
 }
 type IViewResult interface {
 	GetName() string
-	SetName(name string)
-	GetPkgPath() string
-	SetPkgPath(path string)
-	SetGlobal(v interface{})
+	GetResult() IResult
+	//SetName(name string)
+	//GetPkgPath() string
+	//SetPkgPath(path string)
+	//SetGlobal(v interface{})
 }

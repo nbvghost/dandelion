@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/library/util"
+
 	"net/http"
 	"reflect"
 
@@ -28,6 +30,10 @@ func (m *Info) GetWithoutAuth() bool {
 	return m.WithoutAuth
 }
 
+func NewViewResult(name string) constrain.IViewResult {
+	return &extends.ViewBase{Name: name}
+}
+
 type service struct {
 	Routes     map[string]*Info
 	ViewRoutes map[string]*Info
@@ -44,7 +50,7 @@ func (m *service) GetMappingCallback() constrain.IMappingCallback {
 func (m *service) encodingViewData(ctx constrain.IContext, r constrain.IViewResult) ([]byte, string, error) {
 	buffer := bytes.NewBuffer(nil)
 	structName := util.GetPkgPath(r)
-	r.SetPkgPath(structName)
+	//todo r.SetPkgPath(structName)
 	if err := gob.NewEncoder(buffer).Encode(r); err != nil {
 		return nil, "", err
 	}
@@ -60,35 +66,47 @@ func (m *service) RegisterInterceptors(prefixPath string, interceptors ...constr
 	}
 	m.interceptors[prefixPath] = append(m.interceptors[prefixPath], interceptors...)
 }
-func (m *service) Handle(context constrain.IContext, isApi bool, route string, binddataFunc func(apiHandler interface{}) error) (bool, interface{}, error) {
+func (m *service) CheckRoute(isApi bool, route string) (*Info, bool) {
 	var routeInfo *Info
 	var ok bool
-
 	if isApi {
 		if routeInfo, ok = m.Routes[route]; !ok {
-			return true, nil, action.NewCodeWithError(action.NotFoundRoute, errors.New("没有找到路由"))
+			return nil, false
 		}
 	} else {
 		if routeInfo, ok = m.ViewRoutes[route]; !ok {
-			return true, nil, action.NewCodeWithError(action.NotFoundRoute, errors.New("没有找到路由"))
+			return nil, false
 		}
 	}
+	return routeInfo, ok
+}
+func (m *service) Handle(context constrain.IContext, isApi bool, route string, binddataFunc func(apiHandler interface{}) error) (bool, bool, interface{}, error) {
+	var hasRoute bool
+	routeInfo, ok := m.CheckRoute(isApi, route)
+	if !ok {
+		return true, hasRoute, nil, action.NewCodeWithError(action.NotFoundRoute, fmt.Errorf("没有找到路由:%s", route))
+	}
+	hasRoute = true
 
 	apiHandler := reflect.New(routeInfo.GetHandlerType()).Interface()
 	if binddataFunc != nil {
-		binddataFunc(apiHandler)
+		err := binddataFunc(apiHandler)
+		if err != nil {
+			return true, hasRoute, apiHandler, err
+		}
 	}
 
 	if m.mappingCallback != nil {
 		if err := m.mappingCallback.Before(context, apiHandler); err != nil {
-			return true, nil, err
+			return true, hasRoute, nil, err
 		}
 	}
 
 	if routeInfo.WithoutAuth {
-		return false, apiHandler, nil
+		return false, hasRoute, apiHandler, nil
 	}
 
+	//interceptors 是有状态的，不支持mapping
 	for k := range m.interceptors {
 		l := len(k)
 		route := context.Route()
@@ -97,15 +115,15 @@ func (m *service) Handle(context constrain.IContext, isApi bool, route string, b
 				for i := range m.interceptors[k] {
 					if m.mappingCallback != nil {
 						if err := m.mappingCallback.Before(context, m.interceptors[k][i]); err != nil {
-							return true, nil, err
+							return true, hasRoute, nil, err
 						}
 					}
 					broken, err := m.interceptors[k][i].Execute(context)
 					if err != nil {
-						return true, nil, err
+						return true, hasRoute, nil, err
 					}
 					if broken {
-						return true, nil, nil
+						return true, hasRoute, nil, nil
 					}
 				}
 			}
@@ -114,11 +132,11 @@ func (m *service) Handle(context constrain.IContext, isApi bool, route string, b
 
 	if !routeInfo.GetWithoutAuth() {
 		if context.UID() == 0 {
-			return true, nil, action.NewCodeWithError(action.AuthError, errors.New("用户没有授权"))
+			return true, hasRoute, nil, action.NewCodeWithError(action.AuthError, errors.New("用户没有授权"))
 		}
 	}
 
-	return false, apiHandler, nil
+	return false, hasRoute, apiHandler, nil
 
 }
 

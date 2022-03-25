@@ -146,6 +146,27 @@ func (service GoodsService) DeleteGoodsAttributesGroup(ID types.PrimaryKey) erro
 func (service GoodsService) ListGoodsAttributesByGroupID(attributesGroupID types.PrimaryKey) ([]*model.GoodsAttributes, error) {
 	return repository.GoodsAttributes.FindByGroupID(attributesGroupID)
 }
+func (service GoodsService) ChangeGoodsAttributesGroup(id types.PrimaryKey, groupName string) error {
+	if id == 0 {
+		return errors.New(fmt.Sprintf("ID不能为空"))
+	}
+	if strings.EqualFold(groupName, "") {
+		return nil
+	}
+	hasAttr, err := repository.GoodsAttributesGroup.GetByName(groupName)
+	if err != nil {
+		return err
+	}
+	if hasAttr.IsZero() == false {
+		return errors.New(fmt.Sprintf("属性名：%v已经存在", groupName))
+	}
+
+	update := repository.GoodsAttributesGroup.UpdateByID(id, map[string]interface{}{"Name": groupName})
+	if glog.Error(update.Err) {
+		return err
+	}
+	return nil
+}
 func (service GoodsService) AddGoodsAttributesGroup(goodsID types.PrimaryKey, groupName string) error {
 	if goodsID == 0 {
 		return errors.New(fmt.Sprintf("产品ID不能为空"))
@@ -181,7 +202,7 @@ func (service GoodsService) ChangeSpecification(context *gweb.Context) (r gweb.R
 	err = service.ChangeModel(Orm, types.PrimaryKey(GoodsID), item)
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
 }
-func (service GoodsService) SaveGoods(goods model.Goods, specifications []model.Specification) error {
+func (service GoodsService) SaveGoods(goods *model.Goods, specifications []model.Specification) error {
 	Orm := singleton.Orm()
 	var err error
 	tx := Orm.Begin()
@@ -195,10 +216,10 @@ func (service GoodsService) SaveGoods(goods model.Goods, specifications []model.
 	}()
 
 	if goods.ID.IsZero() {
-		err = tx.Create(&goods).Error
+		err = tx.Create(goods).Error
 	} else {
 		//err = tx.Save(goods).Error
-		err = tx.Model(&goods).Updates(goods).Error
+		err = tx.Model(goods).Updates(goods).Error
 	}
 
 	if err != nil {
@@ -233,7 +254,7 @@ func (service GoodsService) SaveGoods(goods model.Goods, specifications []model.
 
 	goods.Stock = total
 
-	err = tx.Save(&goods).Error
+	err = tx.Save(goods).Error
 
 	return err
 }
@@ -287,7 +308,7 @@ func (service GoodsService) GetGoodsInfo(goods model.Goods) (*extends.GoodsInfo,
 		goodsAttributes.GroupID = v.ID
 		goodsAttributes.GroupName = v.Name
 		for _, vv := range attributes {
-			if vv.GroupID == v.GoodsID {
+			if vv.GroupID == v.ID {
 				goodsAttribute := extends.GoodsAttribute{}
 				goodsAttribute.ID = vv.ID
 				goodsAttribute.Name = vv.Name

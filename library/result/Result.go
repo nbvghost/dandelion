@@ -144,3 +144,16 @@ func (r *ImageBytesResult) Apply(context constrain.IContext) {
 	v.Response.Write(r.Data)
 
 }
+
+type RedirectToUrlResult struct {
+	Url string
+}
+
+func (r *RedirectToUrlResult) Apply(context constrain.IContext) {
+	v := contexext.FromContext(context)
+	//context.Response.Header().Set("Location", r.Url)
+	//context.Response.WriteHeader(http.StatusFound)
+	//context.Response.Header().Set("Content-Type", "")
+	//http.Redirect(v.Response, v.Request, fmt.Sprintf("%s/%s", v.Request.URL.Path, r.Url), http.StatusFound)
+	http.Redirect(v.Response, v.Request, r.Url, http.StatusFound)
+}

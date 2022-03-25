@@ -21,6 +21,9 @@ type client struct {
 func (m *client) GetEtcd() constrain.IEtcd {
 	return m.etcd
 }
+func (m *client) Del(ctx context.Context, keys ...string) (int64, error) {
+	return m.getClient().Del(ctx, keys...).Result()
+}
 func (m *client) Get(ctx context.Context, key string) (string, error) {
 	return m.getClient().Get(ctx, key).Result()
 }

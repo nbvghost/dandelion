@@ -9,6 +9,7 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/action"
 	"github.com/nbvghost/dandelion/library/contexext"
+	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/server/route"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -22,7 +23,7 @@ import (
 	"strings"
 
 	"github.com/nbvghost/dandelion/server/serviceobject"
-	"github.com/nbvghost/dandelion/utils"
+
 	"google.golang.org/grpc"
 )
 
@@ -199,7 +200,7 @@ func (m *service) Listen() {
 	var ip = m.server.IP
 	var port = m.server.Port
 	if ip == "" {
-		ip = utils.NetworkIP()
+		ip = util.NetworkIP()
 		if ip == "" {
 			log.Fatalln(errors.New("无法获取本机ip"))
 		}

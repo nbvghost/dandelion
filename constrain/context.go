@@ -2,6 +2,7 @@ package constrain
 
 import (
 	"context"
+	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/gpa/types"
 	"net/url"
 )
@@ -19,7 +20,8 @@ type IContext interface {
 	UID() types.PrimaryKey
 	Query() url.Values
 	AppName() string
-	SelectServer(appName MicroServerKey) (string, error)
+	SelectInsideServer(appName key.MicroServerKey) (string, error)
+	SelectServer(appName key.MicroServerKey) (string, error)
 	Route() string
 	Token() string
 	//DomainName() string

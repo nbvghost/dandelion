@@ -3,6 +3,7 @@ package grpcext
 import (
 	"context"
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/constrain/key"
 	"log"
 
 	"github.com/nbvghost/dandelion/server/serviceobject"
@@ -13,8 +14,8 @@ type client struct {
 	etcd constrain.IEtcd
 }
 
-func (m *client) Call(ctx context.Context, appName constrain.MicroServerKey, request *serviceobject.GrpcRequest) (*serviceobject.GrpcResponse, error) {
-	endpoint, err := m.etcd.SelectServer(appName)
+func (m *client) Call(ctx context.Context, appName key.MicroServerKey, request *serviceobject.GrpcRequest) (*serviceobject.GrpcResponse, error) {
+	endpoint, err := m.etcd.SelectInsideServer(appName)
 	if err != nil {
 		return nil, err
 	}

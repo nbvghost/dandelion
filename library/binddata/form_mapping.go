@@ -5,10 +5,11 @@
 package binddata
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/nbvghost/dandelion/utils/bytesconv"
-	"github.com/nbvghost/dandelion/utils/json"
+	"github.com/nbvghost/dandelion/library/util/bytesconv"
+
 	"reflect"
 	"strconv"
 	"strings"

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/constrain/key"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -172,7 +173,7 @@ func (m *grpcServer) Listen() {
 
 		Timeout, _ := strconv.ParseUint(ginContext.Request.Header.Get("Timeout"), 10, 64)
 
-		response, err = m.grpcClient.Call(context.TODO(), constrain.MicroServerKey(appName), &serviceobject.GrpcRequest{
+		response, err = m.grpcClient.Call(context.TODO(), key.MicroServerKey(appName), &serviceobject.GrpcRequest{
 			AppName:    appName,
 			Route:      path,
 			HttpMethod: ginContext.Request.Method,

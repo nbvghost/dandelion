@@ -6,6 +6,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
+	"github.com/nbvghost/captcha"
+	"github.com/nbvghost/glog"
 	"github.com/nbvghost/tool/object"
 	"io"
 	"io/ioutil"
@@ -15,9 +17,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/nbvghost/captcha"
-	"github.com/nbvghost/glog"
 )
 
 type Hashids struct {

@@ -3,6 +3,7 @@ package grpcext
 import (
 	"context"
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/server/serviceobject"
 	"google.golang.org/grpc"
 )
@@ -15,5 +16,5 @@ type IGrpc interface {
 }
 
 type IGrpcClient interface {
-	Call(ctx context.Context, appName constrain.MicroServerKey, request *serviceobject.GrpcRequest) (*serviceobject.GrpcResponse, error)
+	Call(ctx context.Context, appName key.MicroServerKey, request *serviceobject.GrpcRequest) (*serviceobject.GrpcResponse, error)
 }

@@ -8,11 +8,12 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/gorilla/mux"
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/library/environments"
 	"github.com/nbvghost/dandelion/library/result"
+	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/server/route"
 	"html/template"
 	"reflect"
-	"regexp"
 	"strconv"
 
 	"io/fs"
@@ -38,7 +39,7 @@ const defaultMemory = 32 << 20
 
 type httpServer struct {
 	serverName string
-	port       int
+	listenAddr string
 	engine     *mux.Router
 }
 type HttpMiddleware struct {
@@ -57,8 +58,8 @@ type HttpMiddleware struct {
 
 func (m *HttpMiddleware) Path(w http.ResponseWriter, r *http.Request) (bool, error) {
 	//log.Println(writer, request)
-	//log.Println(re.GetHostTemplate())
-	//log.Println(re.GetPathTemplate())
+	//log.Println(mux.CurrentRoute(r).GetHostTemplate())
+	//log.Println(mux.CurrentRoute(r).GetPathTemplate())
 	//log.Println(re.GetPathRegexp())
 	//log.Println(re.GetName())
 	//log.Println(re.GetHandler())
@@ -120,20 +121,10 @@ func filterFlags(content string) string {
 	return content
 }
 
-var IPRegexp = regexp.MustCompile(`(\d)+\.(\d)+\.(\d)+\.(\d)+`)
-
 func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, error) {
 	var err error
-	hosts := strings.Split(r.Host, ":")
-	var domainName string
-	domains := strings.Split(hosts[0], ".")
-	if len(domains) == 1 {
-		domainName = domains[0]
-	} else {
-		if !IPRegexp.MatchString(hosts[0]) {
-			domainName = hosts[len(hosts)-2] + "." + hosts[len(hosts)-1]
-		}
-	}
+
+	domainName := util.ParseDomain(r.Host)
 
 	Timeout, _ := strconv.ParseUint(r.Header.Get("Timeout"), 10, 64)
 
@@ -143,13 +134,14 @@ func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, e
 		Request:    r,
 		Timeout:    Timeout,
 		DomainName: domainName,
+		IsApi:      m.isApi,
 	}), m.serverName, m.session.ID, m.pathTemplate, r.URL.Query(), m.redis, m.token)
 
 	//todo ctx.Attributes().Put("Token", m.token)
 
-	var broken bool
+	var broken, hasRoute bool
 	var apiHandler interface{}
-	broken, apiHandler, err = m.route.Handle(ctx, m.isApi, m.pathTemplate, func(apiHandler interface{}) error {
+	broken, hasRoute, apiHandler, err = m.route.Handle(ctx, m.isApi, m.pathTemplate, func(apiHandler interface{}) error {
 		v := reflect.ValueOf(apiHandler)
 		t := reflect.TypeOf(apiHandler).Elem()
 		num := t.NumField()
@@ -193,6 +185,28 @@ func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, e
 		}
 		return err
 	})
+	if !hasRoute {
+		if m.isApi {
+			if err != nil {
+				err = fmt.Errorf(err.Error())
+			} else {
+				err = action.NewCodeWithError(action.NotFoundRoute, fmt.Errorf("没有找到路由:%s", r.URL.Path))
+			}
+		} else {
+			viewResult := route.NewViewResult(strings.TrimPrefix(r.URL.Path, "/"))
+			if m.viewRender != nil {
+				if err = m.viewRender.Render(ctx, r, w, viewResult); err != nil {
+					return false, err
+				}
+				return true, nil
+			}
+			vr := &viewRender{}
+			if err = vr.Render(ctx, r, w, viewResult); err != nil {
+				return false, err
+			}
+		}
+		return true, nil
+	}
 	if err != nil {
 		if v, ok := err.(*action.ActionResult); ok {
 			err = fmt.Errorf(v.Message)
@@ -260,7 +274,6 @@ func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, e
 				return false, err
 			}
 			if returnResult == nil {
-				//returnResult, err = apiHandler.(constrain.IHandler).Handle(parent)
 				return false, fmt.Errorf("对Api访问的类型：%v不支持", apiHandler)
 			}
 			if err != nil {
@@ -271,17 +284,6 @@ func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, e
 
 	} else {
 		if v, ok := apiHandler.(constrain.IViewHandler); ok {
-
-			/*uriVars := mux.Vars(r)
-			uriMap := make(map[string][]string)
-			for uriKey := range uriVars {
-				uriMap[uriKey] = []string{uriVars[uriKey]}
-			}
-			err = binding.Uri.BindUri(uriMap, v)
-			if err != nil {
-				return false, err
-			}*/
-
 			var viewResult constrain.IViewResult
 			viewResult, err = v.Render(ctx)
 			if err != nil {
@@ -289,6 +291,11 @@ func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, e
 			}
 			if viewResult == nil {
 				return false, errors.New("没有返回数据")
+			}
+			result := viewResult.GetResult()
+			if result != nil {
+				result.Apply(ctx)
+				return true, nil
 			}
 
 			if m.viewRender != nil {
@@ -306,6 +313,9 @@ func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, e
 		}
 	}
 	return true, nil
+}
+func (m *HttpMiddleware) IsAPI() bool {
+	return m.isApi
 }
 func (m *HttpMiddleware) Defer(w http.ResponseWriter, r *http.Request, err error) {
 	var bytes []byte
@@ -326,6 +336,7 @@ func (m *HttpMiddleware) Defer(w http.ResponseWriter, r *http.Request, err error
 			if errTemplate == nil {
 				d := map[string]interface{}{
 					"ErrorText": err.Error(),
+					"Mode":      environments.Release(),
 					"Stack":     string(debug.Stack()),
 				}
 				errTemplate = t.Execute(w, d)
@@ -394,7 +405,7 @@ func (v *viewRender) Render(context constrain.IContext, request *http.Request, w
 	return nil
 }
 
-type MiddlewareFunc func(context context.Context, currentRoute *mux.Route, serverName string) constrain.IMiddleware
+type MiddlewareFunc func(context context.Context, currentRoute *mux.Route, customizeViewRender constrain.IViewRender, serverName string) constrain.IMiddleware
 
 func NewHttpMiddleware(context context.Context, serverName string, currentRoute *mux.Route, route route.IRoute, redis constrain.IRedis, viewRender constrain.IViewRender) constrain.IMiddleware {
 	return &HttpMiddleware{
@@ -406,10 +417,45 @@ func NewHttpMiddleware(context context.Context, serverName string, currentRoute 
 		viewRender:   viewRender,
 	}
 }
-func (m *httpServer) Use(middlewareRouter *mux.Router, middleware MiddlewareFunc) {
+
+func (m *httpServer) Use(middlewareRouter *mux.Router, customizeViewRender constrain.IViewRender, middleware MiddlewareFunc) {
+	middlewareRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var middleware = middleware(context.TODO(), mux.CurrentRoute(r), customizeViewRender, m.serverName)
+
+		var isNext bool
+		var err error
+		defer func() {
+			middleware.Defer(w, r, err)
+		}()
+
+		if isNext, err = middleware.Path(w, r); err != nil {
+			return
+		}
+		if !isNext {
+			return
+		}
+
+		v, ok := middleware.(*HttpMiddleware)
+		if ok {
+			v.pathTemplate = r.URL.Path //todo 临时处理
+		}
+
+		if isNext, err = middleware.Cookie(w, r); err != nil {
+			return
+		}
+		if !isNext {
+			return
+		}
+		if isNext, err = middleware.Handle(w, r); err != nil {
+			return
+		}
+		if !isNext {
+			return
+		}
+	})
 	middlewareRouter.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var middleware = middleware(context.TODO(), mux.CurrentRoute(r), m.serverName)
+			var middleware = middleware(context.TODO(), mux.CurrentRoute(r), customizeViewRender, m.serverName)
 
 			var isNext bool
 			var err error
@@ -438,19 +484,20 @@ func (m *httpServer) Use(middlewareRouter *mux.Router, middleware MiddlewareFunc
 			next.ServeHTTP(w, r)
 		})
 	})
+
 }
 func (m *httpServer) Listen() {
-	addr := fmt.Sprintf(":%d", m.port)
-	log.Printf("HttpServer Listen:%s", addr)
+	log.Printf("HttpServer Listen:%s", m.listenAddr)
 	srv := &http.Server{
 		Handler:      m.engine,
-		Addr:         addr,
+		Addr:         m.listenAddr,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 	log.Fatalln(srv.ListenAndServe())
 }
 
-func NewHttpServer(engine *mux.Router, serverName string, port int) *httpServer {
-	return &httpServer{port: port, engine: engine, serverName: serverName}
+func NewHttpServer(engine *mux.Router, serverName string, listenAddr string) *httpServer {
+
+	return &httpServer{listenAddr: listenAddr, engine: engine, serverName: serverName}
 }

@@ -16,7 +16,7 @@ import (
 )
 
 type server struct {
-	dns     string
+	dsn     string
 	ormOnce sync.Once
 	gpaOnce sync.Once
 
@@ -28,7 +28,7 @@ type server struct {
 
 func (p *server) Orm() *gorm.DB {
 	p.ormOnce.Do(func() {
-		_database, err := gorm.Open(postgres.Open(p.dns), &gorm.Config{
+		_database, err := gorm.Open(postgres.Open(p.dsn), &gorm.Config{
 			Logger: p.logger,
 		})
 		if err != nil {
@@ -41,13 +41,13 @@ func (p *server) Orm() *gorm.DB {
 
 func (p *server) GPA() gpa.IDataBase {
 	p.gpaOnce.Do(func() {
-		p.gpa = gpa.Open("postgres", p.dns, nil)
+		p.gpa = gpa.Open("postgres", p.dsn, nil)
 	})
 
 	return p.gpa
 }
 
-func New(dns string) IPostgres {
+func New(dsn string) IPostgres {
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 		logger.Config{
@@ -58,5 +58,5 @@ func New(dns string) IPostgres {
 		},
 	)
 
-	return &server{dns: dns, logger: newLogger}
+	return &server{dsn: dsn, logger: newLogger}
 }

@@ -34,29 +34,19 @@ type AdminService struct {
 	Content       content.ContentService
 }
 
-func (service AdminService) AddItem(context *gweb.Context) (r constrain.IResult, err error) {
-	admin := context.Session.Attributes.Get(play.SessionAdmin).(*model.Admin)
-
-	item := &model.Admin{}
-	item.OID = admin.OID
-	err = util.RequestBodyToJSON(context.Request.Body, item)
-	if err != nil {
-		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, err
-	}
-
+func (service AdminService) AddItem(OID types.PrimaryKey, item *model.Admin) (err error) {
+	item.OID = OID
 	if strings.EqualFold(item.Account, "") {
-		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("账号不允许为空"), "", nil)}, err
+		return errors.New("账号不允许为空")
 	}
 
 	item.Account = strings.ToLower(item.Account)
 	item.PassWord = encryption.Md5ByString(item.PassWord)
 
 	if strings.EqualFold(item.Account, "admin") || strings.EqualFold(item.Account, "manager") || strings.EqualFold(item.Account, "administrator") {
-		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("此账号不允许注册"), "", nil)}, err
+		return errors.New("此账号不允许注册")
 	}
-
-	err = service.Add(singleton.Orm(), item)
-	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}, err
+	return service.Add(singleton.Orm(), item)
 }
 
 func (service AdminService) GetItem(context *gweb.Context) (r constrain.IResult, err error) {
@@ -165,22 +155,38 @@ func (service AdminService) FindAdmin() []model.Admin {
 	return list
 }
 
-func (service AdminService) InitOrganizationInfo(adminID types.PrimaryKey) *result.ActionResult {
+/*
+Account
+PassWord
+Domain
+*/
+func (service AdminService) InitOrganizationInfo(Account, PassWord, _Domain string) *result.ActionResult {
 	//Orm := singleton.Orm()
 	as := &result.ActionResult{}
 
-	Domain := fmt.Sprintf("%d", 1000000|adminID)
-	tx := singleton.Orm().Begin()
-
-	if service.Organization.FindByAdminID(tx, types.PrimaryKey(adminID)) != nil {
-		tx.Commit()
-		as.Code = result.Success
+	Domain := util.ParseDomain(_Domain)
+	if len(Domain) == 0 {
+		as = result.NewError(fmt.Errorf("不是一个有效的域名:%s", _Domain))
 		return as
+	}
+
+	tx := singleton.Orm().Begin()
+	defer func() {
+		if as.Code == 0 {
+			tx.Commit()
+		} else {
+			tx.Rollback()
+		}
+	}()
+
+	admin := service.FindAdminByAccount(tx, Account)
+	if !admin.IsZero() {
+		return result.NewError(fmt.Errorf("账号:%s被占用", Account))
 	}
 
 	_org := service.Organization.FindByDomain(tx, Domain)
 	if _org != nil && _org.ID > 0 {
-		tx.Rollback()
+
 		as.Code = result.Fail
 		as.Message = "域名：" + Domain + "已经被占用。"
 		return as
@@ -190,14 +196,21 @@ func (service AdminService) InitOrganizationInfo(adminID types.PrimaryKey) *resu
 	shop.Name = ""
 	shop.Domain = Domain
 	shop.Expire = time.Now().Add((365 * 1) * 24 * time.Hour)
-	shop.AdminID = types.PrimaryKey(adminID)
-
+	//shop.AdminID = types.PrimaryKey(adminID)
 	if err := service.Organization.AddOrganization(tx, shop); err != nil {
-		tx.Rollback()
+
 		as.Code = result.Fail
 		as.Message = err.Error()
 		return as
 	}
+	admin.Account = strings.ToLower(Account)
+	admin.PassWord = encryption.Md5ByString(PassWord)
+	admin.OID = shop.ID
+	if err := service.Add(tx, admin); err != nil {
+
+		return result.NewError(err)
+	}
+	//tx.Model(model.Organization{}).Where(map[string]interface{}{"ID": shop.ID}).Updates(map[string]interface{}{"AdminID": admin.ID})
 
 	as.Code = result.Success
 	as.Message = "添加成功"
@@ -206,6 +219,7 @@ func (service AdminService) InitOrganizationInfo(adminID types.PrimaryKey) *resu
 
 	err := service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, configuration.ConfigurationKeyBrokerageLeve1, shop.ID)
 	if err != nil {
+
 		return result.NewError(err)
 	}
 	if _Configuration.ID == 0 {
@@ -213,6 +227,7 @@ func (service AdminService) InitOrganizationInfo(adminID types.PrimaryKey) *resu
 		a.OID = shop.ID
 		err = service.Organization.Add(tx, &a)
 		if err != nil {
+
 			return result.NewError(err)
 		}
 	}
@@ -220,6 +235,7 @@ func (service AdminService) InitOrganizationInfo(adminID types.PrimaryKey) *resu
 	_Configuration = model.Configuration{}
 	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, configuration.ConfigurationKeyBrokerageLeve2, shop.ID)
 	if err != nil {
+
 		return result.NewError(err)
 	}
 	if _Configuration.ID == 0 {
@@ -227,6 +243,7 @@ func (service AdminService) InitOrganizationInfo(adminID types.PrimaryKey) *resu
 		a.OID = shop.ID
 		err = service.Organization.Add(tx, &a)
 		if err != nil {
+
 			return result.NewError(err)
 		}
 	}
@@ -234,6 +251,7 @@ func (service AdminService) InitOrganizationInfo(adminID types.PrimaryKey) *resu
 	_Configuration = model.Configuration{}
 	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, configuration.ConfigurationKeyBrokerageLeve3, shop.ID)
 	if err != nil {
+
 		return result.NewError(err)
 	}
 	if _Configuration.ID == 0 {
@@ -241,6 +259,7 @@ func (service AdminService) InitOrganizationInfo(adminID types.PrimaryKey) *resu
 		a.OID = shop.ID
 		err = service.Organization.Add(tx, &a)
 		if err != nil {
+
 			return result.NewError(err)
 		}
 	}
@@ -248,6 +267,7 @@ func (service AdminService) InitOrganizationInfo(adminID types.PrimaryKey) *resu
 	_Configuration = model.Configuration{}
 	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, configuration.ConfigurationKeyBrokerageLeve4, shop.ID)
 	if err != nil {
+
 		return result.NewError(err)
 	}
 	if _Configuration.ID == 0 {
@@ -255,6 +275,7 @@ func (service AdminService) InitOrganizationInfo(adminID types.PrimaryKey) *resu
 		a.OID = shop.ID
 		err = service.Organization.Add(tx, &a)
 		if err != nil {
+
 			return result.NewError(err)
 		}
 	}
@@ -262,6 +283,7 @@ func (service AdminService) InitOrganizationInfo(adminID types.PrimaryKey) *resu
 	_Configuration = model.Configuration{}
 	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, configuration.ConfigurationKeyBrokerageLeve5, shop.ID)
 	if err != nil {
+
 		return result.NewError(err)
 	}
 	if _Configuration.ID == 0 {
@@ -269,6 +291,7 @@ func (service AdminService) InitOrganizationInfo(adminID types.PrimaryKey) *resu
 		a.OID = shop.ID
 		err = service.Organization.Add(tx, &a)
 		if err != nil {
+
 			return result.NewError(err)
 		}
 	}
@@ -276,6 +299,7 @@ func (service AdminService) InitOrganizationInfo(adminID types.PrimaryKey) *resu
 	_Configuration = model.Configuration{}
 	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, configuration.ConfigurationKeyBrokerageLeve6, shop.ID)
 	if err != nil {
+
 		return result.NewError(err)
 	}
 	if _Configuration.ID == 0 {
@@ -283,6 +307,7 @@ func (service AdminService) InitOrganizationInfo(adminID types.PrimaryKey) *resu
 		a.OID = shop.ID
 		err = service.Organization.Add(tx, &a)
 		if err != nil {
+
 			return result.NewError(err)
 		}
 	}
@@ -303,11 +328,9 @@ func (service AdminService) InitOrganizationInfo(adminID types.PrimaryKey) *resu
 	if glog.Error(err) {
 		as.Code = result.SQLError
 		as.Message = err.Error()
-		tx.Rollback()
 		return as
 	}
-
-	tx.Commit()
+	as.Code = 0
 	return as
 }
 func (service AdminService) GetAdmin(ID uint) *model.Admin {
@@ -372,28 +395,7 @@ func (service AdminService) ManagerAction(context *gweb.Context) (r constrain.IR
 		return &result.JsonResult{Data: result.ActionResult{Code: result.Success, Message: "修改成功", Data: nil}}, nil
 
 	case play.ActionKey_add:
-		dts := &model.Admin{}
-		err = util.RequestBodyToJSON(context.Request.Body, dts)
-		if err != nil {
-			return nil, err
-		}
 
-		manager := context.Session.Attributes.Get(play.SessionAdmin).(*model.Admin)
-
-		if !strings.EqualFold(manager.Account, "manager") {
-			return &result.JsonResult{Data: result.ActionResult{Code: result.Fail, Message: "您没有添加账号的权限", Data: nil}}, nil
-		}
-
-		sk := service.FindAdminByAccount(Orm, dts.Account)
-		if sk.ID == 0 {
-			err = service.Add(Orm, dts)
-			if err != nil {
-				return nil, err
-			}
-			return &result.JsonResult{Data: result.ActionResult{Code: result.Success, Message: "添加成功", Data: nil}}, nil
-		} else {
-			return &result.JsonResult{Data: result.ActionResult{Code: result.Fail, Message: "账号重复", Data: nil}}, nil
-		}
 	case "list":
 		dts := &model.Datatables{}
 		err = util.RequestBodyToJSON(context.Request.Body, dts)
@@ -406,7 +408,7 @@ func (service AdminService) ManagerAction(context *gweb.Context) (r constrain.IR
 
 	return &result.JsonResult{Data: result.ActionResult{Code: result.Fail, Message: "", Data: nil}}, nil
 }
-func (service AdminService) ChangeAdmin(Name, Password string, ID types.PrimaryKey) error {
+func (service AdminService) ChangeAdmin(Account, Password string, ID types.PrimaryKey) error {
 	Orm := singleton.Orm()
-	return service.ChangeModel(Orm, ID, model.Admin{Account: Name, PassWord: encryption.Md5ByString(Password)})
+	return service.ChangeModel(Orm, ID, model.Admin{Account: Account, PassWord: encryption.Md5ByString(Password)})
 }

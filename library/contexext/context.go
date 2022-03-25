@@ -3,6 +3,7 @@ package contexext
 import (
 	"context"
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/constrain/key"
 	"net/http"
 	"net/url"
 	"time"
@@ -28,6 +29,7 @@ type ContextValue struct {
 	Response   http.ResponseWriter
 	Request    *http.Request
 	DomainName string
+	IsApi      bool
 }
 
 func NewContext(v *ContextValue) context.Context {
@@ -74,11 +76,11 @@ func (m *handlerContext) Context() context.Context {
 func (m *handlerContext) Redis() constrain.IRedis {
 	return m.redis
 }
-func (m *handlerContext) SelectServer(appName constrain.MicroServerKey) (string, error) {
-	return m.redis.GetEtcd().SelectServer(appName)
+func (m *handlerContext) SelectInsideServer(appName key.MicroServerKey) (string, error) {
+	return m.redis.GetEtcd().SelectInsideServer(appName)
 }
-func (m *handlerContext) SelectFileServer() string {
-	return m.redis.GetEtcd().SelectFileServer()
+func (m *handlerContext) SelectServer(appName key.MicroServerKey) (string, error) {
+	return m.redis.GetEtcd().SelectServer(appName)
 }
 func (m *handlerContext) Token() string {
 	return m.token

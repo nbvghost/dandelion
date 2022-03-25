@@ -1,15 +1,14 @@
 package model
 
 import (
+	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/gpa/types"
 	"time"
-
-	"github.com/nbvghost/dandelion/entity/sqltype"
 )
 
 type Organization struct {
 	types.Entity
-	AdminID      types.PrimaryKey    `gorm:"column:AdminID"`
+	//AdminID      types.PrimaryKey    `gorm:"column:AdminID"`
 	Domain       string              `gorm:"column:Domain;not null;unique"`        //三级域名
 	Name         string              `gorm:"column:Name;not null"`                 //店名
 	Amount       uint                `gorm:"column:Amount;default:0"`              //现金
