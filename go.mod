@@ -13,10 +13,9 @@ require (
 	github.com/json-iterator/go v1.1.11
 	github.com/lib/pq v1.10.4
 	github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89
-	github.com/nbvghost/glog v1.0.18
-	github.com/nbvghost/gpa v0.0.0-20210616142117-afb9b836a1c4
-	github.com/nbvghost/gweb v0.0.0-20220325165205-6bc774055cda
-	github.com/nbvghost/tool v0.0.0-20220325085357-8ba0b1890cf8
+	github.com/nbvghost/glog v0.0.0-20220325163842-3accd57fda66
+	github.com/nbvghost/gweb v0.0.0-20220325183229-6c8eee4ff8a5
+	github.com/nbvghost/tool v0.0.0-20220325180651-f5c6376d74d4
 	github.com/pkg/errors v0.9.1
 	go.etcd.io/etcd/client/v3 v3.5.1
 	golang.org/x/net v0.0.0-20210916014120-12bc252f5db8
