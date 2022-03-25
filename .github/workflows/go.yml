@@ -1,9 +1,6 @@
 name: Go
 on: [push]
 
-env:
-  APPVERSION: $(cat version)
-
 jobs:
 
   build:
@@ -32,13 +29,14 @@ jobs:
       run: CGO_ENABLED=0 go build -v .
 
     - name: Set version code
-      run: echo "APPVERSION=$(cat version)" >> $GITHUB_ENV
-
+      run: |
+        $APPVERSION=${{github.run_number}}
+        echo $APPVERSION
     - name: Docker
-      run: docker build -t docker.pkg.github.com/nbvghost/dandelion/dandelion:$APPVERSION .
+      run: docker build -t docker.pkg.github.com/nbvghost/${{github.repository}}:$APPVERSION .
 
     - name: Login Github Docker
       run: echo ${{ secrets.TOKEN }} | docker login docker.pkg.github.com -u nbvghost --password-stdin
 
     - name: Docker Push
-      run: docker push docker.pkg.github.com/nbvghost/dandelion/dandelion:$APPVERSION
+      run: docker push docker.pkg.github.com/nbvghost/${{github.repository}}:$APPVERSION
