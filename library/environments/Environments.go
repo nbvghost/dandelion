@@ -17,7 +17,7 @@ type environments struct {
 func init() {
 	flag.BoolVar(&env.release, "release", true, "release")
 
-	etcdEndpoints, ok := os.LookupEnv("etcd.endpoints")
+	etcdEndpoints, ok := os.LookupEnv("ETCD_ENDPOINTS")
 	if !ok {
 		etcdEndpoints = "127.0.0.1:23791,127.0.0.1:23792,127.0.0.1:23793"
 	}
@@ -26,7 +26,7 @@ func init() {
 		env.etcdEndpoints = append(env.etcdEndpoints, strings.TrimSpace(v))
 	}
 	log.Println("FLAG release", env.release)
-	log.Println("ENV etcd.endpoints", env.etcdEndpoints)
+	log.Println("ENV ETCD_ENDPOINTS", env.etcdEndpoints)
 }
 func Release() bool {
 	return env.release

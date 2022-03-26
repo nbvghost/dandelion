@@ -14,6 +14,7 @@ require (
 	github.com/lib/pq v1.10.4
 	github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89
 	github.com/nbvghost/glog v0.0.0-20220325163842-3accd57fda66
+	github.com/nbvghost/gpa v0.0.0-20220325184147-4044a81c3004
 	github.com/nbvghost/gweb v0.0.0-20220325183229-6c8eee4ff8a5
 	github.com/nbvghost/tool v0.0.0-20220325180651-f5c6376d74d4
 	github.com/pkg/errors v0.9.1
