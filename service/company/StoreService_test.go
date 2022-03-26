@@ -1,33 +1,30 @@
 package company
 
 import (
-	"fmt"
-	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"testing"
 )
 
 func TestStoreStockService_ListStoreSpecifications(t *testing.T) {
 
-	ss := StoreService{}
-	fmt.Println(ss.ListStoreSpecifications(2009, 2005))
+	//ss := StoreService{}
+	//	fmt.Println(ss.ListStoreSpecifications(2009, 2005))
 }
 func TestStoreStockService_ListStoreStock(t *testing.T) {
 
-	ss := StoreService{}
-	fmt.Println(ss.ListStoreStock(2009))
+	//ss := StoreService{}
+	//fmt.Println(ss.ListStoreStock(2009))
 
 }
 func TestStoreStockService_ListByGoodsIDAndStoreID(t *testing.T) {
-	Orm := singleton.Orm()
+	/*	Orm := singleton.Orm()
 
-	type Result struct {
-		GoodsID uint `gorm:"column:GoodsID"`
-	}
+		type Result struct {
+			GoodsID uint `gorm:"column:GoodsID"`
+		}
 
-	var ids []Result
-	Orm.Table("StoreStock").Select("GoodsID as GoodsID").Where(&model.StoreStock{StoreID: 2009}).Find(&ids)
-	fmt.Println(ids)
+		var ids []Result
+		Orm.Table("StoreStock").Select("GoodsID as GoodsID").Where(&model.StoreStock{StoreID: 2009}).Find(&ids)
+		fmt.Println(ids)*/
 
 	/*Orm :=singleton.Orm()
 	//SELECT g.ID as ID,g.Title as Title,COUNT(ss.ID) as Total,SUM(ss.Stock) as Stock FROM Goods as g,StoreStock as ss where ss.StoreID=2009 and g.ID=ss.GoodsID  group by ss.GoodsID;
