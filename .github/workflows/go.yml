@@ -19,7 +19,7 @@ jobs:
 
       - name: Granting private modules access
         run: |
-          git config --global url."ssh://git@github.com/".insteadOf "https://github.com/"
+          git config --global url."https://${{ secrets.TOKEN }}:x-oauth-basic@github.com/nbvghost".insteadOf "https://github.com/nbvghost"
 
       - name: Get dependencies
         run: |

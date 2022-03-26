@@ -1,0 +1,11 @@
+version: "1.0"
+services:
+  sso:
+    image: "ghcr.io/nbvghost/sso/server:latest"
+    ports:
+      - "8000:5000"
+    volumes:
+      - .:/data
+    environment:
+      ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
+
