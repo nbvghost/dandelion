@@ -76,7 +76,8 @@ func (service OrganizationService) ChangeOrganization(ID types.PrimaryKey, shop 
 	}
 
 }
-func (service OrganizationService) FindByAdminID(Orm *gorm.DB, adminID types.PrimaryKey) *model.Organization {
+
+/*func (service OrganizationService) FindByAdminID(Orm *gorm.DB, adminID types.PrimaryKey) *model.Organization {
 	manager := &model.Organization{}
 	//err := Orm.Where("Domain=?", Domain).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
 	Orm.Where(map[string]interface{}{"AdminID": adminID}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)
@@ -84,7 +85,7 @@ func (service OrganizationService) FindByAdminID(Orm *gorm.DB, adminID types.Pri
 		return nil
 	}
 	return manager
-}
+}*/
 
 //Execute(Session *Session,Request *http.Request)(bool,Result)
 /*func (self OrganizationService) ReadOrganization(Context *gweb.Context) (bool, gweb.Result) {
