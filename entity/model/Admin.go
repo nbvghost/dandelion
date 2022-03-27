@@ -12,6 +12,7 @@ type Admin struct {
 	PassWord    string           `gorm:"column:PassWord;not null"`
 	Authority   string           `gorm:"column:Authority;default:''"` //json 权限
 	LastLoginAt time.Time        `gorm:"column:LastLoginAt"`
+	Initiator   bool             `gorm:"column:Initiator"`
 }
 
 func (Admin) TableName() string {
