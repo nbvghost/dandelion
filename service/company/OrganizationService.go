@@ -33,9 +33,6 @@ func (service OrganizationService) FindByDomain(Orm *gorm.DB, Domain string) *mo
 	manager := &model.Organization{}
 	//err := Orm.Where("Domain=?", Domain).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
 	Orm.Where(map[string]interface{}{"Domain": Domain}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)
-	if manager.ID == 0 {
-		return nil
-	}
 	return manager
 }
 func (service OrganizationService) GetOrganization(ID types.PrimaryKey) model.Organization {
