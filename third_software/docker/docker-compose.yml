@@ -31,6 +31,8 @@ services:
 
   dandelion_gateway:
     image: "ghcr.io/nbvghost/dandelion_gateway/server:latest"
+    volumes:
+      - ./cert-dir:/app/cert-dir
     ports:
       - "80:80"
       - "443:443"

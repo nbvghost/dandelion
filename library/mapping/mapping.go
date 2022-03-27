@@ -1,6 +1,7 @@
 package mapping
 
 import (
+	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/util"
@@ -10,10 +11,10 @@ import (
 	"reflect"
 )
 
-type Call func(context constrain.IContext) (instance types.IEntity, err error)
+type Call func(context constrain.IContext) (instance types.IEntity)
 
 type IMapping interface {
-	Call(context constrain.IContext) (instance types.IEntity, err error)
+	Call(context constrain.IContext) (instance types.IEntity)
 	Name() string
 	Instance() types.IEntity
 }
@@ -50,9 +51,9 @@ func (m *mapping) Before(context constrain.IContext, handler interface{}) error 
 			fieldV := v.Field(i)
 			name := util.GetPkgPath(fieldV.Interface())
 			if call, has := m.poolList[name][tag]; has {
-				instance, err := call(context)
-				if err != nil {
-					return err
+				instance := call(context)
+				if instance == nil {
+					return errors.New("mapping的Call不能返回空的实例")
 				}
 
 				mappingValue := reflect.ValueOf(instance)
