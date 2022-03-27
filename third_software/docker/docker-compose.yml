@@ -1,31 +1,31 @@
 version: "3.9"
 services:
 
-  sso:
-    image: "ghcr.io/nbvghost/sso/server:latest"   
-    environment:
-      ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
-
-  oss:
-    image: "ghcr.io/nbvghost/oss/server:latest"
-    volumes:
-      - ./assets:/app/assets
-    environment:
-      ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
-
   dandelion_admin:
     image: "ghcr.io/nbvghost/dandelion_admin/server:latest"
     environment:
       ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
 
+  sso:
+    image: "ghcr.io/nbvghost/sso/server:latest"
+    depends_on:
+      - "dandelion_admin"
+    environment:
+      ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
 
-  dandelion_manager:
-    image: "ghcr.io/nbvghost/dandelion_manager/server:latest"  
+  oss:
+    image: "ghcr.io/nbvghost/oss/server:latest"
+    depends_on:
+      - "dandelion_admin"
+    volumes:
+      - ./assets:/app/assets
     environment:
       ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
 
   dandelion_site:
-    image: "ghcr.io/nbvghost/dandelion_site/server:latest"  
+    image: "ghcr.io/nbvghost/dandelion_site/server:latest"
+    depends_on:
+      - "dandelion_admin"
     environment:
       ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
 
