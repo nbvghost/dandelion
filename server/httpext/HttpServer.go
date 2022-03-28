@@ -97,7 +97,7 @@ func (m *HttpMiddleware) Cookie(w http.ResponseWriter, r *http.Request) (bool, e
 	cookie, err = r.Cookie("token")
 	if err != nil || strings.EqualFold(cookie.Value, "") {
 		token = encryption.CipherEncrypter(encryption.NewSecretKey(conf.Config.SecureKey), fmt.Sprintf("%s", time.Now().Format("2006-01-02 15:04:05")))
-		http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", MaxAge: conf.Config.SessionExpires})
+		http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 24)})
 	} else {
 		token = cookie.Value
 	}
