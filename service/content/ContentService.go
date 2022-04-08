@@ -12,6 +12,7 @@ import (
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/gpa/params"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
 	"github.com/nbvghost/gpa/types"

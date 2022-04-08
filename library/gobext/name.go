@@ -3,6 +3,7 @@ package gobext
 import (
 	"encoding/gob"
 	"github.com/nbvghost/dandelion/library/util"
+	"github.com/pkg/errors"
 
 	"reflect"
 )

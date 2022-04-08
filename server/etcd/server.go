@@ -3,7 +3,6 @@ package etcd
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
@@ -11,6 +10,7 @@ import (
 	"github.com/nbvghost/dandelion/entity/etcd"
 	"github.com/nbvghost/dandelion/library/action"
 	"github.com/nbvghost/dandelion/library/util"
+	"github.com/pkg/errors"
 
 	"log"
 	"math/rand"

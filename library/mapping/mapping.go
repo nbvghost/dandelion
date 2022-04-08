@@ -1,9 +1,9 @@
 package mapping
 
 import (
-	"errors"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/util"
+	"github.com/pkg/errors"
 
 	"github.com/nbvghost/gpa/types"
 	"log"

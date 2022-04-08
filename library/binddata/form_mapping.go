@@ -6,7 +6,8 @@ package binddata
 
 import (
 	"encoding/json"
-	"errors"
+	"github.com/pkg/errors"
+
 	"github.com/nbvghost/dandelion/library/util/bytesconv"
 
 	"reflect"
