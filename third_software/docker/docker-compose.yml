@@ -4,6 +4,7 @@ services:
   dandelion_admin:
     image: "ghcr.io/nbvghost/dandelion_admin/server:latest"
     environment:
+      TZ: "Asia/Shanghai"
       ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
 
   sso:
@@ -11,6 +12,7 @@ services:
     depends_on:
       - "dandelion_admin"
     environment:
+      TZ: "Asia/Shanghai"
       ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
 
   oss:
@@ -20,6 +22,7 @@ services:
     volumes:
       - ./assets:/app/assets
     environment:
+      TZ: "Asia/Shanghai"
       ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
 
   dandelion_site:
@@ -27,6 +30,7 @@ services:
     depends_on:
       - "dandelion_admin"
     environment:
+      TZ: "Asia/Shanghai"
       ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
 
   dandelion_gateway:
@@ -38,4 +42,5 @@ services:
       - "80:80"
       - "443:443"
     environment:
+      TZ: "Asia/Shanghai"
       ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
