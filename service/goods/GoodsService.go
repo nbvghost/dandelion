@@ -1,7 +1,6 @@
 package goods
 
 import (
-	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/tag"
@@ -12,12 +11,15 @@ import (
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/activity"
+	"github.com/nbvghost/dandelion/service/pinyin"
 	"github.com/nbvghost/gpa/params"
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/object"
+	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
@@ -25,10 +27,30 @@ import (
 
 type GoodsService struct {
 	model.BaseDao
-	TimeSell activity.TimeSellService
-	Collage  activity.CollageService
+	TimeSell      activity.TimeSellService
+	Collage       activity.CollageService
+	PinyinService pinyin.Service
 }
 
+func (service GoodsService) GetGoodsTypeByUri(OID types.PrimaryKey, GoodsTypeUri, GoodsTypeChildUri string) (model.GoodsType, model.GoodsTypeChild) {
+	Orm := singleton.Orm()
+	var item model.GoodsType
+	var itemSub model.GoodsTypeChild
+
+	itemMap := map[string]interface{}{"OID": OID, "Uri": GoodsTypeUri}
+	Orm.Model(model.GoodsType{}).Where(itemMap).First(&item)
+
+	itemSubMap := map[string]interface{}{
+		"OID":         OID,
+		"GoodsTypeID": item.ID,
+		"Uri":         GoodsTypeChildUri,
+	}
+	Orm.Model(model.GoodsTypeChild{}).Where(itemSubMap).First(&itemSub)
+	if itemSub.IsZero() {
+		itemSub.Uri = "all"
+	}
+	return item, itemSub
+}
 func (service GoodsService) ListGoodsByOID(OID types.PrimaryKey) []model.GoodsType {
 	Orm := singleton.Orm()
 	var menus []model.GoodsType
@@ -202,7 +224,15 @@ func (service GoodsService) ChangeSpecification(context *gweb.Context) (r gweb.R
 	err = service.ChangeModel(Orm, types.PrimaryKey(GoodsID), item)
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
 }
-func (service GoodsService) SaveGoods(goods *model.Goods, specifications []model.Specification) error {
+func (service GoodsService) getGoodsByUri(OID types.PrimaryKey, uri string) model.Goods {
+	Orm := singleton.Orm()
+	var goods model.Goods
+	goods.OID = OID
+	goods.Uri = uri
+	Orm.Model(model.Goods{}).Where(map[string]interface{}{"OID": goods.OID, "Uri": goods.Uri}).First(&goods)
+	return goods
+}
+func (service GoodsService) SaveGoods(OID types.PrimaryKey, goods *model.Goods, specifications []model.Specification) error {
 	Orm := singleton.Orm()
 	var err error
 	tx := Orm.Begin()
@@ -214,7 +244,21 @@ func (service GoodsService) SaveGoods(goods *model.Goods, specifications []model
 			tx.Rollback()
 		}
 	}()
+	if len(goods.Title) == 0 {
+		return errors.Errorf("请指定产品标题")
+	}
 
+	g := service.FindGoodsByTitle(goods.Title)
+	if !g.IsZero() && g.ID != goods.ID {
+		return errors.Errorf("重复的产品标题")
+	}
+
+	uri := service.PinyinService.AutoDetectUri(goods.Title)
+	g = service.getGoodsByUri(OID, uri)
+	if !g.IsZero() {
+		uri = fmt.Sprintf("%s-%d", uri, time.Now().Unix())
+	}
+	goods.Uri = uri
 	if goods.ID.IsZero() {
 		err = tx.Create(goods).Error
 	} else {
@@ -438,7 +482,7 @@ func (service GoodsService) FindGoodsByTimeSellID(TimeSellID types.PrimaryKey) [
 
 	//rows, _ := Orm.Raw("")
 
-	//todo:
+	//todo:没有写完整
 	//err = service.FindWhere(Orm, &list, "ID=?", timesell.GoodsID)
 	//glog.Error(err)
 	return list
@@ -797,4 +841,119 @@ func (service GoodsService) GetGoodsTypeData(OID types.PrimaryKey) *model.GoodsT
 
 	return goodsTypeData
 
+}
+func (service GoodsService) getGoodsTypeByName(orm *gorm.DB, OID types.PrimaryKey, name string) (model.GoodsType, error) {
+	var gt model.GoodsType
+	err := orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "Name": name}).First(&gt).Error
+	return gt, err
+}
+func (service GoodsService) getGoodsTypeByUri(orm *gorm.DB, OID types.PrimaryKey, uri string) (model.GoodsType, error) {
+	var gt model.GoodsType
+	err := orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "Uri": uri}).First(&gt).Error
+	return gt, err
+}
+func (service GoodsService) AddGoodsType(OID types.PrimaryKey, name string) error {
+	orm := singleton.Orm()
+	gt, _ := service.getGoodsTypeByName(orm, OID, name)
+	if !gt.IsZero() {
+		return errors.Errorf("重复的名字:%s", name)
+	}
+
+	uri := service.PinyinService.AutoDetectUri(name)
+	gt, _ = service.getGoodsTypeByUri(orm, OID, uri)
+	if !gt.IsZero() {
+		gt.Uri = fmt.Sprintf("%s-%d", gt.Uri, time.Now().Unix())
+	}
+	gt.OID = OID
+	gt.Name = name
+	gt.Uri = uri
+	return orm.Model(model.GoodsType{}).Create(&gt).Error
+}
+func (service GoodsService) ChangeGoodsType(OID, ID types.PrimaryKey, name string) error {
+	orm := singleton.Orm()
+	gt, _ := service.getGoodsTypeByName(orm, OID, name)
+	if gt.ID == ID {
+		return nil
+	}
+	if !gt.IsZero() {
+		return errors.Errorf("重复的名字:%s", name)
+	}
+
+	uri := service.PinyinService.AutoDetectUri(name)
+	gt, _ = service.getGoodsTypeByUri(orm, OID, uri)
+	if !gt.IsZero() {
+		gt.Uri = fmt.Sprintf("%s-%d", gt.Uri, time.Now().Unix())
+	}
+	gt.Name = name
+	gt.Uri = uri
+	return orm.Model(model.GoodsType{}).Where(`"ID"=?`, ID).Updates(map[string]interface{}{
+		"Name": gt.Name,
+		"Uri":  gt.Uri,
+	}).Error
+}
+func (service GoodsService) getGoodsTypeChildByName(orm *gorm.DB, OID, GoodsTypeID types.PrimaryKey, name string) (model.GoodsTypeChild, error) {
+	var gt model.GoodsTypeChild
+	err := orm.Model(model.GoodsTypeChild{}).Where(map[string]interface{}{"OID": OID, "GoodsTypeID": GoodsTypeID, "Name": name}).First(&gt).Error
+	return gt, err
+}
+func (service GoodsService) getGoodsTypeChildByUri(orm *gorm.DB, OID, GoodsTypeID types.PrimaryKey, uri string) (model.GoodsTypeChild, error) {
+	var gt model.GoodsTypeChild
+	err := orm.Model(model.GoodsTypeChild{}).Where(map[string]interface{}{"OID": OID, "GoodsTypeID": GoodsTypeID, "Uri": uri}).First(&gt).Error
+	return gt, err
+}
+func (service GoodsService) AddGoodsTypeChild(OID, GoodsTypeID types.PrimaryKey, name, image string) error {
+	if GoodsTypeID == 0 {
+		return errors.Errorf("没有指定父类ID")
+	}
+	orm := singleton.Orm()
+	gtc := service.GetGoodsType(GoodsTypeID)
+	if gtc.IsZero() {
+		return errors.Errorf("不存在父类:%d", GoodsTypeID)
+	}
+
+	gt, _ := service.getGoodsTypeChildByName(orm, OID, GoodsTypeID, name)
+	if !gt.IsZero() {
+		return errors.Errorf("重复的名字:%s", name)
+	}
+
+	uri := service.PinyinService.AutoDetectUri(name)
+	gt, _ = service.getGoodsTypeChildByUri(orm, OID, GoodsTypeID, uri)
+	if !gt.IsZero() {
+		gt.Uri = fmt.Sprintf("%s-%d", gt.Uri, time.Now().Unix())
+	}
+	gt.OID = OID
+	gt.Name = name
+	gt.Uri = uri
+	gt.Image = image
+	gt.GoodsTypeID = GoodsTypeID
+	return orm.Model(model.GoodsTypeChild{}).Create(&gt).Error
+}
+func (service GoodsService) ChangeGoodsTypeChild(OID, ID types.PrimaryKey, name, image string) error {
+	orm := singleton.Orm()
+	gtc := service.GetGoodsTypeChild(ID)
+	if gtc.IsZero() {
+		return errors.Errorf("记录不存在")
+	}
+
+	gt, _ := service.getGoodsTypeChildByName(orm, OID, gtc.GoodsTypeID, name)
+	if gt.ID == ID {
+		return nil
+	}
+	if !gt.IsZero() {
+		return errors.Errorf("重复的名字:%s", name)
+	}
+
+	uri := service.PinyinService.AutoDetectUri(name)
+	gt, _ = service.getGoodsTypeChildByUri(orm, OID, gtc.GoodsTypeID, uri)
+	if !gt.IsZero() {
+		gt.Uri = fmt.Sprintf("%s-%d", gt.Uri, time.Now().Unix())
+	}
+	gt.Name = name
+	gt.Uri = uri
+	gt.Image = image
+	return orm.Model(model.GoodsTypeChild{}).Where(`"ID"=?`, ID).Updates(map[string]interface{}{
+		"Name":  gt.Name,
+		"Uri":   gt.Uri,
+		"Image": gt.Image,
+	}).Error
 }

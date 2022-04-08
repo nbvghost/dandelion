@@ -3,15 +3,14 @@ package etcd
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/etcd"
 	"github.com/nbvghost/dandelion/library/action"
-	"github.com/nbvghost/dandelion/library/environments"
 	"github.com/nbvghost/dandelion/library/util"
+	"github.com/pkg/errors"
 
 	"log"
 	"math/rand"
@@ -57,7 +56,7 @@ func (m *server) SelectInsideServer(appName key.MicroServerKey) (string, error) 
 		return "", err
 	}
 	if len(resp.Kvs) == 0 {
-		return "", action.NewCodeWithError(action.Error, fmt.Errorf("没有可以用的服务节点:%s", appName))
+		return "", action.NewCodeWithError(action.Error, errors.Errorf("没有可以用的服务节点:%s", appName))
 	}
 
 	valueByte := resp.Kvs[r.Intn(len(resp.Kvs))].Value
@@ -83,7 +82,7 @@ func (m *server) ObtainRedis() (*config.RedisOptions, error) {
 	}
 
 	if len(resp.Kvs) == 0 {
-		return nil, fmt.Errorf("没有到redis节点")
+		return nil, errors.Errorf("没有到redis节点")
 	}
 
 	op := config.RedisOptions{}
@@ -111,17 +110,15 @@ func (m *server) parseDNS(dns []etcd.ServerDNS, check bool) error {
 	defer m.Unlock()
 	m.Lock()
 	for _, v := range dns {
-		etcdKey := v.Env + "-" + v.Name
 		if check {
-			if _, ok := m.dnsDomainToServer[etcdKey]; ok {
-				return fmt.Errorf("存在重复的key:Env-Name(%s,%s)", v.Env, v.Name)
+			if _, ok := m.dnsDomainToServer[v.Name]; ok {
+				return errors.Errorf("存在重复的key:Name(%s)", v.Name)
 			}
 		}
 
-		m.dnsDomainToServer[etcdKey] = v.LocalName
+		m.dnsDomainToServer[v.Name] = v.LocalName
 		//------------------
-		etcdKey = v.Env + "-" + string(v.LocalName)
-		list := m.dnsServerToDomain[etcdKey]
+		list := m.dnsServerToDomain[string(v.LocalName)]
 		if check {
 			var has bool
 			for _, n := range list {
@@ -131,11 +128,11 @@ func (m *server) parseDNS(dns []etcd.ServerDNS, check bool) error {
 				}
 			}
 			if has {
-				return fmt.Errorf("存在重复的value:%s的key:Env-LocalName(%s,%s)", v.Name, v.Env, v.LocalName)
+				return errors.Errorf("存在重复的value:%s的key:LocalName(%s)", v.Name, v.LocalName)
 			}
 		}
 		list = append(list, v.Name)
-		m.dnsServerToDomain[etcdKey] = list
+		m.dnsServerToDomain[string(v.LocalName)] = list
 		m.dnsDomains = append(m.dnsDomains, v.Name)
 	}
 	return nil
@@ -143,7 +140,8 @@ func (m *server) parseDNS(dns []etcd.ServerDNS, check bool) error {
 func (m *server) GetDNSDomains() []string {
 	return m.dnsDomains
 }
-func (m *server) getDNSEnv() string {
+
+/*func (m *server) getDNSEnv() string {
 	var env string
 	if environments.Release() {
 		env = "release"
@@ -151,20 +149,23 @@ func (m *server) getDNSEnv() string {
 		env = "dev"
 	}
 	return env
-}
+}*/
 
 //对外服务地址
 func (m *server) SelectServer(localName key.MicroServerKey) (string, error) {
-	env := m.getDNSEnv()
-	list, ok := m.dnsServerToDomain[env+"-"+string(localName)]
+	//env := m.getDNSEnv()
+	list, ok := m.dnsServerToDomain[string(localName)]
 	if !ok || len(list) == 0 {
-		return "", fmt.Errorf("在获取%s服务时找不到服务地址", localName)
+		return "", errors.Errorf("在获取%s服务时找不到服务地址", localName)
 	}
 	return list[0], nil
 }
-func (m *server) GetDNSLocalName(name string) (key.MicroServerKey, bool) {
-	env := m.getDNSEnv()
-	v, ok := m.dnsDomainToServer[env+"-"+name]
+func (m *server) GetDNSLocalName(domainName string) (key.MicroServerKey, bool) {
+	//env := m.getDNSEnv()
+	v, ok := m.dnsDomainToServer[domainName]
+	if !ok {
+		v, ok = m.dnsDomainToServer[fmt.Sprintf("*.%s", domainName)]
+	}
 	return v, ok
 }
 func (m *server) watchDNS() {
@@ -234,7 +235,7 @@ func (m *server) ObtainPostgresql(serverName string) (string, error) {
 		return "", err
 	}
 	if len(resp.Kvs) == 0 {
-		return "", fmt.Errorf("没有到Postgresql节点")
+		return "", errors.Errorf("没有到Postgresql节点")
 	}
 	return string(resp.Kvs[0].Value), err
 }

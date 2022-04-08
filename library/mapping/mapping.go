@@ -1,10 +1,9 @@
 package mapping
 
 import (
-	"errors"
-	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/util"
+	"github.com/pkg/errors"
 
 	"github.com/nbvghost/gpa/types"
 	"log"
@@ -30,7 +29,7 @@ func (m *mapping) register(instance types.IEntity, call Call, mappingName string
 	}
 
 	if _, ok := m.poolList[path][mappingName]; ok {
-		return fmt.Errorf("已经注册的instance(%s)", path)
+		return errors.Errorf("已经注册的instance(%s)", path)
 	}
 	m.poolList[path][mappingName] = call
 	return nil

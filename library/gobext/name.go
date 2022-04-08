@@ -2,8 +2,8 @@ package gobext
 
 import (
 	"encoding/gob"
-	"fmt"
 	"github.com/nbvghost/dandelion/library/util"
+	"github.com/pkg/errors"
 
 	"reflect"
 )
@@ -12,7 +12,7 @@ var structMap = make(map[string]reflect.Type)
 
 func NewGob(name string) interface{} {
 	if v, ok := structMap[name]; !ok {
-		panic(fmt.Errorf("不存在的gob对象:%s", name))
+		panic(errors.Errorf("不存在的gob对象:%s", name))
 	} else {
 		return reflect.New(v).Interface()
 	}

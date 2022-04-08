@@ -7,6 +7,7 @@ import (
 	"github.com/nbvghost/dandelion/library/environments"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
+	"github.com/nbvghost/dandelion/service/cache"
 	"log"
 
 	"github.com/nbvghost/glog"
@@ -76,6 +77,9 @@ func Init(etcd constrain.IEtcd, dbName string) {
 	models = append(models, model.LeaveMessage{})
 	models = append(models, model.Subscribe{})
 	models = append(models, model.FullTextSearch{})
+	models = append(models, model.Pinyin{})
+	models = append(models, model.Language{})
+	models = append(models, model.Translate{})
 
 	dbContentFunc := `CREATE OR REPLACE FUNCTION process_content_full_text_search() RETURNS TRIGGER AS
 $Content$
@@ -202,6 +206,7 @@ $Goods$ LANGUAGE plpgsql;`
 			//rebuildFullTextSearch()
 		}()
 	}
+	cache.Init()
 }
 func rebuildFullTextSearch() {
 	var err error

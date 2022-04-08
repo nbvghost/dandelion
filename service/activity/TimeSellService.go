@@ -17,8 +17,8 @@ func (service TimeSellService) GetTimeSellByHash(Hash string, OID types.PrimaryK
 	return timesell
 }
 
-//todo:
 func (service TimeSellService) GetTimeSellByGoodsID(GoodsID types.PrimaryKey, OID types.PrimaryKey) *model.TimeSell {
+	//todo:考虑合并成一条sql语句
 	//timesellGoods := service.GetTimeSellGoodsByGoodsID(GoodsID, OID)
 	var timesellGoods model.TimeSellGoods
 	singleton.Orm().Model(&model.TimeSellGoods{}).Where(`"GoodsID"=? and "OID"=?`, GoodsID, OID).First(&timesellGoods)

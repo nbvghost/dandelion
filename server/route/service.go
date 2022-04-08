@@ -3,12 +3,12 @@ package route
 import (
 	"bytes"
 	"encoding/gob"
-	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/library/util"
+	"github.com/pkg/errors"
 
 	"net/http"
 	"reflect"
@@ -30,8 +30,14 @@ func (m *Info) GetWithoutAuth() bool {
 	return m.WithoutAuth
 }
 
+type emptyViewBase struct {
+	extends.ViewBase
+}
+
 func NewViewResult(name string) constrain.IViewResult {
-	return &extends.ViewBase{Name: name}
+	return &emptyViewBase{
+		ViewBase: extends.ViewBase{Name: name},
+	}
 }
 
 type service struct {
@@ -50,7 +56,7 @@ func (m *service) GetMappingCallback() constrain.IMappingCallback {
 func (m *service) encodingViewData(ctx constrain.IContext, r constrain.IViewResult) ([]byte, string, error) {
 	buffer := bytes.NewBuffer(nil)
 	structName := util.GetPkgPath(r)
-	//todo r.SetPkgPath(structName)
+	//todo r.SetPkgPath(structName) 问题：grpc 到http 模板渲染时，无法得到struct结构，具体值的类型无法确定（map也不行），目前内部服务采用http,考虑内部可能是grpc的。
 	if err := gob.NewEncoder(buffer).Encode(r); err != nil {
 		return nil, "", err
 	}
@@ -59,7 +65,7 @@ func (m *service) encodingViewData(ctx constrain.IContext, r constrain.IViewResu
 }
 func (m *service) RegisterInterceptors(prefixPath string, interceptors ...constrain.IInterceptor) {
 	if len(prefixPath) == 0 {
-		panic(fmt.Errorf("prefixPath 不能为空"))
+		panic(errors.Errorf("prefixPath 不能为空"))
 	}
 	if _, ok := m.interceptors[prefixPath]; !ok {
 		m.interceptors[prefixPath] = make([]constrain.IInterceptor, 0)
@@ -84,7 +90,7 @@ func (m *service) Handle(context constrain.IContext, isApi bool, route string, b
 	var hasRoute bool
 	routeInfo, ok := m.CheckRoute(isApi, route)
 	if !ok {
-		return true, hasRoute, nil, action.NewCodeWithError(action.NotFoundRoute, fmt.Errorf("没有找到路由:%s", route))
+		return true, hasRoute, nil, action.NewCodeWithError(action.NotFoundRoute, errors.Errorf("没有找到路由:%s", route))
 	}
 	hasRoute = true
 

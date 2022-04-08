@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
+	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"time"
@@ -19,6 +20,8 @@ type handlerContext struct {
 	route   string
 	query   url.Values
 	token   string
+	logger  *zap.Logger
+	mode    key.Mode
 }
 
 type ContextKey struct {
@@ -30,6 +33,9 @@ type ContextValue struct {
 	Request    *http.Request
 	DomainName string
 	IsApi      bool
+	Lang       string
+	RequestUrl string //
+
 }
 
 func NewContext(v *ContextValue) context.Context {
@@ -76,6 +82,9 @@ func (m *handlerContext) Context() context.Context {
 func (m *handlerContext) Redis() constrain.IRedis {
 	return m.redis
 }
+func (m *handlerContext) Logger() *zap.Logger {
+	return m.logger
+}
 func (m *handlerContext) SelectInsideServer(appName key.MicroServerKey) (string, error) {
 	return m.redis.GetEtcd().SelectInsideServer(appName)
 }
@@ -85,6 +94,9 @@ func (m *handlerContext) SelectServer(appName key.MicroServerKey) (string, error
 func (m *handlerContext) Token() string {
 	return m.token
 }
-func New(parent context.Context, appName, uid string, route string, query url.Values, redis constrain.IRedis, token string) constrain.IContext {
-	return &handlerContext{parent: parent, uid: types.NewFromString(uid), query: query, route: route, redis: redis, appName: appName, token: token}
+func (m *handlerContext) Mode() key.Mode {
+	return m.mode
+}
+func New(parent context.Context, appName, uid string, route string, query url.Values, redis constrain.IRedis, token string, logger *zap.Logger, mode key.Mode) constrain.IContext {
+	return &handlerContext{parent: parent, uid: types.NewFromString(uid), query: query, route: route, redis: redis, appName: appName, token: token, logger: logger, mode: mode}
 }

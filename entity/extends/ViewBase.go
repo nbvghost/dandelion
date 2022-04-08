@@ -5,15 +5,16 @@ import (
 )
 
 type ViewBase struct {
-	Name    string `json:"-"`
-	PkgPath string `json:"-"`
-	Global  Global `json:"-"`
+	Name string `json:"-"`
+	//PkgPath string `json:"-"`
+	//Global Global `json:"-"`
+	HtmlMeta         *HtmlMeta
+	HtmlMetaCallback func(viewBase ViewBase, meta *HtmlMeta) error `json:"-"`
 }
 
 func (m ViewBase) GetResult() constrain.IResult {
 	return nil
 }
-
 func (m ViewBase) GetName() string {
 	return m.Name
 }

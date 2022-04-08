@@ -11,6 +11,8 @@ import (
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/server/route"
+	"github.com/nbvghost/tool"
+	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
@@ -54,7 +56,14 @@ func (m *customizeService) Call(srv interface{}, ctx context.Context, dec func(i
 		uid = clientIDs[0]
 	}
 
-	currentContext := contexext.New(ctx, m.server.Name, uid, serverTransportStream.Method(), url.Values{}, m.redis, "")
+	logger, err := zap.NewProduction()
+	if err != nil {
+		panic(err)
+	}
+	logger = logger.Named("GrpcContext").With(zap.String("TraceID", tool.UUID()))
+	defer logger.Sync()
+
+	currentContext := contexext.New(ctx, m.server.Name, uid, serverTransportStream.Method(), url.Values{}, m.redis, "", logger, "")
 
 	var r *route.Info
 
@@ -109,7 +118,7 @@ type service struct {
 	callbacks  []constrain.IMappingCallback
 }
 
-func logger(format string, a ...interface{}) {
+func loggersss(format string, a ...interface{}) {
 	fmt.Printf("LOG:\t"+format+"\n", a...)
 }
 func valid(authorization []string) bool {

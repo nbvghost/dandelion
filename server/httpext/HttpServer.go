@@ -3,15 +3,19 @@ package httpext
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/gorilla/mux"
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/constrain/key"
+	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/library/environments"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/server/route"
+	"github.com/nbvghost/tool"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"html/template"
 	"reflect"
 	"strconv"
@@ -123,21 +127,50 @@ func filterFlags(content string) string {
 
 func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, error) {
 	var err error
+	var lang string
 
-	domainName := util.ParseDomain(r.Host)
+	domainPrefix, domainName := util.ParseDomain(r.Host)
+
+	if len(domainPrefix) >= 1 {
+		lang = domainPrefix[0]
+	}
+
+	if len(lang) == 0 || strings.EqualFold(lang, "dev") {
+		lang = "en"
+	}
+
+	mode := r.Header.Get("Mode")
+	if strings.EqualFold(mode, key.ModeRelease.String()) && !environments.Release() {
+		return false, errors.New("正式环境访问开发环境的服务")
+	}
+	if strings.EqualFold(mode, key.ModeDev.String()) && environments.Release() {
+		return false, errors.New("开发环境访问正式环境的服务")
+	}
 
 	Timeout, _ := strconv.ParseUint(r.Header.Get("Timeout"), 10, 64)
+	TraceID := r.Header.Get("TraceID")
+	if len(TraceID) == 0 {
+		TraceID = tool.UUID()
+	}
 
-	ctx := contexext.New(contexext.NewContext(&contexext.ContextValue{
+	logger, err := zap.NewProduction()
+	if err != nil {
+		panic(err)
+	}
+	logger = logger.Named("HttpContext").With(zap.String("TraceID", TraceID))
+	defer logger.Sync()
+
+	contextValue := &contexext.ContextValue{
 		Mapping:    m.route.GetMappingCallback(),
 		Response:   w,
 		Request:    r,
 		Timeout:    Timeout,
 		DomainName: domainName,
 		IsApi:      m.isApi,
-	}), m.serverName, m.session.ID, m.pathTemplate, r.URL.Query(), m.redis, m.token)
-
-	//todo ctx.Attributes().Put("Token", m.token)
+		Lang:       lang,
+		RequestUrl: util.GetFullUrl(r),
+	}
+	ctx := contexext.New(contexext.NewContext(contextValue), m.serverName, m.session.ID, m.pathTemplate, r.URL.Query(), m.redis, m.token, logger, key.Mode(mode))
 
 	var broken, hasRoute bool
 	var apiHandler interface{}
@@ -188,9 +221,9 @@ func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, e
 	if !hasRoute {
 		if m.isApi {
 			if err != nil {
-				err = fmt.Errorf(err.Error())
+				err = errors.Errorf(err.Error())
 			} else {
-				err = action.NewCodeWithError(action.NotFoundRoute, fmt.Errorf("没有找到路由:%s", r.URL.Path))
+				err = action.NewCodeWithError(action.NotFoundRoute, errors.Errorf("没有找到路由:%s", r.URL.Path))
 			}
 		} else {
 			viewResult := route.NewViewResult(strings.TrimPrefix(r.URL.Path, "/"))
@@ -209,9 +242,9 @@ func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, e
 	}
 	if err != nil {
 		if v, ok := err.(*action.ActionResult); ok {
-			err = fmt.Errorf(v.Message)
+			err = errors.Errorf(v.Message)
 		} else {
-			err = fmt.Errorf(err.Error())
+			err = errors.Errorf(err.Error())
 		}
 		return false, err
 	}
@@ -274,7 +307,7 @@ func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, e
 				return false, err
 			}
 			if returnResult == nil {
-				return false, fmt.Errorf("对Api访问的类型：%v不支持", apiHandler)
+				return false, errors.Errorf("对Api访问的类型：%v不支持", apiHandler)
 			}
 			if err != nil {
 				return false, err
@@ -298,6 +331,18 @@ func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, e
 				return true, nil
 			}
 
+			viewBaseValue := reflect.ValueOf(viewResult).Elem().FieldByName("ViewBase")
+			viewBase := viewBaseValue.Interface().(extends.ViewBase)
+
+			htmlMeta := extends.NewHtmlMeta(contextValue.Lang, contextValue.RequestUrl)
+			if viewBase.HtmlMetaCallback != nil {
+				if err = viewBase.HtmlMetaCallback(viewBase, htmlMeta); err != nil {
+					return false, err
+				}
+			}
+			viewBase.HtmlMeta = htmlMeta
+			viewBaseValue.Set(reflect.ValueOf(viewBase))
+
 			if m.viewRender != nil {
 				if err = m.viewRender.Render(ctx, r, w, viewResult); err != nil {
 					return false, err
@@ -309,7 +354,7 @@ func (m *HttpMiddleware) Handle(w http.ResponseWriter, r *http.Request) (bool, e
 				return false, err
 			}
 		} else {
-			return false, fmt.Errorf("对视图访问的类型：%v不支持", apiHandler)
+			return false, errors.Errorf("对视图访问的类型：%v不支持", apiHandler)
 		}
 	}
 	return true, nil
@@ -321,10 +366,10 @@ func (m *HttpMiddleware) Defer(w http.ResponseWriter, r *http.Request, err error
 	var bytes []byte
 
 	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
 		if m.isApi {
 			//ginContext.JSON(http.StatusOK, action.NewError(err))
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
-			w.WriteHeader(http.StatusOK)
 
 			bytes, err = json.Marshal(action.NewError(err))
 			if err != nil {
@@ -343,7 +388,6 @@ func (m *HttpMiddleware) Defer(w http.ResponseWriter, r *http.Request, err error
 			}
 			if errTemplate != nil {
 				w.Header().Set("Content-Type", "text/html; charset=utf-8")
-				w.WriteHeader(http.StatusNotFound)
 				w.Write([]byte(errTemplate.Error()))
 			}
 		}
@@ -437,7 +481,7 @@ func (m *httpServer) Use(middlewareRouter *mux.Router, customizeViewRender const
 
 		v, ok := middleware.(*HttpMiddleware)
 		if ok {
-			v.pathTemplate = r.URL.Path //todo 临时处理
+			v.pathTemplate = r.URL.Path //todo 临时处理,notfoundhandler 没有路由模板路径，只能用r.URL.Path的值
 		}
 
 		if isNext, err = middleware.Cookie(w, r); err != nil {

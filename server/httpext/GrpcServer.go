@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
+	"github.com/nbvghost/tool"
+	"go.uber.org/zap"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -163,7 +165,13 @@ func (m *grpcServer) Listen() {
 		}()
 
 		//todo
-		ctx := contexext.New(context.TODO(), appName, UID, path, nil, m.redis, "")
+		logger, err := zap.NewProduction()
+		if err != nil {
+			panic(err)
+		}
+		logger = logger.Named("GrpcContext").With(zap.String("TraceID", tool.UUID()))
+		defer logger.Sync()
+		ctx := contexext.New(context.TODO(), appName, UID, path, nil, m.redis, "", logger, "")
 
 		var bodyBytes []byte
 		bodyBytes, err = ginContext.GetRawData()

@@ -165,7 +165,7 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	/*mDomain := util.ParseDomain(domain)
 	if len(mDomain) == 0 {
 
-		return nil, fmt.Errorf("不是一个有效的域名:%s", domain)
+		return nil, errors.Errorf("不是一个有效的域名:%s", domain)
 	}*/
 
 	tx := singleton.Orm().Begin()
@@ -185,7 +185,7 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	/*_org := service.Organization.FindByDomain(tx, mDomain)
 	if _org != nil && _org.ID > 0 {
 
-		return nil, fmt.Errorf("域名：" + mDomain + "已经被占用。")
+		return nil, errors.Errorf("域名：" + mDomain + "已经被占用。")
 	}*/
 
 	admin.Account = strings.ToLower(account)

@@ -10,6 +10,7 @@ type IRedis interface {
 	Get(ctx context.Context, key string) (string, error)
 	GetEx(ctx context.Context, key string, expiration time.Duration) (string, error)
 	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
+	TryLock(ctx context.Context, key string, timeout ...time.Duration) (bool, func())
 	GetEtcd() IEtcd
 	GenerateUID(ctx context.Context) uint64
 }

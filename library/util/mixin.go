@@ -114,10 +114,14 @@ func CreateCaptchaCodeBytes(SessionCaptcha string) []byte {
 
 	return buf.Bytes()
 }
+func GetScheme(Request *http.Request) string {
+	if Request.TLS == nil {
+		return "http"
+	} else {
+		return "https:"
+	}
+}
 func GetHost(Request *http.Request) string {
-
-	glog.Trace(Request.Header)
-
 	if Request.TLS == nil {
 		return "http://" + Request.Host
 	} else {
