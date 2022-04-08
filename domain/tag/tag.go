@@ -15,6 +15,13 @@ func CreateUri(tags []extends.Tag) []extends.Tag {
 	}
 	return tags
 }
+func ToTagName(tag string) extends.Tag {
+	return extends.Tag{
+		Name:  tag,
+		Count: 1,
+		Uri:   kg.ReplaceAllString(tag, "-"),
+	}
+}
 func ToTagsName(tags []extends.Tag) []extends.Tag {
 	for i := 0; i < len(tags); i++ {
 		tags[i].Name = strings.ReplaceAll(tags[i].Uri, "-", " ")

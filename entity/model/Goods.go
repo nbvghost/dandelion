@@ -8,14 +8,14 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //商品
 type Goods struct {
 	types.Entity
-	OID               types.PrimaryKey    `gorm:"column:OID"`                 //
+	OID               types.PrimaryKey    `gorm:"column:OID;index"` //
+	Uri               string              `gorm:"column:Uri"`
 	Title             string              `gorm:"column:Title"`               //
 	GoodsTypeID       types.PrimaryKey    `gorm:"column:GoodsTypeID"`         //
 	GoodsTypeChildID  types.PrimaryKey    `gorm:"column:GoodsTypeChildID"`    //
@@ -61,7 +61,8 @@ func (u Goods) TableName() string {
 
 type GoodsType struct {
 	types.Entity
-	OID   types.PrimaryKey `gorm:"column:OID"`
+	OID   types.PrimaryKey `gorm:"column:OID;index"`
+	Uri   string           `gorm:"column:Uri"`
 	Name  string           `gorm:"column:Name"`
 	Image string           `gorm:"column:Image"`
 }
@@ -92,8 +93,9 @@ func (GoodsType) TableName() string {
 }*/
 
 type GoodsTypeChild struct {
-	base.BaseModel
-	OID         types.PrimaryKey `gorm:"column:OID"`
+	types.Entity
+	OID         types.PrimaryKey `gorm:"column:OID;index"`
+	Uri         string           `gorm:"column:Uri"`
 	Name        string           `gorm:"column:Name"`
 	Image       string           `gorm:"column:Image"`
 	GoodsTypeID types.PrimaryKey `gorm:"column:GoodsTypeID"`

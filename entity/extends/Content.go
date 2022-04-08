@@ -7,6 +7,7 @@ import (
 
 type Menus struct {
 	ID           types.PrimaryKey
+	Uri          string
 	Name         string
 	TemplateName string
 	Type         model.ContentTypeType

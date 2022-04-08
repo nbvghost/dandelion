@@ -280,7 +280,7 @@ func (fo *FuncObject) mapFunc(m interface{}, key interface{}) interface{} {
 	if v.Kind() == reflect.Map {
 		return v.MapIndex(reflect.ValueOf(key)).Interface()
 	}
-	panic(fmt.Errorf("Map不能处理%v数据", v.Kind()))
+	panic(errors.Errorf("Map不能处理%v数据", v.Kind()))
 }
 func (fo *FuncObject) digitMod(a, b interface{}) uint64 {
 	_a := reflect.ValueOf(a).Convert(reflect.TypeOf(float64(0))).Float()

@@ -7,7 +7,6 @@ package binddata
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/nbvghost/dandelion/library/util/bytesconv"
 
 	"reflect"
@@ -169,7 +168,7 @@ func setByForm(value reflect.Value, field reflect.StructField, form map[string][
 			vs = []string{opt.defaultValue}
 		}
 		if len(vs) != value.Len() {
-			return false, fmt.Errorf("%q is not valid value for %s", vs, value.Type().String())
+			return false, errors.Errorf("%q is not valid value for %s", vs, value.Type().String())
 		}
 		return true, setArray(vs, value, field)
 	default:

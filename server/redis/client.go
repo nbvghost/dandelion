@@ -21,6 +21,52 @@ type client struct {
 func (m *client) GetEtcd() constrain.IEtcd {
 	return m.etcd
 }
+func (m *client) TryLock(parentCtx context.Context, key string, timeouts ...time.Duration) (bool, func()) {
+	timeout := time.Duration(0)
+	if len(timeouts) > 0 {
+		timeout = timeouts[0]
+	}
+
+	_ctx, ctxCancel := context.WithCancel(parentCtx)
+
+	cancel := func() {
+		ctxCancel()
+		if err := m.getClient().Del(parentCtx, key).Err(); err != nil {
+			log.Println(err)
+		}
+	}
+	start := time.Now()
+
+	for time.Now().Sub(start) <= timeout || timeout == 0 {
+		ok := m.getClient().SetNX(_ctx, key, "lock", time.Minute)
+		if ok.Val() {
+			//获取锁成功
+			go func() {
+				t := time.NewTicker(time.Minute - (time.Second - 10))
+				defer t.Stop()
+				for {
+					select {
+					case <-_ctx.Done():
+						return
+					case <-t.C:
+						expireOK := m.getClient().Expire(_ctx, key, time.Minute)
+						if !expireOK.Val() {
+							log.Println("lock设置key过期时间失败")
+						}
+					}
+				}
+			}()
+			return true, cancel
+		} else {
+			//获取锁失败
+			if timeout == 0 {
+				break
+			}
+			time.Sleep(time.Second)
+		}
+	}
+	return false, nil
+}
 func (m *client) Del(ctx context.Context, keys ...string) (int64, error) {
 	return m.getClient().Del(ctx, keys...).Result()
 }

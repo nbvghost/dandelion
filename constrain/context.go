@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/gpa/types"
+	"go.uber.org/zap"
 	"net/url"
 )
 
@@ -24,6 +25,7 @@ type IContext interface {
 	SelectServer(appName key.MicroServerKey) (string, error)
 	Route() string
 	Token() string
+	Logger() *zap.Logger
 	//DomainName() string
 	//SelectFileServer() string
 }

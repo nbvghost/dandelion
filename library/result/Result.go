@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"encoding/xml"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"net/http"
@@ -156,4 +157,32 @@ func (r *RedirectToUrlResult) Apply(context constrain.IContext) {
 	//context.Response.Header().Set("Content-Type", "")
 	//http.Redirect(v.Response, v.Request, fmt.Sprintf("%s/%s", v.Request.URL.Path, r.Url), http.StatusFound)
 	http.Redirect(v.Response, v.Request, r.Url, http.StatusFound)
+}
+
+type XMLResult struct {
+	error
+	Data interface{}
+}
+
+func (r *XMLResult) Apply(context constrain.IContext) {
+	v := contexext.FromContext(context)
+	var err error
+
+	buffer := bytes.NewBuffer(nil)
+	buffer.WriteString(`<?xml version="1.0" encoding="UTF-8"?>`)
+	enc := xml.NewEncoder(buffer)
+	enc.Indent("  ", "    ")
+	err = enc.Encode(r.Data)
+	if err != nil {
+		(&ErrorResult{Error: err}).Apply(context)
+		return
+	}
+	//return buffer.Bytes(), err
+	//b, err = json.Marshal(r.Data)
+	//b = buffer.Bytes()
+
+	v.Response.Header().Set("Content-Type", "text/xml; charset=utf-8")
+	v.Response.WriteHeader(http.StatusOK)
+	//context.Response.Header().Add("Content-Type", "application/json")
+	v.Response.Write(buffer.Bytes())
 }

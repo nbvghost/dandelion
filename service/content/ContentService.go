@@ -24,17 +24,17 @@ import (
 	"strconv"
 )
 
-func (service ContentService) HotViewList(OID types.PrimaryKey, count uint) []model.Content {
+func (service ContentService) HotViewList(OID, ContentItemID types.PrimaryKey, count uint) []model.Content {
 	Orm := singleton.Orm()
 	var result []model.Content
-	db := Orm.Model(&model.Content{}).Where(map[string]interface{}{"OID": OID}).Order(`"CountView" desc`).Limit(int(count))
+	db := Orm.Model(&model.Content{}).Where(map[string]interface{}{"OID": OID}).Where(`"ContentItemID"=?`, ContentItemID).Order(`"CountView" desc`).Limit(int(count))
 	db.Find(&result)
 	return result
 }
-func (service ContentService) HotLikeList(OID types.PrimaryKey, count uint) []model.Content {
+func (service ContentService) HotLikeList(OID, ContentItemID types.PrimaryKey, count uint) []model.Content {
 	Orm := singleton.Orm()
 	var result []model.Content
-	db := Orm.Model(&model.Content{}).Where(map[string]interface{}{"OID": OID}).Order(`"CountLike" desc`).Limit(int(count))
+	db := Orm.Model(&model.Content{}).Where(map[string]interface{}{"OID": OID}).Where(`"ContentItemID"=?`, ContentItemID).Order(`"CountLike" desc`).Limit(int(count))
 	db.Find(&result)
 	return result
 }
@@ -98,11 +98,86 @@ func (service ContentService) PaginationContent(OID, ContentItemID, ContentSubTy
 
 	return pageIndex, 20, int(total), list, nil
 }
-func (service ContentService) AddContentItem(company *model.Organization, item *model.ContentItem) *result.ActionResult {
+func (service ContentService) GetContentTypeByUri(OID types.PrimaryKey, ContentItemUri, ContentSubTypeUri string) (model.ContentItem, model.ContentSubType) {
+	Orm := singleton.Orm()
+	var item model.ContentItem
+	var itemSub model.ContentSubType
+
+	itemMap := map[string]interface{}{"OID": OID, "Uri": ContentItemUri}
+	Orm.Model(model.ContentItem{}).Where(itemMap).First(&item)
+
+	itemSubMap := map[string]interface{}{
+		"OID":           OID,
+		"ContentItemID": item.ID,
+		"Uri":           ContentSubTypeUri,
+	}
+	Orm.Model(model.ContentSubType{}).Where(itemSubMap).First(&itemSub)
+	if itemSub.IsZero() {
+		itemSub.Uri = "all"
+	}
+	return item, itemSub
+}
+
+// uri 和 name 在 ContentItemID 下面唯一
+func (service ContentService) GetContentSubTypeByUri(OID, ContentItemID, ID types.PrimaryKey, uri string) model.ContentSubType {
+	Orm := singleton.Orm()
+	var item model.ContentSubType
+	Orm.Model(model.ContentSubType{}).Where(map[string]interface{}{
+		"OID":           OID,
+		"ContentItemID": ContentItemID,
+		"Uri":           uri,
+	}).Where(`"ID"<>?`, ID).First(&item)
+	return item
+}
+func (service ContentService) SaveContentSubType(OID types.PrimaryKey, item *model.ContentSubType) error {
+	Orm := singleton.Orm()
+	mm := service.GetContentSubTypeByName(OID, item.ContentItemID, item.ID, item.Name)
+	if !mm.IsZero() {
+		return errors.Errorf("名字重复")
+	}
+
+	uri := service.PinyinService.AutoDetectUri(item.Name)
+	g := service.GetContentSubTypeByUri(OID, item.ContentItemID, item.ID, uri)
+	if !g.IsZero() {
+		uri = fmt.Sprintf("%s-%d", uri, time.Now().Unix())
+	}
+	item.Uri = uri
+	item.OID = OID
+
+	if item.IsZero() {
+		contentItem := service.GetContentItemByID(item.ContentItemID)
+		if contentItem.IsZero() {
+			return errors.Errorf("类型不存在:%d", item.ContentItemID)
+		}
+		if !item.ParentContentSubTypeID.IsZero() {
+			cst := service.GetContentSubTypeByID(item.ParentContentSubTypeID)
+			if cst.IsZero() {
+				return errors.Errorf("父类不存在:%d", item.ContentItemID)
+			}
+		}
+		err := service.Add(Orm, item)
+		if glog.Error(err) {
+			return &result.ActionResult{
+				Code:    result.SQLError,
+				Message: err.Error(),
+				Data:    nil,
+			}
+		}
+	} else {
+		return service.ChangeModel(Orm, types.PrimaryKey(item.ID), &model.ContentSubType{Name: item.Name, Uri: item.Uri})
+	}
+
+	return nil
+}
+func (service ContentService) SaveContentItem(OID types.PrimaryKey, item *model.ContentItem) error {
 	Orm := singleton.Orm()
 
-	have := service.GetContentItemByNameAndOID(item.Name, company.ID)
-	if have.ID != 0 || strings.EqualFold(item.Name, "") {
+	if len(item.Name) == 0 {
+		return errors.Errorf("请指定名称")
+	}
+
+	have := service.ExistContentItemByNameAndOID(OID, item.ID, item.Name)
+	if !have.IsZero() {
 		return &result.ActionResult{
 			Code:    result.Fail,
 			Message: "这个名字已经被使用了",
@@ -110,44 +185,60 @@ func (service ContentService) AddContentItem(company *model.Organization, item *
 		} //&gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("这个名字已经被使用了"), "", nil)}
 	}
 
-	var mt model.ContentType
-	Orm.Where(map[string]interface{}{"ID": item.ContentTypeID}).First(&mt)
-	if mt.ID == 0 {
-		return &result.ActionResult{
-			Code:    result.Fail,
-			Message: "没有找到类型",
-			Data:    nil,
-		} //&gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("没有找到类型"), "", nil)}
+	item.OID = OID
+
+	uri := service.PinyinService.AutoDetectUri(item.Name)
+	g := service.getContentItemByUri(OID, item.ID, uri)
+	if !g.IsZero() {
+		uri = fmt.Sprintf("%s-%d", uri, time.Now().Unix())
 	}
+	item.Uri = uri
 
-	if strings.EqualFold(string(mt.Type), string(model.ContentTypeBlog)) || strings.EqualFold(string(mt.Type), string(model.ContentTypeProducts)) {
-		haveList := service.FindContentItemByType(mt.Type, company.ID)
-		if len(haveList) != 0 {
-			return &result.ActionResult{
-				Code:    result.Fail,
-				Message: fmt.Sprintf("这个类型（%v）只能创建一个", have.Name),
-				Data:    nil,
-			} // &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New(fmt.Sprintf("这个类型（%v）只能创建一个", content_item.Type)), "", nil)}
-		}
-	}
-
-	item.OID = company.ID
-	item.Type = mt.Type
-
-	{
-
-		contentItemList := service.ListContentItemByOID(company.ID)
+	if item.ID == 0 {
+		contentItemList := service.ListContentItemByOID(OID)
 		if len(contentItemList) > 0 {
 			item.Sort = contentItemList[len(contentItemList)-1].Sort + 1
 		}
-	}
 
-	err := service.Add(Orm, item)
-	if glog.Error(err) {
-		return &result.ActionResult{
-			Code:    result.SQLError,
-			Message: err.Error(),
-			Data:    nil,
+		var mt model.ContentType
+		Orm.Where(map[string]interface{}{"ID": item.ContentTypeID}).First(&mt)
+		if mt.ID == 0 {
+			return &result.ActionResult{
+				Code:    result.Fail,
+				Message: "没有找到类型",
+				Data:    nil,
+			}
+		}
+		if strings.EqualFold(string(mt.Type), string(model.ContentTypeBlog)) || strings.EqualFold(string(mt.Type), string(model.ContentTypeProducts)) {
+			haveList := service.FindContentItemByType(mt.Type, OID)
+			if len(haveList) != 0 {
+				return &result.ActionResult{
+					Code:    result.Fail,
+					Message: fmt.Sprintf("这个类型（%v）只能创建一个", have.Name),
+					Data:    nil,
+				}
+			}
+		}
+		item.Type = mt.Type
+		err := service.Add(Orm, item)
+		if glog.Error(err) {
+			return &result.ActionResult{
+				Code:    result.SQLError,
+				Message: err.Error(),
+				Data:    nil,
+			}
+		}
+	} else {
+		err := Orm.Model(model.ContentItem{}).Where(`"ID"=?`, item.ID).Updates(map[string]interface{}{
+			"Name": item.Name,
+			"Uri":  item.Uri,
+		}).Error
+		if glog.Error(err) {
+			return &result.ActionResult{
+				Code:    result.SQLError,
+				Message: err.Error(),
+				Data:    nil,
+			}
 		}
 	}
 
@@ -155,7 +246,7 @@ func (service ContentService) AddContentItem(company *model.Organization, item *
 		Code:    result.Success,
 		Message: "添加成功",
 		Data:    nil,
-	} //(&result.ActionResult{}).SmartError(err, "添加成功", nil)
+	}
 }
 func (service ContentService) ChangeContentConfig(OID types.PrimaryKey, fieldName, fieldValue string) error {
 
@@ -166,6 +257,8 @@ func (service ContentService) ChangeContentConfig(OID types.PrimaryKey, fieldNam
 		changeMap["Name"] = fieldValue
 	case "Logo":
 		changeMap["Logo"] = fieldValue
+	case "FaviconIco":
+		changeMap["FaviconIco"] = fieldValue
 	case "SocialAccount":
 		var socialAccount sqltype.SocialAccountList
 		json.Unmarshal([]byte(fieldValue), &socialAccount)
@@ -198,10 +291,9 @@ func (service ContentService) AddContentConfig(db *gorm.DB, company *model.Organ
 	return nil
 }
 
-func (service ContentService) GetContentConfig(db *gorm.DB, OID types.PrimaryKey) model.ContentConfig {
-	Orm := db
+func (service ContentService) GetContentConfig(orm *gorm.DB, OID types.PrimaryKey) model.ContentConfig {
 	var contentConfig model.ContentConfig
-	Orm.Model(&model.ContentConfig{}).Where(map[string]interface{}{"OID": OID}).First(&contentConfig)
+	orm.Model(&model.ContentConfig{}).Where(map[string]interface{}{"OID": OID}).First(&contentConfig)
 	return contentConfig
 }
 
@@ -269,6 +361,7 @@ func (service ContentService) menus(OID types.PrimaryKey, hide uint) extends.Men
 		contentItem := contentItemList[i]
 		menus := extends.Menus{
 			ID:           contentItem.ID,
+			Uri:          contentItem.Uri,
 			Name:         contentItem.Name,
 			TemplateName: contentItem.TemplateName,
 			Type:         contentItem.Type,
@@ -280,6 +373,7 @@ func (service ContentService) menus(OID types.PrimaryKey, hide uint) extends.Men
 				goodsType := goodsTypeList[ii]
 				subMenus := extends.Menus{
 					ID:           goodsType.ID,
+					Uri:          goodsType.Uri,
 					Name:         goodsType.Name,
 					TemplateName: contentItem.TemplateName,
 					Type:         contentItem.Type,
@@ -290,6 +384,7 @@ func (service ContentService) menus(OID types.PrimaryKey, hide uint) extends.Men
 					if goodsType.ID == goodsTypeChild.GoodsTypeID {
 						subMenus.List = append(subMenus.List, extends.Menus{
 							ID:           goodsTypeChild.ID,
+							Uri:          goodsTypeChild.Uri,
 							Name:         goodsTypeChild.Name,
 							TemplateName: contentItem.TemplateName,
 							Type:         contentItem.Type,
@@ -305,6 +400,7 @@ func (service ContentService) menus(OID types.PrimaryKey, hide uint) extends.Men
 				if menus.ID == contentSubType.ContentItemID && contentSubType.ParentContentSubTypeID == 0 {
 					subMenus := extends.Menus{
 						ID:           contentSubType.ID,
+						Uri:          contentSubType.Uri,
 						Name:         contentSubType.Name,
 						TemplateName: contentItem.TemplateName,
 						Type:         contentItem.Type,
@@ -332,6 +428,7 @@ func (service ContentService) menus(OID types.PrimaryKey, hide uint) extends.Men
 				if contentSubType.ParentContentSubTypeID != 0 && contentSubType.ParentContentSubTypeID == subMenus.ID {
 					subSubMenus := extends.Menus{
 						ID:           contentSubType.ID,
+						Uri:          contentSubType.Uri,
 						Name:         contentSubType.Name,
 						TemplateName: menus.TemplateName,
 						Type:         menus.Type,
@@ -372,12 +469,10 @@ func (service ContentService) GetContentSubTypeByID(ID types.PrimaryKey) model.C
 	return menus
 }
 
-func (service ContentService) GetContentItemByNameAndOID(Name string, OID types.PrimaryKey) model.ContentItem {
+func (service ContentService) ExistContentItemByNameAndOID(OID, ID types.PrimaryKey, Name string) model.ContentItem {
 	Orm := singleton.Orm()
 	var menus model.ContentItem
-
-	Orm.Where(map[string]interface{}{"Name": Name, "OID": OID}).First(&menus)
-
+	Orm.Where(`"OID"=?`, OID).Where(map[string]interface{}{"Name": Name}).Where(`"ID"<>?`, ID).First(&menus)
 	return menus
 }
 
@@ -435,7 +530,7 @@ func (service ContentService) AddSpiderContent(OID types.PrimaryKey, ContentName
 
 	contentType := service.ListContentTypeByType(play.ContentTypeArticles)
 
-	content := service.GetContentItemByNameAndOID(ContentName, OID)
+	content := service.ExistContentItemByNameAndOID(OID, 0, ContentName)
 	if content.ID == 0 {
 		content.OID = OID
 		content.Type = contentType.Type
@@ -455,7 +550,7 @@ func (service ContentService) AddSpiderContent(OID types.PrimaryKey, ContentName
 
 	article.Author = Author
 	article.ContentSubTypeID = contentSubType.ID
-	service.AddContent(&article)
+	service.SaveContent(OID, &article)
 
 }
 
@@ -466,7 +561,7 @@ func (service ContentService) ChangeContent(article *model.Content) error {
 
 func (service ContentService) GetContentByTitle(Orm *gorm.DB, Title string) *model.Content {
 	article := &model.Content{}
-	err := Orm.Where("Title=?", Title).First(article).Error //SelectOne(user, "select * from User where Email=?", Email)
+	err := Orm.Where(`"Title"=?`, Title).First(article).Error //SelectOne(user, "select * from User where Email=?", Email)
 	glog.Error(err)
 	return article
 }
@@ -685,6 +780,13 @@ func (service ContentService) GetContentByContentItemIDAndContentSubTypeID(Conte
 	//service.ChangeMap(singleton.Orm(), ID, &model.Article{}, map[string]interface{}{"Look": article.Look + 1})
 	return article
 }
+func (service ContentService) GetContentByUri(OID types.PrimaryKey, Uri string) *model.Content {
+	article := &model.Content{}
+	//err := service.Get(singleton.Orm(), ID, article) //SelectOne(user, "select * from User where Email=?", Email)
+	singleton.Orm().Model(model.Content{}).Where(`"OID"=?`, OID).Where(`"Uri"=?`, Uri).First(article)
+	//service.ChangeMap(singleton.Orm(), ID, &model.Article{}, map[string]interface{}{"Look": article.Look + 1})
+	return article
+}
 func (service ContentService) GetContentByID(ID types.PrimaryKey) *model.Content {
 	article := &model.Content{}
 	err := service.Get(singleton.Orm(), ID, article) //SelectOne(user, "select * from User where Email=?", Email)
@@ -734,15 +836,26 @@ func (service ContentService) FindContentByIDAndNum(contentItemIDList []types.Pr
 	Orm.Where(`"ContentItemID" in ?`, contentItemIDList).Order(`"CreatedAt" desc`).Limit(num).Find(&_articleList)
 	return _articleList
 }
-func (service ContentService) AddContent(article *model.Content) *result.ActionResult {
-
-	as := &result.ActionResult{}
+func (service ContentService) getContentByUri(OID types.PrimaryKey, uri string) model.Content {
 	Orm := singleton.Orm()
-
+	var item model.Content
+	item.OID = OID
+	item.Uri = uri
+	Orm.Model(model.Content{}).Where(map[string]interface{}{"OID": item.OID, "Uri": item.Uri}).First(&item)
+	return item
+}
+func (service ContentService) getContentItemByUri(OID, ID types.PrimaryKey, uri string) model.ContentItem {
+	Orm := singleton.Orm()
+	var item model.ContentItem
+	item.OID = OID
+	item.Uri = uri
+	Orm.Model(model.ContentItem{}).Where(map[string]interface{}{"OID": item.OID, "Uri": item.Uri}).Where(`"ID"<>?`, ID).First(&item)
+	return item
+}
+func (service ContentService) SaveContent(OID types.PrimaryKey, article *model.Content) error {
+	Orm := singleton.Orm()
 	if article.ContentItemID == 0 {
-		as.Code = result.Fail
-		as.Message = "必须指定ContentItemID"
-		return as
+		return errors.Errorf("必须指定ContentItemID")
 	}
 
 	contentItem := service.GetContentItemByID(article.ContentItemID)
@@ -755,60 +868,50 @@ func (service ContentService) AddContent(article *model.Content) *result.ActionR
 			contentSubType := service.GetContentSubTypeByID(article.ContentSubTypeID)
 
 			if contentSubType.ID == 0 {
-				return &result.ActionResult{Code: result.Fail, Message: fmt.Sprintf("无效的类别%v", contentSubType.ID)}
+				return errors.Errorf("无效的类别%v", contentSubType.ID)
 			}
 
 			content := service.GetContentByContentItemIDAndContentSubTypeID(article.ContentItemID, article.ContentSubTypeID)
 			if content.ID > 0 && article.ID != content.ID {
-				return &result.ActionResult{Code: result.Fail, Message: fmt.Sprintf("添加的内容与原内容冲突")}
+				return errors.Errorf("添加的内容与原内容冲突")
 			}
 		}
+	}
 
+	g := service.GetContentByTitle(Orm, article.Title)
+	if !g.IsZero() && g.ID != article.ID {
+		return errors.Errorf("添加失败,存在相同的标题")
 	}
 
 	//_article := &model.Article{}
 	//err := Orm.Where("ContentItemID=? and ContentSubTypeID=?", article.ContentItemID, article.ContentSubTypeID).Where("Title=?", article.Title).First(_article).Error
 	//if _article.ID != 0 && _article.ID != article.ID {
-	if false {
-		as.Code = result.Fail
-		as.Message = "添加失败，存在相同的标题"
-	} else {
-		articleID := article.ID
-		var err error
-		if articleID == 0 {
-			err = service.Save(Orm, article) //self.model.AddArticle(Orm, article)
-		} else {
-			err = service.ChangeMap(Orm, articleID, &model.Content{}, map[string]interface{}{
-				"Author":           article.Author,
-				"Content":          article.Content,
-				"ContentSubTypeID": article.ContentSubTypeID,
-				"Description":      article.Description,
-				"FromUrl":          article.FromUrl,
-				"Summary":          article.Summary,
-				"Keywords":         article.Keywords,
-				"Picture":          article.Picture,
-				"Title":            article.Title,
-				"Tags":             article.Tags,
-			})
 
-		}
-
-		if err != nil {
-			glog.Error(err)
-			as.Code = result.Fail
-			as.Message = err.Error()
-		} else {
-			as.Code = result.Success
-			as.Data = article
-			if articleID != 0 {
-				as.Message = "修改成功"
-			} else {
-				as.Message = "添加成功"
-			}
-
-		}
+	uri := service.PinyinService.AutoDetectUri(article.Title)
+	gg := service.getContentByUri(OID, uri)
+	if !gg.IsZero() {
+		uri = fmt.Sprintf("%s-%d", uri, time.Now().Unix())
 	}
-	return as
+	article.OID = OID
+	article.Uri = uri
+	articleID := article.ID
+	var err error
+	if articleID == 0 {
+		err = service.Save(Orm, article) //self.model.AddArticle(Orm, article)
+	} else {
+		err = service.ChangeMap(Orm, articleID, &model.Content{}, map[string]interface{}{
+			"Author":           article.Author,
+			"Content":          article.Content,
+			"ContentSubTypeID": article.ContentSubTypeID,
+			"FromUrl":          article.FromUrl,
+			"Summary":          article.Summary,
+			"Picture":          article.Picture,
+			"Title":            article.Title,
+			"Tags":             article.Tags,
+			"Uri":              article.Uri,
+		})
+	}
+	return err
 }
 
 func (service ContentService) GalleryBlock(OID types.PrimaryKey, num int) ([]model.ContentItem, []model.Content) {

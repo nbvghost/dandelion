@@ -11,8 +11,9 @@ import (
 
 //Menus
 type ContentItem struct {
-	base.BaseModel
-	OID           types.PrimaryKey `gorm:"column:OID"`
+	types.Entity
+	OID           types.PrimaryKey `gorm:"column:OID;index"`
+	Uri           string           `gorm:"column:Uri"`
 	Name          string           `gorm:"column:Name"`
 	Sort          int              `gorm:"column:Sort"`
 	ContentTypeID types.PrimaryKey `gorm:"column:ContentTypeID"`
@@ -50,7 +51,8 @@ func (ContentType) TableName() string {
 
 type ContentSubType struct {
 	types.Entity
-	OID                    types.PrimaryKey `gorm:"column:OID"`
+	OID                    types.PrimaryKey `gorm:"column:OID;index"`
+	Uri                    string           `gorm:"column:Uri"`
 	Name                   string           `gorm:"column:Name"`
 	ContentItemID          types.PrimaryKey `gorm:"column:ContentItemID"`
 	ParentContentSubTypeID types.PrimaryKey `gorm:"column:ParentContentSubTypeID"`
@@ -63,19 +65,18 @@ func (ContentSubType) TableName() string {
 
 type Content struct {
 	types.Entity
-	OID              types.PrimaryKey `gorm:"column:OID"`
-	Title            string           `gorm:"column:Title"`
-	Keywords         string           `gorm:"column:Keywords"`
-	Description      string           `gorm:"column:Description"`
-	Summary          string           `gorm:"column:Summary"`
-	Content          string           `gorm:"column:Content"`
-	Picture          string           `gorm:"column:Picture"`
-	ContentItemID    types.PrimaryKey `gorm:"column:ContentItemID"`
-	ContentSubTypeID types.PrimaryKey `gorm:"column:ContentSubTypeID"`
-	FromUrl          string           `gorm:"column:FromUrl"`
-	Author           string           `gorm:"column:Author"`
-	CountView        int              `gorm:"column:CountView"`
-	CountLike        int              `gorm:"column:CountLike"`
+	OID              types.PrimaryKey `gorm:"column:OID;index"`                     //
+	Uri              string           `gorm:"column:Uri"`                           //
+	Title            string           `gorm:"column:Title"`                         //
+	Summary          string           `gorm:"column:Summary"`                       //
+	Content          string           `gorm:"column:Content"`                       //
+	Picture          string           `gorm:"column:Picture"`                       //
+	ContentItemID    types.PrimaryKey `gorm:"column:ContentItemID"`                 //
+	ContentSubTypeID types.PrimaryKey `gorm:"column:ContentSubTypeID"`              //
+	FromUrl          string           `gorm:"column:FromUrl"`                       //
+	Author           string           `gorm:"column:Author"`                        //
+	CountView        int              `gorm:"column:CountView"`                     //
+	CountLike        int              `gorm:"column:CountLike"`                     //
 	Tags             pq.StringArray   `gorm:"column:Tags;type:text[];default:'{}'"` //
 }
 
@@ -85,13 +86,15 @@ func (Content) TableName() string {
 
 type ContentConfig struct {
 	types.Entity
-	OID             types.PrimaryKey            `gorm:"column:OID;unique"`
-	Name            string                      `gorm:"column:Name"`
-	Logo            string                      `gorm:"column:Logo"`
-	SocialAccount   sqltype.SocialAccountList   `gorm:"column:SocialAccount;type:JSON"`
-	CustomerService sqltype.CustomerServiceList `gorm:"column:CustomerService;type:JSON"`
-	EnableHTMLCache bool                        `gorm:"column:EnableHTMLCache"`
-	FocusPicture    sqltype.FocusPictureList    `gorm:"column:FocusPicture;type:JSON"`
+	OID                 types.PrimaryKey            `gorm:"column:OID;unique"`
+	Name                string                      `gorm:"column:Name"`
+	Logo                string                      `gorm:"column:Logo"`
+	FaviconIco          string                      `gorm:"column:FaviconIco"`
+	SocialAccount       sqltype.SocialAccountList   `gorm:"column:SocialAccount;type:JSON"`
+	CustomerService     sqltype.CustomerServiceList `gorm:"column:CustomerService;type:JSON"`
+	EnableHTMLCache     bool                        `gorm:"column:EnableHTMLCache"`
+	EnableMultiLanguage bool                        `gorm:"column:EnableMultiLanguage"`
+	FocusPicture        sqltype.FocusPictureList    `gorm:"column:FocusPicture;type:JSON"`
 }
 
 func (ContentConfig) TableName() string {

@@ -49,16 +49,14 @@ func (service ContentService) GetContentSubTypeAllIDByID(ContentItemID, ContentS
 	singleton.Orm().Model(&model.ContentSubType{}).Where(`"ContentItemID"=? and ("ID"=? or "ParentContentSubTypeID"=?)`, ContentItemID, ContentSubTypeID, ContentSubTypeID).Pluck(`"ID"`, &IDList)
 	return IDList
 }
-func (service ContentService) GetClassifyByName(Name string, ContentItemID, ParentContentSubTypeID types.PrimaryKey) model.ContentSubType {
+func (service ContentService) GetContentSubTypeByName(OID, ContentItemID, ID types.PrimaryKey, Name string) model.ContentSubType {
 	Orm := singleton.Orm()
 	var menus model.ContentSubType
-
 	Orm.Where(map[string]interface{}{
-		"Name":                   Name,
-		"ContentItemID":          ContentItemID,
-		"ParentContentSubTypeID": ParentContentSubTypeID,
-	}).First(&menus)
-
+		"OID":           OID,
+		"ContentItemID": ContentItemID,
+		"Name":          Name,
+	}).Where(`"ID"<>?`, ID).First(&menus)
 	return menus
 
 }

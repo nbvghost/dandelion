@@ -30,8 +30,14 @@ func (m *Info) GetWithoutAuth() bool {
 	return m.WithoutAuth
 }
 
+type emptyViewBase struct {
+	extends.ViewBase
+}
+
 func NewViewResult(name string) constrain.IViewResult {
-	return &extends.ViewBase{Name: name}
+	return &emptyViewBase{
+		ViewBase: extends.ViewBase{Name: name},
+	}
 }
 
 type service struct {
@@ -59,7 +65,7 @@ func (m *service) encodingViewData(ctx constrain.IContext, r constrain.IViewResu
 }
 func (m *service) RegisterInterceptors(prefixPath string, interceptors ...constrain.IInterceptor) {
 	if len(prefixPath) == 0 {
-		panic(fmt.Errorf("prefixPath 不能为空"))
+		panic(errors.Errorf("prefixPath 不能为空"))
 	}
 	if _, ok := m.interceptors[prefixPath]; !ok {
 		m.interceptors[prefixPath] = make([]constrain.IInterceptor, 0)
@@ -84,7 +90,7 @@ func (m *service) Handle(context constrain.IContext, isApi bool, route string, b
 	var hasRoute bool
 	routeInfo, ok := m.CheckRoute(isApi, route)
 	if !ok {
-		return true, hasRoute, nil, action.NewCodeWithError(action.NotFoundRoute, fmt.Errorf("没有找到路由:%s", route))
+		return true, hasRoute, nil, action.NewCodeWithError(action.NotFoundRoute, errors.Errorf("没有找到路由:%s", route))
 	}
 	hasRoute = true
 
