@@ -15,6 +15,8 @@ type environments struct {
 }
 
 func init() {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
 	flag.BoolVar(&env.release, "release", true, "release")
 
 	etcdEndpoints, ok := os.LookupEnv("ETCD_ENDPOINTS")
