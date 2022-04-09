@@ -22,7 +22,7 @@ type IContext interface {
 	Query() url.Values
 	AppName() string
 	SelectInsideServer(appName key.MicroServerKey) (string, error)
-	SelectServer(appName key.MicroServerKey) (string, error)
+	GetDNSName(localName key.MicroServerKey) (string, error)
 	Route() string
 	Token() string
 	Logger() *zap.Logger

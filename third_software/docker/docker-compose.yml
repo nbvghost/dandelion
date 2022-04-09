@@ -3,6 +3,8 @@ services:
 
   dandelion_admin:
     image: "ghcr.io/nbvghost/dandelion_admin/server:latest"
+    volumes:
+      - /etc/localtime:/etc/localtime
     environment:
       ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
 
@@ -10,6 +12,8 @@ services:
     image: "ghcr.io/nbvghost/sso/server:latest"
     depends_on:
       - "dandelion_admin"
+    volumes:
+      - /etc/localtime:/etc/localtime
     environment:
       ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
 
@@ -18,6 +22,7 @@ services:
     depends_on:
       - "dandelion_admin"
     volumes:
+      - /etc/localtime:/etc/localtime
       - ./assets:/app/assets
     environment:
       ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
@@ -26,13 +31,17 @@ services:
     image: "ghcr.io/nbvghost/dandelion_site/server:latest"
     depends_on:
       - "dandelion_admin"
+    volumes:
+      - /etc/localtime:/etc/localtime
     environment:
       ETCD_ENDPOINTS: "etcd.usokay.com:23791,etcd.usokay.com:23792,etcd.usokay.com:23793"
 
   dandelion_gateway:
     image: "ghcr.io/nbvghost/dandelion_gateway/server:latest"
     volumes:
+      - /etc/localtime:/etc/localtime
       - ./cert-dir:/app/cert-dir
+      - ./log:/app/log
     ports:
       - "80:80"
       - "443:443"

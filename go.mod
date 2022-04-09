@@ -19,6 +19,7 @@ require (
 	github.com/nbvghost/tool v0.0.0-20220325180651-f5c6376d74d4
 	github.com/pkg/errors v0.9.1
 	go.etcd.io/etcd/client/v3 v3.5.1
+	go.uber.org/zap v1.17.0
 	golang.org/x/net v0.0.0-20210916014120-12bc252f5db8
 	golang.org/x/text v0.3.7
 	google.golang.org/grpc v1.41.0
@@ -57,7 +58,6 @@ require (
 	go.etcd.io/etcd/client/pkg/v3 v3.5.1 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	go.uber.org/multierr v1.6.0 // indirect
-	go.uber.org/zap v1.17.0 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/sys v0.0.0-20210806184541-e5e7981a1069 // indirect
 	golang.org/x/time v0.0.0-20220224211638-0e9765cccd65 // indirect
