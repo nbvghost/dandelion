@@ -481,7 +481,7 @@ func (m *httpServer) Use(middlewareRouter *mux.Router, customizeViewRender const
 
 		v, ok := middleware.(*HttpMiddleware)
 		if ok {
-			v.pathTemplate = r.URL.Path //todo 临时处理
+			v.pathTemplate = r.URL.Path //todo 临时处理,notfoundhandler 没有路由模板路径，只能用r.URL.Path的值
 		}
 
 		if isNext, err = middleware.Cookie(w, r); err != nil {

@@ -482,7 +482,7 @@ func (service GoodsService) FindGoodsByTimeSellID(TimeSellID types.PrimaryKey) [
 
 	//rows, _ := Orm.Raw("")
 
-	//todo:
+	//todo:没有写完整
 	//err = service.FindWhere(Orm, &list, "ID=?", timesell.GoodsID)
 	//glog.Error(err)
 	return list
