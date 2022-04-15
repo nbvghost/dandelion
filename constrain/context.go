@@ -5,7 +5,6 @@ import (
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/gpa/types"
 	"go.uber.org/zap"
-	"net/url"
 )
 
 //用于注入的回调方法
@@ -19,13 +18,13 @@ type IContext interface {
 	context.Context
 	Redis() IRedis
 	UID() types.PrimaryKey
-	Query() url.Values
 	AppName() string
 	SelectInsideServer(appName key.MicroServerKey) (string, error)
 	GetDNSName(localName key.MicroServerKey) (string, error)
 	Route() string
 	Token() string
 	Logger() *zap.Logger
+	Mode() key.Mode
 	//DomainName() string
 	//SelectFileServer() string
 }

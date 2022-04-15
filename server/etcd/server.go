@@ -158,7 +158,7 @@ func (m *server) watch() {
 		}
 	}
 	{
-		resp, err = client.Get(ctx, serverKey)
+		resp, err = client.Get(ctx, serverKey, clientv3.WithPrefix())
 		if err != nil {
 			panic(err)
 		}
