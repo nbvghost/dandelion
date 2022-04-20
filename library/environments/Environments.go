@@ -18,6 +18,7 @@ func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	flag.BoolVar(&env.release, "release", true, "release")
+	flag.Parse()
 
 	etcdEndpoints, ok := os.LookupEnv("ETCD_ENDPOINTS")
 	if !ok {

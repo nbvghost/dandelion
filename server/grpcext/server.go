@@ -19,7 +19,6 @@ import (
 	"google.golang.org/grpc/status"
 	"log"
 	"net"
-	"net/url"
 	"reflect"
 	"strconv"
 	"strings"
@@ -63,7 +62,7 @@ func (m *customizeService) Call(srv interface{}, ctx context.Context, dec func(i
 	logger = logger.Named("GrpcContext").With(zap.String("TraceID", tool.UUID()))
 	defer logger.Sync()
 
-	currentContext := contexext.New(ctx, m.server.Name, uid, serverTransportStream.Method(), url.Values{}, m.redis, "", logger, "")
+	currentContext := contexext.New(ctx, m.server.Name, uid, serverTransportStream.Method(), m.redis, "", logger, "")
 
 	var r *route.Info
 

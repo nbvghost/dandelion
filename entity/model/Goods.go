@@ -61,10 +61,11 @@ func (u Goods) TableName() string {
 
 type GoodsType struct {
 	types.Entity
-	OID   types.PrimaryKey `gorm:"column:OID;index"`
-	Uri   string           `gorm:"column:Uri"`
-	Name  string           `gorm:"column:Name"`
-	Image string           `gorm:"column:Image"`
+	OID          types.PrimaryKey `gorm:"column:OID;index"`
+	Uri          string           `gorm:"column:Uri"`
+	Name         string           `gorm:"column:Name"`
+	Introduction string           `gorm:"column:Introduction"` //主类介绍
+	Image        string           `gorm:"column:Image"`
 }
 
 func (GoodsType) TableName() string {

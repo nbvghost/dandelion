@@ -9,21 +9,38 @@ import (
 
 //Content   ContentType  ContentSubType
 
-//Menus
+// ContentItem Menus
 type ContentItem struct {
 	types.Entity
-	OID           types.PrimaryKey `gorm:"column:OID;index"`
-	Uri           string           `gorm:"column:Uri"`
-	Name          string           `gorm:"column:Name"`
-	Sort          int              `gorm:"column:Sort"`
-	ContentTypeID types.PrimaryKey `gorm:"column:ContentTypeID"`
-	TemplateName  string           `gorm:"column:TemplateName"` //使用模板的文件名，如多文章列表，
-	Type          ContentTypeType  `gorm:"column:Type"`
-	Hide          bool             `gorm:"column:Hide"`
+	OID             types.PrimaryKey             `gorm:"column:OID;index"`
+	Uri             string                       `gorm:"column:Uri"`
+	Name            string                       `gorm:"column:Name"`
+	Sort            int                          `gorm:"column:Sort"`
+	ContentTypeID   types.PrimaryKey             `gorm:"column:ContentTypeID"`
+	Type            ContentTypeType              `gorm:"column:Type"`
+	TemplateName    string                       `gorm:"column:TemplateName"` //使用模板的文件名，如多文章列表，
+	Introduction    string                       `gorm:"column:Introduction"` //主类介绍
+	Image           string                       `gorm:"column:Image"`        //主类图片
+	Hide            bool                         `gorm:"column:Hide"`
+	CustomizeFields []sqltype.CustomizeFieldList `gorm:"column:CustomizeFields;type:JSON"`
 }
 
 func (ContentItem) TableName() string {
 	return "ContentItem"
+}
+
+type ContentSubType struct {
+	types.Entity
+	OID                    types.PrimaryKey `gorm:"column:OID;index"`
+	Uri                    string           `gorm:"column:Uri"`
+	Name                   string           `gorm:"column:Name"`
+	ContentItemID          types.PrimaryKey `gorm:"column:ContentItemID"`
+	ParentContentSubTypeID types.PrimaryKey `gorm:"column:ParentContentSubTypeID"`
+	Sort                   int              `gorm:"column:Sort"`
+}
+
+func (ContentSubType) TableName() string {
+	return "ContentSubType"
 }
 
 type ContentTypeType string
@@ -47,20 +64,6 @@ type ContentType struct {
 
 func (ContentType) TableName() string {
 	return "ContentType"
-}
-
-type ContentSubType struct {
-	types.Entity
-	OID                    types.PrimaryKey `gorm:"column:OID;index"`
-	Uri                    string           `gorm:"column:Uri"`
-	Name                   string           `gorm:"column:Name"`
-	ContentItemID          types.PrimaryKey `gorm:"column:ContentItemID"`
-	ParentContentSubTypeID types.PrimaryKey `gorm:"column:ParentContentSubTypeID"`
-	Sort                   int              `gorm:"column:Sort"`
-}
-
-func (ContentSubType) TableName() string {
-	return "ContentSubType"
 }
 
 type Content struct {

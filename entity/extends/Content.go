@@ -11,6 +11,8 @@ type Menus struct {
 	Name         string
 	TemplateName string
 	Type         model.ContentTypeType
+	Introduction string //主类介绍
+	Image        string //主类图片
 	List         []Menus
 }
 type MenusData struct {

@@ -16,12 +16,11 @@ type handlerContext struct {
 	uid     types.PrimaryKey
 	parent  context.Context
 	redis   constrain.IRedis
+	mode    key.Mode
+	logger  *zap.Logger
 	appName string
 	route   string
-	query   url.Values
 	token   string
-	logger  *zap.Logger
-	mode    key.Mode
 }
 
 type ContextKey struct {
@@ -32,14 +31,15 @@ type ContextValue struct {
 	Response   http.ResponseWriter
 	Request    *http.Request
 	DomainName string
-	IsApi      bool
 	Lang       string
 	RequestUrl string //
-
+	//PathTemplate string //
+	IsApi bool
+	Query url.Values
 }
 
-func NewContext(v *ContextValue) context.Context {
-	return context.WithValue(context.TODO(), ContextKey{}, v)
+func NewContext(parentCtx context.Context, v *ContextValue) context.Context {
+	return context.WithValue(parentCtx, ContextKey{}, v)
 }
 
 func FromContext(context constrain.IContext) *ContextValue {
@@ -64,9 +64,6 @@ func (m *handlerContext) Value(key interface{}) interface{} {
 	return m.parent.Value(key)
 }
 
-func (m *handlerContext) Query() url.Values {
-	return m.query
-}
 func (m *handlerContext) Route() string {
 	return m.route
 }
@@ -97,6 +94,6 @@ func (m *handlerContext) Token() string {
 func (m *handlerContext) Mode() key.Mode {
 	return m.mode
 }
-func New(parent context.Context, appName, uid string, route string, query url.Values, redis constrain.IRedis, token string, logger *zap.Logger, mode key.Mode) constrain.IContext {
-	return &handlerContext{parent: parent, uid: types.NewFromString(uid), query: query, route: route, redis: redis, appName: appName, token: token, logger: logger, mode: mode}
+func New(parent context.Context, appName, uid string, route string, redis constrain.IRedis, token string, logger *zap.Logger, mode key.Mode) constrain.IContext {
+	return &handlerContext{parent: parent, uid: types.NewFromString(uid), route: route, redis: redis, appName: appName, token: token, logger: logger, mode: mode}
 }

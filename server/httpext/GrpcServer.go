@@ -171,7 +171,7 @@ func (m *grpcServer) Listen() {
 		}
 		logger = logger.Named("GrpcContext").With(zap.String("TraceID", tool.UUID()))
 		defer logger.Sync()
-		ctx := contexext.New(context.TODO(), appName, UID, path, nil, m.redis, "", logger, "")
+		ctx := contexext.New(context.TODO(), appName, UID, path, m.redis, "", logger, "")
 
 		var bodyBytes []byte
 		bodyBytes, err = ginContext.GetRawData()
@@ -238,7 +238,7 @@ func (m *grpcServer) Render(context constrain.IContext, data interface{}) ([]byt
 
 	buffer := bytes.NewBuffer(nil)
 	err = t.Execute(buffer, map[string]interface{}{
-		"Query": context.Query(),
+		"Query": nil,
 		"Data":  data,
 	})
 	if err != nil {
