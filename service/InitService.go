@@ -3,21 +3,21 @@ package service
 import (
 	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/environments"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/cache"
-	"log"
 
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/tool/encryption"
 )
 
-func Init(etcd constrain.IEtcd, dbName string) {
+func Init(app key.MicroServerKey, etcd constrain.IEtcd, dbName string) error {
 	err := singleton.Init(etcd, dbName)
 	if err != nil {
-		log.Fatalln(err)
+		return err
 	}
 
 	_database := singleton.Orm()
@@ -80,6 +80,9 @@ func Init(etcd constrain.IEtcd, dbName string) {
 	models = append(models, model.Pinyin{})
 	models = append(models, model.Language{})
 	models = append(models, model.Translate{})
+
+	//set db session application name
+	_database.Exec(fmt.Sprintf("SET application_name='%s'", app))
 
 	dbContentFunc := `CREATE OR REPLACE FUNCTION process_content_full_text_search() RETURNS TRIGGER AS
 $Content$
@@ -178,7 +181,7 @@ $Goods$ LANGUAGE plpgsql;`
 	if _manager.ID == 0 {
 		a := model.Manager{Account: "manager", PassWord: encryption.Md5ByString("274455411")}
 		if err = _database.Create(&a).Error; err != nil {
-			panic(err)
+			return err
 		}
 	}
 
@@ -196,7 +199,7 @@ $Goods$ LANGUAGE plpgsql;`
 		_database.Where(&model.ContentType{Type: _contenttype.Type}).First(&_contenttype)
 		if _contenttype.ID == 0 {
 			if err = _database.Create(&_contenttype).Error; err != nil {
-				panic(err)
+				return err
 			}
 		}
 	}
@@ -207,6 +210,7 @@ $Goods$ LANGUAGE plpgsql;`
 		}()
 	}
 	cache.Init()
+	return nil
 }
 func rebuildFullTextSearch() {
 	var err error

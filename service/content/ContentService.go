@@ -231,8 +231,10 @@ func (service ContentService) SaveContentItem(OID types.PrimaryKey, item *model.
 		}
 	} else {
 		err := Orm.Model(model.ContentItem{}).Where(`"ID"=?`, item.ID).Updates(map[string]interface{}{
-			"Name": item.Name,
-			"Uri":  item.Uri,
+			"Name":         item.Name,
+			"Uri":          item.Uri,
+			"Image":        item.Image,
+			"Introduction": item.Introduction,
 		}).Error
 		if glog.Error(err) {
 			return &result.ActionResult{
@@ -366,6 +368,8 @@ func (service ContentService) menus(OID types.PrimaryKey, hide uint) extends.Men
 			Name:         contentItem.Name,
 			TemplateName: contentItem.TemplateName,
 			Type:         contentItem.Type,
+			Introduction: contentItem.Introduction,
+			Image:        contentItem.Image,
 			List:         nil,
 		}
 		if contentItem.Type == model.ContentTypeProducts {
@@ -378,6 +382,8 @@ func (service ContentService) menus(OID types.PrimaryKey, hide uint) extends.Men
 					Name:         goodsType.Name,
 					TemplateName: contentItem.TemplateName,
 					Type:         contentItem.Type,
+					Introduction: contentItem.Introduction,
+					Image:        contentItem.Image,
 					List:         nil,
 				}
 				for iii := 0; iii < len(goodsTypeChildList); iii++ {

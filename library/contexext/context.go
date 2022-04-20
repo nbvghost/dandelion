@@ -34,6 +34,7 @@ type ContextValue struct {
 	Lang       string
 	RequestUrl string //
 	//PathTemplate string //
+	IsApi bool
 	Query url.Values
 }
 

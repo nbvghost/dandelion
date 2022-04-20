@@ -1,8 +1,9 @@
 package singleton
 
 import (
-	"github.com/nbvghost/dandelion/constrain"
 	"sync"
+
+	"github.com/nbvghost/dandelion/constrain"
 
 	"gorm.io/gorm"
 

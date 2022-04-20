@@ -143,6 +143,8 @@ func (m *httpServer) Use(middlewareRouter *mux.Router, customizeViewRender const
 		if err != nil {
 			return
 		}
+		ctxValue := contexext.FromContext(ctx)
+		ctxValue.IsApi = pathinfo.IsApi
 
 		if isNext, err = middleware.Handle(ctx, m.route, r.URL.Path, pathinfo.IsApi, customizeViewRender, w, r); err != nil {
 			return
@@ -166,6 +168,8 @@ func (m *httpServer) Use(middlewareRouter *mux.Router, customizeViewRender const
 			if err != nil {
 				return
 			}
+			ctxValue := contexext.FromContext(ctx)
+			ctxValue.IsApi = pathinfo.IsApi
 
 			if strings.EqualFold(ctx.Mode().String(), key.ModeRelease.String()) && !environments.Release() {
 				err = errors.New("正式环境访问开发环境的服务")
