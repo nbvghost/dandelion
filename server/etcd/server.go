@@ -386,7 +386,7 @@ func (m *server) SelectInsideServer(appName key.MicroServerKey) (string, error) 
 	v := resp.Kvs[r.Intn(len(resp.Kvs))]
 	var serverDesc serviceobject.ServerDesc
 	if err = json.Unmarshal(v.Value, &serverDesc); err != nil {
-		log.Println(err)
+		return "", err
 	}
 	return fmt.Sprintf("%s:%d", serverDesc.IP, serverDesc.Port), nil
 }
