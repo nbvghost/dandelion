@@ -4,6 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"reflect"
+	"strconv"
+	"strings"
+	"time"
+
+	"go.uber.org/zap"
+
 	"github.com/gorilla/mux"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
@@ -14,14 +23,6 @@ import (
 	"github.com/nbvghost/dandelion/server/route"
 	"github.com/nbvghost/tool"
 	"github.com/pkg/errors"
-	"go.uber.org/zap"
-	"reflect"
-	"strconv"
-
-	"log"
-	"net/http"
-	"strings"
-	"time"
 
 	"github.com/nbvghost/dandelion/library/contexext"
 
@@ -65,7 +66,11 @@ func (m *httpServer) getSession(parentCtx context.Context, token string) (Sessio
 	var se Session
 	se.Token = token
 	var sessionText string
-	sessionText, _ = m.redisClient.GetEx(parentCtx, redis.NewTokenKey(token), time.Minute*10)
+	var err error
+	sessionText, err = m.redisClient.GetEx(parentCtx, redis.NewTokenKey(token), time.Minute*10)
+	if err != nil {
+		log.Println(err)
+	}
 	if sessionText != "" {
 		if err := json.Unmarshal([]byte(sessionText), &se); err != nil {
 			return se, err

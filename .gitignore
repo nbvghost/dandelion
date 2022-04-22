@@ -12,3 +12,4 @@
 /third_software/etcd/s3.out
 /third_software/redis/redis.out
 /third_software/redis/dump.rdb
+/third_software/windows/etcd/*.etcd/

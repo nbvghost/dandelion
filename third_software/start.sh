@@ -1,4 +1,5 @@
-cd ./etcd
+#!/bin/sh
+cd etcd
 nohup ./etcd --name s1 \
 --listen-client-urls http://0.0.0.0:23791 \
 --listen-peer-urls http://0.0.0.0:23801 \
@@ -39,4 +40,4 @@ nohup ./etcd --name s3 \
 > s3.out 2>&1 &
 cd ..
 cd ./redis
-nohup ./redis-server > redis.out 2>&1 &
+nohup ./redis-server ./redis.conf  > redis.out 2>&1 &
