@@ -1,0 +1,3 @@
+
+redis-stack-service.conf is copied to /etc for the systemctl case
+redis-stack.conf sits in <package>/etc for the user edit case
