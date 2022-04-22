@@ -371,7 +371,6 @@ var r = rand.New(rand.NewSource(time.Now().UnixNano()))
 func (m *server) SelectInsideServer(appName key.MicroServerKey) (string, error) {
 	//m.serverLocker.RLock()
 	//defer m.serverLocker.RUnlock()
-
 	ctx := context.TODO()
 	client := m.getClient()
 	serverKey := fmt.Sprintf("%s/%s/", "server", appName)
