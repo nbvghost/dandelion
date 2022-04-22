@@ -8,11 +8,9 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/etcd"
-	"github.com/nbvghost/dandelion/library/action"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/pkg/errors"
 	"math/rand"
-	"strconv"
 	"sync"
 
 	"log"
@@ -30,8 +28,8 @@ type server struct {
 	dnsDomainToServer map[string]key.MicroServerKey
 	dnsServerToDomain map[string][]string
 	dnsLocker         sync.RWMutex
-	serverMap         map[key.MicroServerKey][]serviceobject.ServerDesc
-	serverLocker      sync.RWMutex
+	//serverMap         map[key.MicroServerKey][]serviceobject.ServerDesc
+	//serverLocker      sync.RWMutex
 }
 
 func (m *server) Close() error {
@@ -140,7 +138,7 @@ func (m *server) watch() {
 	client := m.getClient()
 
 	etcdKey := "dns"
-	serverKey := "server"
+	//serverKey := "server"
 
 	{
 		resp, err = client.Get(ctx, etcdKey)
@@ -157,7 +155,7 @@ func (m *server) watch() {
 			log.Printf("dns list:%+v", dns)
 		}
 	}
-	{
+	/*{
 		resp, err = client.Get(ctx, serverKey, clientv3.WithPrefix())
 		if err != nil {
 			panic(err)
@@ -173,36 +171,36 @@ func (m *server) watch() {
 			log.Printf("server desc:%+v", serverDesc)
 		}
 
-	}
+	}*/
 
-	serverWatch := client.Watch(ctx, serverKey, clientv3.WithPrefix())
+	//serverWatch := client.Watch(ctx, serverKey, clientv3.WithPrefix())
 	dnsWatch := client.Watch(ctx, etcdKey)
 	go func() {
 		for {
 			select {
-			case serverResp := <-serverWatch:
-				for _, ev := range serverResp.Events {
-					var serverDesc serviceobject.ServerDesc
-					if ev.Kv.Value != nil {
-						if err = json.Unmarshal(ev.Kv.Value, &serverDesc); err != nil {
-							log.Println(err)
-						}
-					} else {
-						keys := strings.Split(string(ev.Kv.Key), "/")
-						hosts := strings.Split(keys[len(keys)-1], ":")
-						if len(hosts) == 2 {
-							serverDesc.Name = keys[1]
-							serverDesc.IP = hosts[0]
-							serverDesc.Port, _ = strconv.Atoi(hosts[1])
-						}
-						if len(serverDesc.IP) == 0 || serverDesc.Port == 0 {
-							log.Printf("分析删除的key时错误,key:%s", ev.Kv.Key)
-						}
-					}
-					if err = m.parseServer(serverDesc, ev.IsCreate(), ev.IsModify()); err != nil {
+			/*case serverResp := <-serverWatch:
+			for _, ev := range serverResp.Events {
+				var serverDesc serviceobject.ServerDesc
+				if ev.Kv.Value != nil {
+					if err = json.Unmarshal(ev.Kv.Value, &serverDesc); err != nil {
 						log.Println(err)
 					}
+				} else {
+					keys := strings.Split(string(ev.Kv.Key), "/")
+					hosts := strings.Split(keys[len(keys)-1], ":")
+					if len(hosts) == 2 {
+						serverDesc.Name = keys[1]
+						serverDesc.IP = hosts[0]
+						serverDesc.Port, _ = strconv.Atoi(hosts[1])
+					}
+					if len(serverDesc.IP) == 0 || serverDesc.Port == 0 {
+						log.Printf("分析删除的key时错误,key:%s", ev.Kv.Key)
+					}
 				}
+				if err = m.parseServer(serverDesc, ev.IsCreate(), ev.IsModify()); err != nil {
+					log.Println(err)
+				}
+			}*/
 			case dnsResp := <-dnsWatch:
 				for _, ev := range dnsResp.Events {
 					//fmt.Printf("%s %q : %q\n", ev.Type, ev.Kv.Key, ev.Kv.Value)
@@ -219,7 +217,7 @@ func (m *server) watch() {
 	}()
 }
 
-func (m *server) parseServer(serverDesc serviceobject.ServerDesc, isCreate, isModify bool) error {
+/*func (m *server) parseServer(serverDesc serviceobject.ServerDesc, isCreate, isModify bool) error {
 	m.serverLocker.Lock()
 	defer m.serverLocker.Unlock()
 
@@ -239,7 +237,8 @@ func (m *server) parseServer(serverDesc serviceobject.ServerDesc, isCreate, isMo
 	}
 	m.serverMap[key.MicroServerKey(serverDesc.Name)] = v
 	return nil
-}
+}*/
+
 func (m *server) RegisterDNS(dns []etcd.ServerDNS) error {
 	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]key.MicroServerKey{}}
 	if err := copyServer.parseDNS(dns, true); err != nil {
@@ -279,7 +278,6 @@ func (m *server) RegisterPostgresql(dsn string, serverName string) error {
 	var err error
 	client := m.getClient()
 	ctx := context.Background()
-
 	_, err = client.Put(ctx, fmt.Sprintf("%s/%s", "postgresql", serverName), dsn)
 	if err != nil {
 		return err
@@ -371,18 +369,26 @@ var r = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 // SelectInsideServer 服务间通信通过这个方法获取
 func (m *server) SelectInsideServer(appName key.MicroServerKey) (string, error) {
-	m.serverLocker.RLock()
-	defer m.serverLocker.RUnlock()
+	//m.serverLocker.RLock()
+	//defer m.serverLocker.RUnlock()
 
-	list := m.serverMap[appName]
-	if len(list) == 0 {
-		return "", action.NewCodeWithError(action.Error, errors.Errorf("没有可以用的服务节点:%s", appName))
+	ctx := context.TODO()
+	client := m.getClient()
+	serverKey := fmt.Sprintf("%s/%s/", "server", appName)
+
+	resp, err := client.Get(ctx, serverKey, clientv3.WithPrefix())
+	if err != nil {
+		return "", err
 	}
-
-	//todo 负载均衡优化
-	v := list[r.Intn(len(list))]
-
-	return fmt.Sprintf("%s:%d", v.IP, v.Port), nil
+	if len(resp.Kvs) == 0 {
+		return "", errors.Errorf("没有可以用的服务节点:%s", appName)
+	}
+	v := resp.Kvs[r.Intn(len(resp.Kvs))]
+	var serverDesc serviceobject.ServerDesc
+	if err = json.Unmarshal(v.Value, &serverDesc); err != nil {
+		log.Println(err)
+	}
+	return fmt.Sprintf("%s:%d", serverDesc.IP, serverDesc.Port), nil
 }
 func NewServer(config clientv3.Config) constrain.IEtcd {
 	client, err := clientv3.New(config)
@@ -393,7 +399,7 @@ func NewServer(config clientv3.Config) constrain.IEtcd {
 		client:            client,
 		dnsServerToDomain: map[string][]string{},
 		dnsDomainToServer: map[string]key.MicroServerKey{},
-		serverMap:         map[key.MicroServerKey][]serviceobject.ServerDesc{},
+		//serverMap:         map[key.MicroServerKey][]serviceobject.ServerDesc{},
 	}
 	s.watch()
 	return s

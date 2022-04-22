@@ -566,9 +566,9 @@ func (service ContentService) ChangeContent(article *model.Content) error {
 	return service.Save(singleton.Orm(), article)
 }
 
-func (service ContentService) GetContentByTitle(Orm *gorm.DB, Title string) *model.Content {
+func (service ContentService) GetContentByTitle(Orm *gorm.DB, OID types.PrimaryKey, Title string) *model.Content {
 	article := &model.Content{}
-	err := Orm.Where(`"Title"=?`, Title).First(article).Error //SelectOne(user, "select * from User where Email=?", Email)
+	err := Orm.Where(`"OID"=?`, OID).Where(`"Title"=?`, Title).First(article).Error //SelectOne(user, "select * from User where Email=?", Email)
 	glog.Error(err)
 	return article
 }
@@ -846,9 +846,7 @@ func (service ContentService) FindContentByIDAndNum(contentItemIDList []types.Pr
 func (service ContentService) getContentByUri(OID types.PrimaryKey, uri string) model.Content {
 	Orm := singleton.Orm()
 	var item model.Content
-	item.OID = OID
-	item.Uri = uri
-	Orm.Model(model.Content{}).Where(map[string]interface{}{"OID": item.OID, "Uri": item.Uri}).First(&item)
+	Orm.Model(model.Content{}).Where(map[string]interface{}{"OID": OID, "Uri": uri}).First(&item)
 	return item
 }
 func (service ContentService) getContentItemByUri(OID, ID types.PrimaryKey, uri string) model.ContentItem {
@@ -885,22 +883,25 @@ func (service ContentService) SaveContent(OID types.PrimaryKey, article *model.C
 		}
 	}
 
-	g := service.GetContentByTitle(Orm, article.Title)
+	g := service.GetContentByTitle(Orm, OID, article.Title)
 	if !g.IsZero() && g.ID != article.ID {
 		return errors.Errorf("添加失败,存在相同的标题")
 	}
-
-	//_article := &model.Article{}
-	//err := Orm.Where("ContentItemID=? and ContentSubTypeID=?", article.ContentItemID, article.ContentSubTypeID).Where("Title=?", article.Title).First(_article).Error
-	//if _article.ID != 0 && _article.ID != article.ID {
-
-	uri := service.PinyinService.AutoDetectUri(article.Title)
-	gg := service.getContentByUri(OID, uri)
-	if !gg.IsZero() {
-		uri = fmt.Sprintf("%s-%d", uri, time.Now().Unix())
+	if g.IsZero() {
+		g = service.GetContentByID(article.ID)
 	}
+
 	article.OID = OID
-	article.Uri = uri
+	if len(g.Uri) == 0 {
+		uri := service.PinyinService.AutoDetectUri(article.Title)
+		hasContent := service.getContentByUri(OID, uri)
+		if !hasContent.IsZero() && hasContent.ID != g.ID {
+			return errors.Errorf("添加失败,存在相同的标题")
+		}
+		article.Uri = uri
+	} else {
+		article.Uri = g.Uri
+	}
 	articleID := article.ID
 	var err error
 	if articleID == 0 {
