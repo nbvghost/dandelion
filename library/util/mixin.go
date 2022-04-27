@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"github.com/nbvghost/captcha"
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/tool/object"
@@ -114,22 +115,32 @@ func CreateCaptchaCodeBytes(SessionCaptcha string) []byte {
 
 	return buf.Bytes()
 }
-func GetScheme(Request *http.Request) string {
-	if Request.TLS == nil {
-		return "http"
-	} else {
-		return "https:"
+
+func GetScheme(request *http.Request) string {
+	// Can't use `r.Request.URL.Scheme`
+	// See: https://groups.google.com/forum/#!topic/golang-nuts/pMUkBlQBDF0
+	if request.TLS == nil {
+		return "https"
 	}
+	if scheme := request.Header.Get("X-Forwarded-Proto"); scheme != "" {
+		return scheme
+	}
+	if scheme := request.Header.Get("X-Forwarded-Protocol"); scheme != "" {
+		return scheme
+	}
+	if ssl := request.Header.Get("X-Forwarded-Ssl"); ssl == "on" {
+		return "https"
+	}
+	if scheme := request.Header.Get("X-Url-Scheme"); scheme != "" {
+		return scheme
+	}
+	return "http"
 }
-func GetHost(Request *http.Request) string {
-	if Request.TLS == nil {
-		return "http://" + Request.Host
-	} else {
-		return "https://" + Request.Host
-	}
+
+func GetHost(request *http.Request) string {
+	return fmt.Sprintf("%s://%s", GetScheme(request), request.Host)
 }
 func GetFullPath(Request *http.Request) string {
-
 	redirect := ""
 	if len(Request.URL.Query().Encode()) == 0 {
 		redirect = Request.URL.Path
@@ -139,13 +150,7 @@ func GetFullPath(Request *http.Request) string {
 	return url.QueryEscape(redirect)
 }
 func GetFullUrl(request *http.Request) string {
-
-	if request.TLS == nil {
-		return "http://" + request.Host + request.RequestURI
-	} else {
-		return "https://" + request.Host + request.RequestURI
-	}
-
+	return fmt.Sprintf("%s://%s%s", GetScheme(request), request.Host, request.RequestURI)
 }
 func IsMobile(request *http.Request) bool {
 	UserAgent := request.Header.Get("User-Agent")
