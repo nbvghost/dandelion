@@ -119,7 +119,7 @@ func CreateCaptchaCodeBytes(SessionCaptcha string) []byte {
 func GetScheme(request *http.Request) string {
 	// Can't use `r.Request.URL.Scheme`
 	// See: https://groups.google.com/forum/#!topic/golang-nuts/pMUkBlQBDF0
-	if request.TLS == nil {
+	if request.TLS != nil {
 		return "https"
 	}
 	if scheme := request.Header.Get("X-Forwarded-Proto"); scheme != "" {
