@@ -446,6 +446,14 @@ func NewServer(config clientv3.Config) constrain.IEtcd {
 	}
 	s.watch()
 
+	resp, err := client.Get(context.TODO(), "", clientv3.WithPrefix())
+	if err != nil {
+		panic(err)
+	}
+	for _, v := range resp.Kvs {
+		log.Println(fmt.Sprintf("[%s]", string(v.Key)), string(v.Value))
+	}
+
 	/*em, err := endpoints.NewManager(client, "grpc server")
 	log.Println(err)
 	em.AddEndpoint(client.Ctx(), "grpc server"+"/"+"addsdfdsr", endpoints.Endpoint{Addr: "adsdfdsdr"})*/
