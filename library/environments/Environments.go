@@ -3,6 +3,7 @@ package environments
 import (
 	"flag"
 	"log"
+	_ "net/http/pprof"
 	"os"
 	"strings"
 )

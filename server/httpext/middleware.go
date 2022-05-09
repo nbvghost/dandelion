@@ -64,14 +64,19 @@ func (m *httpMiddleware) bindData(apiHandler any, r *http.Request) error {
 	}
 
 	uriVars := mux.Vars(r)
-	uriMap := make(map[string][]string)
-	for uriKey := range uriVars {
-		uriMap[uriKey] = []string{uriVars[uriKey]}
+	if len(uriVars) > 0 {
+		uriMap := make(map[string][]string)
+		for uriKey := range uriVars {
+			uriMap[uriKey] = []string{uriVars[uriKey]}
+		}
+		if len(uriMap) > 0 {
+			err = binding.Uri.BindUri(uriMap, vv.Addr().Interface())
+			if err != nil {
+				return err
+			}
+		}
 	}
-	err = binding.Uri.BindUri(uriMap, vv.Addr().Interface())
-	if err != nil {
-		return err
-	}
+
 	err = binding.Query.Bind(r, vv.Addr().Interface())
 	if err != nil {
 		return err

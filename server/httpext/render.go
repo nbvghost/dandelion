@@ -25,7 +25,16 @@ func (v *viewRender) Render(context constrain.IContext, request *http.Request, w
 	viewName := vd.GetName()
 	if len(viewName) > 0 {
 		dir, _ := filepath.Split(context.Route())
-		fileByte, err = ioutil.ReadFile(fmt.Sprintf("view/%s/%s.html", dir, viewName))
+		if dir == "/" {
+			fileByte, err = ioutil.ReadFile(fmt.Sprintf("view/%s.html", viewName))
+			if err != nil {
+				fileByte = []byte(err.Error())
+				err = nil
+			}
+		} else {
+			fileByte, err = ioutil.ReadFile(fmt.Sprintf("view/%s/%s.html", dir, viewName))
+		}
+
 	} else {
 		fileByte, err = ioutil.ReadFile(fmt.Sprintf("view/%s.html", strings.TrimSuffix(context.Route(), "/")))
 		if err != nil {

@@ -1,15 +1,18 @@
 package serviceobject
 
+import "github.com/nbvghost/dandelion/constrain/key"
+
 type ServerDesc struct {
-	Name string
-	Port int
-	IP   string
+	MicroServer key.MicroServer
+	Port        int
+	IP          string
+	Addr        string
 }
 
-func NewServerDesc(name string, port int, ip string) *ServerDesc {
+func NewServerDesc(microServerKey key.MicroServer, port int, ip string) *ServerDesc {
 	return &ServerDesc{
-		Name: name,
-		Port: port,
-		IP:   ip,
+		MicroServer: microServerKey,
+		Port:        port,
+		IP:          ip,
 	}
 }

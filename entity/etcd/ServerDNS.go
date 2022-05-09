@@ -5,6 +5,6 @@ import (
 )
 
 type ServerDNS struct {
-	Name      string
-	LocalName key.MicroServerKey //用于etcd服务发现
+	DomainName string
+	LocalName  key.MicroServer //用于etcd服务发现
 }

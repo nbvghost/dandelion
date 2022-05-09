@@ -14,7 +14,7 @@ import (
 	"github.com/nbvghost/tool/encryption"
 )
 
-func Init(app key.MicroServerKey, etcd constrain.IEtcd, dbName string) error {
+func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 	err := singleton.Init(etcd, dbName)
 	if err != nil {
 		return err

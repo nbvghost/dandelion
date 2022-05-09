@@ -62,7 +62,7 @@ func (m *customizeService) Call(srv interface{}, ctx context.Context, dec func(i
 	logger = logger.Named("GrpcContext").With(zap.String("TraceID", tool.UUID()))
 	defer logger.Sync()
 
-	currentContext := contexext.New(ctx, m.server.Name, uid, serverTransportStream.Method(), m.redis, "", logger, "")
+	currentContext := contexext.New(ctx, m.server.MicroServer.Name, uid, serverTransportStream.Method(), m.redis, "", logger, "")
 
 	var r *route.Info
 
@@ -105,10 +105,9 @@ func (m *customizeService) Call(srv interface{}, ctx context.Context, dec func(i
 
 }
 
-type Option func(serviceobject.ServerDesc, *grpc.Server) error
+type Option func(*serviceobject.ServerDesc, *grpc.Server) error
 type service struct {
-	serviceobject.UnimplementedServerServer
-
+	//serviceobject.UnimplementedServerServer
 	server     config.MicroServerConfig
 	routes     map[string]*route.Info
 	redis      constrain.IRedis
@@ -229,10 +228,10 @@ func (m *service) Listen() {
 		port, _ = strconv.Atoi(_port)
 	}
 
-	desc := serviceobject.ServerDesc{
-		Name: m.server.Name,
-		Port: port,
-		IP:   ip,
+	desc := &serviceobject.ServerDesc{
+		MicroServer: m.server.MicroServer,
+		Port:        port,
+		IP:          ip,
 	}
 
 	//s := grpc.NewServer(grpc.UnaryInterceptor(m.unaryInterceptor))

@@ -10,6 +10,10 @@ import (
 	"github.com/nbvghost/dandelion/entity/etcd"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/pkg/errors"
+	etcdResolver "go.etcd.io/etcd/client/v3/naming/resolver"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
+	"google.golang.org/grpc/resolver"
 	"math/rand"
 	"sync"
 
@@ -22,13 +26,14 @@ import (
 )
 
 type server struct {
-	etcd   clientv3.Config
-	client *clientv3.Client
+	etcd            clientv3.Config
+	client          *clientv3.Client
+	resolverBuilder resolver.Builder
 
-	dnsDomainToServer map[string]key.MicroServerKey
+	dnsDomainToServer map[string]key.MicroServer
 	dnsServerToDomain map[string][]string
 	dnsLocker         sync.RWMutex
-	//serverMap         map[key.MicroServerKey][]serviceobject.ServerDesc
+	//serverMap         map[key.MicroServer][]serviceobject.ServerDesc
 	//serverLocker      sync.RWMutex
 }
 
@@ -79,53 +84,54 @@ func (m *server) parseDNS(dns []etcd.ServerDNS, check bool) error {
 	defer m.dnsLocker.Unlock()
 	m.dnsLocker.Lock()
 
-	m.dnsDomainToServer = map[string]key.MicroServerKey{}
+	m.dnsDomainToServer = map[string]key.MicroServer{}
 	m.dnsServerToDomain = map[string][]string{}
 	for _, v := range dns {
 		if check {
-			if _, ok := m.dnsDomainToServer[v.Name]; ok {
-				return errors.Errorf("存在重复的key:Name(%s)", v.Name)
+			if _, ok := m.dnsDomainToServer[v.DomainName]; ok {
+				return errors.Errorf("存在重复的key:DomainName(%s)", v.DomainName)
 			}
 		}
-		m.dnsDomainToServer[v.Name] = v.LocalName
-		list := m.dnsServerToDomain[string(v.LocalName)]
+		m.dnsDomainToServer[v.DomainName] = v.LocalName
+		list := m.dnsServerToDomain[string(v.LocalName.Name)]
 		if check {
 			var has bool
 			for _, n := range list {
-				if strings.EqualFold(n, v.Name) {
+				if strings.EqualFold(n, v.DomainName) {
 					has = true
 					break
 				}
 			}
 			if has {
-				return errors.Errorf("存在重复的value:%s的key:LocalName(%s)", v.Name, v.LocalName)
+				return errors.Errorf("存在重复的value:%s的key:LocalName(%s)", v.DomainName, v.LocalName)
 			}
 		}
-		list = append(list, v.Name)
-		m.dnsServerToDomain[string(v.LocalName)] = list
+		list = append(list, v.DomainName)
+		m.dnsServerToDomain[string(v.LocalName.Name)] = list
 	}
 	return nil
 }
 
 // GetDNSName 对外服务地址
-func (m *server) GetDNSName(localName key.MicroServerKey) (string, error) {
+func (m *server) GetDNSName(localName key.MicroServer) (string, error) {
 	m.dnsLocker.RLock()
 	defer m.dnsLocker.RUnlock()
-	list, ok := m.dnsServerToDomain[string(localName)]
+	list, ok := m.dnsServerToDomain[string(localName.Name)]
 	if !ok || len(list) == 0 {
 		return "", errors.Errorf("dns:在获取%s服务时找不到服务地址", localName)
 	}
 	return list[0], nil
 }
-func (m *server) GetDNSLocalName(domainName string) (key.MicroServerKey, error) {
+func (m *server) GetDNSLocalName(domainName string) (key.MicroServer, error) {
 	m.dnsLocker.RLock()
 	defer m.dnsLocker.RUnlock()
+	domainName = strings.Split(domainName, ":")[0]
 	v, ok := m.dnsDomainToServer[domainName]
 	if !ok {
 		v, ok = m.dnsDomainToServer[fmt.Sprintf("*.%s", domainName)]
 	}
 	if !ok {
-		return "", errors.Errorf("dns:没有找到(%s)的服务节点", domainName)
+		return key.MicroServer{}, errors.Errorf("dns:没有找到(%s)的服务节点", domainName)
 	}
 	return v, nil
 }
@@ -221,7 +227,7 @@ func (m *server) watch() {
 	m.serverLocker.Lock()
 	defer m.serverLocker.Unlock()
 
-	v := m.serverMap[key.MicroServerKey(serverDesc.Name)]
+	v := m.serverMap[key.MicroServer(serverDesc.Name)]
 	if !isCreate && !isModify {
 		//删除已经存的
 		for i, e := range v {
@@ -235,12 +241,12 @@ func (m *server) watch() {
 		v = append(v, serverDesc)
 		log.Printf("new server desc:%+v,isCreate:%v,isModify:%v", serverDesc, isCreate, isModify)
 	}
-	m.serverMap[key.MicroServerKey(serverDesc.Name)] = v
+	m.serverMap[key.MicroServer(serverDesc.Name)] = v
 	return nil
 }*/
 
 func (m *server) RegisterDNS(dns []etcd.ServerDNS) error {
-	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]key.MicroServerKey{}}
+	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]key.MicroServer{}}
 	if err := copyServer.parseDNS(dns, true); err != nil {
 		return err
 	}
@@ -313,8 +319,9 @@ func (m *server) Register(desc *serviceobject.ServerDesc) (*serviceobject.Server
 
 	desc.IP = ip
 	desc.Port = port
+	desc.Addr = fmt.Sprintf("%s:%d", ip, port)
 
-	etcdKey := fmt.Sprintf("%s/%s/%s:%d", "server", desc.Name, ip, port)
+	etcdKey := fmt.Sprintf("%s/%s/%s/%s:%d", "server", desc.MicroServer.ServerType, desc.MicroServer.Name, ip, port)
 
 	_, err = client.Get(ctx, etcdKey)
 	if err != nil {
@@ -368,12 +375,40 @@ func (m *server) Register(desc *serviceobject.ServerDesc) (*serviceobject.Server
 var r = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 // SelectInsideServer 服务间通信通过这个方法获取
-func (m *server) SelectInsideServer(appName key.MicroServerKey) (string, error) {
+func (m *server) SelectInsideGrpcServer(appName key.MicroServer) (*grpc.ClientConn, error) {
+	if appName.ServerType != key.ServerTypeGrpc {
+		return nil, errors.Errorf("服务不是grpc服务:%s", appName)
+	}
+	ctx := context.TODO()
+
+	d, err := grpc.DialContext(ctx, fmt.Sprintf("%s:///%s/%s/%s", m.resolverBuilder.Scheme(), "server", appName.ServerType, appName.Name), grpc.WithKeepaliveParams(keepalive.ClientParameters{
+		Time:                0,
+		Timeout:             0,
+		PermitWithoutStream: false,
+	}), grpc.WithInsecure(), grpc.WithResolvers(m.resolverBuilder))
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+func (m *server) SelectInsideServer(appName key.MicroServer) (string, error) {
 	//m.serverLocker.RLock()
 	//defer m.serverLocker.RUnlock()
 	ctx := context.TODO()
 	client := m.getClient()
-	serverKey := fmt.Sprintf("%s/%s/", "server", appName)
+	if appName.ServerType != key.ServerTypeHttp {
+		return "", errors.Errorf("服务不是http服务:%s", appName)
+	}
+
+	/*etcdResolver, err := resolver.NewBuilder(client)
+	log.Println(err)
+
+	d, errr := grpc.Dial("etcd:///grpc server", grpc.WithInsecure(), grpc.WithResolvers(etcdResolver))
+	log.Println(errr)
+	d.Connect()
+	log.Println(d.GetState(), d.Target())*/
+
+	serverKey := fmt.Sprintf("%s/%s/%s/", "server", appName.ServerType, appName.Name)
 
 	resp, err := client.Get(ctx, serverKey, clientv3.WithPrefix())
 	if err != nil {
@@ -394,12 +429,33 @@ func NewServer(config clientv3.Config) constrain.IEtcd {
 	if err != nil {
 		panic(err)
 	}
+
+	r, err := etcdResolver.NewBuilder(client)
+	if err != nil {
+		panic(err)
+	}
+
+	resolver.Register(r)
+
 	s := &server{etcd: config,
 		client:            client,
 		dnsServerToDomain: map[string][]string{},
-		dnsDomainToServer: map[string]key.MicroServerKey{},
-		//serverMap:         map[key.MicroServerKey][]serviceobject.ServerDesc{},
+		dnsDomainToServer: map[string]key.MicroServer{},
+		//serverMap:         map[key.MicroServer][]serviceobject.ServerDesc{},
+		resolverBuilder: r,
 	}
 	s.watch()
+
+	/*em, err := endpoints.NewManager(client, "grpc server")
+	log.Println(err)
+	em.AddEndpoint(client.Ctx(), "grpc server"+"/"+"addsdfdsr", endpoints.Endpoint{Addr: "adsdfdsdr"})*/
+
+	/*etcdResolver, err := resolver.NewBuilder(client)
+	log.Println(err)
+
+	d, errr := grpc.Dial("etcd:///grpc server", grpc.WithInsecure(), grpc.WithResolvers(etcdResolver))
+	log.Println(errr)
+	d.Connect()
+	log.Println(d.GetState(), d.Target())*/
 	return s
 }

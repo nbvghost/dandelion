@@ -1,11 +1,22 @@
 package key
 
-type MicroServerKey string
+type serverType string
 
 const (
-	MicroServerKeySSO     MicroServerKey = "sso"
-	MicroServerKeyOSS     MicroServerKey = "oss"
-	MicroServerKeyADMIN   MicroServerKey = "dandelion.admin"
-	MicroServerKeySITE    MicroServerKey = "dandelion.site"
-	MicroServerKeyMANAGER MicroServerKey = "dandelion.manager"
+	ServerTypeHttp serverType = "http"
+	ServerTypeGrpc serverType = "grpc"
+)
+
+type MicroServer struct {
+	Name       string
+	ServerType serverType
+}
+
+var (
+	MicroServerSSO        = MicroServer{Name: "sso", ServerType: ServerTypeHttp}
+	MicroServerOSS        = MicroServer{Name: "oss", ServerType: ServerTypeHttp}
+	MicroServerADMIN      = MicroServer{Name: "dandelion.admin", ServerType: ServerTypeHttp}
+	MicroServerSITE       = MicroServer{Name: "dandelion.site", ServerType: ServerTypeHttp}
+	MicroServerMANAGER    = MicroServer{Name: "dandelion.manager", ServerType: ServerTypeHttp}
+	MicroServerMimiServer = MicroServer{Name: "mimi.server", ServerType: ServerTypeHttp}
 )

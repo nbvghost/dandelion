@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"encoding/xml"
+	"github.com/golang/protobuf/proto"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"net/http"
@@ -69,6 +70,34 @@ func MarshalResult(b []byte, head *Head) ([]byte, error) {
 	return buffer.Bytes(), nil
 }
 
+type protoResult struct {
+	Data proto.Message
+}
+
+func (r *protoResult) Apply(context constrain.IContext) {
+	v := contexext.FromContext(context)
+
+	var b []byte
+	var err error
+
+	b, err = proto.Marshal(r.Data)
+	if err != nil {
+		(&ErrorResult{Error: err}).Apply(context)
+		return
+	}
+	//return buffer.Bytes(), err
+	//b, err = json.Marshal(r.Data)
+	//b = buffer.Bytes()
+
+	v.Response.Header().Set("Content-Type", "application/octet-stream; charset=utf-8")
+	v.Response.WriteHeader(http.StatusOK)
+	//context.Response.Header().Add("Content-Type", "application/json")
+	v.Response.Write(b)
+}
+func NewProtoResult(d proto.Message) *protoResult {
+	return &protoResult{Data: d}
+}
+
 type JsonResult struct {
 	error
 	Data interface{}
@@ -94,6 +123,9 @@ func (r *JsonResult) Apply(context constrain.IContext) {
 	v.Response.WriteHeader(http.StatusOK)
 	//context.Response.Header().Add("Content-Type", "application/json")
 	v.Response.Write(b)
+}
+func NewJsonResult(d interface{}) *JsonResult {
+	return &JsonResult{Data: d}
 }
 
 type TextResult struct {

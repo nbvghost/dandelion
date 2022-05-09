@@ -3,14 +3,15 @@ package config
 import (
 	"crypto/tls"
 	"github.com/go-redis/redis/v8"
+	"github.com/nbvghost/dandelion/constrain/key"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"time"
 )
 
 type MicroServerConfig struct {
-	Name string
-	Port int
-	IP   string
+	MicroServer key.MicroServer
+	Port        int
+	IP          string
 }
 
 type RedisOptions struct {

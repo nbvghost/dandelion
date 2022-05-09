@@ -82,10 +82,10 @@ func (m *handlerContext) Redis() constrain.IRedis {
 func (m *handlerContext) Logger() *zap.Logger {
 	return m.logger
 }
-func (m *handlerContext) SelectInsideServer(appName key.MicroServerKey) (string, error) {
+func (m *handlerContext) SelectInsideServer(appName key.MicroServer) (string, error) {
 	return m.redis.GetEtcd().SelectInsideServer(appName)
 }
-func (m *handlerContext) GetDNSName(localName key.MicroServerKey) (string, error) {
+func (m *handlerContext) GetDNSName(localName key.MicroServer) (string, error) {
 	return m.redis.GetEtcd().GetDNSName(localName)
 }
 func (m *handlerContext) Token() string {

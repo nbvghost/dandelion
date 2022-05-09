@@ -19,8 +19,8 @@ type IContext interface {
 	Redis() IRedis
 	UID() types.PrimaryKey
 	AppName() string
-	SelectInsideServer(appName key.MicroServerKey) (string, error)
-	GetDNSName(localName key.MicroServerKey) (string, error)
+	SelectInsideServer(appName key.MicroServer) (string, error)
+	GetDNSName(localName key.MicroServer) (string, error)
 	Route() string
 	Token() string
 	Logger() *zap.Logger

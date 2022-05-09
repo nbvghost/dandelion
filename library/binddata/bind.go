@@ -1,16 +1,7 @@
 package binddata
 
 import (
-	"bytes"
-	"encoding/json"
 	"github.com/go-playground/validator/v10"
-	"github.com/nbvghost/dandelion/library/action"
-	"github.com/nbvghost/dandelion/server/serviceobject"
-	"log"
-	"net/http"
-	"net/url"
-	"reflect"
-	"strings"
 )
 
 // EnableDecoderUseNumber is used to call the UseNumber method on the JSON
@@ -26,7 +17,7 @@ var EnableDecoderDisallowUnknownFields = false
 
 var validate = validator.New()
 
-func Bind(apiHandler interface{}, desc *serviceobject.GrpcRequest) (interface{}, error) {
+/*func Bind(apiHandler interface{}, desc *serviceobject.GrpcRequest) (interface{}, error) {
 	var err error
 
 	apiHandlerValue := reflect.ValueOf(apiHandler)
@@ -159,3 +150,4 @@ func Bind(apiHandler interface{}, desc *serviceobject.GrpcRequest) (interface{},
 
 	return apiHandlerValue.Interface(), nil
 }
+*/

@@ -4,6 +4,7 @@ import (
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/etcd"
+	"google.golang.org/grpc"
 
 	"github.com/nbvghost/dandelion/server/serviceobject"
 )
@@ -11,9 +12,10 @@ import (
 type IEtcd interface {
 	Close() error
 	Register(desc *serviceobject.ServerDesc) (*serviceobject.ServerDesc, error)
-	SelectInsideServer(appName key.MicroServerKey) (string, error)
-	GetDNSName(localName key.MicroServerKey) (string, error)
-	GetDNSLocalName(domainName string) (key.MicroServerKey, error)
+	SelectInsideServer(appName key.MicroServer) (string, error)
+	SelectInsideGrpcServer(appName key.MicroServer) (*grpc.ClientConn, error)
+	GetDNSName(localName key.MicroServer) (string, error)
+	GetDNSLocalName(domainName string) (key.MicroServer, error)
 	RegisterRedis(config config.RedisOptions) error
 	ObtainRedis() (*config.RedisOptions, error)
 	RegisterPostgresql(dsn string, serverName string) error
