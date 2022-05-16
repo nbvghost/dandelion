@@ -1,18 +1,33 @@
 package httpext
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"reflect"
+	"strconv"
+	"strings"
+	"time"
+
+	"go.uber.org/zap"
+
 	"github.com/gin-gonic/gin/binding"
 	"github.com/gorilla/mux"
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/library/action"
 	"github.com/nbvghost/dandelion/library/contexext"
+	"github.com/nbvghost/dandelion/library/environments"
 	"github.com/nbvghost/dandelion/library/result"
+	"github.com/nbvghost/dandelion/library/util"
+	"github.com/nbvghost/dandelion/server/redis"
+	"github.com/nbvghost/gweb/conf"
+	"github.com/nbvghost/tool"
+	"github.com/nbvghost/tool/encryption"
 	"github.com/pkg/errors"
-	"net/http"
-	"reflect"
-	"strings"
 )
 
 var DefaultHttpMiddleware = &httpMiddleware{}
@@ -83,14 +98,130 @@ func (m *httpMiddleware) bindData(apiHandler any, r *http.Request) error {
 	}
 	return err
 }
-func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute, pathTemplate string, isApi bool, customizeViewRender constrain.IViewRender, w http.ResponseWriter, r *http.Request) (bool, error) {
+
+func (m *httpMiddleware) getSession(parentCtx context.Context, redisClient constrain.IRedis, token string) (Session, error) {
+	var se Session
+	se.Token = token
+	var sessionText string
 	var err error
+	sessionText, err = redisClient.GetEx(parentCtx, redis.NewTokenKey(token), time.Minute*10)
+	if err != nil {
+		log.Println(err)
+	}
+	if sessionText != "" {
+		if err := json.Unmarshal([]byte(sessionText), &se); err != nil {
+			return se, err
+		}
+	}
+	return se, nil
+}
+func (m *httpMiddleware) getToken(w http.ResponseWriter, r *http.Request) string {
+	var err error
+	var cookie *http.Cookie
+	var token string
+
+	cookie, err = r.Cookie("token")
+	if err != nil || strings.EqualFold(cookie.Value, "") {
+		token = r.Header.Get("X-Token")
+		if len(token) == 0 {
+			token = encryption.CipherEncrypter(encryption.NewSecretKey(conf.Config.SecureKey), fmt.Sprintf("%s", time.Now().Format("2006-01-02 15:04:05")))
+			http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 24)})
+		}
+	} else {
+		token = cookie.Value
+	}
+	return token
+}
+
+func (m *httpMiddleware) CreateContent(redisClient constrain.IRedis, router constrain.IRoute, w http.ResponseWriter, r *http.Request) constrain.IContext {
+	var lang string
+	domainPrefix, domainName := util.ParseDomain(r.Host)
+	if len(domainPrefix) >= 1 {
+		lang = domainPrefix[0]
+	}
+	if len(lang) == 0 || strings.EqualFold(lang, "dev") {
+		lang = "en"
+	}
+
+	parentCtx := r.Context()
+
+	mode := r.Header.Get("Mode")
+
+	Timeout, _ := strconv.ParseUint(r.Header.Get("Timeout"), 10, 64)
+	TraceID := r.Header.Get("TraceID")
+	if len(TraceID) == 0 {
+		TraceID = tool.UUID()
+	}
+
+	var err error
+	var logger *zap.Logger
+	if environments.Release() {
+		logger, err = zap.NewProduction()
+	} else {
+		logger, err = zap.NewDevelopment()
+	}
+	if err != nil {
+		panic(err)
+	}
+
+	logger = logger.Named("HttpContext").With(zap.String("TraceID", TraceID))
+	//defer logger.Sync()
+
+	token := m.getToken(w, r)
+	var session Session
+	session, err = m.getSession(parentCtx, redisClient, token)
+	if err != nil {
+		logger.Error("getSession", zap.Error(err))
+	}
+
+	contextValue := &contexext.ContextValue{
+		Mapping:    router.GetMappingCallback(),
+		Response:   w,
+		Request:    r,
+		Timeout:    Timeout,
+		DomainName: domainName,
+		Lang:       lang,
+		RequestUrl: util.GetFullUrl(r),
+		//PathTemplate: pathTemplate,
+		Query: r.URL.Query(),
+	}
+
+	{
+		var apiPath = "/api/"
+		var requestUrlPath = r.URL.Path
+		if len(requestUrlPath) >= len(apiPath) && strings.EqualFold(requestUrlPath[0:len(apiPath)], apiPath) {
+			contextValue.IsApi = true
+		}
+	}
+
+	ctx := contexext.New(contexext.NewContext(parentCtx, contextValue), m.serverName, session.ID, r.URL.Path, redisClient, session.Token, logger, key.Mode(mode))
+	return ctx
+}
+func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute, customizeViewRender constrain.IViewRender, w http.ResponseWriter, r *http.Request) (bool, error) {
+	var err error
+	ctxValue := contexext.FromContext(ctx)
+	var pathTemplate string
+	pathTemplate, err = getPathTemplate(r)
+	if err != nil {
+		return false, err
+	}
+	{
+		if strings.EqualFold(ctx.Mode().String(), key.ModeRelease.String()) && !environments.Release() {
+			err = errors.New("正式环境访问开发环境的服务")
+			return false, err
+		}
+		if strings.EqualFold(ctx.Mode().String(), key.ModeDev.String()) && environments.Release() {
+			err = errors.New("开发环境访问正式环境的服务")
+			return false, err
+		}
+	}
+
 	var apiHandler any
 	var broken, withoutAuth bool
 
 	contextValue := contexext.FromContext(ctx)
 
-	apiHandler, withoutAuth, err = router.CreateHandle(isApi, pathTemplate)
+	apiHandler, withoutAuth, err = router.CreateHandle(ctxValue.IsApi, pathTemplate)
 	if err != nil {
 		/*if isApi {
 			if err != nil {
@@ -133,18 +264,13 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 
 	broken, err = router.Handle(ctx, withoutAuth, apiHandler)
 	if err != nil {
-		if v, ok := err.(*action.ActionResult); ok {
-			err = errors.Errorf(v.Message)
-		} else {
-			err = errors.Errorf(err.Error())
-		}
 		return false, err
 	}
 	if broken {
 		return false, nil
 	}
 
-	if isApi {
+	if ctxValue.IsApi {
 		var handle func(ctx constrain.IContext) (constrain.IResult, error)
 		switch r.Method {
 		case http.MethodGet:
@@ -193,7 +319,7 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 		var returnResult constrain.IResult
 		returnResult, err = handle(ctx)
 		if err == nil && returnResult == nil {
-			returnResult = &result.EmptyResult{}
+			returnResult = result.NewError(err)
 		} else {
 			if err != nil {
 				return false, err

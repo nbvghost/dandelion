@@ -5,10 +5,11 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"encoding/xml"
+	"net/http"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/contexext"
-	"net/http"
 )
 
 const MIME_APPLICATION_JSON byte = 1
@@ -89,7 +90,7 @@ func (r *protoResult) Apply(context constrain.IContext) {
 	//b, err = json.Marshal(r.Data)
 	//b = buffer.Bytes()
 
-	v.Response.Header().Set("Content-Type", "application/octet-stream; charset=utf-8")
+	v.Response.Header().Set("Content-Type", "application/x-protobuf; charset=utf-8")
 	v.Response.WriteHeader(http.StatusOK)
 	//context.Response.Header().Add("Content-Type", "application/json")
 	v.Response.Write(b)

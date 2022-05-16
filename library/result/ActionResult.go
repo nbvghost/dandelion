@@ -2,6 +2,8 @@ package result
 
 import (
 	"fmt"
+
+	"github.com/nbvghost/dandelion/constrain"
 )
 
 type ActionResultCode int
@@ -29,6 +31,9 @@ type ActionResult struct {
 	Data    interface{}
 }
 
+func (as *ActionResult) Apply(ctx constrain.IContext) {
+	NewJsonResult(as).Apply(ctx)
+}
 func (as *ActionResult) Error() string {
 
 	return fmt.Sprintf("Code=%v,Message=%v,Data=%v", as.Code, as.Message, as.Data)

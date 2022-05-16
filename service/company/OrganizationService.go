@@ -29,6 +29,12 @@ func (service OrganizationService) AddOrganizationBlockAmount(Orm *gorm.DB, OID 
 	err = service.ChangeMap(singleton.Orm(), OID, &model.Organization{}, map[string]interface{}{"BlockAmount": tm})
 	return err
 }
+func (service OrganizationService) FindByName(Orm *gorm.DB, Name string) *model.Organization {
+	manager := &model.Organization{}
+	//err := Orm.Where("Domain=?", Domain).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
+	Orm.Where(map[string]interface{}{"Name": Name}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)
+	return manager
+}
 func (service OrganizationService) FindByDomain(Orm *gorm.DB, Domain string) *model.Organization {
 	manager := &model.Organization{}
 	//err := Orm.Where("Domain=?", Domain).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)

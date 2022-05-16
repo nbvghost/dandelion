@@ -2,12 +2,14 @@ package contexext
 
 import (
 	"context"
-	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/constrain/key"
-	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"time"
+
+	"go.uber.org/zap"
+
+	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/constrain/key"
 
 	"github.com/nbvghost/gpa/types"
 )
@@ -42,8 +44,8 @@ func NewContext(parentCtx context.Context, v *ContextValue) context.Context {
 	return context.WithValue(parentCtx, ContextKey{}, v)
 }
 
-func FromContext(context constrain.IContext) *ContextValue {
-	m := context.Value(ContextKey{})
+func FromContext(ctx context.Context) *ContextValue {
+	m := ctx.Value(ContextKey{})
 	v, _ := m.(*ContextValue)
 	return v
 }

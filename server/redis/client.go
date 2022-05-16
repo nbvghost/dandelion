@@ -2,12 +2,13 @@ package redis
 
 import (
 	"context"
-	"github.com/go-redis/redis/v8"
-	"github.com/nbvghost/dandelion/config"
-	"github.com/nbvghost/dandelion/constrain"
 	"log"
 	"sync"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/nbvghost/dandelion/config"
+	"github.com/nbvghost/dandelion/constrain"
 )
 
 type client struct {

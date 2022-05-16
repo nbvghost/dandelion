@@ -1,9 +1,17 @@
 package model
 
 import (
+	"time"
+
 	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/gpa/types"
-	"time"
+)
+
+type OrganizationStatus int
+
+const (
+	OrganizationStatusNormal OrganizationStatus = iota
+	OrganizationStatusBlock
 )
 
 type Organization struct {
@@ -27,7 +35,9 @@ type Organization struct {
 	Recommend    string              `gorm:"column:Recommend"`                      //推荐
 	Link         string              `gorm:"column:Link"`                           //链接
 	Vip          int                 `gorm:"column:Vip;default:0"`                  //VIP等级
+	PayTime      *time.Time          `gorm:"column:PayTime"`                        //缴费时间
 	Expire       time.Time           `gorm:"column:Expire"`                         //过期时间
+	Status       OrganizationStatus  `gorm:"column:Status"`                         //冻结
 	//Province     string    `gorm:"column:Province"`                //省
 	//City         string    `gorm:"column:City"`                    //市
 	//District     string    `gorm:"column:District"`                //区域

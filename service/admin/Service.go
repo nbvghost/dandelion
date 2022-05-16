@@ -324,10 +324,10 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	}
 	return admin, err
 }
-func (service AdminService) GetAdmin(ID uint) *model.Admin {
+func (service AdminService) GetAdmin(ID types.PrimaryKey) *model.Admin {
 	Orm := singleton.Orm()
 	admin := &model.Admin{}
-	err := Orm.Where("ID=?", ID).First(admin).Error //SelectOne(user, "select * from User where Email=?", Email)
+	err := Orm.Where(`"ID"=?`, ID).First(admin).Error //SelectOne(user, "select * from User where Email=?", Email)
 	glog.Error(err)
 
 	return admin
