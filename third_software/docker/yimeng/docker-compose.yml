@@ -5,7 +5,7 @@ networks:
 services:
   
   dingzhong:
-    image: "ghcr.io/nbvghost/yimengdingzhong/server:latest"
+    image: "ghcr.io/nbvghost/yimeng-backend/server:latest"
     volumes:
       - /etc/localtime:/etc/localtime
     environment:
