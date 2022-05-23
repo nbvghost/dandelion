@@ -3,12 +3,14 @@ package funcmap
 import (
 	"bufio"
 	"bytes"
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/pkg/errors"
 	"html/template"
+	"io/fs"
 
 	"io/ioutil"
 	"log"
@@ -24,6 +26,17 @@ import (
 	"github.com/nbvghost/gweb/conf"
 	"github.com/nbvghost/tool/object"
 )
+
+var embeds FS
+
+type FS interface {
+	fs.ReadDirFS
+	fs.ReadFileFS
+}
+
+func Embed(v FS) {
+	embeds = v
+}
 
 type IFuncResult interface {
 	Result() interface{}
@@ -179,21 +192,35 @@ func NewFuncMap(context constrain.IContext) template.FuncMap {
 
 			argsIndex := make([]int, 0)
 
+			variadicArgIndex := -1
 			numField := functionType.NumField()
 			for i := 0; i < numField; i++ {
-				if _, ok := functionType.Field(i).Tag.Lookup("arg"); ok {
-					argsIn = append(argsIn, functionType.Field(i).Type)
+				if tagV, ok := functionType.Field(i).Tag.Lookup("arg"); ok {
+					argType := functionType.Field(i).Type
+					if strings.Contains(tagV, "...") {
+						variadicArgIndex = i
+						if argType.Kind() != reflect.Slice {
+							panic(errors.Errorf("不定参数%s，必须是Slice类型", argType.Name()))
+						}
+					}
+					argsIn = append(argsIn, argType)
 					argsIndex = append(argsIndex, i)
 				}
+			}
+			if variadicArgIndex > -1 && len(argsIn) > 0 && variadicArgIndex != len(argsIn)-1 {
+				panic(errors.Errorf("不定参数%s，必须是最后一个参数", argsIn[variadicArgIndex].Name()))
+			}
+			var variadic bool
+			if variadicArgIndex > -1 {
+				variadic = true
 			}
 
 			var makeFuncType reflect.Type
 			switch function.(type) {
 			case IFunc:
-				makeFuncType = reflect.FuncOf(argsIn, []reflect.Type{reflect.TypeOf(new(interface{})).Elem()}, false)
+				makeFuncType = reflect.FuncOf(argsIn, []reflect.Type{reflect.TypeOf(new(interface{})).Elem()}, variadic)
 			case IWidget:
-
-				makeFuncType = reflect.FuncOf(argsIn, []reflect.Type{reflect.TypeOf(new(interface{})).Elem()}, false)
+				makeFuncType = reflect.FuncOf(argsIn, []reflect.Type{reflect.TypeOf(new(interface{})).Elem()}, variadic)
 			}
 
 			backCallFunc := reflect.MakeFunc(makeFuncType, func(args []reflect.Value) (results []reflect.Value) {
@@ -221,7 +248,11 @@ func NewFuncMap(context constrain.IContext) template.FuncMap {
 					var b []byte
 					b, err = ioutil.ReadFile(fileName)
 					if err != nil {
-						return []reflect.Value{reflect.ValueOf(err)}
+
+						b, err = embeds.ReadFile(fmt.Sprintf("template/%s.gohtml", funcName))
+						if err != nil {
+							return []reflect.Value{reflect.ValueOf(err)}
+						}
 					}
 					var t *template.Template
 					t, err = template.New(funcName).Funcs(NewFuncMap(fm.c)).Parse(string(b))
@@ -278,6 +309,9 @@ func (fo *FuncObject) digitDiv(a, b interface{}, prec int) float64 {
 func (fo *FuncObject) mapFunc(m interface{}, key interface{}) interface{} {
 	v := reflect.ValueOf(m)
 	if v.Kind() == reflect.Map {
+		if !v.MapIndex(reflect.ValueOf(key)).IsValid() {
+			return reflect.New(v.Type().Elem()).Elem().Interface()
+		}
 		return v.MapIndex(reflect.ValueOf(key)).Interface()
 	}
 	panic(errors.Errorf("Map不能处理%v数据", v.Kind()))

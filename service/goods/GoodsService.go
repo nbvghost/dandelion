@@ -66,7 +66,7 @@ func (service GoodsService) FindGoodsTags(OID types.PrimaryKey) ([]extends.Tag, 
 	tags = tag.CreateUri(tags)
 	return tags, err
 }
-func (service GoodsService) FindGoodsByTag(OID types.PrimaryKey, tag extends.Tag, _pageIndex int, orders ...extends.Order) (pageIndex, pageSize int, total int64, list []model.Goods, err error) {
+func (service GoodsService) FindGoodsByTag(OID types.PrimaryKey, tag extends.Tag, _pageIndex int, orders ...extends.Order) (pageIndex, pageSize int, total int64, list []*model.Goods, err error) {
 	//select * from "Content" where array_length("Tags",1) is null;
 	db := singleton.Orm().Model(model.Goods{}).Where(`"OID"=?`, OID).
 		Where(`array_length("Tags",1) is not null`).

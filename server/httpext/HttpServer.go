@@ -148,30 +148,32 @@ func (m *httpServer) handleError(ctx constrain.IContext, customizeViewRender con
 
 func NewHttpServer(engine *mux.Router, router *mux.Router, route constrain.IRoute, redisClient constrain.IRedis, serverName string, listenAddr string) *httpServer {
 	s := &httpServer{listenAddr: listenAddr, router: router, route: route, engine: engine, redisClient: redisClient, serverName: serverName}
-	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var isNext bool
-		var err error
+	if router != nil {
+		router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			var isNext bool
+			var err error
 
-		ctx := DefaultHttpMiddleware.CreateContent(redisClient, route, w, r)
+			ctx := DefaultHttpMiddleware.CreateContent(redisClient, route, w, r)
 
-		defer func() {
-			s.handleError(ctx, nil, w, r, err)
-		}()
+			defer func() {
+				s.handleError(ctx, nil, w, r, err)
+			}()
 
-		/*var pathTemplate string
-		pathTemplate, err = getPathTemplate(r)
-		if err != nil {
-			return
-		}
-		ctxValue := contexext.FromContext(ctx)*/
+			/*var pathTemplate string
+			pathTemplate, err = getPathTemplate(r)
+			if err != nil {
+				return
+			}
+			ctxValue := contexext.FromContext(ctx)*/
 
-		if isNext, err = DefaultHttpMiddleware.Handle(ctx, route, nil, w, r); err != nil {
-			return
-		}
-		if !isNext {
-			return
-		}
-	})
+			if isNext, err = DefaultHttpMiddleware.Handle(ctx, route, nil, w, r); err != nil {
+				return
+			}
+			if !isNext {
+				return
+			}
+		})
+	}
 	return s
 }
 

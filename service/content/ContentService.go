@@ -40,7 +40,7 @@ func (service ContentService) HotLikeList(OID, ContentItemID types.PrimaryKey, c
 	return result
 }
 
-func (service ContentService) FindContentByTag(OID types.PrimaryKey, tag extends.Tag, _pageIndex int, orders ...extends.Order) (pageIndex, pageSize int, total int64, list []model.Content, err error) {
+func (service ContentService) FindContentByTag(OID types.PrimaryKey, tag extends.Tag, _pageIndex int, orders ...extends.Order) (pageIndex, pageSize int, total int64, list []*model.Content, err error) {
 	//select * from "Content" where array_length("Tags",1) is null;
 	db := singleton.Orm().Model(model.Content{}).Where(`"OID"=?`, OID).
 		Where(`array_length("Tags",1) is not null`).
@@ -98,6 +98,22 @@ func (service ContentService) PaginationContent(OID, ContentItemID, ContentSubTy
 	db.Limit(20).Offset(pageIndex * 20).Find(&list)
 
 	return pageIndex, 20, int(total), list, nil
+}
+func (service ContentService) GetContentTypeByID(OID types.PrimaryKey, ContentItemID, ContentSubTypeID types.PrimaryKey) (model.ContentItem, model.ContentSubType) {
+	Orm := singleton.Orm()
+	var item model.ContentItem
+	var itemSub model.ContentSubType
+
+	itemMap := map[string]interface{}{"OID": OID, "ID": ContentItemID}
+	Orm.Model(model.ContentItem{}).Where(itemMap).First(&item)
+
+	itemSubMap := map[string]interface{}{
+		"OID":           OID,
+		"ContentItemID": item.ID,
+		"ID":            ContentSubTypeID,
+	}
+	Orm.Model(model.ContentSubType{}).Where(itemSubMap).First(&itemSub)
+	return item, itemSub
 }
 func (service ContentService) GetContentTypeByUri(OID types.PrimaryKey, ContentItemUri, ContentSubTypeUri string) (model.ContentItem, model.ContentSubType) {
 	Orm := singleton.Orm()
@@ -357,12 +373,12 @@ func (service ContentService) menus(OID types.PrimaryKey, hide uint) extends.Men
 	var goodsTypeChildList []model.GoodsTypeChild
 	Orm.Model(model.GoodsTypeChild{}).Where(`"OID" = ?`, OID).Order(`"ID"`).Find(&goodsTypeChildList)
 
-	var menus extends.MenusData
+	var menusData extends.MenusData
 
 	list := []extends.Menus{}
 	for i := 0; i < len(contentItemList); i++ {
 		contentItem := contentItemList[i]
-		menus := extends.Menus{
+		menussddddd := extends.Menus{
 			ID:           contentItem.ID,
 			Uri:          contentItem.Uri,
 			Name:         contentItem.Name,
@@ -373,7 +389,7 @@ func (service ContentService) menus(OID types.PrimaryKey, hide uint) extends.Men
 			List:         nil,
 		}
 		if contentItem.Type == model.ContentTypeProducts {
-			menus.ID = 0
+			//menussddddd.ID = 0
 			for ii := 0; ii < len(goodsTypeList); ii++ {
 				goodsType := goodsTypeList[ii]
 				subMenus := extends.Menus{
@@ -399,12 +415,12 @@ func (service ContentService) menus(OID types.PrimaryKey, hide uint) extends.Men
 						})
 					}
 				}
-				menus.List = append(menus.List, subMenus)
+				menussddddd.List = append(menussddddd.List, subMenus)
 			}
 		} else {
 			for ii := 0; ii < len(contentSubTypeList); ii++ {
 				contentSubType := contentSubTypeList[ii]
-				if menus.ID == contentSubType.ContentItemID && contentSubType.ParentContentSubTypeID == 0 {
+				if menussddddd.ID == contentSubType.ContentItemID && contentSubType.ParentContentSubTypeID == 0 {
 					subMenus := extends.Menus{
 						ID:           contentSubType.ID,
 						Uri:          contentSubType.Uri,
@@ -413,22 +429,22 @@ func (service ContentService) menus(OID types.PrimaryKey, hide uint) extends.Men
 						Type:         contentItem.Type,
 						List:         nil,
 					}
-					menus.List = append(menus.List, subMenus)
+					menussddddd.List = append(menussddddd.List, subMenus)
 				}
 			}
 
 		}
-		list = append(list, menus)
+		list = append(list, menussddddd)
 
 	}
 
 	for i := 0; i < len(list); i++ {
-		menus := list[i]
-		if menus.Type == model.ContentTypeProducts {
+		menussddddd := list[i]
+		if menussddddd.Type == model.ContentTypeProducts {
 			continue
 		}
-		for ii := 0; ii < len(menus.List); ii++ {
-			subMenus := menus.List[ii]
+		for ii := 0; ii < len(menussddddd.List); ii++ {
+			subMenus := menussddddd.List[ii]
 
 			for iii := 0; iii < len(contentSubTypeList); iii++ {
 				contentSubType := contentSubTypeList[iii]
@@ -437,19 +453,19 @@ func (service ContentService) menus(OID types.PrimaryKey, hide uint) extends.Men
 						ID:           contentSubType.ID,
 						Uri:          contentSubType.Uri,
 						Name:         contentSubType.Name,
-						TemplateName: menus.TemplateName,
-						Type:         menus.Type,
+						TemplateName: menussddddd.TemplateName,
+						Type:         menussddddd.Type,
 						List:         nil,
 					}
 					subMenus.List = append(subMenus.List[:], subSubMenus)
 				}
 			}
-			menus.List[ii] = subMenus
+			menussddddd.List[ii] = subMenus
 		}
 
 	}
-	menus.List = list
-	return menus
+	menusData.List = list
+	return menusData
 
 }
 
