@@ -37,8 +37,13 @@ func (service OrganizationService) FindByName(Orm *gorm.DB, Name string) *model.
 }
 func (service OrganizationService) FindByDomain(Orm *gorm.DB, Domain string) *model.Organization {
 	manager := &model.Organization{}
+	var dns model.DNS
+	Orm.Model(model.DNS{}).Where(`"Type"=? and "Domain"=?`, model.DNSTypeA, Domain).First(&dns)
+	if dns.IsZero() {
+		return manager
+	}
 	//err := Orm.Where("Domain=?", Domain).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
-	Orm.Where(map[string]interface{}{"Domain": Domain}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)
+	Orm.Where(map[string]interface{}{"ID": dns.OID}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)
 	return manager
 }
 func (service OrganizationService) GetOrganization(ID types.PrimaryKey) model.Organization {
@@ -47,13 +52,7 @@ func (service OrganizationService) GetOrganization(ID types.PrimaryKey) model.Or
 	service.Get(Orm, ID, &target)
 	return target
 }
-func (service OrganizationService) AddOrganization(Orm *gorm.DB, shop *model.Organization) error {
-	org := service.FindByDomain(Orm, shop.Domain)
-	if org != nil && org.ID > 0 {
-		return errors.New("域名：" + shop.Domain + "已经被占用，请试试其它域名")
-	}
-	return service.Add(Orm, shop)
-}
+
 func (service OrganizationService) DelCompany(ID types.PrimaryKey) error {
 	Orm := singleton.Orm()
 	return service.Delete(Orm, model.Organization{}, ID)

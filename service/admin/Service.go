@@ -199,13 +199,25 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 
 	shop := &model.Organization{}
 	shop.Name = ""
-	shop.Domain = fmt.Sprintf("%d.default", admin.ID)
 	shop.Expire = time.Now().Add((365 * 1) * 24 * time.Hour)
-	if err = service.Organization.AddOrganization(tx, shop); err != nil {
+	if err = service.Organization.Add(tx, shop); err != nil {
+		return nil, err
+	}
+	if err = tx.Model(model.Admin{}).Where(map[string]interface{}{"ID": admin.ID}).Updates(map[string]interface{}{"OID": shop.ID}).Error; err != nil {
 		return nil, err
 	}
 
-	if err = tx.Model(model.Admin{}).Where(map[string]interface{}{"ID": admin.ID}).Updates(map[string]interface{}{"OID": shop.ID}).Error; err != nil {
+	domain := fmt.Sprintf("%d.default", shop.ID)
+
+	var dns model.DNS
+	tx.Model(&model.DNS{}).Where(`"Type"=? and "Domain"=?`, model.DNSTypeA, domain).First(&dns)
+	if !dns.IsZero() {
+		return nil, fmt.Errorf("存在相同的DNS信息,Domain=%s,Type=%s", domain, model.DNSTypeA)
+	}
+	dns.Type = model.DNSTypeA
+	dns.Domain = domain
+	dns.OID = shop.ID
+	if err = tx.Model(&model.DNS{}).Create(&dns).Error; err != nil {
 		return nil, err
 	}
 
