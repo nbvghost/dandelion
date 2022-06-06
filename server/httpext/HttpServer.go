@@ -28,20 +28,20 @@ type Session struct {
 }
 
 type httpServer struct {
-	serverName        string
-	listenAddr        string
-	engine            *mux.Router
-	route             constrain.IRoute
-	redisClient       constrain.IRedis
-	errorHandleResult constrain.IResultError
-	router            *mux.Router
+	serverDesc          *serverDesc
+	engine              *mux.Router
+	route               constrain.IRoute
+	redisClient         constrain.IRedis
+	errorHandleResult   constrain.IResultError
+	router              *mux.Router
+	customizeViewRender constrain.IViewRender
 }
 
 func (m *httpServer) ApiErrorHandle(result constrain.IResultError) {
 	m.errorHandleResult = result
 }
 
-func (m *httpServer) Use(middleware constrain.IMiddleware, customizeViewRender constrain.IViewRender) {
+func (m *httpServer) Use(middleware constrain.IMiddleware) {
 	m.router.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var err error
@@ -56,11 +56,11 @@ func (m *httpServer) Use(middleware constrain.IMiddleware, customizeViewRender c
 			}
 
 			defer func() {
-				m.handleError(ctx, customizeViewRender, w, r, err)
+				m.handleError(ctx, m.customizeViewRender, w, r, err)
 			}()
 
 			var isNext bool
-			if isNext, err = middleware.Handle(ctx, m.route, customizeViewRender, w, r); err != nil {
+			if isNext, err = middleware.Handle(ctx, m.route, m.customizeViewRender, w, r); err != nil {
 				return
 			}
 			if !isNext {
@@ -71,10 +71,11 @@ func (m *httpServer) Use(middleware constrain.IMiddleware, customizeViewRender c
 	})
 }
 func (m *httpServer) Listen() {
-	log.Printf("HttpServer Listen:%s", m.listenAddr)
+	listenAddr := fmt.Sprintf("%s:%d", m.serverDesc.ip, m.serverDesc.port)
+	log.Printf("HttpServer Listen:%s", listenAddr)
 	srv := &http.Server{
 		Handler:      m.engine,
-		Addr:         m.listenAddr,
+		Addr:         listenAddr,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
@@ -146,17 +147,63 @@ func (m *httpServer) handleError(ctx constrain.IContext, customizeViewRender con
 	}
 }
 
-func NewHttpServer(engine *mux.Router, router *mux.Router, route constrain.IRoute, redisClient constrain.IRedis, serverName string, listenAddr string) *httpServer {
-	s := &httpServer{listenAddr: listenAddr, router: router, route: route, engine: engine, redisClient: redisClient, serverName: serverName}
+type Option interface {
+	apply(server *httpServer)
+}
+
+type serverDesc struct {
+	serverName string
+	ip         string
+	port       int
+}
+
+func (s *serverDesc) apply(server *httpServer) {
+	server.serverDesc = s
+}
+func WithServerDesc(serverName string, ip string, port int) Option {
+	return &serverDesc{serverName: serverName, ip: ip, port: port}
+}
+
+type emptyOption struct {
+	applyFunc func(server *httpServer)
+}
+
+func newOption(apply func(server *httpServer)) *emptyOption {
+	return &emptyOption{applyFunc: apply}
+}
+func (e *emptyOption) apply(server *httpServer) {
+	e.applyFunc(server)
+}
+
+func WithRedisOption(redisClient constrain.IRedis) Option {
+	return newOption(func(server *httpServer) {
+		server.redisClient = redisClient
+	})
+}
+func WithCustomizeViewRenderOption(customizeViewRender constrain.IViewRender) Option {
+	return newOption(func(server *httpServer) {
+		server.customizeViewRender = customizeViewRender
+	})
+}
+
+func NewHttpServer(engine *mux.Router, router *mux.Router, route constrain.IRoute, ops ...Option) *httpServer {
+	if route == nil {
+		panic(errors.New("参数route不能为空"))
+	}
+	s := &httpServer{router: router, route: route, engine: engine}
+	for i := range ops {
+		ops[i].apply(s)
+	}
+
 	if router != nil {
 		router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var isNext bool
 			var err error
 
-			ctx := DefaultHttpMiddleware.CreateContent(redisClient, route, w, r)
+			ctx := DefaultHttpMiddleware.CreateContent(s.redisClient, route, w, r)
 
 			defer func() {
-				s.handleError(ctx, nil, w, r, err)
+				s.handleError(ctx, s.customizeViewRender, w, r, err)
 			}()
 
 			/*var pathTemplate string
@@ -166,7 +213,7 @@ func NewHttpServer(engine *mux.Router, router *mux.Router, route constrain.IRout
 			}
 			ctxValue := contexext.FromContext(ctx)*/
 
-			if isNext, err = DefaultHttpMiddleware.Handle(ctx, route, nil, w, r); err != nil {
+			if isNext, err = DefaultHttpMiddleware.Handle(ctx, route, s.customizeViewRender, w, r); err != nil {
 				return
 			}
 			if !isNext {

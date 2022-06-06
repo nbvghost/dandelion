@@ -174,8 +174,13 @@ func (m *httpMiddleware) CreateContent(redisClient constrain.IRedis, router cons
 		logger.Error("getSession", zap.Error(err))
 	}
 
+	var mappingCallback constrain.IMappingCallback
+	if router != nil {
+		mappingCallback = router.GetMappingCallback()
+	}
+
 	contextValue := &contexext.ContextValue{
-		Mapping:    router.GetMappingCallback(),
+		Mapping:    mappingCallback,
 		Response:   w,
 		Request:    r,
 		Timeout:    Timeout,

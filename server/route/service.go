@@ -47,7 +47,7 @@ type service struct {
 	Routes     map[string]*Info
 	ViewRoutes map[string]*Info
 
-	redis           constrain.IRedis
+	//redis           constrain.IRedis
 	mappingCallback constrain.IMappingCallback
 	interceptors    map[string][]constrain.IInterceptor
 	router          *mux.Router
@@ -193,6 +193,6 @@ func (m *service) RegisterView(pathTemplate string, handler constrain.IViewHandl
 	gobext.Register(result)
 }
 
-func New(router *mux.Router, redis constrain.IRedis, mappingCallback constrain.IMappingCallback) constrain.IRoute {
-	return &service{router: router, Routes: map[string]*Info{}, ViewRoutes: map[string]*Info{}, redis: redis, mappingCallback: mappingCallback, interceptors: make(map[string][]constrain.IInterceptor)}
+func New(router *mux.Router, mappingCallback constrain.IMappingCallback) constrain.IRoute {
+	return &service{router: router, Routes: map[string]*Info{}, ViewRoutes: map[string]*Info{}, mappingCallback: mappingCallback, interceptors: make(map[string][]constrain.IInterceptor)}
 }
