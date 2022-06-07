@@ -207,7 +207,7 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 		return nil, err
 	}
 
-	domain := fmt.Sprintf("%d.default", shop.ID)
+	domain := fmt.Sprintf("default")
 
 	var dns model.DNS
 	tx.Model(&model.DNS{}).Where(`"Type"=? and "Domain"=?`, model.DNSTypeA, domain).First(&dns)
