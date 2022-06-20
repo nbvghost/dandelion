@@ -156,6 +156,13 @@ func NewErrorResult(err error) *ErrorResult {
 	return &ErrorResult{Error: err}
 }
 
+type NoneResult struct {
+}
+
+func (r *NoneResult) Apply(context constrain.IContext) {
+
+}
+
 type EmptyResult struct {
 }
 

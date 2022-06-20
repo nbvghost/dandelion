@@ -12,7 +12,7 @@ type ViewBase struct {
 	HtmlMetaCallback func(viewBase ViewBase, meta *HtmlMeta) error `json:"-"`
 }
 
-func (m ViewBase) GetResult() constrain.IResult {
+func (m ViewBase) GetResult(context constrain.IContext) constrain.IResult {
 	return nil
 }
 func (m ViewBase) GetName() string {

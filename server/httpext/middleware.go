@@ -199,6 +199,8 @@ func (m *httpMiddleware) CreateContent(redisClient constrain.IRedis, router cons
 		}
 	}
 
+	logger=logger.With(zap.String("Path", r.URL.String()))
+
 	ctx := contexext.New(contexext.NewContext(parentCtx, contextValue), m.serverName, session.ID, r.URL.Path, redisClient, session.Token, logger, key.Mode(mode))
 	return ctx
 }
@@ -348,7 +350,7 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			if viewResult == nil {
 				return false, errors.New("没有返回数据")
 			}
-			result := viewResult.GetResult()
+			result := viewResult.GetResult(ctx)
 			if result != nil {
 				result.Apply(ctx)
 				return true, nil

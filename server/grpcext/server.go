@@ -60,6 +60,7 @@ func (m *customizeService) Call(srv interface{}, ctx context.Context, dec func(i
 		panic(err)
 	}
 	logger = logger.Named("GrpcContext").With(zap.String("TraceID", tool.UUID()))
+	logger=logger.With(zap.String("Path", tool.UUID()))
 	defer logger.Sync()
 
 	currentContext := contexext.New(ctx, m.server.MicroServer.Name, uid, serverTransportStream.Method(), m.redis, "", logger, "")

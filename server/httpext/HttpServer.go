@@ -56,6 +56,16 @@ func (m *httpServer) Use(middleware constrain.IMiddleware) {
 			}
 
 			defer func() {
+				if err==nil{
+					if rerr:=recover();rerr!=nil{
+						switch rerr.(type) {
+						case error:
+							err = rerr.(error)
+						default:
+							err = fmt.Errorf("%v",rerr)
+						}
+					}
+				}
 				m.handleError(ctx, m.customizeViewRender, w, r, err)
 			}()
 
@@ -203,6 +213,16 @@ func NewHttpServer(engine *mux.Router, router *mux.Router, route constrain.IRout
 			ctx := DefaultHttpMiddleware.CreateContent(s.redisClient, route, w, r)
 
 			defer func() {
+				if err==nil{
+					if rerr:=recover();rerr!=nil{
+						switch rerr.(type) {
+						case error:
+							err = rerr.(error)
+						default:
+							err = fmt.Errorf("%v",rerr)
+						}
+					}
+				}
 				s.handleError(ctx, s.customizeViewRender, w, r, err)
 			}()
 

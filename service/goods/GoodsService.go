@@ -680,7 +680,7 @@ func (service GoodsService) ListAllGoodsType() []model.GoodsType {
 	var gtsIDs []uint
 	//service.FindWhere(Orm, &gts, model.GoodsTypeChild{})
 	Orm.Model(&model.Goods{}).Group("GoodsTypeID").Pluck("GoodsTypeID", &gtsIDs)
-	Orm.Model(&model.GoodsType{}).Where("ID in (?)", gtsIDs).Find(&gts)
+	Orm.Model(&model.GoodsType{}).Where(`"ID" in (?)`, gtsIDs).Find(&gts)
 	return gts
 }
 func (service GoodsService) ListGoodsType(OID uint) []model.GoodsType {
