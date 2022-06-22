@@ -102,6 +102,8 @@ func (m *httpServer) handleError(ctx constrain.IContext, customizeViewRender con
 				m.errorHandleResult.Apply(ctx, err)
 				return
 			}
+			if ar,ok:=err.(*ActionRe)
+
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
 			var e error
 			bytes, e = json.Marshal(action.NewError(err))

@@ -126,5 +126,7 @@ func (m *client) getClient() redis.Cmdable {
 	return m.client
 }
 func NewClient(redis config.RedisOptions, etcd constrain.IEtcd) constrain.IRedis {
-	return &client{redis: redis, etcd: etcd}
+	c := &client{redis: redis, etcd: etcd}
+	c.getClient()
+	return c
 }
