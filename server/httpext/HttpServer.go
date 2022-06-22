@@ -3,6 +3,7 @@ package httpext
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/dandelion/library/result"
 	"log"
 	"net/http"
 	"reflect"
@@ -13,7 +14,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
-	"github.com/nbvghost/dandelion/library/action"
 	"github.com/nbvghost/dandelion/server/route"
 	"github.com/pkg/errors"
 
@@ -56,13 +56,13 @@ func (m *httpServer) Use(middleware constrain.IMiddleware) {
 			}
 
 			defer func() {
-				if err==nil{
-					if rerr:=recover();rerr!=nil{
+				if err == nil {
+					if rerr := recover(); rerr != nil {
 						switch rerr.(type) {
 						case error:
 							err = rerr.(error)
 						default:
-							err = fmt.Errorf("%v",rerr)
+							err = fmt.Errorf("%v", rerr)
 						}
 					}
 				}
@@ -102,11 +102,13 @@ func (m *httpServer) handleError(ctx constrain.IContext, customizeViewRender con
 				m.errorHandleResult.Apply(ctx, err)
 				return
 			}
-			if ar,ok:=err.(*ActionRe)
+			if ar, ok := err.(*result.ActionResult); ok {
+				w.Header().Set("Code", fmt.Sprintf("%d", ar.Code))
+			}
 
 			w.Header().Set("Content-Type", "application/json; charset=utf-8")
 			var e error
-			bytes, e = json.Marshal(action.NewError(err))
+			bytes, e = json.Marshal(result.NewError(err))
 			if e != nil {
 				log.Println(e)
 			}
@@ -116,6 +118,10 @@ func (m *httpServer) handleError(ctx constrain.IContext, customizeViewRender con
 			d := map[string]interface{}{
 				"ErrorText": err.Error(),
 				"Stack":     fmt.Sprintf("%+v", errors.WithStack(err)),
+			}
+
+			if ar, ok := err.(*result.ActionResult); ok {
+				w.Header().Set("Code", fmt.Sprintf("%d", ar.Code))
 			}
 
 			viewResult := route.NewViewResult("404", d)
@@ -215,13 +221,13 @@ func NewHttpServer(engine *mux.Router, router *mux.Router, route constrain.IRout
 			ctx := DefaultHttpMiddleware.CreateContent(s.redisClient, route, w, r)
 
 			defer func() {
-				if err==nil{
-					if rerr:=recover();rerr!=nil{
+				if err == nil {
+					if rerr := recover(); rerr != nil {
 						switch rerr.(type) {
 						case error:
 							err = rerr.(error)
 						default:
-							err = fmt.Errorf("%v",rerr)
+							err = fmt.Errorf("%v", rerr)
 						}
 					}
 				}
