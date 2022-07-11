@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -18,7 +17,6 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/extends"
-	"github.com/nbvghost/dandelion/library/action"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/environments"
 	"github.com/nbvghost/dandelion/library/result"
@@ -103,11 +101,7 @@ func (m *httpMiddleware) getSession(parentCtx context.Context, redisClient const
 	var se Session
 	se.Token = token
 	var sessionText string
-	var err error
-	sessionText, err = redisClient.GetEx(parentCtx, redis.NewTokenKey(token), time.Minute*10)
-	if err != nil {
-		log.Println(err)
-	}
+	sessionText, _ = redisClient.GetEx(parentCtx, redis.NewTokenKey(token), time.Minute*10)
 	if sessionText != "" {
 		if err := json.Unmarshal([]byte(sessionText), &se); err != nil {
 			return se, err
@@ -199,7 +193,7 @@ func (m *httpMiddleware) CreateContent(redisClient constrain.IRedis, router cons
 		}
 	}
 
-	logger=logger.With(zap.String("Path", r.URL.String()))
+	logger = logger.With(zap.String("Path", r.URL.String()))
 
 	ctx := contexext.New(contexext.NewContext(parentCtx, contextValue), m.serverName, session.ID, r.URL.Path, redisClient, session.Token, logger, key.Mode(mode))
 	return ctx
@@ -222,6 +216,8 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			return false, err
 		}
 	}
+
+	w.Header().Set("Code", "0")
 
 	var apiHandler any
 	var broken, withoutAuth bool
@@ -317,11 +313,11 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 				handle = v.HandleTrace
 			}
 		default:
-			return false, action.NewCodeWithError(action.HttpError, errors.New(fmt.Sprintf("错误的http方法:%s", r.Method)))
+			return false, result.NewCodeWithError(result.HttpError, errors.New(fmt.Sprintf("错误的http方法:%s", r.Method)))
 
 		}
 		if handle == nil {
-			return false, action.NewCodeWithError(action.HttpError, errors.New(fmt.Sprintf("找不到http方法:%s的handle", r.Method)))
+			return false, result.NewCodeWithError(result.HttpError, errors.New(fmt.Sprintf("找不到http方法:%s的handle", r.Method)))
 		}
 		var returnResult constrain.IResult
 		returnResult, err = handle(ctx)
