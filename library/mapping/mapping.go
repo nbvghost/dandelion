@@ -6,15 +6,13 @@ import (
 	"github.com/pkg/errors"
 	"log"
 
-	"github.com/nbvghost/gpa/types"
-
 	"reflect"
 )
 
 type IMapping interface {
-	Call(context constrain.IContext) (instance types.IEntity)
+	Call(context constrain.IContext) (instance interface{})
 	Name() string
-	Instance() types.IEntity
+	Instance() interface{}
 }
 
 type mapping struct {
