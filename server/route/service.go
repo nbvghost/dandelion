@@ -104,9 +104,7 @@ func (m *service) CreateHandle(isApi bool, pathTemplate string) (any, bool, erro
 }
 func (m *service) Handle(context constrain.IContext, withoutAuth bool, routeHandler any) (bool, error) {
 	if m.mappingCallback != nil {
-		if err := m.mappingCallback.Before(context, routeHandler); err != nil {
-			return true, err
-		}
+		m.mappingCallback.Before(context, routeHandler)
 	}
 
 	if withoutAuth {
@@ -121,9 +119,7 @@ func (m *service) Handle(context constrain.IContext, withoutAuth bool, routeHand
 			if k == route[:l] {
 				for i := range m.interceptors[k] {
 					if m.mappingCallback != nil {
-						if err := m.mappingCallback.Before(context, m.interceptors[k][i]); err != nil {
-							return true, err
-						}
+						m.mappingCallback.Before(context, m.interceptors[k][i])
 					}
 					broken, err := m.interceptors[k][i].Execute(context)
 					if err != nil {

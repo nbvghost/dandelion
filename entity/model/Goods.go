@@ -14,24 +14,25 @@ import (
 //商品
 type Goods struct {
 	types.Entity
-	OID               types.PrimaryKey    `gorm:"column:OID;index"` //
-	Uri               string              `gorm:"column:Uri"`
-	Title             string              `gorm:"column:Title"`               //
-	GoodsTypeID       types.PrimaryKey    `gorm:"column:GoodsTypeID"`         //
-	GoodsTypeChildID  types.PrimaryKey    `gorm:"column:GoodsTypeChildID"`    //
-	Price             uint                `gorm:"column:Price"`               //
-	Stock             uint                `gorm:"column:Stock"`               //
-	Hide              uint                `gorm:"column:Hide"`                //
-	Images            sqltype.StringArray `gorm:"column:Images;type:JSON;"`   //json array
-	Videos            sqltype.StringArray `gorm:"column:Videos;type:JSON;"`   //json array
-	Summary           string              `gorm:"column:Summary;type:text"`   //
-	Introduce         string              `gorm:"column:Introduce;type:text"` //
-	Pictures          sqltype.StringArray `gorm:"column:Pictures;type:JSON"`  //json array
-	Params            string              `gorm:"column:Params;type:text;"`   //json array
-	ExpressTemplateID types.PrimaryKey    `gorm:"column:ExpressTemplateID"`   //
-	CountSale         uint                `gorm:"column:CountSale"`           //销售量
-	CountView         uint                `gorm:"column:CountView"`           //查看数量
-	Tags              pq.StringArray      `gorm:"column:Tags;type:text[]"`    //
+	OID               types.PrimaryKey    `gorm:"column:OID;index"`            //
+	Uri               string              `gorm:"column:Uri"`                  //
+	Title             string              `gorm:"column:Title"`                //
+	GoodsTypeID       types.PrimaryKey    `gorm:"column:GoodsTypeID"`          //
+	GoodsTypeChildID  types.PrimaryKey    `gorm:"column:GoodsTypeChildID"`     //
+	Price             uint                `gorm:"column:Price"`                //
+	Stock             uint                `gorm:"column:Stock"`                //
+	Hide              uint                `gorm:"column:Hide"`                 //
+	Images            sqltype.StringArray `gorm:"column:Images;type:JSON;"`    //json array
+	Videos            sqltype.StringArray `gorm:"column:Videos;type:JSON;"`    //json array
+	Summary           string              `gorm:"column:Summary;type:text"`    //
+	Introduce         string              `gorm:"column:Introduce;type:text"`  //
+	Pictures          sqltype.StringArray `gorm:"column:Pictures;type:JSON"`   //json array
+	Params            string              `gorm:"column:Params;type:text;"`    //json array
+	ExpressTemplateID types.PrimaryKey    `gorm:"column:ExpressTemplateID"`    //
+	CountSale         uint                `gorm:"column:CountSale"`            //销售量
+	CountView         uint                `gorm:"column:CountView"`            //查看数量
+	Tags              pq.StringArray      `gorm:"column:Tags;type:text[]"`     //
+	IsRichText        bool                `gorm:"column:IsRichText;type:text"` //指明Introduce字段是否使用rich text编辑
 	//TimeSellID        uint `gorm:"column:TimeSellID"`                          //
 }
 

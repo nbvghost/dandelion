@@ -50,7 +50,7 @@ func (v *viewRender) Render(context constrain.IContext, request *http.Request, w
 	}
 
 	var t *template.Template
-	t, err = template.New("").Funcs(funcmap.NewFuncMap(context)).Parse(string(fileByte))
+	t, err = template.New("").Funcs(funcmap.NewFuncMap().Build(context)).Parse(string(fileByte))
 	if err != nil {
 		return err
 	}

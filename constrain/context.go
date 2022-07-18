@@ -9,7 +9,7 @@ import (
 
 //用于注入的回调方法
 type IMappingCallback interface {
-	Before(context IContext, handler interface{}) error
+	Before(context IContext, handler interface{})
 	// Deprecated: 好像没有用
 	ViewAfter(context IContext, r IViewResult) error
 }

@@ -152,14 +152,106 @@ func RegisterWidget(funcName string, widget IWidget) {
 
 }
 
-type FuncObject struct {
+type ITemplateFunc interface {
+	Build(context constrain.IContext) template.FuncMap
+}
+type templateFuncMap struct {
 	funcMap template.FuncMap
-	c       constrain.IContext
 }
 
-func NewFuncMap(context constrain.IContext) template.FuncMap {
-	fm := &FuncObject{}
-	fm.c = context
+func (m *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
+	for funcName := range regMap {
+		function := regMap[funcName]
+
+		v := reflect.ValueOf(function).Elem()
+		functionType := v.Type()
+
+		argsIn := make([]reflect.Type, 0)
+
+		argsIndex := make([]int, 0)
+
+		variadicArgIndex := -1
+		numField := functionType.NumField()
+		for i := 0; i < numField; i++ {
+			if tagV, ok := functionType.Field(i).Tag.Lookup("arg"); ok {
+				argType := functionType.Field(i).Type
+				if strings.Contains(tagV, "...") {
+					variadicArgIndex = i
+					if argType.Kind() != reflect.Slice {
+						panic(errors.Errorf("不定参数%s，必须是Slice类型", argType.Name()))
+					}
+				}
+				argsIn = append(argsIn, argType)
+				argsIndex = append(argsIndex, i)
+			}
+		}
+		if variadicArgIndex > -1 && len(argsIn) > 0 && variadicArgIndex != len(argsIn)-1 {
+			panic(errors.Errorf("不定参数%s，必须是最后一个参数", argsIn[variadicArgIndex].Name()))
+		}
+		var variadic bool
+		if variadicArgIndex > -1 {
+			variadic = true
+		}
+
+		var makeFuncType reflect.Type
+		switch function.(type) {
+		case IFunc:
+			makeFuncType = reflect.FuncOf(argsIn, []reflect.Type{reflect.TypeOf(new(interface{})).Elem()}, variadic)
+		case IWidget:
+			makeFuncType = reflect.FuncOf(argsIn, []reflect.Type{reflect.TypeOf(new(interface{})).Elem()}, variadic)
+		}
+
+		contextValue := contexext.FromContext(context)
+		contextValue.Mapping.Before(context, function)
+
+		backCallFunc := reflect.MakeFunc(makeFuncType, func(args []reflect.Value) (results []reflect.Value) {
+			for i := 0; i < len(args); i++ {
+				v.Field(argsIndex[i]).Set(args[i])
+			}
+			var result interface{}
+			var err error
+
+			switch function.(type) {
+			case IWidget:
+				var resultData map[string]interface{}
+				resultData, err = function.(IWidget).Render(context)
+				if err != nil {
+					return []reflect.Value{reflect.ValueOf(err)}
+				}
+				//todo resultData["Query"] = fm.c.Query()
+				fileName := filepath.Join("view", contextValue.DomainName, "template", "widget", fmt.Sprintf("%s.%s", funcName, "gohtml"))
+				var b []byte
+				b, err = ioutil.ReadFile(fileName)
+				if err != nil {
+					b, err = embeds.ReadFile(fmt.Sprintf("template/%s.gohtml", funcName))
+					if err != nil {
+						return []reflect.Value{reflect.ValueOf(err)}
+					}
+				}
+				var t *template.Template
+				t, err = template.New(funcName).Funcs(NewFuncMap().Build(context)).Parse(string(b))
+				if err != nil {
+					return []reflect.Value{reflect.ValueOf(err)}
+				}
+				buffer := bytes.NewBuffer(nil)
+				if err = t.Execute(buffer, resultData); err != nil {
+					return []reflect.Value{reflect.ValueOf(err)}
+				}
+				result = template.HTML(buffer.Bytes())
+
+			case IFunc:
+				result = function.(IFunc).Call(context).Result()
+			}
+
+			return []reflect.Value{reflect.ValueOf(result)}
+		})
+		m.funcMap[funcName] = backCallFunc.Interface()
+	}
+	return m.funcMap
+}
+
+func NewFuncMap() ITemplateFunc {
+	fm := &templateFuncMap{}
 	fm.funcMap = make(template.FuncMap)
 	fm.funcMap["IncludeHTML"] = fm.includeHTML
 	fm.funcMap["Split"] = fm.splitFunc
@@ -179,134 +271,39 @@ func NewFuncMap(context constrain.IContext) template.FuncMap {
 	fm.funcMap["DigitMod"] = fm.digitMod
 	fm.funcMap["Map"] = fm.mapFunc
 	fm.funcMap["Test"] = fm.test
-
-	for funcName := range regMap {
-		func(funcName string) {
-			//闭包
-			function := regMap[funcName]
-
-			v := reflect.ValueOf(function).Elem()
-			functionType := v.Type()
-
-			argsIn := make([]reflect.Type, 0)
-
-			argsIndex := make([]int, 0)
-
-			variadicArgIndex := -1
-			numField := functionType.NumField()
-			for i := 0; i < numField; i++ {
-				if tagV, ok := functionType.Field(i).Tag.Lookup("arg"); ok {
-					argType := functionType.Field(i).Type
-					if strings.Contains(tagV, "...") {
-						variadicArgIndex = i
-						if argType.Kind() != reflect.Slice {
-							panic(errors.Errorf("不定参数%s，必须是Slice类型", argType.Name()))
-						}
-					}
-					argsIn = append(argsIn, argType)
-					argsIndex = append(argsIndex, i)
-				}
-			}
-			if variadicArgIndex > -1 && len(argsIn) > 0 && variadicArgIndex != len(argsIn)-1 {
-				panic(errors.Errorf("不定参数%s，必须是最后一个参数", argsIn[variadicArgIndex].Name()))
-			}
-			var variadic bool
-			if variadicArgIndex > -1 {
-				variadic = true
-			}
-
-			var makeFuncType reflect.Type
-			switch function.(type) {
-			case IFunc:
-				makeFuncType = reflect.FuncOf(argsIn, []reflect.Type{reflect.TypeOf(new(interface{})).Elem()}, variadic)
-			case IWidget:
-				makeFuncType = reflect.FuncOf(argsIn, []reflect.Type{reflect.TypeOf(new(interface{})).Elem()}, variadic)
-			}
-
-			backCallFunc := reflect.MakeFunc(makeFuncType, func(args []reflect.Value) (results []reflect.Value) {
-				for i := 0; i < len(args); i++ {
-					v.Field(argsIndex[i]).Set(args[i])
-				}
-
-				var result interface{}
-
-				contextValue := contexext.FromContext(context)
-
-				err := contextValue.Mapping.Before(context, function)
-				if err != nil {
-					return []reflect.Value{reflect.ValueOf(err)}
-				}
-
-				switch function.(type) {
-				case IWidget:
-					resultData, err := function.(IWidget).Render(fm.c)
-					if err != nil {
-						return []reflect.Value{reflect.ValueOf(err)}
-					}
-					//todo resultData["Query"] = fm.c.Query()
-					fileName := filepath.Join("view", contextValue.DomainName, "template", "widget", fmt.Sprintf("%s.%s", funcName, "gohtml"))
-					var b []byte
-					b, err = ioutil.ReadFile(fileName)
-					if err != nil {
-
-						b, err = embeds.ReadFile(fmt.Sprintf("template/%s.gohtml", funcName))
-						if err != nil {
-							return []reflect.Value{reflect.ValueOf(err)}
-						}
-					}
-					var t *template.Template
-					t, err = template.New(funcName).Funcs(NewFuncMap(fm.c)).Parse(string(b))
-					if err != nil {
-						return []reflect.Value{reflect.ValueOf(err)}
-					}
-					buffer := bytes.NewBuffer(nil)
-					if err = t.Execute(buffer, resultData); err != nil {
-						return []reflect.Value{reflect.ValueOf(err)}
-					}
-					result = template.HTML(buffer.Bytes())
-
-				case IFunc:
-					result = function.(IFunc).Call(fm.c).Result()
-				}
-
-				return []reflect.Value{reflect.ValueOf(result)}
-			})
-			fm.funcMap[funcName] = backCallFunc.Interface()
-		}(funcName)
-	}
-	return fm.funcMap
+	return fm
 }
 
-func (fo *FuncObject) test() map[string]interface{} {
+func (fo *templateFuncMap) test() map[string]interface{} {
 
 	return map[string]interface{}{"fdsfds": 4545}
 }
-func (fo *FuncObject) digitAdd(a, b interface{}, prec int) float64 {
+func (fo *templateFuncMap) digitAdd(a, b interface{}, prec int) float64 {
 	_a := reflect.ValueOf(a).Convert(reflect.TypeOf(float64(0))).Float()
 	_b := reflect.ValueOf(b).Convert(reflect.TypeOf(float64(0))).Float()
 	f, _ := strconv.ParseFloat(strconv.FormatFloat(_a+_b, 'f', prec, 64), 64)
 	return f
 }
-func (fo *FuncObject) digitSub(a, b interface{}, prec int) float64 {
+func (fo *templateFuncMap) digitSub(a, b interface{}, prec int) float64 {
 	_a := reflect.ValueOf(a).Convert(reflect.TypeOf(float64(0))).Float()
 	_b := reflect.ValueOf(b).Convert(reflect.TypeOf(float64(0))).Float()
 	f, _ := strconv.ParseFloat(strconv.FormatFloat(_a-_b, 'f', prec, 64), 64)
 	return f
 }
-func (fo *FuncObject) digitMul(a, b interface{}, prec int) float64 {
+func (fo *templateFuncMap) digitMul(a, b interface{}, prec int) float64 {
 	_a := reflect.ValueOf(a).Convert(reflect.TypeOf(float64(0))).Float()
 	_b := reflect.ValueOf(b).Convert(reflect.TypeOf(float64(0))).Float()
 	f, _ := strconv.ParseFloat(strconv.FormatFloat(_a*_b, 'f', prec, 64), 64)
 	return f
 }
-func (fo *FuncObject) digitDiv(a, b interface{}, prec int) float64 {
+func (fo *templateFuncMap) digitDiv(a, b interface{}, prec int) float64 {
 	_a := reflect.ValueOf(a).Convert(reflect.TypeOf(float64(0))).Float()
 	_b := reflect.ValueOf(b).Convert(reflect.TypeOf(float64(0))).Float()
 	//f, _ := strconv.ParseFloat(strconv.FormatFloat(_a/_b, 'f', prec, 64), 64)
 	f, _ := strconv.ParseFloat(strconv.FormatFloat(_a/_b, 'f', prec, 64), 64)
 	return f
 }
-func (fo *FuncObject) mapFunc(m interface{}, key interface{}) interface{} {
+func (fo *templateFuncMap) mapFunc(m interface{}, key interface{}) interface{} {
 	v := reflect.ValueOf(m)
 	if v.Kind() == reflect.Map {
 		if !v.MapIndex(reflect.ValueOf(key)).IsValid() {
@@ -316,7 +313,7 @@ func (fo *FuncObject) mapFunc(m interface{}, key interface{}) interface{} {
 	}
 	panic(errors.Errorf("Map不能处理%v数据", v.Kind()))
 }
-func (fo *FuncObject) digitMod(a, b interface{}) uint64 {
+func (fo *templateFuncMap) digitMod(a, b interface{}) uint64 {
 	_a := reflect.ValueOf(a).Convert(reflect.TypeOf(float64(0))).Float()
 	_b := reflect.ValueOf(b).Convert(reflect.TypeOf(float64(0))).Float()
 
@@ -324,11 +321,11 @@ func (fo *FuncObject) digitMod(a, b interface{}) uint64 {
 	return uint64(_a) % uint64(_b)
 
 }
-func (fo *FuncObject) makeArray(len int) []int {
+func (fo *templateFuncMap) makeArray(len int) []int {
 
 	return make([]int, len)
 }
-func (fo *FuncObject) urlQueryEncode(source map[string]string) template.URL {
+func (fo *templateFuncMap) urlQueryEncode(source map[string]string) template.URL {
 	//fmt.Println(source)
 	v := &url.Values{}
 	for key := range source {
@@ -336,26 +333,26 @@ func (fo *FuncObject) urlQueryEncode(source map[string]string) template.URL {
 	}
 	return template.URL(v.Encode())
 }
-func (fo *FuncObject) html(source string) template.HTML {
+func (fo *templateFuncMap) html(source string) template.HTML {
 	//fmt.Println(source)
 	return template.HTML(source)
 }
-func (fo *FuncObject) dateTimeFormat(source time.Time, format string) string {
+func (fo *templateFuncMap) dateTimeFormat(source time.Time, format string) string {
 	//fmt.Println(source)
 	//fmt.Println(format)
 	return source.Format(format)
 }
-func (fo *FuncObject) toJSON(source interface{}) template.JS {
+func (fo *templateFuncMap) toJSON(source interface{}) template.JS {
 	b, err := json.Marshal(source)
 	glog.Error(err)
 	return template.JS(b)
 }
-func (fo *FuncObject) parseInt(source interface{}) int {
+func (fo *templateFuncMap) parseInt(source interface{}) int {
 
 	return object.ParseInt(source)
 }
 
-func (fo *FuncObject) parseFloat(source interface{}) float64 {
+func (fo *templateFuncMap) parseFloat(source interface{}) float64 {
 	return object.ParseFloat(source)
 }
 
@@ -368,23 +365,23 @@ func cipherEncrypter(source string) string {
 	str := encryption.CipherEncrypter(encryption.public_PassWord, source)
 	return str
 }*/
-func (fo *FuncObject) fromJSONToMap(source string) map[string]interface{} {
+func (fo *templateFuncMap) fromJSONToMap(source string) map[string]interface{} {
 	d := make(map[string]interface{})
 	err := json.Unmarshal([]byte(source), &d)
 	glog.Error(err)
 	return d
 }
-func (fo *FuncObject) fromJSONToArray(source string) []interface{} {
+func (fo *templateFuncMap) fromJSONToArray(source string) []interface{} {
 	d := make([]interface{}, 0)
 	err := json.Unmarshal([]byte(source), &d)
 	glog.Error(err)
 	return d
 }
-func (fo *FuncObject) splitFunc(source string, sep string) []string {
+func (fo *templateFuncMap) splitFunc(source string, sep string) []string {
 
 	return strings.Split(source, sep)
 }
-func (fo *FuncObject) includeHTML(url string, params interface{}) template.HTML {
+func (fo *templateFuncMap) includeHTML(url string, params interface{}) template.HTML {
 	//util.Trace(params)
 	//paramsMap := make(map[string]interface{})
 
