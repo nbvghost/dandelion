@@ -43,6 +43,12 @@ func (m *httpServer) ApiErrorHandle(result constrain.IResultError) {
 
 func (m *httpServer) Use(middleware constrain.IMiddleware) {
 	m.router.Use(func(next http.Handler) http.Handler {
+		if m.route == nil {
+			log.Println("没有启用路由功能，因为httpServer.route(constrain.IRoute)对象为空")
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				next.ServeHTTP(w, r)
+			})
+		}
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var err error
 
@@ -205,15 +211,12 @@ func WithCustomizeViewRenderOption(customizeViewRender constrain.IViewRender) Op
 }
 
 func NewHttpServer(engine *mux.Router, router *mux.Router, route constrain.IRoute, ops ...Option) *httpServer {
-	if route == nil {
-		panic(errors.New("参数route不能为空"))
-	}
 	s := &httpServer{router: router, route: route, engine: engine}
 	for i := range ops {
 		ops[i].apply(s)
 	}
 
-	if router != nil {
+	if router != nil && route != nil {
 		router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var isNext bool
 			var err error

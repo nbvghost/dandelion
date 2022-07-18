@@ -160,7 +160,7 @@ type templateFuncMap struct {
 }
 
 func (m *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
-	for funcName := range regMap {
+	createFunc := func(funcName string) {
 		function := regMap[funcName]
 
 		v := reflect.ValueOf(function).Elem()
@@ -238,7 +238,6 @@ func (m *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 					return []reflect.Value{reflect.ValueOf(err)}
 				}
 				result = template.HTML(buffer.Bytes())
-
 			case IFunc:
 				result = function.(IFunc).Call(context).Result()
 			}
@@ -246,6 +245,9 @@ func (m *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 			return []reflect.Value{reflect.ValueOf(result)}
 		})
 		m.funcMap[funcName] = backCallFunc.Interface()
+	}
+	for funcName := range regMap {
+		createFunc(funcName)
 	}
 	return m.funcMap
 }
