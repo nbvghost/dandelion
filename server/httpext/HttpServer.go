@@ -254,12 +254,3 @@ func NewHttpServer(engine *mux.Router, router *mux.Router, route constrain.IRout
 	}
 	return s
 }
-
-func getPathTemplate(r *http.Request) (pathTemplate string, err error) {
-	currentRoute := mux.CurrentRoute(r)
-	pathTemplate, err = currentRoute.GetPathTemplate()
-	if err != nil {
-		return
-	}
-	return
-}

@@ -22,23 +22,23 @@ type ShoppingCartService struct {
 	Organization company.OrganizationService
 }
 
-func (service ShoppingCartService) GetGSIDs(UserID types.PrimaryKey, GSIDs []uint) []model.ShoppingCart {
+func (service ShoppingCartService) GetGSIDs(UserID types.PrimaryKey, GSIDs []string) []model.ShoppingCart {
 	Orm := singleton.Orm()
 	var scs []model.ShoppingCart
 	//Orm := Orm()
 	//return Orm.Where("GSID in (?)", IDs).Where(&model.ShoppingCart{UserID: UserID}).Delete(&model.ShoppingCart{}).Error
-	err := Orm.Where("GSID in (?) and UserID=?", GSIDs, UserID).Find(&scs).Error
+	err := Orm.Where(`"GSID" in (?) and "UserID"=?`, GSIDs, UserID).Find(&scs).Error
 	glog.Error(err)
 	return scs
 }
-func (service ShoppingCartService) GetGSID(UserID types.PrimaryKey, GSID uint) model.ShoppingCart {
+func (service ShoppingCartService) GetGSID(UserID types.PrimaryKey, GSID string) model.ShoppingCart {
 	Orm := singleton.Orm()
 	var sc model.ShoppingCart
-	err := Orm.Where("GSID=? and  UserID=?", GSID, UserID).First(&sc).Error
+	err := Orm.Where(`"GSID"=? and  "UserID"=?`, GSID, UserID).First(&sc).Error
 	glog.Error(err)
 	return sc
 }
-func (service ShoppingCartService) UpdateByUserIDAndID(UserID types.PrimaryKey, GSID uint, Quantity uint) error {
+func (service ShoppingCartService) UpdateByUserIDAndID(UserID types.PrimaryKey, GSID string, Quantity uint) error {
 	Orm := singleton.Orm()
 	_sc := service.GetGSID(UserID, GSID)
 	//err := service.Get(Orm, ID, &_sc)
@@ -61,16 +61,16 @@ func (service ShoppingCartService) UpdateByUserIDAndID(UserID types.PrimaryKey, 
 	} else {
 		_sc.Quantity = Quantity
 	}
-	return Orm.Model(&model.ShoppingCart{}).Where("GSID=?", GSID).Where("UserID=?", UserID).Updates(_sc).Error
+	return Orm.Model(&model.ShoppingCart{}).Where(`"GSID"=?`, GSID).Where(`"UserID"=?`, UserID).Updates(_sc).Error
 }
 
 func (service ShoppingCartService) DeleteByUserIDAndGoodsIDAndSpecificationID(UserID, GoodsID, SpecificationID types.PrimaryKey) error {
 	Orm := singleton.Orm()
 	return Orm.Where(&model.ShoppingCart{UserID: UserID, GSID: strconv.Itoa(int(GoodsID)) + strconv.Itoa(int(SpecificationID))}).Delete(&model.ShoppingCart{}).Error
 }
-func (service ShoppingCartService) DeleteListByIDs(UserID types.PrimaryKey, IDs []types.PrimaryKey) error {
+func (service ShoppingCartService) DeleteListByIDs(UserID types.PrimaryKey, IDs []string) error {
 	Orm := singleton.Orm()
-	return Orm.Where("GSID in (?)", IDs).Where(&model.ShoppingCart{UserID: UserID}).Delete(&model.ShoppingCart{}).Error
+	return Orm.Where(`"GSID" in (?)`, IDs).Where(&model.ShoppingCart{UserID: UserID}).Delete(&model.ShoppingCart{}).Error
 }
 func (service ShoppingCartService) FindShoppingCartByUserID(UserID types.PrimaryKey) []model.ShoppingCart {
 	Orm := singleton.Orm()

@@ -201,11 +201,7 @@ func (m *httpMiddleware) CreateContent(redisClient constrain.IRedis, router cons
 func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute, customizeViewRender constrain.IViewRender, w http.ResponseWriter, r *http.Request) (bool, error) {
 	var err error
 	ctxValue := contexext.FromContext(ctx)
-	var pathTemplate string
-	pathTemplate, err = getPathTemplate(r)
-	if err != nil {
-		return false, err
-	}
+
 	{
 		if strings.EqualFold(ctx.Mode().String(), key.ModeRelease.String()) && !environments.Release() {
 			err = errors.New("正式环境访问开发环境的服务")
@@ -221,10 +217,13 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 
 	var apiHandler any
 	var broken, withoutAuth bool
-
+	var routeInfo constrain.IRouteInfo
 	contextValue := contexext.FromContext(ctx)
 
-	apiHandler, withoutAuth, err = router.CreateHandle(ctxValue.IsApi, pathTemplate)
+	//apiHandler := reflect.New(routeInfo.GetHandlerType()).Interface()
+	//return apiHandler, routeInfo.GetWithoutAuth(), nil
+	//apiHandler, withoutAuth, err = router.CreateHandle(ctxValue.IsApi, r)
+	routeInfo, err = router.CreateHandle(ctxValue.IsApi, r)
 	if err != nil {
 		/*if isApi {
 			if err != nil {
@@ -260,6 +259,11 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 		}*/
 		return false, err
 	}
+
+	withoutAuth = routeInfo.GetWithoutAuth()
+
+	//创建新的handler处理器
+	apiHandler = reflect.New(routeInfo.GetHandlerType()).Interface()
 
 	if err = m.bindData(apiHandler, r); err != nil {
 		return false, err
@@ -346,7 +350,7 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			if viewResult == nil {
 				return false, errors.New("没有返回数据")
 			}
-			result := viewResult.GetResult(ctx)
+			result := viewResult.GetResult(ctx, v)
 			if result != nil {
 				result.Apply(ctx)
 				return true, nil

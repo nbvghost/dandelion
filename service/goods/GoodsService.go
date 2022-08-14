@@ -281,7 +281,7 @@ func (service GoodsService) SaveGoods(OID types.PrimaryKey, goods *model.Goods, 
 
 		value.GoodsID = goods.ID
 
-		if goods.ID.IsZero() {
+		if value.ID.IsZero() {
 			err = tx.Create(&value).Error
 			total = total + value.Stock
 		} else {
@@ -395,7 +395,7 @@ func (service GoodsService) DeleteGoods(ID types.PrimaryKey) *result.ActionResul
 	if err != nil {
 		tx.Rollback()
 	}
-	err = tx.Where("GoodsID=?", ID).Delete(model.Specification{}).Error
+	err = tx.Where(`"GoodsID"=?`, ID).Delete(model.Specification{}).Error
 	if err != nil {
 		tx.Rollback()
 	}
@@ -491,10 +491,10 @@ func (service GoodsService) FindGoodsByTimeSellHash(Hash string) []model.Goods {
 	Orm := singleton.Orm()
 
 	var GoodsIDs []uint
-	Orm.Model(&model.TimeSell{}).Where("Hash=?", Hash).Pluck("GoodsID", &GoodsIDs)
+	Orm.Model(&model.TimeSell{}).Where(`"Hash"=?`, Hash).Pluck("GoodsID", &GoodsIDs)
 
 	var list []model.Goods
-	err := service.FindWhere(Orm, &list, "ID in (?)", GoodsIDs)
+	err := service.FindWhere(Orm, &list, `"ID" in (?)`, GoodsIDs)
 	glog.Error(err)
 	return list
 }
@@ -502,26 +502,26 @@ func (service GoodsService) FindGoodsByCollageHash(Hash string) []model.Goods {
 	Orm := singleton.Orm()
 
 	var GoodsIDs []uint
-	Orm.Model(&model.Collage{}).Where("Hash=?", Hash).Pluck("GoodsID", &GoodsIDs)
+	Orm.Model(&model.Collage{}).Where(`"Hash"=?`, Hash).Pluck("GoodsID", &GoodsIDs)
 
 	var list []model.Goods
-	err := service.FindWhere(Orm, &list, "ID in (?)", GoodsIDs)
+	err := service.FindWhere(Orm, &list, `"ID" in (?)`, GoodsIDs)
 	glog.Error(err)
 	return list
 }
 func (service GoodsService) FindGoodsByOrganizationIDAndGoodsID(OrganizationID types.PrimaryKey, GoodsID types.PrimaryKey) model.Goods {
 	var Goods model.Goods
-	singleton.Orm().Model(&model.Goods{}).Where("ID=? and OID=?", GoodsID, OrganizationID).First(&Goods)
+	singleton.Orm().Model(&model.Goods{}).Where(`"ID"=? and "OID"=?`, GoodsID, OrganizationID).First(&Goods)
 	return Goods
 }
 func (service GoodsService) FindGoodsByTitle(Title string) model.Goods {
 	var Goods model.Goods
-	singleton.Orm().Model(&model.Goods{}).Where("Title=?", Title).First(&Goods)
+	singleton.Orm().Model(&model.Goods{}).Where(`"Title"=?`, Title).First(&Goods)
 	return Goods
 }
 func (service GoodsService) FindGoodsLikeMark(Mark string) model.Goods {
 	var Goods model.Goods
-	singleton.Orm().Model(&model.Goods{}).Where("Mark like ?", "%"+Mark+"%").First(&Goods)
+	singleton.Orm().Model(&model.Goods{}).Where(`"Mark" like ?`, "%"+Mark+"%").First(&Goods)
 	return Goods
 }
 func (service GoodsService) AllList() []model.Goods {
@@ -530,7 +530,7 @@ func (service GoodsService) AllList() []model.Goods {
 
 	var result []model.Goods
 
-	db := Orm.Model(&model.Goods{}).Order("CreatedAt desc") //.Limit(10)
+	db := Orm.Model(&model.Goods{}).Order(`"CreatedAt" desc`) //.Limit(10)
 
 	db.Find(&result)
 
@@ -562,7 +562,15 @@ type TopGoodsTypeChild struct {
 func (service GoodsService) GetTopGoodsTypeChild(DB *gorm.DB, Num uint) []TopGoodsTypeChild {
 	list := make([]TopGoodsTypeChild, 0)
 	//SELECT gtc.Name,gtc.Image,gtc.ID AS GoodsTypeChildID,gtc.GoodsTypeID AS GoodsTypeID,MIN(g.Price) FROM Goods AS g LEFT JOIN GoodsTypeChild AS gtc ON (gtc.GoodsTypeID=g.GoodsTypeID AND gtc.ID=g.GoodsTypeChildID) GROUP BY g.GoodsTypeID;
-	rows, err := DB.Raw("SELECT gtc.Name as Name,gtc.Image as Image,gtc.ID AS GoodsTypeChildID,gtc.GoodsTypeID AS GoodsTypeID,MIN(g.Price) as Price FROM Goods AS g LEFT JOIN GoodsTypeChild AS gtc ON (gtc.GoodsTypeID=g.GoodsTypeID AND gtc.ID=g.GoodsTypeChildID) GROUP BY g.GoodsTypeID limit ?", Num).Rows()
+	rows, err := DB.Raw(`
+SELECT 
+gtc."Name" as Name,
+gtc."Image" as Image,
+gtc."ID" AS GoodsTypeChildID,
+gtc."GoodsTypeID" AS GoodsTypeID,
+MIN(g."Price") as Price
+FROM "Goods" AS g LEFT JOIN "GoodsTypeChild" AS gtc ON (gtc."GoodsTypeID"=g."GoodsTypeID" AND gtc."ID"=g."GoodsTypeChildID") GROUP BY g."GoodsTypeID" limit ?
+`, Num).Rows()
 	if glog.Error(err) {
 		return list
 	}
@@ -594,7 +602,7 @@ func (service GoodsService) HotListByGoodsTypeIDAndGoodsTypeChildID(GoodsTypeID,
 
 	var result []model.Goods
 
-	db := Orm.Model(&model.Goods{}).Where("GoodsTypeID=? and GoodsTypeChildID=?", GoodsTypeID, GoodsTypeChildID).Order("CountSale desc").Limit(int(Num))
+	db := Orm.Model(&model.Goods{}).Where(`"GoodsTypeID"=? and "GoodsTypeChildID"=?`, GoodsTypeID, GoodsTypeChildID).Order(`"CountSale" desc`).Limit(int(Num))
 
 	db.Find(&result)
 
@@ -607,7 +615,7 @@ func (service GoodsService) NewListByGoodsTypeIDAndGoodsTypeChildID(GoodsTypeID,
 
 	var result []model.Goods
 
-	db := Orm.Model(&model.Goods{}).Where("GoodsTypeID=? and GoodsTypeChildID=?", GoodsTypeID, GoodsTypeChildID).Order("CreatedAt desc").Limit(int(Num))
+	db := Orm.Model(&model.Goods{}).Where(`"GoodsTypeID"=? and "GoodsTypeChildID"=?`, GoodsTypeID, GoodsTypeChildID).Order(`"CreatedAt" desc`).Limit(int(Num))
 
 	db.Find(&result)
 
@@ -683,7 +691,7 @@ func (service GoodsService) ListAllGoodsType() []model.GoodsType {
 	Orm.Model(&model.GoodsType{}).Where(`"ID" in (?)`, gtsIDs).Find(&gts)
 	return gts
 }
-func (service GoodsService) ListGoodsType(OID uint) []model.GoodsType {
+func (service GoodsService) ListGoodsType(OID types.PrimaryKey) []model.GoodsType {
 	/*Orm := singleton.Orm()
 	var gts []model.GoodsType
 	service.FindAllByOID(Orm,&gts,OID)
@@ -692,14 +700,14 @@ func (service GoodsService) ListGoodsType(OID uint) []model.GoodsType {
 	var gts []model.GoodsType
 	var gtsIDs []uint
 	//service.FindWhere(Orm, &gts, model.GoodsTypeChild{})
-	Orm.Model(&model.Goods{}).Where("OID=?", OID).Group("GoodsTypeID").Pluck("GoodsTypeID", &gtsIDs)
-	Orm.Model(&model.GoodsType{}).Where("ID in (?)", gtsIDs).Find(&gts)
+	Orm.Model(&model.Goods{}).Where(`"OID"=?`, OID).Group("GoodsTypeID").Pluck("GoodsTypeID", &gtsIDs)
+	Orm.Model(&model.GoodsType{}).Where(`"ID" in (?)`, gtsIDs).Find(&gts)
 	return gts
 }
 func (service GoodsService) ListGoodsTypeByOIDForAdmin(OID uint) []model.GoodsType {
 	Orm := singleton.Orm()
 	var gts []model.GoodsType
-	Orm.Model(&model.GoodsType{}).Where("OID=?", OID).Find(&gts)
+	Orm.Model(&model.GoodsType{}).Where(`"OID"=?`, OID).Find(&gts)
 	return gts
 }
 func (service GoodsService) ListGoodsTypeForAdmin() []model.GoodsType {
@@ -714,8 +722,8 @@ func (service GoodsService) ListGoodsTypeChildAll(OID types.PrimaryKey) []model.
 	var gts []model.GoodsTypeChild
 	var gtsIDs []uint
 	//service.FindWhere(Orm, &gts, model.GoodsTypeChild{})
-	Orm.Model(&model.Goods{}).Where("OID=?", OID).Group("GoodsTypeChildID").Pluck("GoodsTypeChildID", &gtsIDs)
-	Orm.Model(&model.GoodsTypeChild{}).Where("ID in (?)", gtsIDs).Find(&gts)
+	Orm.Model(&model.Goods{}).Where(`"OID"=?`, OID).Group("GoodsTypeChildID").Pluck("GoodsTypeChildID", &gtsIDs)
+	Orm.Model(&model.GoodsTypeChild{}).Where(`"ID" in (?)`, gtsIDs).Find(&gts)
 	return gts
 }
 func (service GoodsService) ListAllGoodsTypeChild(GoodsTypeID types.PrimaryKey) []model.GoodsTypeChild {
@@ -740,8 +748,8 @@ func (service GoodsService) ListGoodsTypeChild(GoodsTypeID types.PrimaryKey) []m
 	var gts []model.GoodsTypeChild
 	var gtsIDs []uint
 	//service.FindWhere(Orm, &gts, model.GoodsTypeChild{})
-	Orm.Model(&model.Goods{}).Where("GoodsTypeID=?", GoodsTypeID).Group("GoodsTypeChildID").Pluck("GoodsTypeChildID", &gtsIDs)
-	Orm.Model(&model.GoodsTypeChild{}).Where("ID in (?)", gtsIDs).Find(&gts)
+	Orm.Model(&model.Goods{}).Where(`"GoodsTypeID"=?`, GoodsTypeID).Group("GoodsTypeChildID").Pluck("GoodsTypeChildID", &gtsIDs)
+	Orm.Model(&model.GoodsTypeChild{}).Where(`"ID" in (?)`, gtsIDs).Find(&gts)
 	return gts
 }
 
@@ -763,13 +771,13 @@ func (service GoodsService) AddGoodsTypeByNameByChild(name string, childName str
 	var gt model.GoodsType
 	var gtc model.GoodsTypeChild
 
-	err := Orm.Model(&model.GoodsType{}).Where("Name=?", name).First(&gt).Error
+	err := Orm.Model(&model.GoodsType{}).Where(`"Name"=?`, name).First(&gt).Error
 	if gorm.ErrRecordNotFound == err {
 		gt.Name = name
 		service.Save(Orm, &gt)
 	}
 
-	err = Orm.Model(&model.GoodsTypeChild{}).Where("Name=? and GoodsTypeID=?", childName, gt.ID).First(&gtc).Error
+	err = Orm.Model(&model.GoodsTypeChild{}).Where(`"Name"=? and "GoodsTypeID"=?`, childName, gt.ID).First(&gtc).Error
 	if gorm.ErrRecordNotFound == err {
 		gtc.Name = childName
 		gtc.GoodsTypeID = gt.ID
@@ -783,7 +791,7 @@ func (service GoodsService) RecommendGoods(OID, GoodsID, GoodsTypeID, GoodsTypeC
 	var contentList []model.Goods
 	singleton.Orm().
 		Model(&model.Goods{}).
-		Where("OID=? and ID<>? and (GoodsTypeID=? or GoodsTypeChildID=?)", OID, GoodsID, GoodsTypeID, GoodsTypeChildID).
+		Where(`"OID"=? and "ID"<>? and ("GoodsTypeID"=? or "GoodsTypeChildID"=?)`, OID, GoodsID, GoodsTypeID, GoodsTypeChildID).
 		Order("RAND()").
 		Limit(6).
 		Find(&contentList)
@@ -814,7 +822,7 @@ func (service GoodsService) GetGoodsTypeData(OID types.PrimaryKey) *model.GoodsT
 
 	goodsTypeData := &model.GoodsTypeData{}
 
-	rows, err := singleton.Orm().Raw(`SELECT gt.*,gtc.* FROM GoodsTypeChild AS gtc LEFT JOIN GoodsType as gt ON (gt.ID=gtc.GoodsTypeID) WHERE OID=?`, OID).Rows()
+	rows, err := singleton.Orm().Raw(`SELECT gt.*,gtc.* FROM "GoodsTypeChild" AS gtc LEFT JOIN "GoodsType" as gt ON (gt."ID"=gtc."GoodsTypeID") WHERE "OID"=?`, OID).Rows()
 	if glog.Error(err) {
 		return goodsTypeData
 	}

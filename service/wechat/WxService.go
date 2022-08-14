@@ -683,7 +683,18 @@ func (service WxService) MWQRCodeTemp(OID uint, UserID uint, qrtype, params stri
 */
 func (service WxService) MiniProgram() MiniApp {
 
-	return MiniApp{}
+	//"AppID": "wx10a413fd12780596",
+	//	"AppSecret": "72eb78717d093645510895a89dedaa79",
+	//	"MchID": "1253136001",
+	//	"PayKey": "0ba0e1b19cd54cdc1adefe0657ddde40"
+	return MiniApp{
+		MiniSecureKey: MiniSecureKey{
+			AppID:     "wx10a413fd12780596",
+			AppSecret: "72eb78717d093645510895a89dedaa79",
+		},
+		MchID:  "1253136001",
+		PayKey: "0ba0e1b19cd54cdc1adefe0657ddde40",
+	}
 }
 
 /*

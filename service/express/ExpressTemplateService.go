@@ -22,7 +22,7 @@ type ExpressTemplateService struct {
 	model.BaseDao
 }
 
-func (b ExpressTemplateService) GetExpressInfo(OrdersID uint, LogisticCode, ShipperName string) map[string]interface{} {
+func (b ExpressTemplateService) GetExpressInfo(OrdersID types.PrimaryKey, LogisticCode, ShipperName string) map[string]interface{} {
 
 	shipperMap := make(map[string]string)
 	shipperMap["中国邮政"] = "YZPY"

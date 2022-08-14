@@ -10,7 +10,7 @@ type IResultError interface {
 
 type IViewResult interface {
 	GetName() string
-	GetResult(context IContext) IResult
+	GetResult(context IContext, viewHandler IViewHandler) IResult
 
 	//SetName(name string)
 	//GetPkgPath() string

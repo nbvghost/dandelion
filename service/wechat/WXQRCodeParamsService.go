@@ -30,7 +30,7 @@ func (service WXQRCodeParamsService) addParams(key string, params map[string]int
 }
 func (service WXQRCodeParamsService) getParams(CodeKey string) (*model.WXQRCodeParams, error) {
 	wxParams := &model.WXQRCodeParams{}
-	singleton.Orm().Model(&model.WXQRCodeParams{}).Where("CodeKey=?", CodeKey).First(wxParams)
+	singleton.Orm().Model(&model.WXQRCodeParams{}).Where(`"CodeKey"=?`, CodeKey).First(wxParams)
 	if wxParams.ID == 0 {
 		return wxParams, errors.New("NOT FOUND")
 	}

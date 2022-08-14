@@ -2,7 +2,9 @@ package redis
 
 import (
 	"context"
+	"encoding/json"
 	"log"
+	"reflect"
 	"sync"
 	"time"
 
@@ -88,7 +90,17 @@ func (m *client) GetEx(ctx context.Context, key string, expiration time.Duration
 	return m.getClient().GetEx(ctx, key, expiration).Result()
 }
 func (m *client) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
-
+	v := reflect.ValueOf(value)
+	if v.Kind() == reflect.Ptr {
+		v = v.Elem()
+		if v.Kind() == reflect.Struct || v.Kind() == reflect.Map || v.Kind() == reflect.Slice {
+			marshal, err := json.Marshal(value)
+			if err != nil {
+				return err
+			}
+			return m.getClient().Set(ctx, key, string(marshal), expiration).Err()
+		}
+	}
 	return m.getClient().Set(ctx, key, value, expiration).Err()
 }
 func (m *client) getClient() redis.Cmdable {

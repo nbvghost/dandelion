@@ -3,6 +3,7 @@ package content
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/tag"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -11,6 +12,7 @@ import (
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/singleton"
+	"github.com/nbvghost/dandelion/server/redis"
 	"github.com/nbvghost/gpa/params"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
@@ -21,7 +23,6 @@ import (
 	"time"
 
 	"github.com/nbvghost/glog"
-	"github.com/nbvghost/gweb"
 	"strconv"
 )
 
@@ -719,22 +720,22 @@ func (service ContentService) FindContentListByTypeID(menusData *extends.MenusDa
 		if len(menusData.List) > 0 {
 
 		}
-		db := singleton.Orm().Model(&model.Content{}).Where("ContentItemID=?", ContentItemID).
-			Order("CreatedAt desc").Order("ID desc")
+		db := singleton.Orm().Model(&model.Content{}).Where(`"ContentItemID"=?`, ContentItemID).
+			Order(`"CreatedAt" desc`).Order(`"ID" desc`)
 		return model.Paging(db, _Page, _Limit, model.Content{})
 	} else {
 
 		if ContentSubTypeChildID > 0 {
-			db := singleton.Orm().Model(&model.Content{}).Where("ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeChildID).
-				Order("CreatedAt desc").Order("ID desc")
+			db := singleton.Orm().Model(&model.Content{}).Where(`"ContentItemID"=? and "ContentSubTypeID"=?`, ContentItemID, ContentSubTypeChildID).
+				Order(`"CreatedAt" desc`).Order(`"ID" desc`)
 			return model.Paging(db, _Page, _Limit, model.Content{})
 		} else {
 
 			ContentSubTypeIDList := service.GetContentSubTypeAllIDByID(ContentItemID, ContentSubTypeID)
 
 			db := singleton.Orm().Model(&model.Content{}).
-				Where("ContentItemID=? and ContentSubTypeID in (?)", ContentItemID, ContentSubTypeIDList).
-				Order("CreatedAt desc").Order("ID desc")
+				Where(`"ContentItemID"=? and "ContentSubTypeID" in (?)`, ContentItemID, ContentSubTypeIDList).
+				Order(`"CreatedAt" desc`).Order(`"ID" desc`)
 			return model.Paging(db, _Page, _Limit, model.Content{})
 		}
 	}
@@ -817,26 +818,32 @@ func (service ContentService) GetContentByID(ID types.PrimaryKey) *model.Content
 	//service.ChangeMap(singleton.Orm(), ID, &model.Article{}, map[string]interface{}{"Look": article.Look + 1})
 	return article
 }
-func (service ContentService) GetContentAndAddLook(context *gweb.Context, ArticleID types.PrimaryKey) *model.Content {
+func (service ContentService) GetContentAndAddLook(ctx constrain.IContext, ArticleID types.PrimaryKey) *model.Content {
 
 	article := &model.Content{}
 	err := service.Get(singleton.Orm(), ArticleID, article) //SelectOne(user, "select * from User where Email=?", Email)
 	glog.Error(err)
 
-	if context.Session.Attributes.Get(gweb.AttributesKey(strconv.Itoa(int(ArticleID)))) == nil {
-		context.Session.Attributes.Put(gweb.AttributesKey(strconv.Itoa(int(ArticleID))), "CountView")
+	lc, _ := ctx.Redis().Get(ctx, redis.NewArticleLookCount(ctx.UID(), ArticleID))
+
+	if len(lc) == 0 {
+		now := time.Now()
+		tomorrowTime := now.Add(24 * time.Hour)
+		endDayTime := time.Date(tomorrowTime.Year(), tomorrowTime.Month(), tomorrowTime.Day(), 0, 0, 0, 0, tomorrowTime.Location())
+		//context.Session.Attributes.Put(gweb.AttributesKey(strconv.Itoa(int(ArticleID))), "CountView")
+		ctx.Redis().Set(ctx, redis.NewArticleLookCount(ctx.UID(), ArticleID), "true", endDayTime.Sub(now))
 		service.ChangeMap(singleton.Orm(), ArticleID, &model.Content{}, map[string]interface{}{"CountView": article.CountView + 1})
 
 		LookArticle := 0 //todo config.Config.LookArticle
 
-		if context.Session.Attributes.Get(play.SessionUser) != nil {
-			user := context.Session.Attributes.Get(play.SessionUser).(*model.User)
-			err := service.Journal.AddScoreJournal(singleton.Orm(),
-				user.ID,
-				"看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)),
-				play.ScoreJournal_Type_Look_Article, int64(LookArticle), extends.KV{Key: "ArticleID", Value: article.ID})
-			glog.Error(err)
-		}
+		//if context.Session.Attributes.Get(play.SessionUser) != nil {
+		//user := context.Session.Attributes.Get(play.SessionUser).(*model.User)
+		err := service.Journal.AddScoreJournal(singleton.Orm(),
+			ctx.UID(),
+			"看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)),
+			play.ScoreJournal_Type_Look_Article, int64(LookArticle), extends.KV{Key: "ArticleID", Value: article.ID})
+		glog.Error(err)
+		//}
 
 	}
 	return article

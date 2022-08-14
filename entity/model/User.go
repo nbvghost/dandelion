@@ -8,6 +8,7 @@ import (
 
 type User struct {
 	types.Entity
+	OID         types.PrimaryKey `gorm:"column:OID"`
 	Name        string           `gorm:"column:Name"`                  //
 	OpenID      string           `gorm:"column:OpenID"`                //
 	Email       string           `gorm:"column:Email"`                 //

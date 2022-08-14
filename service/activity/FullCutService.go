@@ -12,11 +12,11 @@ type FullCutService struct {
 
 func (service FullCutService) FindOrderByAmountDesc(DB *gorm.DB, OID types.PrimaryKey) []model.FullCut {
 	var list []model.FullCut
-	DB.Model(&model.FullCut{}).Where("OID=?", OID).Order("Amount desc").Find(&list)
+	DB.Model(&model.FullCut{}).Where(`"OID"=?`, OID).Order(`"Amount" desc`).Find(&list)
 	return list
 }
 func (service FullCutService) FindOrderByAmountASC(DB *gorm.DB, OID types.PrimaryKey) []model.FullCut {
 	var list []model.FullCut
-	DB.Model(&model.FullCut{}).Where("OID=?", OID).Order("Amount asc").Find(&list)
+	DB.Model(&model.FullCut{}).Where(`"OID"=?`, OID).Order(`"Amount" asc`).Find(&list)
 	return list
 }

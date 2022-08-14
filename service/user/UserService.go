@@ -245,19 +245,19 @@ func (service UserService) FindUserByTel(Orm *gorm.DB, Tel string) *model.User {
 	return user
 }
 
-func (service UserService) FindUserByOpenID(Orm *gorm.DB, OpenID string) *model.User {
-
+func (service UserService) FindUserByOpenID(Orm *gorm.DB, OID types.PrimaryKey, OpenID string) *model.User {
 	user := &model.User{}
 	//CompanyOpenID := user.GetCompanyOpenID(CompanyID, OpenID)
-	err := Orm.Where("OpenID=?", OpenID).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
+	err := Orm.Where(`"OpenID"=? and "OID"=?`, OpenID, OID).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
 	glog.Error(err)
 	return user
 }
-func (service UserService) AddUserByOpenID(Orm *gorm.DB, OpenID string) *model.User {
+func (service UserService) AddUserByOpenID(Orm *gorm.DB, OID types.PrimaryKey, OpenID string) *model.User {
 	//Orm := singleton.Orm()
-	user := &model.User{}
-	user = service.FindUserByOpenID(Orm, OpenID)
+
+	user := service.FindUserByOpenID(Orm, OID, OpenID)
 	if user.ID == 0 {
+		user.OID = OID
 		user.OpenID = OpenID
 		service.Add(Orm, user)
 	} else {

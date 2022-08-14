@@ -18,16 +18,16 @@ import (
 	"github.com/nbvghost/dandelion/library/gobext"
 )
 
-type Info struct {
+type RouteInfo struct {
 	HandlerType reflect.Type
 	WithoutAuth bool
 }
 
-func (m *Info) GetHandlerType() reflect.Type {
+func (m *RouteInfo) GetHandlerType() reflect.Type {
 	return m.HandlerType
 }
 
-func (m *Info) GetWithoutAuth() bool {
+func (m *RouteInfo) GetWithoutAuth() bool {
 	return m.WithoutAuth
 }
 
@@ -44,8 +44,8 @@ func NewViewResult(name string, data any) constrain.IViewResult {
 }
 
 type service struct {
-	Routes     map[string]*Info
-	ViewRoutes map[string]*Info
+	Routes     map[string]*RouteInfo
+	ViewRoutes map[string]*RouteInfo
 
 	//redis           constrain.IRedis
 	mappingCallback constrain.IMappingCallback
@@ -75,8 +75,8 @@ func (m *service) RegisterInterceptors(prefixPath string, interceptors ...constr
 	}
 	m.interceptors[prefixPath] = append(m.interceptors[prefixPath], interceptors...)
 }
-func (m *service) CheckRoute(isApi bool, route string) (*Info, bool) {
-	var routeInfo *Info
+func (m *service) CheckRoute(isApi bool, route string) (*RouteInfo, bool) {
+	var routeInfo *RouteInfo
 	var ok bool
 	if isApi {
 		if routeInfo, ok = m.Routes[route]; !ok {
@@ -93,14 +93,28 @@ func (m *service) CheckRoute(isApi bool, route string) (*Info, bool) {
 	}
 	return routeInfo, ok
 }
+func (m *service) CreateHandle(isApi bool, r *http.Request) (constrain.IRouteInfo, error) {
+	var pathTemplate string
+	var err error
 
-func (m *service) CreateHandle(isApi bool, pathTemplate string) (any, bool, error) {
+	/*pathTemplate, err = getPathTemplate(r)
+	if err != nil {
+		return nil, err
+	}*/
+
+	currentRoute := mux.CurrentRoute(r)
+	pathTemplate, err = currentRoute.GetPathTemplate()
+	if err != nil {
+		return nil, err
+	}
+
 	routeInfo, ok := m.CheckRoute(isApi, pathTemplate)
 	if !ok {
-		return nil, false, errors.Errorf("没有找到路由:%s", pathTemplate)
+		return nil, errors.Errorf("没有找到路由映射:%s   =>   %s", r.URL.String(), pathTemplate)
 	}
-	apiHandler := reflect.New(routeInfo.GetHandlerType()).Interface()
-	return apiHandler, routeInfo.GetWithoutAuth(), nil
+	//apiHandler := reflect.New(routeInfo.GetHandlerType()).Interface()
+	//return apiHandler, routeInfo.GetWithoutAuth(), nil
+	return routeInfo, nil
 }
 func (m *service) Handle(context constrain.IContext, withoutAuth bool, routeHandler any) (bool, error) {
 	if m.mappingCallback != nil {
@@ -159,7 +173,7 @@ func (m *service) RegisterRoute(pathTemplate string, handler constrain.IHandler,
 	m.router.HandleFunc(pathTemplate, func(writer http.ResponseWriter, request *http.Request) {
 
 	})
-	m.Routes[pathTemplate] = &Info{
+	m.Routes[pathTemplate] = &RouteInfo{
 		HandlerType: reflect.TypeOf(handler).Elem(),
 		WithoutAuth: _withoutAuth,
 	}
@@ -182,7 +196,7 @@ func (m *service) RegisterView(pathTemplate string, handler constrain.IViewHandl
 	m.router.HandleFunc(pathTemplate, func(writer http.ResponseWriter, request *http.Request) {
 
 	})
-	m.ViewRoutes[pathTemplate] = &Info{
+	m.ViewRoutes[pathTemplate] = &RouteInfo{
 		HandlerType: reflect.TypeOf(handler).Elem(),
 		WithoutAuth: _withoutAuth,
 	}
@@ -190,5 +204,5 @@ func (m *service) RegisterView(pathTemplate string, handler constrain.IViewHandl
 }
 
 func New(router *mux.Router, mappingCallback constrain.IMappingCallback) constrain.IRoute {
-	return &service{router: router, Routes: map[string]*Info{}, ViewRoutes: map[string]*Info{}, mappingCallback: mappingCallback, interceptors: make(map[string][]constrain.IInterceptor)}
+	return &service{router: router, Routes: map[string]*RouteInfo{}, ViewRoutes: map[string]*RouteInfo{}, mappingCallback: mappingCallback, interceptors: make(map[string][]constrain.IInterceptor)}
 }

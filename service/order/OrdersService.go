@@ -2,6 +2,7 @@ package order
 
 import (
 	"fmt"
+	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/entity/sqltype"
@@ -9,6 +10,7 @@ import (
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
+	"github.com/nbvghost/dandelion/server/redis"
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/dandelion/service/configuration"
@@ -34,8 +36,6 @@ import (
 	"strconv"
 
 	"time"
-
-	"github.com/nbvghost/gweb"
 )
 
 type OrdersService struct {
@@ -1086,7 +1086,7 @@ func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, 
 }
 
 //拼单购买
-func (service OrdersService) BuyCollageOrders(Session *gweb.Session, UserID, GoodsID, SpecificationID types.PrimaryKey, Quantity uint) error {
+func (service OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, GoodsID, SpecificationID types.PrimaryKey, Quantity uint) error {
 	Orm := singleton.Orm()
 	var goods model.Goods
 	var specification model.Specification
@@ -1122,13 +1122,14 @@ func (service OrdersService) BuyCollageOrders(Session *gweb.Session, UserID, Goo
 
 	ogs := make([]model.OrdersGoods, 0)
 	ogs = append(ogs, ordersGoods)
-	Session.Attributes.Put(gweb.AttributesKey(string(play.SessionConfirmOrders)), &ogs)
+	//Session.Attributes.Put(gweb.AttributesKey(string(play.SessionConfirmOrders)), &ogs)
+	ctx.Redis().Set(ctx, redis.NewConfirmOrders(ctx.UID()), &ogs, 24*time.Hour)
 	return nil
 
 }
 
 //从商品外直接购买，生成OrdersGoods，添加到 play.SessionConfirmOrders
-func (service OrdersService) BuyOrders(Session *gweb.Session, UserID, GoodsID, SpecificationID types.PrimaryKey, Quantity uint) error {
+func (service OrdersService) BuyOrders(ctx constrain.IContext, UserID, GoodsID, SpecificationID types.PrimaryKey, Quantity uint) error {
 	Orm := singleton.Orm()
 	var goods model.Goods
 	var specification model.Specification
@@ -1156,14 +1157,14 @@ func (service OrdersService) BuyOrders(Session *gweb.Session, UserID, GoodsID, S
 
 	ogs := make([]model.OrdersGoods, 0)
 	ogs = append(ogs, ordersGoods)
-	Session.Attributes.Put(gweb.AttributesKey(string(play.SessionConfirmOrders)), &ogs)
-
+	//Session.Attributes.Put(gweb.AttributesKey(string(play.SessionConfirmOrders)), &ogs)
+	ctx.Redis().Set(ctx, redis.NewConfirmOrders(ctx.UID()), &ogs, 24*time.Hour)
 	return nil
 
 }
 
 //从购买车提交的订单，通过 ShoppingCart ID,生成  OrdersGoods 列表,添加到 play.SessionConfirmOrders
-func (service OrdersService) AddCartOrdersByShoppingCartIDs(Session *gweb.Session, UserID types.PrimaryKey, IDs []uint) error {
+func (service OrdersService) AddCartOrdersByShoppingCartIDs(ctx constrain.IContext, UserID types.PrimaryKey, IDs []string) error {
 	//Orm := Orm()
 	//var scs []model.ShoppingCart
 	scs := service.ShoppingCart.GetGSIDs(UserID, IDs)
@@ -1179,7 +1180,8 @@ func (service OrdersService) AddCartOrdersByShoppingCartIDs(Session *gweb.Sessio
 		ogs = append(ogs, ordersGoods)
 	}
 
-	Session.Attributes.Put(gweb.AttributesKey(string(play.SessionConfirmOrders)), &ogs)
+	ctx.Redis().Set(ctx, redis.NewConfirmOrders(ctx.UID()), &ogs, 24*time.Hour)
+	//Session.Attributes.Put(gweb.AttributesKey(string(play.SessionConfirmOrders)), &ogs)
 
 	return nil
 
