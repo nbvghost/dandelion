@@ -103,6 +103,18 @@ func (m *client) Set(ctx context.Context, key string, value interface{}, expirat
 	}
 	return m.getClient().Set(ctx, key, value, expiration).Err()
 }
+func (m *client) Expire(ctx context.Context, key string, expiration time.Duration) error {
+	return m.getClient().Expire(ctx, key, expiration).Err()
+}
+func (m *client) HSet(ctx context.Context, key string, value map[string]any) error {
+	return m.getClient().HSet(ctx, key, value).Err()
+}
+func (m *client) HMGet(ctx context.Context, key string, fields ...string) ([]any, error) {
+	return m.getClient().HMGet(ctx, key, fields...).Result()
+}
+func (m *client) HGet(ctx context.Context, key, field string) (string, error) {
+	return m.getClient().HGet(ctx, key, field).Result()
+}
 func (m *client) getClient() redis.Cmdable {
 	m.RLock()
 	defer m.RUnlock()
