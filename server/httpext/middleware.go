@@ -317,11 +317,11 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 				handle = v.HandleTrace
 			}
 		default:
-			return false, result.NewCodeWithError(result.HttpError, errors.New(fmt.Sprintf("错误的http方法:%s", r.Method)))
+			return false, result.NewCodeWithMessage(result.HttpError, (fmt.Sprintf("错误的http方法:%s", r.Method)))
 
 		}
 		if handle == nil {
-			return false, result.NewCodeWithError(result.HttpError, errors.New(fmt.Sprintf("找不到http方法:%s的handle", r.Method)))
+			return false, result.NewCodeWithMessage(result.HttpError, (fmt.Sprintf("找不到http方法:%s的handle", r.Method)))
 		}
 		var returnResult constrain.IResult
 		returnResult, err = handle(ctx)

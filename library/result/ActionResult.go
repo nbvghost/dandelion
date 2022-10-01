@@ -1,8 +1,6 @@
 package result
 
 import (
-	"fmt"
-
 	"github.com/nbvghost/dandelion/constrain"
 )
 
@@ -35,8 +33,7 @@ func (as *ActionResult) Apply(ctx constrain.IContext) {
 	NewJsonResult(as).Apply(ctx)
 }
 func (as *ActionResult) Error() string {
-
-	return fmt.Sprintf("Code=%v,Message=%v,Data=%v", as.Code, as.Message, as.Data)
+	return as.Message //fmt.Sprintf("Code=%v,Message=%v,Data=%v", as.Code, as.Message, as.Data)
 }
 func New(err error, msg string) *ActionResult {
 	if err == nil {
@@ -68,11 +65,16 @@ func NewError(err error) *ActionResult {
 			Data:    nil,
 		}
 	} else {
-		return &ActionResult{
-			Code:    Error,
-			Message: err.Error(),
-			Data:    nil,
+		if v, ok := err.(*ActionResult); ok {
+			return v
+		} else {
+			return &ActionResult{
+				Code:    Error,
+				Message: err.Error(),
+				Data:    nil,
+			}
 		}
+
 	}
 }
 func NewErrorText(text string) *ActionResult {
@@ -82,28 +84,11 @@ func NewErrorText(text string) *ActionResult {
 		Data:    nil,
 	}
 }
-func NewCodeWithError(code ActionResultCode, err error) *ActionResult {
-	if err == nil {
-		if code == Success {
-			return &ActionResult{
-				Code:    Success,
-				Message: "OK",
-				Data:    nil,
-			}
-		} else {
-			return &ActionResult{
-				Code:    code,
-				Message: "执行失败",
-				Data:    nil,
-			}
-		}
-
-	} else {
-		return &ActionResult{
-			Code:    code,
-			Message: err.Error(),
-			Data:    nil,
-		}
+func NewCodeWithMessage(code ActionResultCode, message string) *ActionResult {
+	return &ActionResult{
+		Code:    code,
+		Message: message,
+		Data:    nil,
 	}
 }
 func NewData(data interface{}) *ActionResult {

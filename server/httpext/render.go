@@ -2,15 +2,16 @@ package httpext
 
 import (
 	"fmt"
-	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/library/contexext"
-	"github.com/nbvghost/dandelion/library/funcmap"
 	"html/template"
 	"io/fs"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
 	"strings"
+
+	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/library/contexext"
+	"github.com/nbvghost/dandelion/library/funcmap"
 )
 
 type viewRender struct {
@@ -32,7 +33,10 @@ func (v *viewRender) Render(context constrain.IContext, request *http.Request, w
 				err = nil
 			}
 		} else {
-			fileByte, err = ioutil.ReadFile(fmt.Sprintf("view/%s/%s.html", dir, viewName))
+			fileByte, err = ioutil.ReadFile(fmt.Sprintf("view%s%s.html", dir, viewName))
+			if err != nil {
+				fileByte, err = ioutil.ReadFile(fmt.Sprintf("view/404.html"))
+			}
 		}
 
 	} else {

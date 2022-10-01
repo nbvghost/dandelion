@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-	"github.com/nbvghost/dandelion/library/result"
 	"net/http"
 	"reflect"
 	"strings"
+
+	"github.com/nbvghost/dandelion/library/result"
 
 	"github.com/gorilla/mux"
 	"github.com/nbvghost/dandelion/constrain"
@@ -149,7 +150,7 @@ func (m *service) Handle(context constrain.IContext, withoutAuth bool, routeHand
 
 	if !withoutAuth {
 		if context.UID() == 0 {
-			return true, result.NewCodeWithError(result.AuthError, errors.New("用户没有授权"))
+			return true, result.NewCodeWithMessage(result.AuthError, "用户没有授权")
 		}
 	}
 
