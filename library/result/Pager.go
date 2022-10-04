@@ -23,3 +23,19 @@ func (p *Pager) Calculation() Pager {
 	}
 
 }
+
+type Pagination struct {
+	List     any
+	Total    int
+	PageSize int
+	Page     int
+}
+
+func NewPagination(page, pageSize, total int, list any) *Pagination {
+	return &Pagination{
+		List:     list,
+		Total:    total,
+		PageSize: pageSize,
+		Page:     page,
+	}
+}
