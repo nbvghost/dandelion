@@ -101,7 +101,7 @@ func (m *httpMiddleware) getSession(parentCtx context.Context, redisClient const
 	var se Session
 	se.Token = token
 	var sessionText string
-	sessionText, _ = redisClient.GetEx(parentCtx, redis.NewTokenKey(token), time.Minute*10)
+	sessionText, _ = redisClient.GetEx(parentCtx, redis.NewTokenKey(token), time.Minute*30)
 	if sessionText != "" {
 		if err := json.Unmarshal([]byte(sessionText), &se); err != nil {
 			return se, err
@@ -119,7 +119,8 @@ func (m *httpMiddleware) getToken(w http.ResponseWriter, r *http.Request) string
 		token = r.Header.Get("X-Token")
 		if len(token) == 0 {
 			token = encryption.CipherEncrypter(encryption.NewSecretKey(conf.Config.SecureKey), fmt.Sprintf("%s", time.Now().Format("2006-01-02 15:04:05")))
-			http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 24)})
+			//http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 24), SameSite: http.SameSiteNoneMode, Secure: true})
+			http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 23)})
 		}
 	} else {
 		token = cookie.Value
