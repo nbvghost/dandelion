@@ -112,6 +112,9 @@ func (m *client) HSet(ctx context.Context, key string, value map[string]any) err
 func (m *client) HMGet(ctx context.Context, key string, fields ...string) ([]any, error) {
 	return m.getClient().HMGet(ctx, key, fields...).Result()
 }
+func (m *client) Exists(ctx context.Context, keys ...string) (int64, error) {
+	return m.getClient().Exists(ctx, keys...).Result()
+}
 func (m *client) HGet(ctx context.Context, key, field string) (string, error) {
 	return m.getClient().HGet(ctx, key, field).Result()
 }
