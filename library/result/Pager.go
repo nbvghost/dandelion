@@ -25,7 +25,7 @@ func (p *Pager) Calculation() Pager {
 }
 
 type Pagination struct {
-	List     any
+	List     any //这个字段要改成data 表示，可以用对象或数组
 	Total    int
 	PageSize int
 	Page     int
