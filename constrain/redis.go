@@ -18,4 +18,5 @@ type IRedis interface {
 	HMGet(ctx context.Context, key string, fields ...string) ([]any, error)
 	HGet(ctx context.Context, key, field string) (string, error)
 	Exists(ctx context.Context, keys ...string) (int64, error)
+	Incr(ctx context.Context, key string) (int64, error)
 }

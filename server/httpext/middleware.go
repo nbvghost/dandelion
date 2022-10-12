@@ -119,8 +119,11 @@ func (m *httpMiddleware) getToken(w http.ResponseWriter, r *http.Request) string
 		token = r.Header.Get("X-Token")
 		if len(token) == 0 {
 			token = encryption.CipherEncrypter(encryption.NewSecretKey(conf.Config.SecureKey), fmt.Sprintf("%s", time.Now().Format("2006-01-02 15:04:05")))
-			http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 23), SameSite: http.SameSiteNoneMode, Secure: true})
-			//http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 23)})
+			if environments.Release() {
+				http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 23), SameSite: http.SameSiteNoneMode, Secure: true})
+			} else {
+				http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 23)})
+			}
 		}
 	} else {
 		token = cookie.Value

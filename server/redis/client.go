@@ -89,6 +89,9 @@ func (m *client) GenerateUID(ctx context.Context) uint64 {
 func (m *client) GetEx(ctx context.Context, key string, expiration time.Duration) (string, error) {
 	return m.getClient().GetEx(ctx, key, expiration).Result()
 }
+func (m *client) Incr(ctx context.Context, key string) (int64, error) {
+	return m.getClient().Incr(ctx, key).Result()
+}
 func (m *client) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
 	v := reflect.ValueOf(value)
 	if v.Kind() == reflect.Ptr {
