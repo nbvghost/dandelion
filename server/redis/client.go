@@ -24,10 +24,10 @@ type client struct {
 func (m *client) GetEtcd() constrain.IEtcd {
 	return m.etcd
 }
-func (m *client) TryLock(parentCtx context.Context, key string, timeouts ...time.Duration) (bool, func()) {
-	timeout := time.Duration(0)
-	if len(timeouts) > 0 {
-		timeout = timeouts[0]
+func (m *client) TryLock(parentCtx context.Context, key string, wait ...time.Duration) (bool, func()) {
+	waitTime := time.Duration(0)
+	if len(wait) > 0 {
+		waitTime = wait[0]
 	}
 
 	_ctx, ctxCancel := context.WithCancel(parentCtx)
@@ -40,7 +40,7 @@ func (m *client) TryLock(parentCtx context.Context, key string, timeouts ...time
 	}
 	start := time.Now()
 
-	for time.Now().Sub(start) <= timeout || timeout == 0 {
+	for time.Now().Sub(start) <= waitTime || waitTime == 0 {
 		ok := m.getClient().SetNX(_ctx, key, "lock", time.Minute)
 		if ok.Val() {
 			//获取锁成功
@@ -62,7 +62,7 @@ func (m *client) TryLock(parentCtx context.Context, key string, timeouts ...time
 			return true, cancel
 		} else {
 			//获取锁失败
-			if timeout == 0 {
+			if waitTime == 0 {
 				break
 			}
 			time.Sleep(time.Second)
