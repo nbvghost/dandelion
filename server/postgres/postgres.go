@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm/logger"
 
 	_ "github.com/lib/pq"
+	"github.com/nbvghost/dandelion/library/environments"
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gpa"
 )
@@ -48,15 +49,27 @@ func (p *server) GPA() gpa.IDataBase {
 }
 
 func New(dsn string) IPostgres {
-	newLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
-		logger.Config{
-			SlowThreshold:             time.Millisecond * 500, // Slow SQL threshold
-			LogLevel:                  logger.Warn,            // Log level
-			IgnoreRecordNotFoundError: true,                   // Ignore ErrRecordNotFound error for logger
-			Colorful:                  true,                   // Disable color
-		},
-	)
-
+	var newLogger logger.Interface
+	if environments.Release() {
+		newLogger = logger.New(
+			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+			logger.Config{
+				SlowThreshold:             time.Millisecond * 500, // Slow SQL threshold
+				LogLevel:                  logger.Warn,            // Log level
+				IgnoreRecordNotFoundError: true,                   // Ignore ErrRecordNotFound error for logger
+				Colorful:                  true,                   // Disable color
+			},
+		)
+	} else {
+		newLogger = logger.New(
+			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+			logger.Config{
+				SlowThreshold:             time.Millisecond * 100, // Slow SQL threshold
+				LogLevel:                  logger.Info,            // Log level
+				IgnoreRecordNotFoundError: true,                   // Ignore ErrRecordNotFound error for logger
+				Colorful:                  true,                   // Disable color
+			},
+		)
+	}
 	return &server{dsn: dsn, logger: newLogger}
 }
