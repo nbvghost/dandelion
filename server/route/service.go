@@ -44,6 +44,16 @@ func NewViewResult(name string, data any) constrain.IViewResult {
 	}
 }
 
+type NoneView struct {
+	extends.ViewBase
+}
+
+func NewNoneViewResult() constrain.IViewResult {
+	return &NoneView{
+		ViewBase: extends.ViewBase{},
+	}
+}
+
 type service struct {
 	Routes     map[string]*RouteInfo
 	ViewRoutes map[string]*RouteInfo

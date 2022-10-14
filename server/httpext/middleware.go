@@ -22,6 +22,7 @@ import (
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/server/redis"
+	"github.com/nbvghost/dandelion/server/route"
 	"github.com/nbvghost/gweb/conf"
 	"github.com/nbvghost/tool"
 	"github.com/nbvghost/tool/encryption"
@@ -321,11 +322,11 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 				handle = v.HandleTrace
 			}
 		default:
-			return false, result.NewCodeWithMessage(result.HttpError, (fmt.Sprintf("错误的http方法:%s", r.Method)))
+			return false, result.NewCodeWithMessage(result.HttpError, fmt.Sprintf("错误的http方法:%s", r.Method))
 
 		}
 		if handle == nil {
-			return false, result.NewCodeWithMessage(result.HttpError, (fmt.Sprintf("找不到http方法:%s的handle", r.Method)))
+			return false, result.NewCodeWithMessage(result.HttpError, fmt.Sprintf("找不到http方法:%s的handle", r.Method))
 		}
 		var returnResult constrain.IResult
 		returnResult, err = handle(ctx)
@@ -354,9 +355,12 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			if viewResult == nil {
 				return false, errors.New("没有返回数据")
 			}
-			result := viewResult.GetResult(ctx, v)
-			if result != nil {
-				result.Apply(ctx)
+			if _, okk := viewResult.(*route.NoneView); okk {
+				return true, nil
+			}
+			rr := viewResult.GetResult(ctx, v)
+			if rr != nil {
+				rr.Apply(ctx)
 				return true, nil
 			}
 
