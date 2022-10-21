@@ -4,24 +4,26 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/golang/protobuf/proto"
-	"github.com/nbvghost/dandelion/config"
-	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/library/action"
-	"github.com/nbvghost/dandelion/library/contexext"
-	"github.com/nbvghost/dandelion/library/util"
-	"github.com/nbvghost/dandelion/server/route"
-	"github.com/nbvghost/tool"
-	"go.uber.org/zap"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/reflection"
-	"google.golang.org/grpc/status"
 	"log"
 	"net"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"go.uber.org/zap"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/nbvghost/dandelion/config"
+	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/library/contexext"
+	"github.com/nbvghost/dandelion/library/result"
+	"github.com/nbvghost/dandelion/library/util"
+	"github.com/nbvghost/dandelion/server/route"
+	"github.com/nbvghost/tool"
 
 	"github.com/nbvghost/dandelion/server/serviceobject"
 
@@ -34,7 +36,7 @@ type iCustomizeService interface {
 type customizeService struct {
 	server      config.MicroServerConfig
 	serviceDesc grpc.ServiceDesc
-	routes      map[string]*route.Info
+	routes      map[string]*route.RouteInfo
 	redis       constrain.IRedis
 	callbacks   []constrain.IMappingCallback
 }
@@ -60,12 +62,12 @@ func (m *customizeService) Call(srv interface{}, ctx context.Context, dec func(i
 		panic(err)
 	}
 	logger = logger.Named("GrpcContext").With(zap.String("TraceID", tool.UUID()))
-	logger=logger.With(zap.String("Path", tool.UUID()))
+	logger = logger.With(zap.String("Path", tool.UUID()))
 	defer logger.Sync()
 
 	currentContext := contexext.New(ctx, m.server.MicroServer.Name, uid, serverTransportStream.Method(), m.redis, "", logger, "")
 
-	var r *route.Info
+	var r *route.RouteInfo
 
 	if r, ok = m.routes[serverTransportStream.Method()]; !ok {
 		return nil, status.New(codes.NotFound, "没有找到路由").Err()
@@ -78,9 +80,7 @@ func (m *customizeService) Call(srv interface{}, ctx context.Context, dec func(i
 
 	for index := range m.callbacks {
 		item := m.callbacks[index]
-		if err := item.Before(currentContext, handle); err != nil {
-			return nil, err
-		}
+		item.Before(currentContext, handle)
 	}
 
 	if interceptor == nil {
@@ -110,7 +110,7 @@ type Option func(*serviceobject.ServerDesc, *grpc.Server) error
 type service struct {
 	//serviceobject.UnimplementedServerServer
 	server     config.MicroServerConfig
-	routes     map[string]*route.Info
+	routes     map[string]*route.RouteInfo
 	redis      constrain.IRedis
 	grpcServer *grpc.Server
 	option     Option
@@ -157,7 +157,7 @@ func (m *service) Register(serviceDesc grpc.ServiceDesc, handlers []constrain.IG
 							if _, ok := m.routes[fullServiceName]; ok {
 								panic(errors.New(fmt.Sprintf("存在相同的路由:%s", fullServiceName)))
 							}
-							m.routes[fullServiceName] = &route.Info{
+							m.routes[fullServiceName] = &route.RouteInfo{
 								HandlerType: hT,
 								WithoutAuth: _withoutAuth,
 							}
@@ -190,12 +190,12 @@ func (m *service) Register(serviceDesc grpc.ServiceDesc, handlers []constrain.IG
 }
 
 func (m *service) getRouteInfo(serverInfo *grpc.UnaryServerInfo) (constrain.IRouteInfo, error) {
-	var routeInfo *route.Info
+	var routeInfo *route.RouteInfo
 	var ok bool
 	var err error
 
 	if routeInfo, ok = m.routes[serverInfo.FullMethod]; !ok {
-		err = action.NewCodeWithError(action.NotFoundRoute, errors.New("没有找到路由"))
+		err = result.NewCodeWithMessage(result.NotFound, "没有找到路由")
 	}
 
 	return routeInfo, err
@@ -251,7 +251,7 @@ func (m *service) Listen() {
 func New(server config.MicroServerConfig, redis constrain.IRedis, option Option, serverOptions ...grpc.ServerOption) IGrpc {
 	return &service{
 		server:     server,
-		routes:     make(map[string]*route.Info),
+		routes:     make(map[string]*route.RouteInfo),
 		option:     option,
 		redis:      redis,
 		grpcServer: grpc.NewServer(serverOptions...),
