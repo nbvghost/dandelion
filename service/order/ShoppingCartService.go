@@ -1,6 +1,10 @@
 package order
 
 import (
+	"strconv"
+
+	"gorm.io/gorm"
+
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/singleton"
@@ -10,7 +14,6 @@ import (
 	"github.com/nbvghost/dandelion/service/goods"
 
 	"github.com/nbvghost/gpa/types"
-	"strconv"
 
 	"github.com/nbvghost/glog"
 )
@@ -64,9 +67,8 @@ func (service ShoppingCartService) UpdateByUserIDAndID(UserID types.PrimaryKey, 
 	return Orm.Model(&model.ShoppingCart{}).Where(`"GSID"=?`, GSID).Where(`"UserID"=?`, UserID).Updates(_sc).Error
 }
 
-func (service ShoppingCartService) DeleteByUserIDAndGoodsIDAndSpecificationID(UserID, GoodsID, SpecificationID types.PrimaryKey) error {
-	Orm := singleton.Orm()
-	return Orm.Where(&model.ShoppingCart{UserID: UserID, GSID: strconv.Itoa(int(GoodsID)) + strconv.Itoa(int(SpecificationID))}).Delete(&model.ShoppingCart{}).Error
+func (service ShoppingCartService) DeleteByUserIDAndGoodsIDAndSpecificationID(db *gorm.DB, UserID, GoodsID, SpecificationID types.PrimaryKey) error {
+	return db.Where(&model.ShoppingCart{UserID: UserID, GSID: strconv.Itoa(int(GoodsID)) + strconv.Itoa(int(SpecificationID))}).Delete(&model.ShoppingCart{}).Error
 }
 func (service ShoppingCartService) DeleteListByIDs(UserID types.PrimaryKey, IDs []string) error {
 	Orm := singleton.Orm()

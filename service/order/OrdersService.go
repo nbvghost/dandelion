@@ -1,7 +1,15 @@
 package order
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
+	"math"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -20,22 +28,12 @@ import (
 	"github.com/nbvghost/dandelion/service/user"
 	"github.com/nbvghost/dandelion/service/wechat"
 
+	"gorm.io/gorm"
+
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool"
 	"github.com/nbvghost/tool/object"
-	"gorm.io/gorm"
-	"log"
-	"math"
-
-	"errors"
-
-	"encoding/json"
-	"strings"
-
-	"strconv"
-
-	"time"
 )
 
 type OrdersService struct {
@@ -217,63 +215,66 @@ func (service OrdersService) MinusSettlementUserBrokerage(tx *gorm.DB, orders mo
 	return err
 }
 
-func (service OrdersService) OrdersStockManager(orders model.Orders, isMinus bool) {
+func (service OrdersService) OrdersStockManager(db *gorm.DB, orders model.Orders, isMinus bool) error {
 
-	go func() {
+	if orders.PostType == 2 {
+		//线下订单，不去维护在线商品库存
+		log.Println("线下订单，不去维护在线商品库存")
+		return nil
+	}
 
-		if orders.PostType == 2 {
-			//线下订单，不去维护在线商品库存
-			log.Println("线下订单，不去维护在线商品库存")
-			return
-		}
+	//管理商品库存
+	//Orm := singleton.Orm()
+	//list []model.OrdersGoods
 
-		//管理商品库存
-		Orm := singleton.Orm()
-		//list []model.OrdersGoods
+	list, _ := service.FindOrdersGoodsByOrdersID(db, orders.ID)
+	for _, value := range list {
+		var specification model.Specification
+		//service.Get(Orm, value.SpecificationID, &specification)
+		util.JSONToStruct(value.Specification, &specification)
+		var goods model.Goods
+		//service.Get(Orm, value.GoodsID, &goods)
+		util.JSONToStruct(value.Goods, &goods)
 
-		list, _ := service.FindOrdersGoodsByOrdersID(Orm, orders.ID)
-		for _, value := range list {
-			var specification model.Specification
-			//service.Get(Orm, value.SpecificationID, &specification)
-			util.JSONToStruct(value.Specification, &specification)
-			var goods model.Goods
-			//service.Get(Orm, value.GoodsID, &goods)
-			util.JSONToStruct(value.Goods, &goods)
-
-			if isMinus {
-				//减
-				Stock := int64(specification.Stock - value.Quantity)
-				if Stock < 0 {
-					Stock = 0
-				}
-				err := service.ChangeMap(Orm, specification.ID, &model.Specification{}, map[string]interface{}{"Stock": uint(Stock)})
-				glog.Error(err)
-				Stock = int64(goods.Stock - value.Quantity)
-				if Stock < 0 {
-					Stock = 0
-				}
-				err = service.ChangeMap(Orm, goods.ID, &model.Goods{}, map[string]interface{}{"Stock": uint(Stock)})
-				glog.Error(err)
-			} else {
-				//添加
-				Stock := int64(specification.Stock + value.Quantity)
-				if Stock < 0 {
-					Stock = 0
-				}
-				err := service.ChangeMap(Orm, specification.ID, &model.Specification{}, map[string]interface{}{"Stock": uint(Stock)})
-				glog.Error(err)
-				Stock = int64(goods.Stock + value.Quantity)
-				if Stock < 0 {
-					Stock = 0
-				}
-				err = service.ChangeMap(Orm, goods.ID, &model.Goods{}, map[string]interface{}{"Stock": uint(Stock)})
-				glog.Error(err)
+		if isMinus {
+			//减
+			Stock := int64(specification.Stock - value.Quantity)
+			if Stock < 0 {
+				Stock = 0
 			}
-
+			err := service.ChangeMap(db, specification.ID, &model.Specification{}, map[string]interface{}{"Stock": uint(Stock)})
+			if err != nil {
+				return err
+			}
+			Stock = int64(goods.Stock - value.Quantity)
+			if Stock < 0 {
+				Stock = 0
+			}
+			err = service.ChangeMap(db, goods.ID, &model.Goods{}, map[string]interface{}{"Stock": uint(Stock)})
+			if err != nil {
+				return err
+			}
+		} else {
+			//添加
+			Stock := int64(specification.Stock + value.Quantity)
+			if Stock < 0 {
+				Stock = 0
+			}
+			err := service.ChangeMap(db, specification.ID, &model.Specification{}, map[string]interface{}{"Stock": uint(Stock)})
+			if err != nil {
+				return err
+			}
+			Stock = int64(goods.Stock + value.Quantity)
+			if Stock < 0 {
+				Stock = 0
+			}
+			err = service.ChangeMap(db, goods.ID, &model.Goods{}, map[string]interface{}{"Stock": uint(Stock)})
+			if err != nil {
+				return err
+			}
 		}
-
-	}()
-
+	}
+	return nil
 }
 func (service OrdersService) Situation(StartTime, EndTime int64) interface{} {
 
@@ -306,7 +307,7 @@ func (service OrdersService) RefundInfo(OrdersGoodsID types.PrimaryKey, ShipName
 	RefundInfo.ShipName = ShipName
 	RefundInfo.ShipNo = ShipNo
 
-	err := service.ChangeMap(Orm, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"RefundInfo": util.StructToJSON(&RefundInfo), "Status": play.OS_OGRefundInfo})
+	err := service.ChangeMap(Orm, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"RefundInfo": util.StructToJSON(&RefundInfo), "Status": model.OrdersGoodsStatusOGRefundInfo})
 	if err != nil {
 
 		return err, ""
@@ -333,7 +334,7 @@ func (service OrdersService) RefundComplete(OrdersGoodsID types.PrimaryKey, Refu
 	util.JSONToStruct(ordersGoods.RefundInfo, &RefundInfo)
 	RefundInfo.RefundPrice = RefundPrice
 
-	err := service.ChangeMap(tx, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"RefundInfo": util.StructToJSON(&RefundInfo), "Status": play.OS_OGRefundComplete})
+	err := service.ChangeMap(tx, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"RefundInfo": util.StructToJSON(&RefundInfo), "Status": model.OrdersGoodsStatusOGRefundComplete})
 	if err != nil {
 		tx.Rollback()
 		return err, ""
@@ -354,7 +355,7 @@ func (service OrdersService) RefundComplete(OrdersGoodsID types.PrimaryKey, Refu
 	//totalBrokerage := uint(0)
 	for _, value := range ogs {
 		//totalBrokerage = totalBrokerage + (value.TotalBrokerage * uint(value.Quantity))
-		if !strings.EqualFold(value.Status, play.OS_OGRefundComplete) && !strings.EqualFold(value.Status, "") {
+		if !(value.Status == model.OrdersGoodsStatusOGRefundComplete) && !(value.Status == model.OrdersGoodsStatusOGNone) {
 			haveRefunc = true
 			break
 		}
@@ -363,8 +364,8 @@ func (service OrdersService) RefundComplete(OrdersGoodsID types.PrimaryKey, Refu
 	if haveRefunc == false {
 		//orders 所有的子单品订单，已经全部退款成功。改orders为完成
 
-		//err := service.ChangeMap(tx, orders.ID, &model.Orders{}, map[string]interface{}{"Status": play.OS_OrderOk})
-		err := service.ChangeMap(tx, orders.ID, &model.Orders{}, map[string]interface{}{"Status": play.OS_RefundOk})
+		//err := service.ChangeMap(tx, orders.ID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusOrderOk})
+		err := service.ChangeMap(tx, orders.ID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusRefundOk})
 		if err != nil {
 			tx.Rollback()
 			return err, ""
@@ -379,17 +380,17 @@ func (service OrdersService) RefundComplete(OrdersGoodsID types.PrimaryKey, Refu
 
 	tx.Commit()
 
-	//err := service.ChangeMap(Orm, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"Status": play.OS_OGRefundOk})
+	//err := service.ChangeMap(Orm, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"Status": model.OrdersStatusOGRefundOk})
 	return nil, "已经同意,并已退款"
 }
 func (service OrdersService) RefundOk(OrdersGoodsID types.PrimaryKey) (error, string) {
 	Orm := singleton.Orm()
-	err := service.ChangeMap(Orm, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"Status": play.OS_OGRefundOk})
+	err := service.ChangeMap(Orm, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"Status": model.OrdersGoodsStatusOGRefundOk})
 	return err, "已经同意"
 }
 func (service OrdersService) RefundNo(OrdersGoodsID types.PrimaryKey) (error, string) {
 	Orm := singleton.Orm()
-	err := service.ChangeMap(Orm, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"Status": play.OS_OGRefundNo})
+	err := service.ChangeMap(Orm, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"Status": model.OrdersGoodsStatusOGRefundNo})
 	return err, "已经拒绝"
 }
 func (service OrdersService) AskRefund(OrdersGoodsID types.PrimaryKey, RefundInfo model.RefundInfo) (error, string) {
@@ -410,18 +411,18 @@ func (service OrdersService) AskRefund(OrdersGoodsID types.PrimaryKey, RefundInf
 		return errors.New("订单不存在"), ""
 	}
 	//下单状态,如果订单状态为，已经发货状态或正在退款中
-	if strings.EqualFold(orders.Status, play.OS_Deliver) || strings.EqualFold(orders.Status, play.OS_Refund) {
+	if (orders.Status == model.OrdersStatusDeliver) || (orders.Status == model.OrdersStatusRefund) {
 
-		err := service.ChangeMap(tx, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"RefundInfo": util.StructToJSON(&RefundInfo), "Status": play.OS_OGAskRefund})
+		err := service.ChangeMap(tx, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"RefundInfo": util.StructToJSON(&RefundInfo), "Status": model.OrdersGoodsStatusOGAskRefund})
 		if err != nil {
 			tx.Rollback()
 			return err, ""
 		} else {
 			var err error
-			if strings.EqualFold(orders.Status, play.OS_Deliver) {
-				err = service.ChangeMap(tx, orders.ID, &model.Orders{}, map[string]interface{}{"Status": play.OS_Refund, "RefundTime": time.Now()})
+			if orders.Status == model.OrdersStatusDeliver {
+				err = service.ChangeMap(tx, orders.ID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusRefund, "RefundTime": time.Now()})
 			} else {
-				err = service.ChangeMap(tx, orders.ID, &model.Orders{}, map[string]interface{}{"Status": play.OS_Refund})
+				err = service.ChangeMap(tx, orders.ID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusRefund})
 			}
 
 			if err != nil {
@@ -470,30 +471,30 @@ func (service OrdersService) AddOrdersPackage(TotalMoney uint, UserID types.Prim
 }
 
 //确认收货
-func (service OrdersService) TakeDeliver(OrdersID types.PrimaryKey) (error, string) {
+func (service OrdersService) TakeDeliver(OrdersID types.PrimaryKey) error {
 	Orm := singleton.Orm()
 
 	var orders model.Orders
 	service.Get(Orm, OrdersID, &orders)
 	if orders.ID == 0 {
 
-		return errors.New("订单不存在"), ""
+		return errors.New("订单不存在")
 	}
 	//下单状态,只有邮寄才能确认收货
-	if strings.EqualFold(orders.Status, play.OS_Deliver) && orders.PostType == 1 {
+	if (orders.Status == model.OrdersStatusDeliver) && orders.PostType == 1 {
 
 		tx := Orm.Begin()
 
-		err := service.ChangeMap(tx, orders.ID, &model.Orders{}, map[string]interface{}{"Status": play.OS_OrderOk, "ReceiptTime": time.Now()})
+		err := service.ChangeMap(tx, orders.ID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusOrderOk, "ReceiptTime": time.Now()})
 		if err != nil {
 			tx.Rollback()
-			return err, ""
+			return err
 		}
 
 		ogs, err := service.FindOrdersGoodsByOrdersID(tx, orders.ID)
 		if err != nil {
 			tx.Rollback()
-			return err, ""
+			return err
 		}
 
 		var Brokerage uint
@@ -515,7 +516,7 @@ func (service OrdersService) TakeDeliver(OrdersID types.PrimaryKey) (error, stri
 		err = service.Settlement.SettlementUser(tx, Brokerage, orders)
 		if err != nil {
 			tx.Rollback()
-			return err, ""
+			return err
 		} else {
 
 			tx.Commit()
@@ -523,22 +524,28 @@ func (service OrdersService) TakeDeliver(OrdersID types.PrimaryKey) (error, stri
 				for _, value := range ogs {
 					var _goods model.Goods
 					//service.Goods.Get(singleton.Orm(), value.GoodsID, &_goods)
-					util.JSONToStruct(value.Goods, &_goods)
+					err = util.JSONToStruct(value.Goods, &_goods)
+					if err != nil {
+						return
+					}
 					if _goods.ID != 0 {
-						service.Goods.ChangeModel(singleton.Orm(), _goods.ID, &model.Goods{CountSale: _goods.CountSale + uint(value.Quantity)})
+						err = service.Goods.ChangeModel(singleton.Orm(), _goods.ID, &model.Goods{CountSale: _goods.CountSale + uint(value.Quantity)})
+						if err != nil {
+							return
+						}
 					}
 				}
 
 			}(ogs)
-			return nil, "确认收货成功"
+			return nil
 		}
 
 	}
-	return errors.New("不允许收货"), ""
+	return errors.New("不允许收货")
 }
 
 //检查订单状态
-func (service OrdersService) AnalysisOrdersStatus(OrdersID types.PrimaryKey) {
+func (service OrdersService) AnalysisOrdersStatus(OrdersID types.PrimaryKey) error {
 
 	Orm := singleton.Orm()
 
@@ -546,127 +553,150 @@ func (service OrdersService) AnalysisOrdersStatus(OrdersID types.PrimaryKey) {
 	service.Get(Orm, OrdersID, &orders)
 	if orders.ID == 0 {
 		//return errors.New("订单不存在"), ""
-		return
+		return nil
 	}
-	if strings.EqualFold(orders.Status, play.OS_Order) {
+	if orders.Status == model.OrdersStatusOrder {
 
 		if time.Now().Unix() >= orders.CreatedAt.Add(3*time.Hour*24).Unix() {
 			//一直处于下单状态超过3天，没有付款，自动关闭订单，并加回库存
-			service.ChangeMap(Orm, orders.ID, &model.Orders{}, map[string]interface{}{"Status": play.OS_Closed})
+			err := service.ChangeMap(Orm, orders.ID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusClosed})
+			if err != nil {
+				return err
+			}
 			//管理商品库存
-			service.OrdersStockManager(orders, false)
+			err = service.OrdersStockManager(Orm, orders, false)
+			if err != nil {
+				return err
+			}
 		}
 
-	} else if strings.EqualFold(orders.Status, play.OS_Deliver) {
+	} else if orders.Status == model.OrdersStatusDeliver {
 		if time.Now().Unix() >= orders.DeliverTime.Add(15*time.Hour*24).Unix() {
 			//等待收货时间超过15天，自动订单完成
-			//service.ChangeMap(Orm, orders.ID, &model.Orders{}, map[string]interface{}{"Status": play.OS_OrderOk, "ReceiptTime": time.Now()})
+			//service.ChangeMap(Orm, orders.ID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusOrderOk, "ReceiptTime": time.Now()})
 			//管理商品库存
 			//service.Goods.OrdersStockManager(orders, false)
-			service.TakeDeliver(OrdersID)
+			err := service.TakeDeliver(OrdersID)
+			if err != nil {
+				return err
+			}
 		}
 
-	} else if strings.EqualFold(orders.Status, play.OS_Cancel) {
+	} else if orders.Status == model.OrdersStatusCancel {
 		if time.Now().Unix() >= orders.UpdatedAt.Add(5*time.Hour*24).Unix() {
 			//订单已经支付，用户申请了取消订单，超过5天，自动取消
-			err, _ := service.CancelOk(OrdersID, 0)
+			_, err := service.CancelOk(OrdersID, 0)
 			if err != nil {
-				service.CancelOk(OrdersID, 1)
+				_, err = service.CancelOk(OrdersID, 1)
+				if err != nil {
+					return err
+				}
 			}
 		}
 
 	}
-
+	return nil
 }
-func (service OrdersService) CancelOk(OrdersID types.PrimaryKey, Type uint) (error, string) {
+func (service OrdersService) CancelOk(OrdersID types.PrimaryKey, Type uint) (string, error) {
 	Orm := singleton.Orm()
 
 	var orders model.Orders
 	service.Get(Orm, OrdersID, &orders)
 	if orders.ID == 0 {
 
-		return errors.New("订单不存在"), ""
+		return "", errors.New("订单不存在")
 	}
 
 	ordersPackage := service.GetOrdersPackageByOrderNo(orders.OrdersPackageNo)
 
 	//下单状态
-	if strings.EqualFold(orders.Status, play.OS_Cancel) {
+	if orders.Status == model.OrdersStatusCancel {
 		if orders.IsPay == sqltype.OrdersIsPayPayed {
 
 			//邮寄
 			if orders.PostType == sqltype.OrdersPostTypePost {
 				Success, Message := service.Wx.Refund(orders, ordersPackage, orders.PayMoney, orders.PayMoney, "用户取消", Type)
 				if Success {
-					err := service.ChangeMap(Orm, orders.ID, &model.Orders{}, map[string]interface{}{"Status": play.OS_CancelOk})
+					err := service.ChangeMap(Orm, orders.ID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
+					if err != nil {
+						return Message, err
+					}
 					//管理商品库存
-					service.OrdersStockManager(orders, false)
-					service.MinusSettlementUserBrokerage(Orm, orders)
-					return err, Message
+					err = service.OrdersStockManager(Orm, orders, false)
+					if err != nil {
+						return Message, err
+					}
+					err = service.MinusSettlementUserBrokerage(Orm, orders)
+					if err != nil {
+						return Message, err
+					}
 				} else {
-					return errors.New(Message), ""
+					return "", errors.New(Message)
 				}
 			}
 			if orders.PostType == sqltype.OrdersPostTypeOffline {
 				Success, Message := service.Wx.Refund(orders, ordersPackage, orders.PayMoney, orders.PayMoney, "用户取消", Type)
 				if Success {
 					tx := Orm.Begin()
-					err := service.ChangeMap(tx, orders.ID, &model.Orders{}, map[string]interface{}{"Status": play.OS_CancelOk})
+					err := service.ChangeMap(tx, orders.ID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
 					if err != nil {
 						tx.Rollback()
-						return err, ""
+						return "", err
 					}
 					ogs, err := service.FindOrdersGoodsByOrdersID(tx, orders.ID)
 					if err != nil {
 						tx.Rollback()
-						return err, ""
+						return "", err
 					}
 					err = service.CardItem.CancelOrdersGoodsCardItem(tx, orders.UserID, ogs)
 					if err != nil {
 						tx.Rollback()
-						return err, ""
+						return "", err
 					}
 					tx.Commit()
 
 					//管理商品库存
-					service.OrdersStockManager(orders, false)
+					err = service.OrdersStockManager(singleton.Orm(), orders, false)
+					if err != nil {
+						return "", err
+					}
 
-					return err, Message
+					return Message, err
 				} else {
-					return errors.New(Message), ""
+					return "", errors.New(Message)
 				}
 			}
 
 		}
 
 	}
-	return errors.New("不允许取消订单"), ""
+	return "", errors.New("不允许取消订单")
 }
 
 //申请取消
-func (service OrdersService) Cancel(OrdersID types.PrimaryKey) (error, string) {
+func (service OrdersService) Cancel(OrdersID types.PrimaryKey) (string, error) {
 	Orm := singleton.Orm()
 
 	var orders model.Orders
 	service.Get(Orm, OrdersID, &orders)
 	if orders.ID == 0 {
 
-		return errors.New("订单不存在"), ""
+		return "", errors.New("订单不存在")
 	}
 
 	ordersPackage := service.GetOrdersPackageByOrderNo(orders.OrdersPackageNo)
 
 	//下单状态
-	if strings.EqualFold(orders.Status, play.OS_Order) {
+	if orders.Status == model.OrdersStatusOrder {
 		if orders.IsPay == 1 {
-			err := service.ChangeMap(Orm, OrdersID, &model.Orders{}, map[string]interface{}{"Status": play.OS_Cancel})
-			return err, "申请取消，等待客服确认"
+			err := service.ChangeMap(Orm, OrdersID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusCancel})
+			return "申请取消，等待客服确认", err
 		} else {
 			Success, _ := service.Wx.OrderQuery(orders.OrderNo)
 			if Success {
 				//如果查询订单已经支付，由客服确认
-				err := service.ChangeMap(Orm, OrdersID, &model.Orders{}, map[string]interface{}{"Status": play.OS_Cancel})
-				return err, "申请取消，等待客服确认"
+				err := service.ChangeMap(Orm, OrdersID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusCancel})
+				return "申请取消，等待客服确认", err
 			} else {
 				//没支付的订单
 				Success, Message1 := service.Wx.Refund(orders, ordersPackage, orders.PayMoney, orders.PayMoney, "用户取消", 0)
@@ -678,15 +708,21 @@ func (service OrdersService) Cancel(OrdersID types.PrimaryKey) (error, string) {
 
 				if Success {
 					//管理商品库存
-					service.OrdersStockManager(orders, false)
-					err := service.ChangeMap(Orm, OrdersID, &model.Orders{}, map[string]interface{}{"Status": play.OS_CancelOk})
-					return err, "取消成功"
+					err := service.OrdersStockManager(Orm, orders, false)
+					if err != nil {
+						return "", err
+					}
+					err = service.ChangeMap(Orm, OrdersID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
+					return "取消成功", err
 				} else {
 
 					//管理商品库存
-					service.OrdersStockManager(orders, false)
-					err := service.ChangeMap(Orm, OrdersID, &model.Orders{}, map[string]interface{}{"Status": play.OS_CancelOk})
-					return err, "取消成功"
+					err := service.OrdersStockManager(Orm, orders, false)
+					if err != nil {
+						return "", err
+					}
+					err = service.ChangeMap(Orm, OrdersID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
+					return "取消成功", err
 
 					//return errors.New(Message1), ""
 					/*Success, Message2 := service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", 1)
@@ -700,11 +736,11 @@ func (service OrdersService) Cancel(OrdersID types.PrimaryKey) (error, string) {
 
 		}
 
-	} else if strings.EqualFold(orders.Status, play.OS_Pay) {
-		err := service.ChangeMap(Orm, OrdersID, &model.Orders{}, map[string]interface{}{"Status": play.OS_Cancel})
-		return err, "申请取消，等待客服确认"
+	} else if orders.Status == model.OrdersStatusPay {
+		err := service.ChangeMap(Orm, OrdersID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusCancel})
+		return "申请取消，等待客服确认", err
 	} else {
-		return errors.New("不允许取消订单"), ""
+		return "", errors.New("不允许取消订单")
 	}
 
 }
@@ -724,7 +760,7 @@ func (service OrdersService) Deliver(ShipName, ShipNo string, OrdersID types.Pri
 		return errors.New("订单没有支付")
 	}
 
-	err := service.ChangeModel(Orm, OrdersID, &model.Orders{ShipName: ShipName, ShipNo: ShipNo, DeliverTime: time.Now(), Status: play.OS_Deliver})
+	err := service.ChangeModel(Orm, OrdersID, &model.Orders{ShipName: ShipName, ShipNo: ShipNo, DeliverTime: time.Now(), Status: model.OrdersStatusDeliver})
 	if err != nil {
 		Orm.Rollback()
 		return err
@@ -732,7 +768,7 @@ func (service OrdersService) Deliver(ShipName, ShipNo string, OrdersID types.Pri
 	orders.ShipName = ShipName
 	orders.ShipNo = ShipNo
 	orders.DeliverTime = time.Now()
-	orders.Status = play.OS_Deliver
+	orders.Status = model.OrdersStatusDeliver
 
 	ogs, err := service.FindOrdersGoodsByOrdersID(singleton.Orm(), orders.ID)
 	if glog.Error(err) {
@@ -853,22 +889,28 @@ GROUP BY cr.No
 
 	return packs
 }
-func (service OrdersService) ListOrders(UserID, OID types.PrimaryKey, PostType int, Status []string, Limit int, Offset int) (List []interface{}, TotalRecords int64) {
+func (service OrdersService) ListOrdersDate(UserID, OID types.PrimaryKey, PostType int, Status []model.OrdersStatus, startDate, endDate time.Time, Limit int, Offset int) (List []interface{}, TotalRecords int64) {
 	Orm := singleton.Orm()
 	var orders []model.Orders
 
 	db := Orm.Model(model.Orders{})
 
 	if UserID != 0 {
-		db = db.Where("UserID=?", UserID)
-
+		db = db.Where(`"UserID"=?`, UserID)
+	}
+	if OID > 0 {
+		db = db.Where(`"OID"=?`, OID)
 	}
 	if PostType != 0 {
-		db = db.Where("PostType=?", PostType)
+		db = db.Where(`"PostType"=?`, PostType)
+	}
+
+	if startDate.Unix() != 0 && endDate.Unix() != 0 {
+		db = db.Where(`"UpdatedAt">=? and "UpdatedAt"<=?`, startDate, endDate)
 	}
 
 	if len(Status) > 0 {
-		db = db.Where("Status in (?)", Status)
+		db = db.Where(`"Status" in ?`, Status)
 		/*for index, value := range Status {
 			if index != 0 {
 				db = db.Or("Status = ?", value)
@@ -876,15 +918,11 @@ func (service OrdersService) ListOrders(UserID, OID types.PrimaryKey, PostType i
 		}*/
 	}
 
-	if OID > 0 {
-		db = db.Where("OID=?", OID)
-	}
-
 	var recordsTotal int64 = 0
 	if Limit > 0 {
-		db = db.Limit(Limit).Offset(Offset).Order("CreatedAt desc").Find(&orders).Offset(0).Count(&recordsTotal)
+		db = db.Count(&recordsTotal).Limit(Limit).Offset(Offset).Order(`"CreatedAt" desc`).Find(&orders)
 	} else {
-		db = db.Order("CreatedAt desc").Find(&orders).Count(&recordsTotal)
+		db = db.Count(&recordsTotal).Order(`"CreatedAt" desc`).Find(&orders)
 	}
 
 	results := make([]interface{}, 0)
@@ -909,6 +947,10 @@ func (service OrdersService) ListOrders(UserID, OID types.PrimaryKey, PostType i
 		results = append(results, pack)
 	}
 	return results, recordsTotal
+}
+func (service OrdersService) ListOrders(UserID, OID types.PrimaryKey, PostType int, Status []model.OrdersStatus, Limit int, Offset int) (List []interface{}, TotalRecords int64) {
+
+	return service.ListOrdersDate(UserID, OID, PostType, Status, time.Unix(0, 0), time.Unix(0, 0), Limit, Offset)
 }
 
 //func (service OrdersService) OrderNotify(result util.Map) (Success bool, Message string) {
@@ -1009,14 +1051,14 @@ func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, 
 
 	//orders := service.GetOrdersByOrderNo(out_trade_no)
 	if orders.IsPay == 0 {
-		if strings.EqualFold(orders.Status, play.OS_Order) {
+		if orders.Status == model.OrdersStatusOrder {
 
 			t, _ := time.ParseInLocation("20060102150405", pay_time, time.Local)
 			//var TotalBrokerage uint
 			var err error
 			if orders.PostType == 1 {
 				//邮寄
-				err = service.ChangeModel(tx, orders.ID, &model.Orders{PayTime: t, IsPay: 1, Status: play.OS_Pay})
+				err = service.ChangeModel(tx, orders.ID, &model.Orders{PayTime: t, IsPay: 1, Status: model.OrdersStatusPay})
 				if err != nil {
 
 					return false, err.Error()
@@ -1035,7 +1077,7 @@ func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, 
 
 			} else {
 				//线下使用
-				err = service.ChangeModel(tx, orders.ID, &model.Orders{PayTime: t, IsPay: 1, Status: play.OS_Pay})
+				err = service.ChangeModel(tx, orders.ID, &model.Orders{PayTime: t, IsPay: 1, Status: model.OrdersStatusPay})
 				if err != nil {
 
 					return false, err.Error()
@@ -1085,7 +1127,7 @@ func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, 
 
 }
 
-//拼单购买
+// BuyCollageOrders 拼单购买
 func (service OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, GoodsID, SpecificationID types.PrimaryKey, Quantity uint) error {
 	Orm := singleton.Orm()
 	var goods model.Goods
@@ -1250,8 +1292,6 @@ func (service OrdersService) createOrdersGoods(shoppingCart model.ShoppingCart) 
 	} else {
 
 	}*/
-
-	ordersGoods.OrdersGoodsNo = tool.UUID()
 	ordersGoods.TotalBrokerage = uint(ordersGoods.Quantity) * specification.Brokerage
 
 	return ordersGoods
@@ -1271,7 +1311,6 @@ func (service OrdersService) AddOrders(orders *model.Orders, list []extends.Orde
 		} else {
 			//减掉商品库存
 			tx.Commit()
-			service.OrdersStockManager(*orders, true)
 		}
 	}()
 	for _, value := range list {
@@ -1284,12 +1323,23 @@ func (service OrdersService) AddOrders(orders *model.Orders, list []extends.Orde
 
 		var goods model.Goods
 		var specification model.Specification
-		util.JSONToStruct(value.OrdersGoods.Goods, &goods)
-		util.JSONToStruct(value.OrdersGoods.Specification, &specification)
-		err = service.ShoppingCart.DeleteByUserIDAndGoodsIDAndSpecificationID(orders.UserID, goods.ID, specification.ID)
+		err = util.JSONToStruct(value.OrdersGoods.Goods, &goods)
 		if err != nil {
 			return err
 		}
+		err = util.JSONToStruct(value.OrdersGoods.Specification, &specification)
+		if err != nil {
+			return err
+		}
+		err = service.ShoppingCart.DeleteByUserIDAndGoodsIDAndSpecificationID(tx, orders.UserID, goods.ID, specification.ID)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = service.OrdersStockManager(tx, *orders, true)
+	if err != nil {
+		return err
 	}
 
 	return nil

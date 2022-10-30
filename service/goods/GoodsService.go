@@ -2,6 +2,12 @@ package goods
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
+	"gorm.io/gorm"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/tag"
 	"github.com/nbvghost/dandelion/entity/extends"
@@ -16,10 +22,6 @@ import (
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/object"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
@@ -704,7 +706,7 @@ func (service GoodsService) ListGoodsType(OID types.PrimaryKey) []model.GoodsTyp
 	Orm.Model(&model.GoodsType{}).Where(`"ID" in (?)`, gtsIDs).Find(&gts)
 	return gts
 }
-func (service GoodsService) ListGoodsTypeByOIDForAdmin(OID uint) []model.GoodsType {
+func (service GoodsService) ListGoodsTypeByOIDForAdmin(OID types.PrimaryKey) []model.GoodsType {
 	Orm := singleton.Orm()
 	var gts []model.GoodsType
 	Orm.Model(&model.GoodsType{}).Where(`"OID"=?`, OID).Find(&gts)

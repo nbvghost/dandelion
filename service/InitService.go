@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -61,7 +62,6 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 	models = append(models, model.Manager{})
 	models = append(models, model.Collage{})
 	models = append(models, model.Content{})
-	models = append(models, model.UserFormIds{})
 	models = append(models, model.ContentItem{})
 	models = append(models, model.ContentType{})
 	models = append(models, model.ContentSubType{})
@@ -81,6 +81,7 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 	models = append(models, model.Language{})
 	models = append(models, model.Translate{})
 	models = append(models, model.DNS{})
+	models = append(models, model.Advert{})
 
 	//set db session application name
 	_database.Exec(fmt.Sprintf("SET application_name='%s'", app))

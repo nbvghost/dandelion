@@ -54,18 +54,6 @@ const (
 )
 
 const (
-	OS_Order    = "Order"    // order=下单成功，待付款
-	OS_Pay      = "Pay"      // pay=支付成功，待发货
-	OS_Deliver  = "Deliver"  // deliver=发货成功，待收货
-	OS_Refund   = "Refund"   // Refund=订单退款退货中->所有子商品状态为空或OGRefundOK->返回Deliver状态
-	OS_RefundOk = "RefundOk" // Orders 下的所有ordergoods 全部退款，orders 改为 RefundOk
-	OS_OrderOk  = "OrderOk"  // order_ok=订单确认完成
-	OS_Cancel   = "Cancel"   //订单等待取消
-	OS_CancelOk = "CancelOk" //订单已经取消
-	OS_Delete   = "Delete"   // delete=删除
-	OS_Closed   = "Closed"   // 已经关闭
-)
-const (
 	//OrdersGoods,Voucher,ScoreGoods
 	CardItem_Type_OrdersGoods = "OrdersGoods"
 	CardItem_Type_Voucher     = "Voucher"
@@ -82,13 +70,6 @@ const (
 )
 const (
 	Paging int = 10
-)
-const (
-	OS_OGAskRefund      = "OGAskRefund"      // OGAskRefund=申请，申请退货退款
-	OS_OGRefundNo       = "OGRefundNo"       // OGRefundOK=拒绝子商品，确认退货款
-	OS_OGRefundOk       = "OGRefundOk"       // OGRefundOK=允许子商品，确认退货款
-	OS_OGRefundInfo     = "OGRefundInfo"     // OGRefundInfo=用户填写信息，允许子商品，确认退货款
-	OS_OGRefundComplete = "OGRefundComplete" // OGRefund=完成子商品，用户邮寄商品，商家待收货
 )
 
 const (

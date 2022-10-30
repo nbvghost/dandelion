@@ -1,6 +1,25 @@
 package wechat
 
 import (
+	"context"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/sha1"
+	"crypto/tls"
+	"encoding/base64"
+	"encoding/json"
+	"encoding/xml"
+	"errors"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
@@ -8,32 +27,15 @@ import (
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/dandelion/service/user"
+	"github.com/wechatpay-apiv3/wechatpay-go/core"
+	"github.com/wechatpay-apiv3/wechatpay-go/core/option"
+	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/jsapi"
+	"github.com/wechatpay-apiv3/wechatpay-go/utils"
 
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/gweb"
 
 	"github.com/nbvghost/tool/encryption"
-
-	"crypto/tls"
-	"encoding/xml"
-
-	"io/ioutil"
-	"log"
-	"net/http"
-	"strconv"
-	"strings"
-
-	"encoding/json"
-
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/sha1"
-	"encoding/base64"
-	"errors"
-	"fmt"
-	"io"
-	"sort"
-	"time"
 
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/tool"
@@ -55,8 +57,10 @@ type MiniSecureKey struct {
 }
 type MiniApp struct {
 	MiniSecureKey
-	MchID  string
-	PayKey string
+	MchID                      string //= "190000****"                                // 商户号
+	MchCertificateSerialNumber string //= "3775B6A45ACD588826D15E583A95F5DD********"  // 商户证书序列号
+	MchAPIv2Key                string //= "2ab9****************************"          // 商户APIv3密钥
+	MchAPIv3Key                string //= "2ab9****************************"          // 商户APIv3密钥
 }
 type MiniWeb struct {
 	MiniSecureKey
@@ -121,6 +125,27 @@ var verifyCache = &struct {
 	Pre_auth_code_update     int64
 }{}
 
+func NewClient(config MiniApp) (*core.Client, error) {
+	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
+	mchPrivateKey, err := utils.LoadPrivateKeyWithPath("cert/apiclient_key.pem")
+	if err != nil {
+		log.Fatal("load merchant private key error")
+		return nil, err
+	}
+
+	ctx := context.Background()
+	// 使用商户私钥等初始化 client，并使它具有自动定时获取微信支付平台证书的能力
+	opts := []core.ClientOption{
+		option.WithWechatPayAutoAuthCipher(config.MchID, config.MchCertificateSerialNumber, mchPrivateKey, config.MchAPIv3Key),
+	}
+	client, err := core.NewClient(ctx, opts...)
+	if err != nil {
+		log.Fatalf("new wechat pay client err:%s", err)
+		return nil, err
+	}
+	return client, err
+}
+
 func (service WxService) GetAccessToken(WxConfig MiniSecureKey) string {
 
 	if accessTokenMap[WxConfig.AppID] != nil && (time.Now().Unix()-accessTokenMap[WxConfig.AppID].Update) < accessTokenMap[WxConfig.AppID].Expires_in {
@@ -155,25 +180,35 @@ func (service WxService) GetAccessToken(WxConfig MiniSecureKey) string {
 	return accessTokenMap[WxConfig.AppID].Access_token
 }
 
-func (service WxService) GetWXAConfig(prepay_id string, WxConfig MiniApp) (outData map[string]string) {
-	//WxConfig := model.MiniProgram()
-	outData = make(map[string]string)
+func (service WxService) GetWXAConfig(prepay_id string, WxConfig MiniApp) (map[string]string, error) {
+
+	rsaCryptoUtilCertificate, err := utils.LoadPrivateKeyWithPath("cert/apiclient_key.pem")
+	if err != nil {
+		log.Fatal("load merchant private key error")
+		return nil, err
+	}
+
+	outData := make(map[string]string)
 	outData["appId"] = WxConfig.AppID
 	outData["timeStamp"] = strconv.Itoa(int(time.Now().Unix()))
 	outData["nonceStr"] = tool.UUID()
 	outData["package"] = "prepay_id=" + prepay_id
-	outData["signType"] = "MD5"
+	outData["signType"] = "RSA"
 
 	list := &collections.ListString{}
-	for k, v := range outData {
-		list.Append(k + "=" + v)
+	list.Append(outData["appId"])
+	list.Append(outData["timeStamp"])
+	list.Append(outData["nonceStr"])
+	list.Append(outData["package"])
+
+	paySign, err := utils.SignSHA256WithRSA(fmt.Sprintf("%s\n%s\n%s\n%s\n", outData["appId"], outData["timeStamp"], outData["nonceStr"], outData["package"]), rsaCryptoUtilCertificate)
+	if err != nil {
+		return nil, err
 	}
 
-	list.SortL()
-
-	paySign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
+	//paySign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.MchAPIv2Key)
 	outData["paySign"] = paySign
-	return outData
+	return outData, nil
 }
 func (service WxService) SignatureVerification(dataMap util.Map) bool {
 
@@ -190,7 +225,7 @@ func (service WxService) SignatureVerification(dataMap util.Map) bool {
 	}
 	list.SortL()
 
-	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
+	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.MchAPIv2Key)
 
 	//fmt.Println(list.Join("&") + "&key=" + WxConfig.PayKey)
 	//fmt.Println(sign)
@@ -239,7 +274,7 @@ func (service WxService) NewUserJoinNotify(NewUser model.User, notifyUser model.
 
 	as := &result.ActionResult{}
 
-	userFormID := service.User.GetFromIDs(notifyUser.ID)
+	/*userFormID := service.User.GetFromIDs(notifyUser.ID)
 	if userFormID.ID == 0 {
 		as.Code = result.Fail
 		as.Message = "没有找到，用户的formid"
@@ -277,7 +312,7 @@ func (service WxService) NewUserJoinNotify(NewUser model.User, notifyUser model.
 			service.User.Delete(singleton.Orm(), &model.UserFormIds{}, userFormID.ID)
 		}
 
-	}
+	}*/
 
 	return as
 }
@@ -330,15 +365,16 @@ func (service WxService) OrderDeliveryNotify(Order model.Orders, ogs []model.Ord
 */
 func (service WxService) INComeNotify(slUser model.User, itemName string, timeText string, typeText string) *result.ActionResult {
 	//
+	var as = &result.ActionResult{Code: result.Fail}
 
-	if slUser.ID == 0 {
+	/*if slUser.ID == 0 {
 		return &result.ActionResult{Code: result.Fail, Message: "用户不存在", Data: nil}
 	}
 
 	//var notifyUser model.User
 	//model.User.Get(singleton.Orm(), slUser.SuperiorID, &notifyUser)
 
-	var as = &result.ActionResult{Code: result.Fail}
+
 
 	userFormID := service.User.GetFromIDs(slUser.ID)
 	if userFormID.ID == 0 {
@@ -370,7 +406,7 @@ func (service WxService) INComeNotify(slUser model.User, itemName string, timeTe
 			service.User.Delete(singleton.Orm(), &model.UserFormIds{}, userFormID.ID)
 		}
 
-	}
+	}*/
 
 	return as
 }
@@ -490,81 +526,73 @@ func (service WxService) SendWXMessage(sendData map[string]interface{}) *result.
 	return &result.ActionResult{Code: result.Fail, Message: mapData["errmsg"].(string), Data: nil}
 
 }
-func (service WxService) Order(OrderNo string, title, description string, detail, openid string, IP string, Money uint, attach string, WxConfig MiniApp) (Success result.ActionResultCode, Message string, wxResult WxOrderResult) {
-
-	//wxConfig := model.GetWxConfig(WxConfigID)
-
-	mapData := make(util.Map)
-	mapData["appid"] = WxConfig.AppID
-	mapData["attach"] = attach
-	mapData["body"] = title + "-" + description
-	mapData["mch_id"] = WxConfig.MchID
-
-	if !strings.EqualFold(detail, "") {
-		mapData["detail"] = detail
+func (service WxService) Order(ctx context.Context, OrderNo string, title, description string, detail, openid string, IP string, Money uint, attach string, wxConfig MiniApp) (Success result.ActionResultCode, Message string, wxResult *jsapi.PrepayWithRequestPaymentResponse) {
+	client, err := NewClient(wxConfig)
+	if err != nil {
+		return result.Fail, err.Error(), nil
 	}
+	svc := jsapi.JsapiApiService{Client: client}
+	// 得到prepay_id，以及调起支付所需的参数和签名
+	resp, _, err := svc.PrepayWithRequestPayment(ctx,
+		jsapi.PrepayRequest{
+			Appid:       core.String(wxConfig.AppID),
+			Mchid:       core.String(wxConfig.MchID),
+			Description: core.String(title + "-" + description),
+			OutTradeNo:  core.String(OrderNo),
+			Attach:      core.String(attach),
+			NotifyUrl:   core.String("https://miniapp.sites.ink/api/wx/notify"),
+			Amount: &jsapi.Amount{
+				Total:    core.Int64(int64(Money)),
+				Currency: core.String("CNY"),
+			},
+			Payer: &jsapi.Payer{
+				Openid: core.String(openid),
+			},
+			SceneInfo: &jsapi.SceneInfo{
+				PayerClientIp: core.String(IP),
+			},
+		},
+	)
+
+	if err != nil {
+		return result.Fail, err.Error(), nil
+	}
+	/*if !strings.EqualFold(detail, "") {
+		mapData["detail"] = detail
+	}*/
 	//mapData["detail"] = `{ "goods_detail":[ { "goods_id":"iphone6s_16G", "wxpay_goods_id":"1001", "goods_name":"iPhone6s 16G", "quantity":1, "price":528800, "goods_category":"123456", "body":"苹果手机" }, { "goods_id":"iphone6s_32G", "wxpay_goods_id":"1002", "goods_name":"iPhone6s 32G", "quantity":1, "price":608800, "goods_category":"123789", "body":"苹果手机" } ] }`
-	mapData["nonce_str"] = tool.UUID()
-	mapData["notify_url"] = "" //todo config.Config.AppInfos.Payment.Host + "/notify"
-	mapData["openid"] = openid
-	mapData["out_trade_no"] = OrderNo
-	mapData["spbill_create_ip"] = IP
-	mapData["total_fee"] = strconv.Itoa(int(Money))
-	mapData["trade_type"] = "JSAPI"
-	mapData["sign_type"] = "MD5"
+	//mapData["nonce_str"] = tool.UUID()
 
-	list := &collections.ListString{}
+	//mapData["openid"] = openid
 
-	//xml := `<xml>`
+	//mapData["spbill_create_ip"] = IP
+	//mapData["total_fee"] = strconv.Itoa(int(Money))
+	//mapData["trade_type"] = "JSAPI"
+	//mapData["sign_type"] = "MD5"
+
+	/*list := &collections.ListString{}
 	for k, v := range mapData {
 		list.Append(k + "=" + v)
-		//xml = xml + "<" + k + ">" + v + "</" + k + ">"
 	}
-
 	list.SortL()
-
-	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
-	//fmt.Println(list.Join("&") + "&key=" + self.MiniProgram().PayKey)
-
+	sign := encryption.Md5ByString(list.Join("&") + "&key=" + wxConfig.PayKey)
 	mapData["sign"] = sign
-
 	xmlb, _ := xml.Marshal(&mapData)
+	strReader := strings.NewReader(string(xmlb))*/
 
-	//fmt.Println(sign)
-	strReader := strings.NewReader(string(xmlb))
-
-	respones, err := http.Post("https://api.mch.weixin.qq.com/pay/unifiedorder", "text/xml", strReader)
-	glog.Error(err)
-	if err != nil {
-		return result.Fail, err.Error(), WxOrderResult{}
-	}
-
-	b, err := ioutil.ReadAll(respones.Body)
-	glog.Error(err)
-	if err != nil {
-		return result.Fail, err.Error(), WxOrderResult{}
-	}
-	//fmt.Println(err)
-	//fmt.Println(string(b))
-
-	err = xml.Unmarshal(b, &wxResult)
-	if err != nil {
-		return result.Fail, "支付网关返回结果出错", WxOrderResult{}
-	}
-
-	if !strings.EqualFold(wxResult.Return_code, "SUCCESS") {
+	/*if !strings.EqualFold(wxResult.Return_code, "SUCCESS") {
 		//return &gweb.JsonResult{Data: &result.ActionResult{Code: result.Fail, Message: resultXML.Return_msg, Data: nil}}
-		return result.Fail, wxResult.Return_msg, WxOrderResult{}
-	}
+		return result.Fail, wxResult.Return_msg, nil
+	}*/
 
-	if !strings.EqualFold(wxResult.Result_code, "SUCCESS") {
+	/*if !strings.EqualFold(wxResult.Result_code, "SUCCESS") {
 		//return &gweb.JsonResult{Data: &result.ActionResult{Code: result.Fail, Message: resultXML.Err_code_des, Data: nil}}
-		return result.Fail, wxResult.Err_code_des, WxOrderResult{}
-	}
+		return result.Fail, wxResult.Err_code_des, nil
+	}*/
 
-	return result.Success, "下单成功", wxResult
+	return result.Success, "下单成功", resp
 }
-func (service WxService) MPOrder(OrderNo string, title, description string, ogs []model.OrdersGoods, openid string, IP string, Money uint, attach string) (Success result.ActionResultCode, Message string, result WxOrderResult) {
+func (service WxService) MPOrder(ctx context.Context, OrderNo string, title, description string, ogs []model.OrdersGoods, openid string, IP string, Money uint, attach string) (Success result.ActionResultCode, Message string, wxResult *jsapi.PrepayWithRequestPaymentResponse) {
 
 	CostGoodsPrice := uint(0)
 
@@ -601,7 +629,7 @@ func (service WxService) MPOrder(OrderNo string, title, description string, ogs 
 
 	WxConfig := service.MiniProgram()
 
-	return service.Order(OrderNo, title, description, string(detailB), openid, IP, Money, attach, WxConfig)
+	return service.Order(ctx, OrderNo, title, description, string(detailB), openid, IP, Money, attach, WxConfig)
 }
 
 // func (self WxService) GetWxConfig(DB *gorm.DB, CompanyID uint) *WxConfig {
@@ -688,13 +716,25 @@ func (service WxService) MiniProgram() MiniApp {
 	//	"MchID": "1253136001",
 	//	"PayKey": "0ba0e1b19cd54cdc1adefe0657ddde40"
 	return MiniApp{
+
 		MiniSecureKey: MiniSecureKey{
 			AppID:     "wx10a413fd12780596",
 			AppSecret: "72eb78717d093645510895a89dedaa79",
 		},
-		MchID:  "1253136001",
-		PayKey: "0ba0e1b19cd54cdc1adefe0657ddde40",
+		MchID:                      "1253136001",
+		MchAPIv2Key:                "0ba0e1b19cd54cdc1adefe0657ddde40",
+		MchAPIv3Key:                "a6b0f347cf9afe2e28b245a0af4115d8",
+		MchCertificateSerialNumber: "5B7A8DF08F4B9B3269435D2F4C6E755C4701B9C3",
 	}
+	//余总的
+	/*return MiniApp{
+		MiniSecureKey: MiniSecureKey{
+			AppID:     "wx9f152dfff42cf10e",
+			AppSecret: "cff9a9ad31e1b77778053689e05f3aeb",
+		},
+		MchID:  "1618181231",
+		PayKey: "WFQEqNiiRAR47cM8HcvotpzTDRWybjAQ",
+	}*/
 }
 
 /*
@@ -726,7 +766,7 @@ func (service WxService) OrderQuery(OrderNo string) (Success bool, Result util.M
 	}
 	list.SortL()
 
-	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
+	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.MchAPIv2Key)
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
@@ -790,7 +830,7 @@ func (service WxService) GetTransfersInfo(transfers model.Transfers) (Success bo
 	}
 	list.SortL()
 
-	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
+	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.MchAPIv2Key)
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
@@ -890,7 +930,7 @@ func (service WxService) Transfers(transfers model.Transfers) (Success bool, Mes
 	}
 	list.SortL()
 
-	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
+	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.MchAPIv2Key)
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
@@ -977,7 +1017,7 @@ func (service WxService) CloseOrder(OrderNo string, OID types.PrimaryKey) (Succe
 	}
 	list.SortL()
 
-	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
+	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.MchAPIv2Key)
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
@@ -1060,7 +1100,7 @@ func (service WxService) Refund(order model.Orders, ordersPackage model.OrdersPa
 	}
 	list.SortL()
 
-	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.PayKey)
+	sign := encryption.Md5ByString(list.Join("&") + "&key=" + WxConfig.MchAPIv2Key)
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")

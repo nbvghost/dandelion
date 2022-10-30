@@ -2,6 +2,11 @@ package user
 
 import (
 	"errors"
+	"log"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/internal/repository"
 	"github.com/nbvghost/dandelion/library/play"
@@ -11,16 +16,11 @@ import (
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/dandelion/service/configuration"
 	"github.com/nbvghost/dandelion/service/journal"
-	"log"
 
 	"gorm.io/gorm"
 
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/encryption"
-
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
@@ -87,22 +87,6 @@ func (service UserService) Situation(StartTime, EndTime int64) interface{} {
 	//fmt.Println(result)
 	//todo://
 	//result.OnlineCount = len(gweb.Sessions.Data)
-	return result
-}
-func (service UserService) GetFromIDs(UserID types.PrimaryKey) model.UserFormIds {
-	var result model.UserFormIds
-	for {
-		singleton.Orm().Table("UserFormIds").Where("UserID=?", UserID).Order("CreatedAt asc").First(&result)
-		if result.ID == 0 {
-			break
-		}
-		if result.CreatedAt.Add(7*24*time.Hour).Unix() < time.Now().Unix() {
-			service.Delete(singleton.Orm(), &model.UserFormIds{}, result.ID)
-		} else {
-			break
-		}
-	}
-
 	return result
 }
 func (service UserService) AddUserBlockAmount(Orm *gorm.DB, UserID types.PrimaryKey, Menoy int64) error {

@@ -1,14 +1,14 @@
 package task
 
 import (
+	"log"
+	"strconv"
+	"time"
+
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/order"
 	"github.com/nbvghost/dandelion/service/wechat"
-
-	"strconv"
-	"time"
 )
 
 type TimeTaskService struct {
@@ -44,7 +44,7 @@ func (self TimeTaskService) QueryTask() {
 func (self TimeTaskService) QueryOrdersTask() {
 	Orm := singleton.Orm()
 	var ordersList []model.Orders
-	self.Orders.FindWhere(Orm, &ordersList, "Status<>? and Status<>? and Status<>? and Status<>?", play.OS_OrderOk, play.OS_CancelOk, play.OS_Delete, play.OS_Closed)
+	self.Orders.FindWhere(Orm, &ordersList, "Status<>? and Status<>? and Status<>? and Status<>?", model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed)
 	for _, value := range ordersList {
 
 		if value.IsPay == 0 {
@@ -60,7 +60,10 @@ func (self TimeTaskService) QueryOrdersTask() {
 				continue
 			}
 		}
-		self.Orders.AnalysisOrdersStatus(value.ID)
+		err := self.Orders.AnalysisOrdersStatus(value.ID)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
 func (self TimeTaskService) QuerySupplyOrdersTask() {

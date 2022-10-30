@@ -1,7 +1,11 @@
 package order
 
 import (
+	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
@@ -13,14 +17,9 @@ import (
 	"github.com/nbvghost/dandelion/service/journal"
 	"github.com/nbvghost/dandelion/service/user"
 
-	"github.com/nbvghost/gpa/types"
 	"gorm.io/gorm"
 
-	"errors"
-
-	"time"
-
-	"strings"
+	"github.com/nbvghost/gpa/types"
 
 	"github.com/nbvghost/glog"
 )
@@ -139,9 +138,9 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 				}
 			}
 
-			if !strings.EqualFold(orders.Status, play.OS_OrderOk) {
+			if !(orders.Status == model.OrdersStatusOrderOk) {
 				//当线下订单被核销后，主订单完成，并产生用户的结算
-				err = service.ChangeModel(DB, orders.ID, &model.Orders{Status: play.OS_OrderOk, ReceiptTime: time.Now()})
+				err = service.ChangeModel(DB, orders.ID, &model.Orders{Status: model.OrdersStatusOrderOk, ReceiptTime: time.Now()})
 				if err != nil {
 					return err
 				}

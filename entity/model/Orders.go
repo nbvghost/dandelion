@@ -12,6 +12,22 @@ import (
 	"github.com/nbvghost/gpa/types"
 )
 
+type OrdersStatus string
+
+const (
+	OrdersStatusOrder    OrdersStatus = "Order"    // order=下单成功，待付款
+	OrdersStatusPay      OrdersStatus = "Pay"      // pay=支付成功，待发货
+	OrdersStatusDeliver  OrdersStatus = "Deliver"  // deliver=发货成功，待收货
+	OrdersStatusRefund   OrdersStatus = "Refund"   // Refund=订单退款退货中->所有子商品状态为空或OGRefundOK->返回Deliver状态
+	OrdersStatusRefundOk OrdersStatus = "RefundOk" // Orders 下的所有ordergoods 全部退款，orders 改为 RefundOk
+	OrdersStatusOrderOk  OrdersStatus = "OrderOk"  // order_ok=订单确认完成
+	OrdersStatusCancel   OrdersStatus = "Cancel"   //订单等待取消
+	OrdersStatusCancelOk OrdersStatus = "CancelOk" //订单已经取消
+	OrdersStatusDelete   OrdersStatus = "Delete"   // delete=删除
+	OrdersStatusClosed   OrdersStatus = "Closed"   // 已经关闭
+
+)
+
 //订单信息
 type Orders struct {
 	base.BaseModel
@@ -23,7 +39,7 @@ type Orders struct {
 	OrdersPackageNo string                 `gorm:"column:OrdersPackageNo"` //订单号
 	PayMoney        uint                   `gorm:"column:PayMoney"`        //支付价
 	PostType        sqltype.OrdersPostType `gorm:"column:PostType"`        //1=邮寄，2=线下使用
-	Status          string                 `gorm:"column:Status"`          //状态
+	Status          OrdersStatus           `gorm:"column:Status"`          //状态
 	ShipNo          string                 `gorm:"column:ShipNo"`          //快递单号
 	ShipName        string                 `gorm:"column:ShipName"`        //快递
 	Address         string                 `gorm:"column:Address"`         //收货地址 json
