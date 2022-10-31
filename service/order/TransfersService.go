@@ -2,6 +2,7 @@ package order
 
 import (
 	"errors"
+
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/play"
@@ -19,7 +20,7 @@ type TransfersService struct {
 	Wx      wechat.WxService
 }
 
-func (service TransfersService) UserTransfers(UserID types.PrimaryKey, ReUserName, IP string) error {
+func (service TransfersService) UserTransfers(UserID types.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
 	Orm := singleton.Orm().Begin()
 
 	var user model.User
@@ -60,7 +61,7 @@ func (service TransfersService) UserTransfers(UserID types.PrimaryKey, ReUserNam
 		return err
 	}
 
-	Success, Message := service.Wx.Transfers(transfers)
+	Success, Message := service.Wx.Transfers(transfers, wxConfig)
 	if Success == false {
 		Orm.Rollback()
 		return errors.New(Message)
@@ -70,7 +71,7 @@ func (service TransfersService) UserTransfers(UserID types.PrimaryKey, ReUserNam
 	}
 
 }
-func (service TransfersService) StoreTransfers(StoreID types.PrimaryKey, UserID types.PrimaryKey, ReUserName, IP string) error {
+func (service TransfersService) StoreTransfers(StoreID types.PrimaryKey, UserID types.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
 	Orm := singleton.Orm().Begin()
 
 	var store model.Store
@@ -114,7 +115,7 @@ func (service TransfersService) StoreTransfers(StoreID types.PrimaryKey, UserID 
 		return err
 	}
 
-	Success, Message := service.Wx.Transfers(transfers)
+	Success, Message := service.Wx.Transfers(transfers, wxConfig)
 	if Success == false {
 		Orm.Rollback()
 		return errors.New(Message)

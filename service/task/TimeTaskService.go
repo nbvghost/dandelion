@@ -22,14 +22,14 @@ func init() {
 	//TimeTaskService := TimeTaskService{}
 	//go TimeTaskService.QueryTask()
 }
-func (self TimeTaskService) QueryTask() {
+func (self TimeTaskService) QueryTask(wxConfig *model.WechatConfig) {
 
 	go func() {
 
 		c := time.Tick(60 * time.Second)
 		for range c {
-			self.QuerySupplyOrdersTask()
-			self.QueryOrdersTask()
+			self.QuerySupplyOrdersTask(wxConfig)
+			self.QueryOrdersTask(wxConfig)
 		}
 
 	}()
@@ -37,11 +37,11 @@ func (self TimeTaskService) QueryTask() {
 	c := time.Tick(15 * time.Second)
 	for range c {
 		//fmt.Printf("在线人数：%v\n", len(gweb.Sessions.Data))
-		self.QueryTransfersTask()
+		self.QueryTransfersTask(wxConfig)
 	}
 
 }
-func (self TimeTaskService) QueryOrdersTask() {
+func (self TimeTaskService) QueryOrdersTask(wxConfig *model.WechatConfig) {
 	Orm := singleton.Orm()
 	var ordersList []model.Orders
 	self.Orders.FindWhere(Orm, &ordersList, "Status<>? and Status<>? and Status<>? and Status<>?", model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed)
@@ -50,7 +50,7 @@ func (self TimeTaskService) QueryOrdersTask() {
 		if value.IsPay == 0 {
 
 			//当前状态为没有支付，去检测一下，订单状态。
-			su, result := self.Wx.OrderQuery(value.OrderNo)
+			su, result := self.Wx.OrderQuery(value.OrderNo, wxConfig)
 			if su {
 				TotalFee, _ := strconv.ParseUint(result["total_fee"], 10, 64)
 				//OrderNo := result["out_trade_no"]
@@ -60,19 +60,19 @@ func (self TimeTaskService) QueryOrdersTask() {
 				continue
 			}
 		}
-		err := self.Orders.AnalysisOrdersStatus(value.ID)
+		err := self.Orders.AnalysisOrdersStatus(value.ID, wxConfig)
 		if err != nil {
 			log.Println(err)
 		}
 	}
 }
-func (self TimeTaskService) QuerySupplyOrdersTask() {
+func (self TimeTaskService) QuerySupplyOrdersTask(wxConfig *model.WechatConfig) {
 	Orm := singleton.Orm()
 	var supplyOrdersList []model.SupplyOrders
 	self.Orders.FindWhere(Orm, &supplyOrdersList, "IsPay=?", 0)
 	for _, value := range supplyOrdersList {
 
-		su, result := self.Wx.OrderQuery(value.OrderNo)
+		su, result := self.Wx.OrderQuery(value.OrderNo, wxConfig)
 		if su {
 
 			TotalFee, _ := strconv.ParseUint(result["total_fee"], 10, 64)
@@ -88,12 +88,12 @@ func (self TimeTaskService) QuerySupplyOrdersTask() {
 }
 
 //查询提现状态
-func (self TimeTaskService) QueryTransfersTask() {
+func (self TimeTaskService) QueryTransfersTask(wxConfig *model.WechatConfig) {
 	Orm := singleton.Orm()
 	var transfersList []model.Transfers
 	self.Transfers.FindWhere(Orm, &transfersList, "IsPay=?", 0)
 	for _, value := range transfersList {
-		su := self.Wx.GetTransfersInfo(value)
+		su := self.Wx.GetTransfersInfo(value, wxConfig)
 		if su {
 			self.Transfers.ChangeModel(Orm, value.ID, &model.Transfers{IsPay: 1})
 		} else {

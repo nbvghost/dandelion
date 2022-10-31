@@ -20,6 +20,8 @@ import (
 	"strings"
 	"time"
 
+	"gorm.io/gorm"
+
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
@@ -125,7 +127,7 @@ var verifyCache = &struct {
 	Pre_auth_code_update     int64
 }{}
 
-func NewClient(config MiniApp) (*core.Client, error) {
+func NewClient(config *model.WechatConfig) (*core.Client, error) {
 	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
 	mchPrivateKey, err := utils.LoadPrivateKeyWithPath("cert/apiclient_key.pem")
 	if err != nil {
@@ -146,7 +148,20 @@ func NewClient(config MiniApp) (*core.Client, error) {
 	return client, err
 }
 
-func (service WxService) GetAccessToken(WxConfig MiniSecureKey) string {
+/*func (self WxService) WX() WxConfig {
+
+	return WxConfig{AppID: "wx037d3b26b2ba34b2", AppSecret: "c930d5b6a337c6bad9b41556cdcb94d2", Token: "", EncodingAESKey: "", MchID: "1253136001", PayKey: "6af34073b83d6f8a4f35289b92226f20"}
+}*/
+/*
+小程序
+*/
+func (service WxService) MiniProgram(db *gorm.DB, OID types.PrimaryKey) *model.WechatConfig {
+	var wc model.WechatConfig
+	db.Model(model.WechatConfig{}).Where(`"OID"=?`, OID).Take(&wc)
+	return &wc
+}
+
+func (service WxService) GetAccessToken(WxConfig *model.WechatConfig) string {
 
 	if accessTokenMap[WxConfig.AppID] != nil && (time.Now().Unix()-accessTokenMap[WxConfig.AppID].Update) < accessTokenMap[WxConfig.AppID].Expires_in {
 
@@ -180,7 +195,7 @@ func (service WxService) GetAccessToken(WxConfig MiniSecureKey) string {
 	return accessTokenMap[WxConfig.AppID].Access_token
 }
 
-func (service WxService) GetWXAConfig(prepay_id string, WxConfig MiniApp) (map[string]string, error) {
+func (service WxService) GetWXAConfig(prepay_id string, WxConfig *model.WechatConfig) (map[string]string, error) {
 
 	rsaCryptoUtilCertificate, err := utils.LoadPrivateKeyWithPath("cert/apiclient_key.pem")
 	if err != nil {
@@ -317,7 +332,7 @@ func (service WxService) NewUserJoinNotify(NewUser model.User, notifyUser model.
 }
 
 //发货通知
-func (service WxService) OrderDeliveryNotify(Order model.Orders, ogs []model.OrdersGoods, wxConfig MiniApp) *result.ActionResult {
+func (service WxService) OrderDeliveryNotify(Order model.Orders, ogs []model.OrdersGoods, wxConfig *model.WechatConfig) *result.ActionResult {
 
 	if Order.ID == 0 {
 		return &result.ActionResult{Code: result.Fail, Message: "找不到订单", Data: nil}
@@ -411,7 +426,7 @@ func (service WxService) INComeNotify(slUser model.User, itemName string, timeTe
 }
 
 //新订单
-func (service WxService) NewOrderNotify(Order model.Orders, ogs []model.OrdersGoods, wxConfig MiniApp) *result.ActionResult {
+func (service WxService) NewOrderNotify(Order model.Orders, ogs []model.OrdersGoods, wxConfig *model.WechatConfig) *result.ActionResult {
 
 	if Order.ID == 0 {
 		return &result.ActionResult{Code: result.Fail, Message: "找不到订单", Data: nil}
@@ -464,7 +479,7 @@ func (service WxService) NewOrderNotify(Order model.Orders, ogs []model.OrdersGo
 
 	return as
 }
-func (service WxService) SendUniformMessage(sendData map[string]interface{}, wxConfig MiniApp) (*result.ActionResult, int) {
+func (service WxService) SendUniformMessage(sendData map[string]interface{}, wxConfig *model.WechatConfig) (*result.ActionResult, int) {
 
 	//gzh := model.MiniWeb()
 	//xcx := service.MiniProgram()
@@ -472,7 +487,7 @@ func (service WxService) SendUniformMessage(sendData map[string]interface{}, wxC
 	b, err := json.Marshal(sendData)
 	glog.Error(err)
 
-	access_token := service.GetAccessToken(wxConfig.MiniSecureKey)
+	access_token := service.GetAccessToken(wxConfig)
 	strReader := strings.NewReader(string(b))
 	respones, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/uniform_send?access_token="+access_token, "application/json", strReader)
 	glog.Error(err)
@@ -494,13 +509,13 @@ func (service WxService) SendUniformMessage(sendData map[string]interface{}, wxC
 	return &result.ActionResult{Code: result.Fail, Message: mapData["errmsg"].(string), Data: nil}, int(mapData["errcode"].(float64))
 
 }
-func (service WxService) SendWXMessage(sendData map[string]interface{}, wxConfig MiniApp) *result.ActionResult {
+func (service WxService) SendWXMessage(sendData map[string]interface{}, wxConfig *model.WechatConfig) *result.ActionResult {
 	b, err := json.Marshal(sendData)
 	glog.Error(err)
 
 	//WxConfig := service.MiniProgram()
 
-	access_token := service.GetAccessToken(wxConfig.MiniSecureKey)
+	access_token := service.GetAccessToken(wxConfig)
 	strReader := strings.NewReader(string(b))
 	respones, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token="+access_token, "application/json", strReader)
 	glog.Error(err)
@@ -525,7 +540,7 @@ func (service WxService) SendWXMessage(sendData map[string]interface{}, wxConfig
 	return &result.ActionResult{Code: result.Fail, Message: mapData["errmsg"].(string), Data: nil}
 
 }
-func (service WxService) Order(ctx context.Context, OrderNo string, title, description string, detail, openid string, IP string, Money uint, attach string, wxConfig MiniApp) (Success result.ActionResultCode, Message string, wxResult *jsapi.PrepayWithRequestPaymentResponse) {
+func (service WxService) Order(ctx context.Context, OrderNo string, title, description string, detail, openid string, IP string, Money uint, attach string, wxConfig *model.WechatConfig) (Success result.ActionResultCode, Message string, wxResult *jsapi.PrepayWithRequestPaymentResponse) {
 	client, err := NewClient(wxConfig)
 	if err != nil {
 		return result.Fail, err.Error(), nil
@@ -591,7 +606,7 @@ func (service WxService) Order(ctx context.Context, OrderNo string, title, descr
 
 	return result.Success, "下单成功", resp
 }
-func (service WxService) MPOrder(ctx context.Context, OrderNo string, title, description string, ogs []model.OrdersGoods, openid string, IP string, Money uint, attach string, wxConfig MiniApp) (Success result.ActionResultCode, Message string, wxResult *jsapi.PrepayWithRequestPaymentResponse) {
+func (service WxService) MPOrder(ctx context.Context, OrderNo string, title, description string, ogs []model.OrdersGoods, openid string, IP string, Money uint, attach string, wxConfig *model.WechatConfig) (Success result.ActionResultCode, Message string, wxResult *jsapi.PrepayWithRequestPaymentResponse) {
 
 	CostGoodsPrice := uint(0)
 
@@ -663,7 +678,7 @@ func (service WxService) MPOrder(ctx context.Context, OrderNo string, title, des
 	glog.Error(err)
 	return wx
 }*/
-func (service WxService) MWQRCodeTemp(OID uint, UserID uint, qrtype, params string) *result.ActionResult {
+func (service WxService) MWQRCodeTemp(OID uint, UserID uint, qrtype, params string, wxConfig *model.WechatConfig) *result.ActionResult {
 
 	//user := context.Session.Attributes.Get(play.SessionUser).(*model.User)
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
@@ -671,9 +686,8 @@ func (service WxService) MWQRCodeTemp(OID uint, UserID uint, qrtype, params stri
 	//Page := context.Request.FormValue("Page")
 	//Page := context.Request.URL.Query().Get("Page")
 	//MyShareKey := tool.Hashids{}.Encode(user.ID)
-	wxconfig := service.MiniWeb()
 
-	access_token := service.GetAccessToken(wxconfig.MiniSecureKey)
+	access_token := service.GetAccessToken(wxConfig)
 
 	postData := make(map[string]interface{})
 	//results := make(map[string]interface{})
@@ -701,19 +715,8 @@ func (service WxService) MWQRCodeTemp(OID uint, UserID uint, qrtype, params stri
 
 }
 
-/*
-公众号
-*/
-func (service WxService) MiniWeb() MiniWeb {
-
-	//var wx model.WxConfig
-	//err := singleton.Orm().Model(&model.WxConfig{}).Where("OID=? and Type=?", OID, "miniweb").First(&wx).Error
-	//glog.Error(err)
-	return MiniWeb{}
-}
-
 //订单查询
-func (service WxService) OrderQuery(OrderNo string, wxConfig MiniApp) (Success bool, Result util.Map) {
+func (service WxService) OrderQuery(OrderNo string, wxConfig *model.WechatConfig) (Success bool, Result util.Map) {
 	var inData = make(util.Map)
 	//WxConfig := service.MiniProgram()
 
@@ -778,7 +781,7 @@ func (service WxService) OrderQuery(OrderNo string, wxConfig MiniApp) (Success b
 }
 
 //查询提现接口
-func (service WxService) GetTransfersInfo(transfers model.Transfers, wxConfig MiniApp) (Success bool) {
+func (service WxService) GetTransfersInfo(transfers model.Transfers, wxConfig *model.WechatConfig) (Success bool) {
 
 	//WxConfig := service.MiniProgram()
 
@@ -872,7 +875,7 @@ func (service WxService) GetTransfersInfo(transfers model.Transfers, wxConfig Mi
 }
 
 //提现
-func (service WxService) Transfers(transfers model.Transfers, wxConfig MiniApp) (Success bool, Message string) {
+func (service WxService) Transfers(transfers model.Transfers, wxConfig *model.WechatConfig) (Success bool, Message string) {
 	//WxConfig := service.MiniProgram()
 
 	outMap := make(util.Map)
@@ -964,7 +967,7 @@ func (service WxService) Transfers(transfers model.Transfers, wxConfig MiniApp) 
 }
 
 //关闭订单
-func (service WxService) CloseOrder(OrderNo string, OID types.PrimaryKey, wxConfig MiniApp) (Success bool, Message string) {
+func (service WxService) CloseOrder(OrderNo string, OID types.PrimaryKey, wxConfig *model.WechatConfig) (Success bool, Message string) {
 
 	//WxConfig := service.MiniProgram()
 
@@ -1023,7 +1026,7 @@ func (service WxService) CloseOrder(OrderNo string, OID types.PrimaryKey, wxConf
 }
 
 //退款
-func (service WxService) Refund(order model.Orders, ordersPackage model.OrdersPackage, PayMoney, RefundMoney uint, Desc string, Type uint, wxConfig MiniApp) (Success bool, Message string) {
+func (service WxService) Refund(order model.Orders, ordersPackage model.OrdersPackage, PayMoney, RefundMoney uint, Desc string, Type uint, wxConfig *model.WechatConfig) (Success bool, Message string) {
 	//WxConfig := service.MiniProgram()
 
 	//Orders := OrdersService{}
@@ -1188,7 +1191,7 @@ func (service WxService) getSHA1(token, timestamp, nonce, encrypt string) string
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func (service WxService) MwGetTicket(WxConfig MiniSecureKey) string {
+func (service WxService) MwGetTicket(WxConfig *model.WechatConfig) string {
 
 	if ticketMap[WxConfig.AppID] != nil && (time.Now().Unix()-ticketMap[WxConfig.AppID].Update) < ticketMap[WxConfig.AppID].Expires_in {
 
@@ -1223,7 +1226,7 @@ func (service WxService) MwGetTicket(WxConfig MiniSecureKey) string {
 }
 func (service WxService) MwGetWXJSConfig(url string, OID types.PrimaryKey) map[string]interface{} {
 
-	wxConfig := service.MiniWeb()
+	wxConfig := service.MiniProgram(singleton.Orm(), OID)
 
 	appId := wxConfig.AppID
 	timestamp := time.Now().Unix()
@@ -1231,7 +1234,7 @@ func (service WxService) MwGetWXJSConfig(url string, OID types.PrimaryKey) map[s
 	//chooseWXPay
 	list := &collections.ListString{}
 	list.Append("noncestr=" + nonceStr)
-	list.Append("jsapi_ticket=" + service.MwGetTicket(wxConfig.MiniSecureKey))
+	list.Append("jsapi_ticket=" + service.MwGetTicket(wxConfig))
 	list.Append("timestamp=" + strconv.FormatInt(timestamp, 10))
 
 	_url := strings.Split(url, "#")[0]

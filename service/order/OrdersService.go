@@ -314,7 +314,7 @@ func (service OrdersService) RefundInfo(OrdersGoodsID types.PrimaryKey, ShipName
 	}
 	return nil, "快递信息填写成功"
 }
-func (service OrdersService) RefundComplete(OrdersGoodsID types.PrimaryKey, RefundType uint) (error, string) {
+func (service OrdersService) RefundComplete(OrdersGoodsID types.PrimaryKey, RefundType uint, wxConfig *model.WechatConfig) (error, string) {
 	tx := singleton.Orm().Begin()
 
 	var ordersGoods model.OrdersGoods
@@ -340,7 +340,7 @@ func (service OrdersService) RefundComplete(OrdersGoodsID types.PrimaryKey, Refu
 		return err, ""
 	}
 
-	Success, Message := service.Wx.Refund(orders, ordersPackage, orders.PayMoney, RefundInfo.RefundPrice, "用户申请退款", RefundType)
+	Success, Message := service.Wx.Refund(orders, ordersPackage, orders.PayMoney, RefundInfo.RefundPrice, "用户申请退款", RefundType, wxConfig)
 	if !Success {
 		tx.Rollback()
 		return errors.New(Message), ""
@@ -545,7 +545,7 @@ func (service OrdersService) TakeDeliver(OrdersID types.PrimaryKey) error {
 }
 
 //检查订单状态
-func (service OrdersService) AnalysisOrdersStatus(OrdersID types.PrimaryKey) error {
+func (service OrdersService) AnalysisOrdersStatus(OrdersID types.PrimaryKey, wxConfig *model.WechatConfig) error {
 
 	Orm := singleton.Orm()
 
@@ -585,9 +585,9 @@ func (service OrdersService) AnalysisOrdersStatus(OrdersID types.PrimaryKey) err
 	} else if orders.Status == model.OrdersStatusCancel {
 		if time.Now().Unix() >= orders.UpdatedAt.Add(5*time.Hour*24).Unix() {
 			//订单已经支付，用户申请了取消订单，超过5天，自动取消
-			_, err := service.CancelOk(OrdersID, 0)
+			_, err := service.CancelOk(OrdersID, 0, wxConfig)
 			if err != nil {
-				_, err = service.CancelOk(OrdersID, 1)
+				_, err = service.CancelOk(OrdersID, 1, wxConfig)
 				if err != nil {
 					return err
 				}
@@ -597,7 +597,7 @@ func (service OrdersService) AnalysisOrdersStatus(OrdersID types.PrimaryKey) err
 	}
 	return nil
 }
-func (service OrdersService) CancelOk(OrdersID types.PrimaryKey, Type uint) (string, error) {
+func (service OrdersService) CancelOk(OrdersID types.PrimaryKey, Type uint, wxConfig *model.WechatConfig) (string, error) {
 	Orm := singleton.Orm()
 
 	var orders model.Orders
@@ -615,7 +615,7 @@ func (service OrdersService) CancelOk(OrdersID types.PrimaryKey, Type uint) (str
 
 			//邮寄
 			if orders.PostType == sqltype.OrdersPostTypePost {
-				Success, Message := service.Wx.Refund(orders, ordersPackage, orders.PayMoney, orders.PayMoney, "用户取消", Type)
+				Success, Message := service.Wx.Refund(orders, ordersPackage, orders.PayMoney, orders.PayMoney, "用户取消", Type, wxConfig)
 				if Success {
 					err := service.ChangeMap(Orm, orders.ID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
 					if err != nil {
@@ -635,7 +635,7 @@ func (service OrdersService) CancelOk(OrdersID types.PrimaryKey, Type uint) (str
 				}
 			}
 			if orders.PostType == sqltype.OrdersPostTypeOffline {
-				Success, Message := service.Wx.Refund(orders, ordersPackage, orders.PayMoney, orders.PayMoney, "用户取消", Type)
+				Success, Message := service.Wx.Refund(orders, ordersPackage, orders.PayMoney, orders.PayMoney, "用户取消", Type, wxConfig)
 				if Success {
 					tx := Orm.Begin()
 					err := service.ChangeMap(tx, orders.ID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
@@ -674,7 +674,7 @@ func (service OrdersService) CancelOk(OrdersID types.PrimaryKey, Type uint) (str
 }
 
 //申请取消
-func (service OrdersService) Cancel(OrdersID types.PrimaryKey) (string, error) {
+func (service OrdersService) Cancel(OrdersID types.PrimaryKey, wxConfig *model.WechatConfig) (string, error) {
 	Orm := singleton.Orm()
 
 	var orders model.Orders
@@ -692,17 +692,17 @@ func (service OrdersService) Cancel(OrdersID types.PrimaryKey) (string, error) {
 			err := service.ChangeMap(Orm, OrdersID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusCancel})
 			return "申请取消，等待客服确认", err
 		} else {
-			Success, _ := service.Wx.OrderQuery(orders.OrderNo)
+			Success, _ := service.Wx.OrderQuery(orders.OrderNo, wxConfig)
 			if Success {
 				//如果查询订单已经支付，由客服确认
 				err := service.ChangeMap(Orm, OrdersID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusCancel})
 				return "申请取消，等待客服确认", err
 			} else {
 				//没支付的订单
-				Success, Message1 := service.Wx.Refund(orders, ordersPackage, orders.PayMoney, orders.PayMoney, "用户取消", 0)
+				Success, Message1 := service.Wx.Refund(orders, ordersPackage, orders.PayMoney, orders.PayMoney, "用户取消", 0, wxConfig)
 				glog.Trace("Orders", "Cancel", Message1)
 				if Success == false {
-					Success, Message1 = service.Wx.Refund(orders, ordersPackage, orders.PayMoney, orders.PayMoney, "用户取消", 1)
+					Success, Message1 = service.Wx.Refund(orders, ordersPackage, orders.PayMoney, orders.PayMoney, "用户取消", 1, wxConfig)
 					glog.Trace("Orders", "Cancel", Message1)
 				}
 
@@ -746,7 +746,7 @@ func (service OrdersService) Cancel(OrdersID types.PrimaryKey) (string, error) {
 }
 
 //发货
-func (service OrdersService) Deliver(ShipName, ShipNo string, OrdersID types.PrimaryKey) error {
+func (service OrdersService) Deliver(ShipName, ShipNo string, OrdersID types.PrimaryKey, wxConfig *model.WechatConfig) error {
 	Orm := singleton.Orm().Begin()
 
 	var orders model.Orders
@@ -776,7 +776,7 @@ func (service OrdersService) Deliver(ShipName, ShipNo string, OrdersID types.Pri
 		return err
 	}
 
-	as := service.Wx.OrderDeliveryNotify(orders, ogs)
+	as := service.Wx.OrderDeliveryNotify(orders, ogs, wxConfig)
 	if as.Code != result.Success {
 
 		err = errors.New(as.Message)
@@ -1345,14 +1345,14 @@ func (service OrdersService) AddOrders(orders *model.Orders, list []extends.Orde
 	return nil
 
 }
-func (service OrdersService) ChangeOrdersPayMoney(PayMoney float64, OrdersID types.PrimaryKey) (Success result.ActionResultCode, Message string) {
+func (service OrdersService) ChangeOrdersPayMoney(PayMoney float64, OrdersID types.PrimaryKey, wxConfig *model.WechatConfig) (Success result.ActionResultCode, Message string) {
 	tx := singleton.Orm().Begin()
 
 	orders := service.GetOrdersByID(OrdersID)
 
 	if strings.EqualFold(orders.PrepayID, "") == false {
 
-		success, message := service.Wx.CloseOrder(orders.OrderNo, orders.OID)
+		success, message := service.Wx.CloseOrder(orders.OrderNo, orders.OID, wxConfig)
 		if success == false {
 			tx.Rollback()
 			return result.Fail, message
