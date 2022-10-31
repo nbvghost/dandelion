@@ -148,19 +148,19 @@ func NewClient(config *model.WechatConfig) (*core.Client, error) {
 	return client, err
 }
 
-/*func (self WxService) WX() WxConfig {
-
-	return WxConfig{AppID: "wx037d3b26b2ba34b2", AppSecret: "c930d5b6a337c6bad9b41556cdcb94d2", Token: "", EncodingAESKey: "", MchID: "1253136001", PayKey: "6af34073b83d6f8a4f35289b92226f20"}
-}*/
 /*
 小程序
 */
+func (service WxService) MiniProgramByAppId(db *gorm.DB, appId string) *model.WechatConfig {
+	var wc model.WechatConfig
+	db.Model(model.WechatConfig{}).Where(`"AppID"=?`, appId).Take(&wc)
+	return &wc
+}
 func (service WxService) MiniProgram(db *gorm.DB, OID types.PrimaryKey) *model.WechatConfig {
 	var wc model.WechatConfig
 	db.Model(model.WechatConfig{}).Where(`"OID"=?`, OID).Take(&wc)
 	return &wc
 }
-
 func (service WxService) GetAccessToken(WxConfig *model.WechatConfig) string {
 
 	if accessTokenMap[WxConfig.AppID] != nil && (time.Now().Unix()-accessTokenMap[WxConfig.AppID].Update) < accessTokenMap[WxConfig.AppID].Expires_in {

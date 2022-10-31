@@ -8,7 +8,7 @@ type WechatConfig struct {
 	types.Entity
 	OID                        types.PrimaryKey `gorm:"column:OID;unique"`
 	Name                       string           `gorm:"column:Name"`
-	AppID                      string           `gorm:"column:AppID"`
+	AppID                      string           `gorm:"column:AppID;unique"`
 	AppSecret                  string           `gorm:"column:AppSecret"`
 	MchID                      string           `gorm:"column:MchID"`
 	MchAPIv2Key                string           `gorm:"column:MchAPIv2Key"`
