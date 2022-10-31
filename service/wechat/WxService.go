@@ -129,7 +129,7 @@ var verifyCache = &struct {
 
 func NewClient(config *model.WechatConfig) (*core.Client, error) {
 	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
-	mchPrivateKey, err := utils.LoadPrivateKeyWithPath("cert/apiclient_key.pem")
+	mchPrivateKey, err := utils.LoadPrivateKey(config.PrivateKey)
 	if err != nil {
 		log.Fatal("load merchant private key error")
 		return nil, err
@@ -197,7 +197,7 @@ func (service WxService) GetAccessToken(WxConfig *model.WechatConfig) string {
 
 func (service WxService) GetWXAConfig(prepay_id string, WxConfig *model.WechatConfig) (map[string]string, error) {
 
-	rsaCryptoUtilCertificate, err := utils.LoadPrivateKeyWithPath("cert/apiclient_key.pem")
+	rsaCryptoUtilCertificate, err := utils.LoadPrivateKey(WxConfig.PrivateKey)
 	if err != nil {
 		log.Fatal("load merchant private key error")
 		return nil, err

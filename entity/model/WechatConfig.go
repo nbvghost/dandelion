@@ -14,6 +14,7 @@ type WechatConfig struct {
 	MchAPIv2Key                string           `gorm:"column:MchAPIv2Key"`
 	MchAPIv3Key                string           `gorm:"column:MchAPIv3Key"`
 	MchCertificateSerialNumber string           `gorm:"column:MchCertificateSerialNumber"`
+	PrivateKey                 string           `gorm:"column:PrivateKey"`
 }
 
 func (WechatConfig) TableName() string {
