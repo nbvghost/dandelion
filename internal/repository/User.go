@@ -12,7 +12,7 @@ type UserRepository struct {
 	GetByEmail func(email string) (*model.User, error) `gpa:"AutoCrate"`
 	//UpdateByAge    func(age int, update *params.Update) *result.Update                                   `gpa:"AutoCreate"`
 
-	GetByTel func(tel string) (*model.User, error) `gpa:"AutoCreate"`
+	GetByPhone func(tel string) (*model.User, error) `gpa:"AutoCreate"`
 }
 
 func (u *UserRepository) Repository() gpa.IRepository {

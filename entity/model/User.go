@@ -12,7 +12,8 @@ type User struct {
 	Name        string           `gorm:"column:Name"`                  //
 	OpenID      string           `gorm:"column:OpenID"`                //
 	Email       string           `gorm:"column:Email"`                 //
-	Tel         string           `gorm:"column:Tel"`                   //
+	Phone       string           `gorm:"column:Phone"`                 //
+	CountryCode int              `gorm:"column:CountryCode"`           //
 	Password    string           `gorm:"column:Password" json:"-"`     //
 	Age         int              `gorm:"column:Age"`                   //
 	Region      string           `gorm:"column:Region"`                //

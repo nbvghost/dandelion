@@ -40,7 +40,7 @@ type UserService struct {
 
 func (service UserService) Login(account string) (user *model.User) {
 	var err error
-	if user, err = repository.User.GetByTel(account); user.IsZero() {
+	if user, err = repository.User.GetByPhone(account); user.IsZero() {
 
 		user, err = repository.User.GetByEmail(account)
 		if err != nil {
@@ -224,7 +224,7 @@ func (service UserService) UserAction(context *gweb.Context) (r gweb.Result, err
 }
 func (service UserService) FindUserByTel(Orm *gorm.DB, Tel string) *model.User {
 	user := &model.User{}
-	err := Orm.Where("Tel=?", Tel).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
+	err := Orm.Where("Phone=?", Tel).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
 	glog.Error(err)
 	return user
 }
