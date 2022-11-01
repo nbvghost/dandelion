@@ -292,7 +292,7 @@ func (service OrdersService) Situation(StartTime, EndTime int64) interface{} {
 
 	var result Result
 
-	Orm.Table("Orders").Select(`SUM("PayMoney") as TotalMoney,COUNT("ID") as TotalCount`).Where(`"CreatedAt">=?`, st).Where(`"CreatedAt"<?`, et).Where(map[string]interface{}{"IsPay": 1}).Find(&result)
+	Orm.Table("Orders").Select(`SUM("PayMoney") as "TotalMoney",COUNT("ID") as "TotalCount"`).Where(`"CreatedAt">=?`, st).Where(`"CreatedAt"<?`, et).Where(map[string]interface{}{"IsPay": 1}).Find(&result)
 	//fmt.Println(result)
 	return result
 }
@@ -823,14 +823,14 @@ func (service OrdersService) ListOrdersStatusCount(UserID types.PrimaryKey, Stat
 	ts := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	te := ts.Add(24 * time.Hour)
 
-	db = db.Where("UpdatedAt>=? and UpdatedAt<?", ts, te)
-	db = db.Where("UserID=?", UserID)
+	db = db.Where(`"UpdatedAt">=? and "UpdatedAt"<?`, ts, te)
+	db = db.Where(`"UserID"=?`, UserID)
 
 	if len(Status) > 0 {
-		db = db.Where("Status = ?", Status[0])
+		db = db.Where(`"Status" = ?`, Status[0])
 		for index, value := range Status {
 			if index != 0 {
-				db = db.Or("Status = ?", value)
+				db = db.Or(`"Status" = ?`, value)
 			}
 		}
 	}
@@ -861,15 +861,15 @@ func (service OrdersService) ListCollageRecord(UserID types.PrimaryKey, Index in
 
 	db := Orm.Raw(`
 SELECT
-o.ID AS OrdersID,cr.No,cr.UserID,cr.Collager,og.Favoured,og.Goods,og.Specification,o.Status AS Status,o.IsPay AS IsPay,og.Quantity as Quantity,
-(SELECT mcr.CreatedAt FROM CollageRecord mcr WHERE mcr.NO=cr.NO AND mcr.Collager>0) AS CreatedAt,
-(SELECT COUNT(mo.IsPay) FROM CollageRecord mcr,Orders mo WHERE mcr.NO=cr.NO AND mo.OrderNo=mcr.OrderNo) AS COUNT,
-(SELECT SUM(mo.IsPay) FROM CollageRecord mcr,Orders mo WHERE mcr.NO=cr.NO AND mo.OrderNo=mcr.OrderNo) AS IsPaySUM
+o.ID AS "OrdersID",cr."No" as "No",cr."UserID" as "UserID",cr."Collager" as "Collager",og."Favoured" as "Favoured",og."Goods" as "Goods",og."Specification" as "Specification",o."Status" AS "Status",o."IsPay" AS "IsPay",og."Quantity" as "Quantity",
+(SELECT mcr."CreatedAt" FROM CollageRecord mcr WHERE mcr."No"=cr."No" AND mcr."Collager">0) AS "CreatedAt",
+(SELECT COUNT(mo."IsPay") FROM CollageRecord mcr,Orders mo WHERE mcr."No"=cr."No" AND mo."OrderNo"=mcr."OrderNo") AS COUNT,
+(SELECT SUM(mo."IsPay") FROM CollageRecord mcr,Orders mo WHERE mcr."No"=cr."No" AND mo."OrderNo"=mcr."OrderNo") AS IsPaySUM
 FROM
 User u,Orders o,CollageRecord cr,OrdersGoods og
 WHERE
-cr.UserID=? AND u.ID=cr.UserID AND o.OrderNo=cr.OrderNo AND og.OrdersGoodsNo=cr.OrdersGoodsNo
-GROUP BY cr.No
+cr."UserID"=? AND u."ID"=cr."UserID" AND o."OrderNo"=cr."OrderNo" AND og."OrdersGoodsNo"=cr."OrdersGoodsNo"
+GROUP BY cr."No"
 `, UserID)
 	//db := Orm.Raw("SELECT o.ID AS OrdersID,cr.No,cr.UserID,cr.Collager,cr.IsPay,sdf.*,og.Favoured,og.Goods,cr.CreatedAt as CreatedAt from User u,Orders o,CollageRecord cr,OrdersGoods og,(SELECT COUNT(cr.NO) AS COUNT,SUM(cr.IsPay) AS SUM FROM CollageRecord cr GROUP BY cr.NO) AS sdf WHERE cr.UserID=? AND u.ID=cr.UserID AND o.OrderNo=cr.OrderNo AND og.OrdersGoodsNo=cr.OrdersGoodsNo GROUP BY cr.No", UserID)
 
@@ -1721,7 +1721,7 @@ func (service OrdersService) FindOrdersGoodsByCollageUser(CollageNo string) []mo
 	orm := singleton.Orm()
 	var user []model.User
 
-	orm.Raw("SELECT u.* FROM Orders o,OrdersGoods og,USER u WHERE og.CollageNo=? AND o.IsPay=1 and o.ID=og.OrdersID AND u.ID=o.UserID", CollageNo).Scan(&user)
+	orm.Raw(`SELECT u.* FROM Orders o,OrdersGoods og,USER u WHERE og."CollageNo"=? AND o."IsPay"=1 and o."ID"=og."OrdersID" AND u."ID"=o."UserID"`, CollageNo).Scan(&user)
 	//orm.Exec("SELECT u.* FROM Orders o,OrdersGoods og,USER u WHERE og.CollageNo=? AND o.ID=og.OrdersID AND u.ID=o.UserID", CollageNo).Find(&user)
 	return user
 }

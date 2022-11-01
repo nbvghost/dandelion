@@ -83,7 +83,7 @@ func (service UserService) Situation(StartTime, EndTime int64) interface{} {
 
 	var result Result
 
-	Orm.Table("User").Select("COUNT(ID) as TotalCount").Where("CreatedAt>=?", st).Where("CreatedAt<?", et).Find(&result)
+	Orm.Table("User").Select(`COUNT(ID) as "TotalCount"`).Where(`"CreatedAt">=?`, st).Where(`"CreatedAt"<?`, et).Find(&result)
 	//fmt.Println(result)
 	//todo://
 	//result.OnlineCount = len(gweb.Sessions.Data)
@@ -117,27 +117,27 @@ func (service UserService) LeveAll6(Orm *gorm.DB, OneSuperiorID types.PrimaryKey
 	var leveIDs []string
 
 	var user1 model.User
-	Orm.Model(&model.User{}).Where("ID=?", OneSuperiorID).First(&user1)
+	Orm.Model(&model.User{}).Where(`"ID"=?`, OneSuperiorID).First(&user1)
 	leveIDs = append(leveIDs, strconv.Itoa(int(user1.ID)))
 
 	var user2 model.User
-	Orm.Model(&model.User{}).Where("ID=?", user1.SuperiorID).First(&user2)
+	Orm.Model(&model.User{}).Where(`"ID"=?`, user1.SuperiorID).First(&user2)
 	leveIDs = append(leveIDs, strconv.Itoa(int(user2.ID)))
 
 	var user3 model.User
-	Orm.Model(&model.User{}).Where("ID=?", user2.SuperiorID).First(&user3)
+	Orm.Model(&model.User{}).Where(`"ID"=?`, user2.SuperiorID).First(&user3)
 	leveIDs = append(leveIDs, strconv.Itoa(int(user3.ID)))
 
 	var user4 model.User
-	Orm.Model(&model.User{}).Where("ID=?", user3.SuperiorID).First(&user4)
+	Orm.Model(&model.User{}).Where(`"ID"=?`, user3.SuperiorID).First(&user4)
 	leveIDs = append(leveIDs, strconv.Itoa(int(user4.ID)))
 
 	var user5 model.User
-	Orm.Model(&model.User{}).Where("ID=?", user4.SuperiorID).First(&user5)
+	Orm.Model(&model.User{}).Where(`"ID"=?`, user4.SuperiorID).First(&user5)
 	leveIDs = append(leveIDs, strconv.Itoa(int(user5.ID)))
 
 	var user6 model.User
-	Orm.Model(&model.User{}).Where("ID=?", user5.SuperiorID).First(&user6)
+	Orm.Model(&model.User{}).Where(`"ID"=?`, user5.SuperiorID).First(&user6)
 	leveIDs = append(leveIDs, strconv.Itoa(int(user6.ID)))
 
 	return strings.Join(leveIDs, ",")
@@ -148,7 +148,7 @@ func (service UserService) Leve1(UserID types.PrimaryKey) []uint {
 	if UserID <= 0 {
 		return levea
 	}
-	Orm.Model(&model.User{}).Where("SuperiorID=?", UserID).Pluck("ID", &levea)
+	Orm.Model(&model.User{}).Where(`"SuperiorID"=?`, UserID).Pluck(`"ID"`, &levea)
 	return levea
 }
 func (service UserService) Leve2(Leve1IDs []uint) []uint {
@@ -157,7 +157,7 @@ func (service UserService) Leve2(Leve1IDs []uint) []uint {
 	if len(Leve1IDs) <= 0 {
 		return levea
 	}
-	Orm.Model(&model.User{}).Where("SuperiorID in (?)", Leve1IDs).Pluck("ID", &levea)
+	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve1IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
 func (service UserService) Leve3(Leve2IDs []uint) []uint {
@@ -166,7 +166,7 @@ func (service UserService) Leve3(Leve2IDs []uint) []uint {
 	if len(Leve2IDs) <= 0 {
 		return levea
 	}
-	Orm.Model(&model.User{}).Where("SuperiorID in (?)", Leve2IDs).Pluck("ID", &levea)
+	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve2IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
 func (service UserService) Leve4(Leve3IDs []uint) []uint {
@@ -175,7 +175,7 @@ func (service UserService) Leve4(Leve3IDs []uint) []uint {
 	if len(Leve3IDs) <= 0 {
 		return levea
 	}
-	Orm.Model(&model.User{}).Where("SuperiorID in (?)", Leve3IDs).Pluck("ID", &levea)
+	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve3IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
 func (service UserService) Leve5(Leve4IDs []uint) []uint {
@@ -184,7 +184,7 @@ func (service UserService) Leve5(Leve4IDs []uint) []uint {
 	if len(Leve4IDs) <= 0 {
 		return levea
 	}
-	Orm.Model(&model.User{}).Where("SuperiorID in (?)", Leve4IDs).Pluck("ID", &levea)
+	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve4IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
 func (service UserService) Leve6(Leve5IDs []uint) []uint {
@@ -193,7 +193,7 @@ func (service UserService) Leve6(Leve5IDs []uint) []uint {
 	if len(Leve5IDs) <= 0 {
 		return levea
 	}
-	Orm.Model(&model.User{}).Where("SuperiorID in (?)", Leve5IDs).Pluck("ID", &levea)
+	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve5IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
 func (service UserService) GetUserInfo(UserID types.PrimaryKey) model.UserInfo {
@@ -224,7 +224,7 @@ func (service UserService) UserAction(context *gweb.Context) (r gweb.Result, err
 }
 func (service UserService) FindUserByTel(Orm *gorm.DB, Tel string) *model.User {
 	user := &model.User{}
-	err := Orm.Where("Phone=?", Tel).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
+	err := Orm.Where(`"Phone"=?`, Tel).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
 	glog.Error(err)
 	return user
 }
