@@ -554,7 +554,7 @@ func (service WxService) Order(ctx context.Context, OrderNo string, title, descr
 			Description: core.String(title + "-" + description),
 			OutTradeNo:  core.String(OrderNo),
 			Attach:      core.String(attach),
-			NotifyUrl:   core.String("https://miniapp.sites.ink/api/wx/notify"),
+			NotifyUrl:   core.String(wxConfig.OrderNotifyUrl),
 			Amount: &jsapi.Amount{
 				Total:    core.Int64(int64(Money)),
 				Currency: core.String("CNY"),
