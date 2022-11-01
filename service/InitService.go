@@ -83,6 +83,7 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 	models = append(models, model.DNS{})
 	models = append(models, model.Advert{})
 	models = append(models, model.WechatConfig{})
+	models = append(models, model.PushData{})
 
 	//set db session application name
 	_database.Exec(fmt.Sprintf("SET application_name='%s'", app))
