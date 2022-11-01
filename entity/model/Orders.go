@@ -15,15 +15,15 @@ import (
 type OrdersStatus string
 
 const (
-	OrdersStatusOrder    OrdersStatus = "Order"    // order=下单成功，待付款
-	OrdersStatusPay      OrdersStatus = "Pay"      // pay=支付成功，待发货
-	OrdersStatusDeliver  OrdersStatus = "Deliver"  // deliver=发货成功，待收货
-	OrdersStatusRefund   OrdersStatus = "Refund"   // Refund=订单退款退货中->所有子商品状态为空或OGRefundOK->返回Deliver状态
-	OrdersStatusRefundOk OrdersStatus = "RefundOk" // Orders 下的所有ordergoods 全部退款，orders 改为 RefundOk
-	OrdersStatusOrderOk  OrdersStatus = "OrderOk"  // order_ok=订单确认完成
-	OrdersStatusCancel   OrdersStatus = "Cancel"   //订单等待取消
-	OrdersStatusCancelOk OrdersStatus = "CancelOk" //订单已经取消
-	OrdersStatusDelete   OrdersStatus = "Delete"   // delete=删除
+	OrdersStatusOrder    OrdersStatus = "Order"    // 下单成功，待付款
+	OrdersStatusPay      OrdersStatus = "Pay"      // 支付成功，待发货
+	OrdersStatusDeliver  OrdersStatus = "Deliver"  // 发货成功，待收货
+	OrdersStatusRefund   OrdersStatus = "Refund"   // 订单退款退货中->所有子商品状态为空或OGRefundOK->返回Deliver状态
+	OrdersStatusRefundOk OrdersStatus = "RefundOk" // 下的所有ordergoods 全部退款，orders 改为 RefundOk
+	OrdersStatusOrderOk  OrdersStatus = "OrderOk"  // 订单确认完成
+	OrdersStatusCancel   OrdersStatus = "Cancel"   // 订单等待取消
+	OrdersStatusCancelOk OrdersStatus = "CancelOk" // 订单已经取消
+	OrdersStatusDelete   OrdersStatus = "Delete"   // 删除
 	OrdersStatusClosed   OrdersStatus = "Closed"   // 已经关闭
 
 )

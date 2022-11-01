@@ -4,25 +4,27 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
+	"math/rand"
+	"strings"
+	"sync"
+	"time"
+
+	etcdResolver "go.etcd.io/etcd/client/v3/naming/resolver"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
+	"google.golang.org/grpc/resolver"
+
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/etcd"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/pkg/errors"
-	etcdResolver "go.etcd.io/etcd/client/v3/naming/resolver"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/keepalive"
-	"google.golang.org/grpc/resolver"
-	"math/rand"
-	"sync"
 
-	"log"
-	"strings"
-	"time"
+	clientv3 "go.etcd.io/etcd/client/v3"
 
 	"github.com/nbvghost/dandelion/server/serviceobject"
-	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type server struct {
