@@ -1,13 +1,12 @@
 package model
 
 import (
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //账目明细
 type StoreJournal struct {
-	base.BaseModel
+	types.Entity
 	Name     string           `gorm:"column:Name;not null"`
 	Detail   string           `gorm:"column:Detail;not null"`
 	StoreID  types.PrimaryKey `gorm:"column:StoreID"`

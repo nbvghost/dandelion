@@ -7,13 +7,12 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //充值
 type SupplyOrders struct {
-	base.BaseModel
+	types.Entity
 	OID      types.PrimaryKey `gorm:"column:OID"`
 	UserID   types.PrimaryKey `gorm:"column:UserID"`         //用户ID，支付的用户ID
 	OrderNo  string           `gorm:"column:OrderNo;unique"` //订单号

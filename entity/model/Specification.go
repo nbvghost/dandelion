@@ -1,13 +1,12 @@
 package model
 
 import (
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 // Specification 商品规格
 type Specification struct {
-	base.BaseModel
+	types.Entity
 	GoodsID     types.PrimaryKey `gorm:"column:GoodsID"`
 	Label       string           `gorm:"column:Label"`
 	Size        string           `gorm:"column:Size"`

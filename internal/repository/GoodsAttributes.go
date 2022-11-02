@@ -1,12 +1,13 @@
 package repository
 
 import (
+	"reflect"
+
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gpa"
 	"github.com/nbvghost/gpa/types"
-	"reflect"
 )
 
 var GoodsAttributes = gpa.Bind(&GoodsAttributesRepository{}, &model.GoodsAttributes{}).(*GoodsAttributesRepository)

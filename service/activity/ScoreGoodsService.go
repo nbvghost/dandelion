@@ -2,6 +2,8 @@ package activity
 
 import (
 	"errors"
+	"time"
+
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/play"
@@ -9,7 +11,6 @@ import (
 	"github.com/nbvghost/dandelion/service/journal"
 
 	"github.com/nbvghost/gpa/types"
-	"time"
 )
 
 type ScoreGoodsService struct {

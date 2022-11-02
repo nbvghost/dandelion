@@ -1,17 +1,18 @@
 package journal
 
 import (
+	"errors"
+	"time"
+
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 
-	"github.com/nbvghost/gpa/types"
 	"gorm.io/gorm"
 
-	"errors"
-
-	"time"
+	"github.com/nbvghost/gpa/types"
 )
 
 type JournalService struct {
@@ -54,11 +55,11 @@ func (service JournalService) AddStoreJournal(DB *gorm.DB, StoreID types.Primary
 	}
 	logger.Balance = uint(Balance)
 
-	err := service.ChangeMap(DB, StoreID, &model.Store{}, map[string]interface{}{"Amount": Balance})
+	err := dao.UpdateByPrimaryKey(DB, &model.Store{}, StoreID, map[string]interface{}{"Amount": Balance})
 	if err != nil {
 		return err
 	}
-	return service.Add(DB, logger)
+	return dao.Create(DB, logger)
 }
 
 func (service JournalService) ListUserJournalLeveBrokerage(UserID types.PrimaryKey, IDs []uint) interface{} {
@@ -117,11 +118,11 @@ func (service JournalService) AddOrganizationJournal(DB *gorm.DB, OID types.Prim
 	}
 	logger.Balance = uint(Balance)
 
-	err := service.ChangeMap(DB, OID, &model.Organization{}, map[string]interface{}{"Amount": Balance})
+	err := dao.UpdateByPrimaryKey(DB, &model.Organization{}, OID, map[string]interface{}{"Amount": Balance})
 	if err != nil {
 		return err
 	}
-	err = service.Add(DB, logger)
+	err = dao.Create(DB, logger)
 
 	return err
 }
@@ -146,11 +147,11 @@ func (service JournalService) AddUserJournal(DB *gorm.DB, UserID types.PrimaryKe
 	}
 	logger.Balance = uint(Balance)
 
-	err := service.ChangeMap(DB, UserID, &model.User{}, map[string]interface{}{"Amount": Balance})
+	err := dao.UpdateByPrimaryKey(DB, &model.User{}, UserID, map[string]interface{}{"Amount": Balance})
 	if err != nil {
 		return err
 	}
-	err = service.Add(DB, logger)
+	err = dao.Create(DB, logger)
 
 	return err
 }
@@ -173,11 +174,11 @@ func (service JournalService) AddScoreJournal(DB *gorm.DB, UserID types.PrimaryK
 	}
 	logger.Balance = uint(Balance)
 
-	err := service.ChangeMap(DB, UserID, &model.User{}, map[string]interface{}{"Score": Balance})
+	err := dao.UpdateByPrimaryKey(DB, &model.User{}, UserID, map[string]interface{}{"Score": Balance})
 	if err != nil {
 		return err
 	}
-	err = service.Add(DB, logger)
+	err = dao.Create(DB, logger)
 
 	return err
 }

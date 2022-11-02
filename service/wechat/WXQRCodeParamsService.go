@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/singleton"
 
 	"github.com/nbvghost/glog"
@@ -22,7 +24,7 @@ func (service WXQRCodeParamsService) addParams(key string, params map[string]int
 	wxParams := &model.WXQRCodeParams{}
 	wxParams.CodeKey = key
 	wxParams.Params = string(b)
-	err := service.Add(singleton.Orm(), wxParams)
+	err := dao.Create(singleton.Orm(), wxParams)
 	if glog.Error(err) {
 		return wxParams, err
 	}

@@ -1,13 +1,12 @@
 package model
 
 import (
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //Score明细
 type ScoreJournal struct {
-	base.BaseModel
+	types.Entity
 	Name    string           `gorm:"column:Name;not null"`    //
 	Detail  string           `gorm:"column:Detail;not null"`  //
 	UserID  types.PrimaryKey `gorm:"column:UserID"`           //

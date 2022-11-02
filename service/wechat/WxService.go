@@ -22,7 +22,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/singleton"
@@ -51,65 +50,6 @@ type WxService struct {
 	User user.UserService
 	//Orders       order.OrdersService
 	Organization company.OrganizationService
-}
-
-type MiniSecureKey struct {
-	AppID     string
-	AppSecret string
-}
-type MiniApp struct {
-	MiniSecureKey
-	MchID                      string //= "190000****"                                // 商户号
-	MchCertificateSerialNumber string //= "3775B6A45ACD588826D15E583A95F5DD********"  // 商户证书序列号
-	MchAPIv2Key                string //= "2ab9****************************"          // 商户APIv3密钥
-	MchAPIv3Key                string //= "2ab9****************************"          // 商户APIv3密钥
-}
-type MiniWeb struct {
-	MiniSecureKey
-}
-
-type TokenXML struct {
-	AppId   string `xml:AppId`
-	Encrypt string `xml:Encrypt`
-}
-type AccessToken struct {
-	Access_token string
-	Expires_in   int64
-	Update       int64
-}
-type Ticket struct {
-	Ticket     string
-	Expires_in int64
-	Update     int64
-}
-
-type PushInfo struct {
-	AppId                 string `xml:AppId`
-	CreateTime            int64  `xml:CreateTime`
-	InfoType              string `xml:InfoType`
-	ComponentVerifyTicket string `xml:ComponentVerifyTicket`
-}
-type WxOrderResult struct {
-	Return_code  string `xml:"return_code"`
-	Return_msg   string `xml:"return_msg"`
-	Appid        string `xml:"appid"`
-	Mch_id       string `xml:"mch_id"`
-	Nonce_str    string `xml:"nonce_str"`
-	Sign         string `xml:"sign"`
-	Result_code  string `xml:"result_code"`
-	Prepay_id    string `xml:"prepay_id"`
-	Trade_type   string `xml:"trade_type"`
-	Err_code_des string `xml:"err_code_des"`
-}
-
-type WXDetail struct {
-	Goods_detail []WXGoodsDetail `json:"goods_detail"`
-}
-type WXGoodsDetail struct {
-	Goods_id   string `json:"goods_id"`
-	Goods_name string `json:"goods_name"`
-	Quantity   string `json:"quantity"`
-	Price      string `json:"price"`
 }
 
 var accessTokenMap = make(map[string]*AccessToken)
@@ -283,263 +223,6 @@ func (service WxService) MiniProgramInfo(Code, AppID, AppSecret string) (err err
 
 }
 
-//新用户加入，绑定上下级关系
-func (service WxService) NewUserJoinNotify(NewUser model.User, notifyUser model.User) *result.ActionResult {
-
-	as := &result.ActionResult{}
-
-	/*userFormID := service.User.GetFromIDs(notifyUser.ID)
-	if userFormID.ID == 0 {
-		as.Code = result.Fail
-		as.Message = "没有找到，用户的formid"
-	} else {
-
-		sendData := make(map[string]interface{})
-		sendData["touser"] = notifyUser.OpenID
-
-		weapp_template_msg_data := make(map[string]interface{})
-		weapp_template_msg_data["page"] = "pages/user/user"
-		weapp_template_msg_data["template_id"] = "YfEY2Xbju5-fm3Naww3EbVYQPUPIjorESo-KV-KXZvs"
-		weapp_template_msg_data["form_id"] = userFormID.FormId
-
-		data_data := make(map[string]interface{})
-		data_data["keyword1"] = map[string]interface{}{"value": strconv.Itoa(int(NewUser.ID)), "color": "#173177"}
-		if NewUser.Gender == 1 {
-			data_data["keyword2"] = map[string]interface{}{"value": "男", "color": "#173177"}
-		} else if NewUser.Gender == 2 {
-			data_data["keyword2"] = map[string]interface{}{"value": "女", "color": "#173177"}
-		} else {
-			data_data["keyword2"] = map[string]interface{}{"value": "未知", "color": "#173177"}
-		}
-
-		data_data["keyword3"] = map[string]interface{}{"value": NewUser.CreatedAt.Format("2006-01-02 15:04:05"), "color": "#173177"}
-		data_data["keyword4"] = map[string]interface{}{"value": NewUser.Name, "color": "#173177"}
-		data_data["keyword5"] = map[string]interface{}{"value": NewUser.Name + "已经成为您的好友，他（她）下单您会获得奖励喔！", "color": "#173177"}
-
-		weapp_template_msg_data["data"] = data_data
-
-		sendData["weapp_template_msg"] = weapp_template_msg_data
-
-		var errcode int
-		as, errcode = service.SendUniformMessage(sendData)
-		if as.Code == result.Success || errcode == 41028 {
-			service.User.Delete(singleton.Orm(), &model.UserFormIds{}, userFormID.ID)
-		}
-
-	}*/
-
-	return as
-}
-
-//发货通知
-func (service WxService) OrderDeliveryNotify(Order model.Orders, ogs []model.OrdersGoods, wxConfig *model.WechatConfig) *result.ActionResult {
-
-	if Order.ID == 0 {
-		return &result.ActionResult{Code: result.Fail, Message: "找不到订单", Data: nil}
-	}
-
-	var notifyUser model.User
-	service.User.Get(singleton.Orm(), Order.UserID, &notifyUser)
-
-	var as *result.ActionResult
-
-	weapp_template_msg_data := make(map[string]interface{})
-	weapp_template_msg_data["page"] = "pages/user/user"
-	weapp_template_msg_data["template_id"] = "MHiJR_3T2W4LJVhwOVctO6Lr7fxC9rSCO924dwSoYrY"
-	weapp_template_msg_data["form_id"] = Order.PrepayID
-	weapp_template_msg_data["touser"] = notifyUser.OpenID
-
-	data_data := make(map[string]interface{})
-	data_data["keyword1"] = map[string]interface{}{"value": Order.ShipName, "color": "#173177"}
-	data_data["keyword2"] = map[string]interface{}{"value": Order.ShipNo, "color": "#173177"}
-
-	var Titles = ""
-	for _, value := range ogs {
-		var goods model.Goods
-		json.Unmarshal([]byte(value.Goods), &goods)
-		Titles += goods.Title
-	}
-	if len(Titles) > 48 {
-		Titles = Titles[:48] + "等"
-	}
-
-	data_data["keyword3"] = map[string]interface{}{"value": Titles, "color": "#173177"}
-	data_data["keyword4"] = map[string]interface{}{"value": Order.DeliverTime.Format("2006-01-02 15:04:05"), "color": "#173177"}
-
-	weapp_template_msg_data["data"] = data_data
-
-	as = service.SendWXMessage(weapp_template_msg_data, wxConfig)
-
-	return as
-}
-
-//收入提醒
-/*
-@slUser 收入的用户
-*/
-func (service WxService) INComeNotify(slUser model.User, itemName string, timeText string, typeText string) *result.ActionResult {
-	//
-	var as = &result.ActionResult{Code: result.Fail}
-
-	/*if slUser.ID == 0 {
-		return &result.ActionResult{Code: result.Fail, Message: "用户不存在", Data: nil}
-	}
-
-	//var notifyUser model.User
-	//model.User.Get(singleton.Orm(), slUser.SuperiorID, &notifyUser)
-
-
-
-	userFormID := service.User.GetFromIDs(slUser.ID)
-	if userFormID.ID == 0 {
-		as.Code = result.Fail
-		as.Message = "没有找到，用户的formid"
-
-	} else {
-
-		sendData := make(map[string]interface{})
-		sendData["touser"] = slUser.OpenID
-
-		weapp_template_msg_data := make(map[string]interface{})
-		weapp_template_msg_data["page"] = "pages/user/user"
-		weapp_template_msg_data["template_id"] = "xV23xWZgdNViUiD1fk-1edKNY7QNJnv4SD6tY7pu8w4"
-		weapp_template_msg_data["form_id"] = userFormID.FormId
-
-		data_data := make(map[string]interface{})
-		data_data["keyword1"] = map[string]interface{}{"value": itemName, "color": "#173177"}
-		data_data["keyword2"] = map[string]interface{}{"value": timeText, "color": "#173177"}
-		data_data["keyword3"] = map[string]interface{}{"value": typeText, "color": "#ff0000"}
-
-		weapp_template_msg_data["data"] = data_data
-
-		sendData["weapp_template_msg"] = weapp_template_msg_data
-
-		var errcode int
-		as, errcode = service.SendUniformMessage(sendData)
-		if as.Code == result.Success || errcode == 41028 {
-			service.User.Delete(singleton.Orm(), &model.UserFormIds{}, userFormID.ID)
-		}
-
-	}*/
-
-	return as
-}
-
-//新订单
-func (service WxService) NewOrderNotify(Order model.Orders, ogs []model.OrdersGoods, wxConfig *model.WechatConfig) *result.ActionResult {
-
-	if Order.ID == 0 {
-		return &result.ActionResult{Code: result.Fail, Message: "找不到订单", Data: nil}
-	}
-
-	var notifyUser model.User
-	service.User.Get(singleton.Orm(), Order.UserID, &notifyUser)
-
-	var as *result.ActionResult
-
-	weapp_template_msg_data := make(map[string]interface{})
-	weapp_template_msg_data["page"] = "pages/user/user"
-	weapp_template_msg_data["template_id"] = "bah5ch6kSTi4dvbYzlZ80m7usPIe7PWZEW7Csk_HOy0"
-	weapp_template_msg_data["form_id"] = Order.PrepayID
-	weapp_template_msg_data["touser"] = notifyUser.OpenID
-
-	data_data := make(map[string]interface{})
-	data_data["keyword1"] = map[string]interface{}{"value": notifyUser.Name, "color": "#173177"}
-	data_data["keyword2"] = map[string]interface{}{"value": Order.OrderNo, "color": "#173177"}
-
-	var address extends.Address
-	json.Unmarshal([]byte(Order.Address), &address)
-	addressText := address.Name + "/" + address.ProvinceName + address.CityName + address.CountyName + address.Detail + address.PostalCode + "/" + address.Tel
-
-	data_data["keyword3"] = map[string]interface{}{"value": addressText, "color": "#173177"}
-
-	data_data["keyword4"] = map[string]interface{}{"value": Order.PayTime.Format("2006-01-02 15:04:05"), "color": "#173177"}
-
-	var org model.Organization
-	service.Organization.Get(singleton.Orm(), Order.OID, &org)
-	data_data["keyword5"] = map[string]interface{}{"value": org.Name, "color": "#173177"}
-
-	data_data["keyword6"] = map[string]interface{}{"value": strconv.Itoa(int(Order.PayMoney/100)) + "元", "color": "#173177"}
-
-	var Titles = ""
-	for _, value := range ogs {
-		var goods model.Goods
-		json.Unmarshal([]byte(value.Goods), &goods)
-		Titles += goods.Title
-	}
-	if len(Titles) > 48 {
-		Titles = Titles[:48] + "等"
-	}
-	data_data["keyword7"] = map[string]interface{}{"value": Titles, "color": "#173177"}
-	data_data["keyword8"] = map[string]interface{}{"value": "如有疑问，请联系客服", "color": "#173177"}
-
-	weapp_template_msg_data["data"] = data_data
-
-	as = service.SendWXMessage(weapp_template_msg_data, wxConfig)
-
-	return as
-}
-func (service WxService) SendUniformMessage(sendData map[string]interface{}, wxConfig *model.WechatConfig) (*result.ActionResult, int) {
-
-	//gzh := model.MiniWeb()
-	//xcx := service.MiniProgram()
-
-	b, err := json.Marshal(sendData)
-	glog.Error(err)
-
-	access_token := service.GetAccessToken(wxConfig)
-	strReader := strings.NewReader(string(b))
-	respones, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/uniform_send?access_token="+access_token, "application/json", strReader)
-	glog.Error(err)
-	if err != nil {
-		return &result.ActionResult{Code: result.Fail, Message: err.Error(), Data: nil}, -1
-	}
-	defer respones.Body.Close()
-	body, err := ioutil.ReadAll(respones.Body)
-	glog.Error(err)
-	mapData := make(map[string]interface{})
-	fmt.Println(string(body))
-	err = json.Unmarshal(body, &mapData)
-	glog.Error(err)
-	if mapData["errcode"] != nil {
-		if mapData["errcode"].(float64) == 0 {
-			return &result.ActionResult{Code: result.Success, Message: "发送成功", Data: nil}, 0
-		}
-	}
-	return &result.ActionResult{Code: result.Fail, Message: mapData["errmsg"].(string), Data: nil}, int(mapData["errcode"].(float64))
-
-}
-func (service WxService) SendWXMessage(sendData map[string]interface{}, wxConfig *model.WechatConfig) *result.ActionResult {
-	b, err := json.Marshal(sendData)
-	glog.Error(err)
-
-	//WxConfig := service.MiniProgram()
-
-	access_token := service.GetAccessToken(wxConfig)
-	strReader := strings.NewReader(string(b))
-	respones, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token="+access_token, "application/json", strReader)
-	glog.Error(err)
-	if err != nil {
-		return &result.ActionResult{Code: result.Fail, Message: err.Error(), Data: nil}
-	}
-	defer respones.Body.Close()
-	body, err := ioutil.ReadAll(respones.Body)
-	glog.Error(err)
-	mapData := make(map[string]interface{})
-	fmt.Println(string(body))
-	err = json.Unmarshal(body, &mapData)
-	glog.Error(err)
-	if mapData["errcode"] != nil {
-		if mapData["errcode"].(float64) == 0 {
-			return &result.ActionResult{Code: result.Success, Message: "发送成功", Data: nil}
-		} else {
-			//mapData["errcode"].(float64)
-			return &result.ActionResult{Code: result.Fail, Message: mapData["errmsg"].(string), Data: nil}
-		}
-	}
-	return &result.ActionResult{Code: result.Fail, Message: mapData["errmsg"].(string), Data: nil}
-
-}
 func (service WxService) Order(ctx context.Context, OrderNo string, title, description string, detail, openid string, IP string, Money uint, attach string, wxConfig *model.WechatConfig) (Success result.ActionResultCode, Message string, wxResult *jsapi.PrepayWithRequestPaymentResponse) {
 	client, err := NewClient(wxConfig)
 	if err != nil {
@@ -802,8 +485,6 @@ func (service WxService) GetTransfersInfo(transfers model.Transfers, wxConfig *m
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
 	glog.Trace(err)
-	//fmt.Println(string(b))
-	//certs, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")
 
 	// Load client cert
 	cert, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")
@@ -902,8 +583,6 @@ func (service WxService) Transfers(transfers model.Transfers, wxConfig *model.We
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
 	glog.Trace(err)
-	//fmt.Println(string(b))
-	//certs, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")
 
 	// Load client cert
 	cert, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")
@@ -1027,11 +706,6 @@ func (service WxService) CloseOrder(OrderNo string, OID types.PrimaryKey, wxConf
 
 //退款
 func (service WxService) Refund(order model.Orders, ordersPackage model.OrdersPackage, PayMoney, RefundMoney uint, Desc string, Type uint, wxConfig *model.WechatConfig) (Success bool, Message string) {
-	//WxConfig := service.MiniProgram()
-
-	//Orders := OrdersService{}
-	//op := Orders.GetOrdersPackageByOrderNo(order.OrdersPackageNo)
-	//op := Orders.GetOrdersByOrderNo(order.OrdersPackageNo)
 
 	outMap := make(util.Map)
 	outMap["appid"] = wxConfig.AppID
@@ -1072,8 +746,6 @@ func (service WxService) Refund(order model.Orders, ordersPackage model.OrdersPa
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
 	glog.Trace(err)
-	//fmt.Println(string(b))
-	//certs, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")
 
 	// Load client cert
 	cert, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")

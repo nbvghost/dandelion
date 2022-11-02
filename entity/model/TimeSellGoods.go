@@ -1,13 +1,12 @@
 package model
 
 import (
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //限时抢购商品
 type TimeSellGoods struct {
-	base.BaseModel
+	types.Entity
 	OID          types.PrimaryKey `gorm:"column:OID"`
 	TimeSellHash string           `gorm:"column:TimeSellHash"`
 	GoodsID      types.PrimaryKey `gorm:"column:GoodsID"`

@@ -22,11 +22,12 @@ func GetBy(tx *gorm.DB, model types.IEntity, where map[string]any) types.IEntity
 	tx.Model(model).Where(where).Take(item.Interface())
 	return item.Interface().(types.IEntity)
 }
-
 func Create(tx *gorm.DB, value types.IEntity) error {
 	return tx.Model(value).Create(value).Error
 }
-
+func Save(tx *gorm.DB, value types.IEntity) error {
+	return tx.Save(value).Error
+}
 func Find(tx *gorm.DB, model types.IEntity) []types.IEntity {
 	return FindBy(tx, model, map[string]any{})
 }

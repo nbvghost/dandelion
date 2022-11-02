@@ -1,13 +1,12 @@
 package model
 
 import (
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //拼团商品
 type CollageGoods struct {
-	base.BaseModel
+	types.Entity
 	OID         types.PrimaryKey `gorm:"column:OID"`
 	CollageHash string           `gorm:"column:CollageHash"`
 	GoodsID     types.PrimaryKey `gorm:"column:GoodsID"`

@@ -3,11 +3,11 @@ package model
 import (
 	"time"
 
-	"github.com/nbvghost/dandelion/entity/base"
+	"github.com/nbvghost/gpa/types"
 )
 
 type QuestionTag struct {
-	base.BaseModel
+	types.Entity
 	Name      string
 	Introduce string
 }
@@ -17,7 +17,7 @@ func (QuestionTag) TableName() string {
 }
 
 type Question struct {
-	base.BaseModel
+	types.Entity
 	UserID        uint      `gorm:"column:UserID"`               //
 	Title         string    `gorm:"column:Title"`                //
 	Describe      string    `gorm:"column:Describe;type:text"`   //描述
@@ -41,7 +41,7 @@ func (Question) TableName() string {
 }
 
 type AnswerQuestion struct {
-	base.BaseModel
+	types.Entity
 	UserID     uint
 	QuestionID uint
 	Content    string

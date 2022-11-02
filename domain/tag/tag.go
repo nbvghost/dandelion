@@ -1,10 +1,11 @@
 package tag
 
 import (
-	"github.com/lib/pq"
-	"github.com/nbvghost/dandelion/entity/extends"
 	"regexp"
 	"strings"
+
+	"github.com/lib/pq"
+	"github.com/nbvghost/dandelion/entity/extends"
 )
 
 var kg = regexp.MustCompile(`\s+`)

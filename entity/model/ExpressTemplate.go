@@ -6,12 +6,11 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 type ExpressTemplate struct {
-	base.BaseModel
+	types.Entity
 	OID      types.PrimaryKey `gorm:"column:OID"`
 	Name     string           `gorm:"column:Name"`
 	Drawee   string           `gorm:"column:Drawee"`             //付款人

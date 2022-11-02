@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
@@ -40,7 +41,7 @@ func (service CardItemService) ListNewCount(UserID types.PrimaryKey) (TotalRecor
 func (service CardItemService) CancelOrdersGoodsCardItem(DB *gorm.DB, UserID types.PrimaryKey, ogs []model.OrdersGoods) error {
 
 	for _, value := range ogs {
-		err := service.DeleteWhere(DB, &model.CardItem{}, map[string]interface{}{
+		err := dao.DeleteBy(DB, &model.CardItem{}, map[string]interface{}{
 			"UserID":        UserID,
 			"Type":          CardItem_Type_OrdersGoods,
 			"OrdersGoodsID": value.ID,
@@ -60,8 +61,8 @@ func (service CardItemService) FindByUserID(UserID types.PrimaryKey) []model.Car
 
 //添加Voucher
 func (service CardItemService) AddVoucherCardItem(DB *gorm.DB, OrderNo string, UserID, VoucherID types.PrimaryKey) error {
-	var voucher model.Voucher
-	service.Voucher.Get(DB, VoucherID, &voucher)
+
+	voucher := dao.GetByPrimaryKey(DB, &model.Voucher{}, VoucherID).(*model.Voucher)
 
 	cardItem := model.CardItem{}
 	cardItem.OrderNo = OrderNo
@@ -72,7 +73,7 @@ func (service CardItemService) AddVoucherCardItem(DB *gorm.DB, OrderNo string, U
 	cardItem.Data = util.StructToJSON(voucher)
 	cardItem.Quantity = 1
 	cardItem.ExpireTime = time.Now().Add(time.Hour * 24 * time.Duration(voucher.UseDay))
-	err := service.Add(DB, &cardItem)
+	err := dao.Create(DB, &cardItem)
 	if err != nil {
 		return err
 	}
@@ -82,10 +83,11 @@ func (service CardItemService) AddVoucherCardItem(DB *gorm.DB, OrderNo string, U
 //添加Voucher
 func (service CardItemService) AddScoreGoodsItem(DB *gorm.DB, UserID, ScoreGoodsID types.PrimaryKey) error {
 
-	scoreGoodsService := ScoreGoodsService{}
+	//scoreGoodsService := ScoreGoodsService{}
 
-	var scoreGoods model.ScoreGoods
-	scoreGoodsService.Get(DB, ScoreGoodsID, &scoreGoods)
+	//var scoreGoods model.ScoreGoods
+	//scoreGoodsService.Get(DB, ScoreGoodsID, &scoreGoods)
+	scoreGoods := dao.GetByPrimaryKey(DB, &model.ScoreGoods{}, ScoreGoodsID).(*model.ScoreGoods)
 
 	cardItem := model.CardItem{}
 	cardItem.PostType = 0
@@ -96,7 +98,7 @@ func (service CardItemService) AddScoreGoodsItem(DB *gorm.DB, UserID, ScoreGoods
 	cardItem.Data = util.StructToJSON(scoreGoods)
 	cardItem.Quantity = 1
 	cardItem.ExpireTime = time.Now().Add(time.Hour * 24 * 365)
-	err := service.Add(DB, &cardItem)
+	err := dao.Create(DB, &cardItem)
 	if err != nil {
 		return err
 	}
@@ -116,7 +118,7 @@ func (service CardItemService) AddOrdersGoodsCardItem(DB *gorm.DB, orders model.
 		cardItem.Data = util.StructToJSON(goods)
 		cardItem.Quantity = goods.Quantity
 		cardItem.ExpireTime = time.Now().Add(time.Hour * 24 * 365)
-		err := service.Add(DB, &cardItem)
+		err := dao.Create(DB, &cardItem)
 		if err != nil {
 			return err
 		}

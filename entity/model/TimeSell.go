@@ -7,13 +7,12 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //限时抢购
 type TimeSell struct {
-	base.BaseModel
+	types.Entity
 	OID       types.PrimaryKey `gorm:"column:OID"`
 	Hash      string           `gorm:"column:Hash;unique"` //同一个Hash表示同一个活动
 	BuyNum    int              `gorm:"column:BuyNum"`

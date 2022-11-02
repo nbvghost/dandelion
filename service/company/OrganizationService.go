@@ -2,11 +2,14 @@ package company
 
 import (
 	"errors"
+
+	"gorm.io/gorm"
+
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gpa/types"
-	"gorm.io/gorm"
 )
 
 type OrganizationService struct {
@@ -15,10 +18,9 @@ type OrganizationService struct {
 
 func (service OrganizationService) AddOrganizationBlockAmount(Orm *gorm.DB, OID types.PrimaryKey, Menoy int64) error {
 
-	var org model.Organization
-	err := service.Get(Orm, OID, &org)
-	if err != nil {
-		return err
+	org := dao.GetByPrimaryKey(Orm, &model.Organization{}, OID).(*model.Organization)
+	if org.IsZero() {
+		return errors.New("没找到数据")
 	}
 
 	tm := int64(org.BlockAmount) + Menoy
@@ -26,7 +28,7 @@ func (service OrganizationService) AddOrganizationBlockAmount(Orm *gorm.DB, OID 
 		return errors.New("冻结金额不足，无法扣款")
 	}
 
-	err = service.ChangeMap(singleton.Orm(), OID, &model.Organization{}, map[string]interface{}{"BlockAmount": tm})
+	err := dao.UpdateByPrimaryKey(singleton.Orm(), &model.Organization{}, OID, map[string]interface{}{"BlockAmount": tm})
 	return err
 }
 func (service OrganizationService) FindByName(Orm *gorm.DB, Name string) *model.Organization {
@@ -46,22 +48,22 @@ func (service OrganizationService) FindByDomain(Orm *gorm.DB, Domain string) *mo
 	Orm.Where(map[string]interface{}{"ID": dns.OID}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)
 	return manager
 }
-func (service OrganizationService) GetOrganization(ID types.PrimaryKey) model.Organization {
+func (service OrganizationService) GetOrganization(ID types.PrimaryKey) types.IEntity {
 	Orm := singleton.Orm()
-	target := model.Organization{}
-	service.Get(Orm, ID, &target)
-	return target
+	//target := model.Organization{}
+	//service.Get(Orm, ID, &target)
+	return dao.GetByPrimaryKey(Orm, &model.Organization{}, ID)
 }
 
 func (service OrganizationService) DelCompany(ID types.PrimaryKey) error {
 	Orm := singleton.Orm()
-	return service.Delete(Orm, model.Organization{}, ID)
+	return dao.DeleteByPrimaryKey(Orm, &model.Organization{}, ID)
 }
 func (service OrganizationService) ChangeOrganization(ID types.PrimaryKey, shop *model.Organization) error {
 	Orm := singleton.Orm()
 	//return Orm.Save(article).Error
 	//err := db.Orm.Save(shop).Error
-	org := service.GetOrganization(ID)
+	org := service.GetOrganization(ID).(*model.Organization)
 	if org.IsZero() {
 		return errors.New("企业信息不存在")
 	} else {
@@ -69,7 +71,7 @@ func (service OrganizationService) ChangeOrganization(ID types.PrimaryKey, shop 
 		shop.BlockAmount = org.BlockAmount
 		shop.Vip = org.Vip
 		shop.Expire = org.Expire
-		err := service.ChangeModel(Orm, ID, shop)
+		err := dao.UpdateByPrimaryKey(Orm, &model.Organization{}, ID, shop)
 		if glog.Error(err) {
 			return err
 		} else {

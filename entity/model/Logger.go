@@ -6,11 +6,11 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/entity/base"
+	"github.com/nbvghost/gpa/types"
 )
 
 type Logger struct {
-	base.BaseModel
+	types.Entity
 	OID   uint   `gorm:"column:OID"`
 	Key   int    `gorm:"column:Key"`
 	Title string `gorm:"column:Title"`

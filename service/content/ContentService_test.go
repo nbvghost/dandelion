@@ -1,8 +1,9 @@
 package content
 
 import (
-	"github.com/nbvghost/gpa/types"
 	"testing"
+
+	"github.com/nbvghost/gpa/types"
 )
 
 func init() {

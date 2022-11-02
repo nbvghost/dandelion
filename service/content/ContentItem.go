@@ -1,10 +1,11 @@
 package content
 
 import (
+	"gorm.io/gorm"
+
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/gpa/types"
-	"gorm.io/gorm"
 )
 
 func (service ContentService) ListContentItemByOID(OID types.PrimaryKey) []model.ContentItem {

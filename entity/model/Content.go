@@ -2,7 +2,6 @@ package model
 
 import (
 	"github.com/lib/pq"
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/gpa/types"
 )
@@ -57,7 +56,7 @@ const (
 
 //MenuType
 type ContentType struct {
-	base.BaseModel
+	types.Entity
 	Label string          `gorm:"column:Label"`
 	Type  ContentTypeType `gorm:"column:Type;unique"`
 }

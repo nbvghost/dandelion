@@ -6,13 +6,12 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/gpa/types"
 )
 
 type Configuration struct {
-	base.BaseModel
+	types.Entity
 	OID types.PrimaryKey         `gorm:"column:OID"`
 	K   sqltype.ConfigurationKey `gorm:"column:K"`
 	V   string                   `gorm:"column:V"`

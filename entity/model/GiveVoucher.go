@@ -6,13 +6,12 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //条件增送优惠卷
 type GiveVoucher struct {
-	base.BaseModel
+	types.Entity
 	OID           uint             `gorm:"column:OID"`
 	ScoreMaxValue uint             `gorm:"column:ScoreMaxValue"`
 	VoucherID     types.PrimaryKey `gorm:"column:VoucherID"`

@@ -46,6 +46,7 @@ type OrdersService struct {
 	ExpressTemplate express.ExpressTemplateService
 	FullCut         activity.FullCutService
 	Wx              wechat.WxService
+	MessageNotify   wechat.MessageNotify
 	Journal         journal.JournalService
 	CardItem        activity.CardItemService
 	Organization    company.OrganizationService
@@ -70,8 +71,11 @@ func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders mo
 		Brokerage = Brokerage + value.TotalBrokerage
 	}
 
-	var user model.User
-	service.Get(tx, orders.UserID, &user)
+	var orderUser model.User
+	err = service.Get(tx, orders.UserID, &orderUser)
+	if err != nil {
+		return err
+	}
 
 	leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve1).V)
 	leve2 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve2).V)
@@ -88,7 +92,10 @@ func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders mo
 			break
 		}
 		var _user model.User
-		service.Get(tx, user.SuperiorID, &_user)
+		err = service.Get(tx, orderUser.SuperiorID, &_user)
+		if err != nil {
+			return err
+		}
 		if _user.ID <= 0 {
 			return nil
 		}
@@ -103,7 +110,7 @@ func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders mo
 
 		//service.Wx.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，预计现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "预计收入："+strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64)+"元")
 		//fmt.Println("预计收入：" + strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64) + "元")
-		user = _user
+		orderUser = _user
 	}
 
 	return err
@@ -124,8 +131,11 @@ func (service OrdersService) FirstSettlementUserBrokerage(tx *gorm.DB, orders mo
 		Brokerage = Brokerage + value.TotalBrokerage
 	}
 
-	var user model.User
-	service.Get(tx, orders.UserID, &user)
+	var orderUser model.User
+	err = service.Get(tx, orders.UserID, &orderUser)
+	if err != nil {
+		return err
+	}
 
 	leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve1).V)
 	leve2 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve2).V)
@@ -142,7 +152,10 @@ func (service OrdersService) FirstSettlementUserBrokerage(tx *gorm.DB, orders mo
 			break
 		}
 		var _user model.User
-		service.Get(tx, user.SuperiorID, &_user)
+		err = service.Get(tx, orderUser.SuperiorID, &_user)
+		if err != nil {
+			return err
+		}
 		if _user.ID <= 0 {
 			return nil
 		}
@@ -155,9 +168,9 @@ func (service OrdersService) FirstSettlementUserBrokerage(tx *gorm.DB, orders mo
 		//OutBrokerageMoney = OutBrokerageMoney + leveMenoy
 		workTime := time.Now().Unix() - orders.CreatedAt.Unix()
 
-		service.Wx.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，预计现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "预计收入："+strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64)+"元")
+		service.MessageNotify.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，预计现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "预计收入："+strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64)+"元")
 		//fmt.Println("预计收入：" + strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64) + "元")
-		user = _user
+		orderUser = _user
 	}
 
 	return err
@@ -776,7 +789,7 @@ func (service OrdersService) Deliver(ShipName, ShipNo string, OrdersID types.Pri
 		return err
 	}
 
-	as := service.Wx.OrderDeliveryNotify(orders, ogs, wxConfig)
+	as := service.MessageNotify.OrderDeliveryNotify(orders, ogs, wxConfig)
 	if as.Code != result.Success {
 
 		err = errors.New(as.Message)
@@ -953,8 +966,7 @@ func (service OrdersService) ListOrders(UserID, OID types.PrimaryKey, PostType i
 	return service.ListOrdersDate(UserID, OID, PostType, Status, time.Unix(0, 0), time.Unix(0, 0), Limit, Offset)
 }
 
-//func (service OrdersService) OrderNotify(result util.Map) (Success bool, Message string) {
-func (service OrdersService) OrderNotify(total_fee uint, out_trade_no, pay_time, attach string) (Success bool, Message string) {
+func (service OrdersService) OrderNotify(totalFee uint, outTradeNo, payTime, attach string) (Success bool, Message string) {
 
 	//Orm := singleton.Orm()
 
@@ -965,17 +977,17 @@ func (service OrdersService) OrderNotify(total_fee uint, out_trade_no, pay_time,
 
 	if strings.EqualFold(attach, play.OrdersType_Supply) {
 		//充值的，目前只涉及到门店自主核销的时候，才需要用到充值
-		orders := service.GetSupplyOrdersByOrderNo(out_trade_no)
+		orders := service.GetSupplyOrdersByOrderNo(outTradeNo)
 		if orders.IsPay == 0 {
 			tx := singleton.Orm().Begin()
-			t, _ := time.ParseInLocation("20060102150405", pay_time, time.Local)
-			err := service.ChangeModel(tx, orders.ID, &model.SupplyOrders{PayTime: t, IsPay: 1, PayMoney: total_fee})
+			t, _ := time.ParseInLocation("20060102150405", payTime, time.Local)
+			err := service.ChangeModel(tx, orders.ID, &model.SupplyOrders{PayTime: t, IsPay: 1, PayMoney: totalFee})
 			if err != nil {
 				tx.Rollback()
 				return false, err.Error()
 			} else {
 				if strings.EqualFold(orders.Type, play.SupplyType_Store) {
-					err := service.Journal.AddStoreJournal(tx, orders.StoreID, "门店", "充值", play.StoreJournal_Type_CZ, int64(total_fee), orders.ID)
+					err := service.Journal.AddStoreJournal(tx, orders.StoreID, "门店", "充值", play.StoreJournal_Type_CZ, int64(totalFee), orders.ID)
 					if err != nil {
 						tx.Rollback()
 						return false, err.Error()
@@ -996,8 +1008,8 @@ func (service OrdersService) OrderNotify(total_fee uint, out_trade_no, pay_time,
 
 	} else if strings.EqualFold(attach, play.OrdersType_GoodsPackage) { //合并商品订单
 		tx := singleton.Orm().Begin()
-		ordersPackage := service.GetOrdersPackageByOrderNo(out_trade_no)
-		if ordersPackage.TotalPayMoney == total_fee {
+		ordersPackage := service.GetOrdersPackageByOrderNo(outTradeNo)
+		if ordersPackage.TotalPayMoney == totalFee {
 			//var OrderNoList []string
 			//util.JSONToStruct(ordersPackage.OrderList, &OrderNoList)
 
@@ -1011,7 +1023,7 @@ func (service OrdersService) OrderNotify(total_fee uint, out_trade_no, pay_time,
 
 			for index := range OrderList {
 				//orders := service.GetOrdersByOrderNo(value)
-				df, msg := service.ProcessingOrders(tx, OrderList[index], pay_time)
+				df, msg := service.ProcessingOrders(tx, OrderList[index], payTime)
 				if df == false {
 					tx.Rollback()
 					return df, msg
@@ -1027,9 +1039,9 @@ func (service OrdersService) OrderNotify(total_fee uint, out_trade_no, pay_time,
 	} else if strings.EqualFold(attach, play.OrdersType_Goods) { //商品订单
 		//orders.PayMoney == total_fee.
 		tx := singleton.Orm().Begin()
-		orders := service.GetOrdersByOrderNo(out_trade_no)
-		if orders.PayMoney == total_fee {
-			su, msg := service.ProcessingOrders(tx, orders, pay_time)
+		orders := service.GetOrdersByOrderNo(outTradeNo)
+		if orders.PayMoney == totalFee {
+			su, msg := service.ProcessingOrders(tx, orders, payTime)
 			if su == false {
 				tx.Rollback()
 				return su, msg
@@ -1047,13 +1059,13 @@ func (service OrdersService) OrderNotify(total_fee uint, out_trade_no, pay_time,
 
 }
 
-func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, pay_time string) (Success bool, Message string) {
+func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, payTime string) (Success bool, Message string) {
 
 	//orders := service.GetOrdersByOrderNo(out_trade_no)
 	if orders.IsPay == 0 {
 		if orders.Status == model.OrdersStatusOrder {
 
-			t, _ := time.ParseInLocation("20060102150405", pay_time, time.Local)
+			t, _ := time.ParseInLocation("20060102150405", payTime, time.Local)
 			//var TotalBrokerage uint
 			var err error
 			if orders.PostType == 1 {

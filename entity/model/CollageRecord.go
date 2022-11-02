@@ -1,13 +1,12 @@
 package model
 
 import (
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //拼团记录
 type CollageRecord struct {
-	base.BaseModel
+	types.Entity
 	OrderNo       string           `gorm:"column:OrderNo"`
 	OrdersGoodsNo string           `gorm:"column:OrdersGoodsNo"`
 	No            string           `gorm:"column:No"`

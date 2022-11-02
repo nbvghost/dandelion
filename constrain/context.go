@@ -2,9 +2,11 @@ package constrain
 
 import (
 	"context"
+
+	"go.uber.org/zap"
+
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/gpa/types"
-	"go.uber.org/zap"
 )
 
 //用于注入的回调方法

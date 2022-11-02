@@ -6,13 +6,12 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //优惠券
 type Voucher struct {
-	base.BaseModel
+	types.Entity
 	OID       types.PrimaryKey `gorm:"column:OID"`
 	Name      string           `gorm:"column:Name"`
 	Amount    uint             `gorm:"column:Amount"`

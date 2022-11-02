@@ -1,12 +1,12 @@
 package mapping
 
 import (
+	"log"
+	"reflect"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/pkg/errors"
-	"log"
-
-	"reflect"
 )
 
 type IMapping interface {

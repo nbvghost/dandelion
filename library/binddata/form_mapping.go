@@ -6,14 +6,14 @@ package binddata
 
 import (
 	"encoding/json"
-	"github.com/pkg/errors"
-
-	"github.com/nbvghost/dandelion/library/util/bytesconv"
-
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
+
+	"github.com/nbvghost/dandelion/library/util/bytesconv"
 )
 
 var errUnknownType = errors.New("unknown type")

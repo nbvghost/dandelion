@@ -1,8 +1,9 @@
 package pagination
 
 import (
-	"github.com/nbvghost/tool/object"
 	"math"
+
+	"github.com/nbvghost/tool/object"
 )
 
 type SwitchPage struct {

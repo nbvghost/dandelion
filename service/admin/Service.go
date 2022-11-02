@@ -3,13 +3,15 @@ package admin
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/dandelion/service/configuration"
 	"github.com/nbvghost/dandelion/service/content"
 	"github.com/nbvghost/gweb"
-	"strings"
-	"time"
 
 	"gorm.io/gorm"
 
@@ -44,15 +46,15 @@ func (service AdminService) AddItem(OID types.PrimaryKey, item *model.Admin) (er
 	if strings.EqualFold(item.Account, "admin") || strings.EqualFold(item.Account, "manager") || strings.EqualFold(item.Account, "administrator") {
 		return errors.New("此账号不允许注册")
 	}
-	return service.Add(singleton.Orm(), item)
+	return dao.Create(singleton.Orm(), item)
 }
 
 func (service AdminService) GetItem(context *gweb.Context) (r constrain.IResult, err error) {
 
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	ID := object.ParseUint(context.PathParams["ID"])
-	item := &model.Admin{}
-	err = service.Get(singleton.Orm(), types.PrimaryKey(ID), item)
+
+	item := dao.GetByPrimaryKey(singleton.Orm(), &model.Admin{}, types.PrimaryKey(ID))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", item)}, err
 }
 func (service AdminService) ListItem(context *gweb.Context) (r constrain.IResult, err error) {
@@ -68,18 +70,17 @@ func (service AdminService) ListItem(context *gweb.Context) (r constrain.IResult
 
 func (service AdminService) DeleteItem(context *gweb.Context) (r constrain.IResult, err error) {
 	ID := object.ParseUint(context.PathParams["ID"])
-	item := &model.Admin{}
-	Orm := singleton.Orm()
 
-	err = service.Get(Orm, types.PrimaryKey(ID), item)
-	if err != nil {
-		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, err
+	Orm := singleton.Orm()
+	item := dao.GetByPrimaryKey(Orm, &model.Admin{}, types.PrimaryKey(ID)).(*model.Admin)
+	if item.IsZero() {
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, gorm.ErrRecordNotFound
 	}
 	if strings.EqualFold(item.Account, "admin") {
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("admin不能删除"), "", nil)}, nil
 	}
 
-	err = service.Delete(Orm, item, types.PrimaryKey(ID))
+	err = dao.DeleteByPrimaryKey(Orm, item, types.PrimaryKey(ID))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}, err
 }
 func (service AdminService) ChangeAuthority(context *gweb.Context) (r constrain.IResult, err error) {
@@ -92,8 +93,7 @@ func (service AdminService) ChangeAuthority(context *gweb.Context) (r constrain.
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, err
 	}
 
-	var _admin model.Admin
-	err = service.Get(Orm, types.PrimaryKey(ID), &_admin)
+	_admin := dao.GetByPrimaryKey(Orm, &model.Admin{}, types.PrimaryKey(ID)).(*model.Admin)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (service AdminService) ChangeAuthority(context *gweb.Context) (r constrain.
 		}
 	}
 
-	err = service.ChangeModel(Orm, types.PrimaryKey(ID), &model.Admin{Authority: item.Authority})
+	err = dao.UpdateByPrimaryKey(Orm, &model.Admin{}, types.PrimaryKey(ID), &model.Admin{Authority: item.Authority})
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
 }
 
@@ -193,14 +193,14 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	//admin.OID = shop.ID
 	admin.Initiator = true
 	admin.LastLoginAt = time.Now()
-	if err = service.Add(tx, admin); err != nil {
+	if err = dao.Create(tx, admin); err != nil {
 		return nil, err
 	}
 
 	shop := &model.Organization{}
 	shop.Name = ""
 	shop.Expire = time.Now().Add((365 * 1) * 24 * time.Hour)
-	if err = service.Organization.Add(tx, shop); err != nil {
+	if err = dao.Create(tx, shop); err != nil {
 		return nil, err
 	}
 	if err = tx.Model(model.Admin{}).Where(map[string]interface{}{"ID": admin.ID}).Updates(map[string]interface{}{"OID": shop.ID}).Error; err != nil {
@@ -231,7 +231,7 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	if _Configuration.ID == 0 {
 		a := model.Configuration{K: configuration.ConfigurationKeyBrokerageLeve1, V: "0"}
 		a.OID = shop.ID
-		err = service.Organization.Add(tx, &a)
+		err = dao.Create(tx, &a)
 		if err != nil {
 
 			return nil, err
@@ -247,7 +247,7 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	if _Configuration.ID == 0 {
 		a := model.Configuration{K: configuration.ConfigurationKeyBrokerageLeve2, V: "0"}
 		a.OID = shop.ID
-		err = service.Organization.Add(tx, &a)
+		err = dao.Create(tx, &a)
 		if err != nil {
 
 			return nil, err
@@ -263,7 +263,7 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	if _Configuration.ID == 0 {
 		a := model.Configuration{K: configuration.ConfigurationKeyBrokerageLeve3, V: "0"}
 		a.OID = shop.ID
-		err = service.Organization.Add(tx, &a)
+		err = dao.Create(tx, &a)
 		if err != nil {
 
 			return nil, err
@@ -279,7 +279,7 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	if _Configuration.ID == 0 {
 		a := model.Configuration{K: configuration.ConfigurationKeyBrokerageLeve4, V: "0"}
 		a.OID = shop.ID
-		err = service.Organization.Add(tx, &a)
+		err = dao.Create(tx, &a)
 		if err != nil {
 
 			return nil, err
@@ -295,7 +295,7 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	if _Configuration.ID == 0 {
 		a := model.Configuration{K: configuration.ConfigurationKeyBrokerageLeve5, V: "0"}
 		a.OID = shop.ID
-		err = service.Organization.Add(tx, &a)
+		err = dao.Create(tx, &a)
 		if err != nil {
 
 			return nil, err
@@ -311,7 +311,7 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	if _Configuration.ID == 0 {
 		a := model.Configuration{K: configuration.ConfigurationKeyBrokerageLeve6, V: "0"}
 		a.OID = shop.ID
-		err = service.Organization.Add(tx, &a)
+		err = dao.Create(tx, &a)
 		if err != nil {
 
 			return nil, err
@@ -324,7 +324,7 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	if _Configuration.ID == 0 {
 		a := model.Configuration{K: configuration.ConfigurationKeyBrokerageLeve6, V: "0"}
 		a.OID = shop.ID
-		err = service.Organization.Add(tx, &a)
+		err = dao.Create(tx, &a)
 		if err != nil {
 			return nil, err
 		}

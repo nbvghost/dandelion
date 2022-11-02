@@ -1,9 +1,10 @@
 package file
 
 import (
-	"github.com/nbvghost/gweb"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/nbvghost/gweb"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
 	"github.com/nbvghost/glog"

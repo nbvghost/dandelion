@@ -1,8 +1,9 @@
 package grpcext
 
 import (
-	"github.com/nbvghost/dandelion/constrain"
 	"google.golang.org/grpc"
+
+	"github.com/nbvghost/dandelion/constrain"
 )
 
 type Register func(serviceDesc grpc.ServiceDesc, handlers []constrain.IGrpcHandler, withoutAuth ...bool)

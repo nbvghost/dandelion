@@ -3,27 +3,30 @@ package content
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
+	"gorm.io/gorm"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/tag"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/dandelion/internal/repository"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/server/redis"
 	"github.com/nbvghost/gpa/params"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/object"
-	"strings"
-	"time"
 
 	"github.com/nbvghost/glog"
-	"strconv"
 )
 
 func (service ContentService) HotViewList(OID, ContentItemID types.PrimaryKey, count uint) []model.Content {
@@ -173,7 +176,7 @@ func (service ContentService) SaveContentSubType(OID types.PrimaryKey, item *mod
 				return errors.Errorf("父类不存在:%d", item.ContentItemID)
 			}
 		}
-		err := service.Add(Orm, item)
+		err := dao.Create(Orm, item)
 		if glog.Error(err) {
 			return &result.ActionResult{
 				Code:    result.SQLError,
@@ -182,7 +185,7 @@ func (service ContentService) SaveContentSubType(OID types.PrimaryKey, item *mod
 			}
 		}
 	} else {
-		return service.ChangeModel(Orm, types.PrimaryKey(item.ID), &model.ContentSubType{Name: item.Name, Uri: item.Uri})
+		return dao.UpdateByPrimaryKey(Orm, &model.ContentSubType{}, types.PrimaryKey(item.ID), &model.ContentSubType{Name: item.Name, Uri: item.Uri})
 	}
 
 	return nil
@@ -238,7 +241,7 @@ func (service ContentService) SaveContentItem(OID types.PrimaryKey, item *model.
 			}
 		}
 		item.Type = mt.Type
-		err := service.Add(Orm, item)
+		err := dao.Create(Orm, item)
 		if glog.Error(err) {
 			return &result.ActionResult{
 				Code:    result.SQLError,
@@ -510,13 +513,9 @@ func (service ContentService) FindContentItemByType(Type model.ContentTypeType, 
 	return menus
 }
 
-func (service ContentService) ListContentType() []model.ContentType {
+func (service ContentService) ListContentType() []types.IEntity {
 	Orm := singleton.Orm()
-	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
-	var list []model.ContentType
-	err := service.FindAll(Orm, &list)
-	glog.Trace(err)
-	return list
+	return dao.Find(Orm, &model.ContentType{})
 }
 func (service ContentService) ListContentTypeByType(Type string) model.ContentType {
 	Orm := singleton.Orm()
@@ -560,7 +559,7 @@ func (service ContentService) AddSpiderContent(OID types.PrimaryKey, ContentName
 		content.Type = contentType.Type
 		content.Name = ContentName
 		content.ContentTypeID = contentType.ID
-		service.Save(singleton.Orm(), &content)
+		dao.Save(singleton.Orm(), &content)
 
 	}
 
@@ -569,7 +568,7 @@ func (service ContentService) AddSpiderContent(OID types.PrimaryKey, ContentName
 	if contentSubType.ID == 0 {
 		contentSubType.Name = ContentSubTypeName
 		contentSubType.ContentItemID = content.ID
-		service.Save(singleton.Orm(), &contentSubType)
+		dao.Save(singleton.Orm(), &contentSubType)
 	}
 
 	article.Author = Author
@@ -580,7 +579,7 @@ func (service ContentService) AddSpiderContent(OID types.PrimaryKey, ContentName
 
 func (service ContentService) ChangeContent(article *model.Content) error {
 
-	return service.Save(singleton.Orm(), article)
+	return dao.Save(singleton.Orm(), article)
 }
 
 func (service ContentService) GetContentByTitle(Orm *gorm.DB, OID types.PrimaryKey, Title string) *model.Content {
@@ -590,7 +589,7 @@ func (service ContentService) GetContentByTitle(Orm *gorm.DB, OID types.PrimaryK
 	return article
 }
 func (service ContentService) DelContent(ID types.PrimaryKey) error {
-	err := service.Delete(singleton.Orm(), &model.Content{}, ID)
+	err := dao.DeleteByPrimaryKey(singleton.Orm(), &model.Content{}, ID)
 	return err
 }
 
@@ -812,17 +811,15 @@ func (service ContentService) GetContentByUri(OID types.PrimaryKey, Uri string) 
 	return article
 }
 func (service ContentService) GetContentByID(ID types.PrimaryKey) *model.Content {
-	article := &model.Content{}
-	err := service.Get(singleton.Orm(), ID, article) //SelectOne(user, "select * from User where Email=?", Email)
-	glog.Error(err)
+
+	article := dao.GetByPrimaryKey(singleton.Orm(), &model.Content{}, ID).(*model.Content) //SelectOne(user, "select * from User where Email=?", Email)
+
 	//service.ChangeMap(singleton.Orm(), ID, &model.Article{}, map[string]interface{}{"Look": article.Look + 1})
 	return article
 }
 func (service ContentService) GetContentAndAddLook(ctx constrain.IContext, ArticleID types.PrimaryKey) *model.Content {
 
-	article := &model.Content{}
-	err := service.Get(singleton.Orm(), ArticleID, article) //SelectOne(user, "select * from User where Email=?", Email)
-	glog.Error(err)
+	article := dao.GetByPrimaryKey(singleton.Orm(), &model.Content{}, ArticleID).(*model.Content) //SelectOne(user, "select * from User where Email=?", Email)
 
 	lc, _ := ctx.Redis().Get(ctx, redis.NewArticleLookCount(ctx.UID(), ArticleID))
 
@@ -832,7 +829,7 @@ func (service ContentService) GetContentAndAddLook(ctx constrain.IContext, Artic
 		endDayTime := time.Date(tomorrowTime.Year(), tomorrowTime.Month(), tomorrowTime.Day(), 0, 0, 0, 0, tomorrowTime.Location())
 		//context.Session.Attributes.Put(gweb.AttributesKey(strconv.Itoa(int(ArticleID))), "CountView")
 		ctx.Redis().Set(ctx, redis.NewArticleLookCount(ctx.UID(), ArticleID), "true", endDayTime.Sub(now))
-		service.ChangeMap(singleton.Orm(), ArticleID, &model.Content{}, map[string]interface{}{"CountView": article.CountView + 1})
+		dao.UpdateByPrimaryKey(singleton.Orm(), &model.Content{}, ArticleID, map[string]interface{}{"CountView": article.CountView + 1})
 
 		LookArticle := 0 //todo config.Config.LookArticle
 
@@ -928,9 +925,9 @@ func (service ContentService) SaveContent(OID types.PrimaryKey, article *model.C
 	articleID := article.ID
 	var err error
 	if articleID == 0 {
-		err = service.Save(Orm, article) //self.model.AddArticle(Orm, article)
+		err = dao.Create(Orm, article) //self.model.AddArticle(Orm, article)
 	} else {
-		err = service.ChangeMap(Orm, articleID, &model.Content{}, map[string]interface{}{
+		err = dao.UpdateByPrimaryKey(Orm, &model.Content{}, articleID, map[string]interface{}{
 			"Author":           article.Author,
 			"Content":          article.Content,
 			"ContentSubTypeID": article.ContentSubTypeID,

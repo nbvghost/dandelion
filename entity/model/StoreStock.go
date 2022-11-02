@@ -1,13 +1,12 @@
 package model
 
 import (
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //门店库存
 type StoreStock struct {
-	base.BaseModel
+	types.Entity
 	StoreID         types.PrimaryKey `gorm:"column:StoreID"`
 	GoodsID         types.PrimaryKey `gorm:"column:GoodsID"`
 	SpecificationID types.PrimaryKey `gorm:"column:SpecificationID"`

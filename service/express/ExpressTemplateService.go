@@ -4,16 +4,17 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/singleton"
-	"github.com/nbvghost/gpa/types"
-	"github.com/nbvghost/tool/encryption"
-
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/singleton"
+	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/tool/encryption"
 
 	"github.com/nbvghost/glog"
 )
@@ -90,10 +91,10 @@ func (b ExpressTemplateService) SaveExpressTemplate(target *model.ExpressTemplat
 	Orm := singleton.Orm()
 	have := b.GetExpressTemplateByName(target.Name)
 	if have.ID == 0 {
-		return b.Save(Orm, target)
+		return dao.Save(Orm, target)
 	} else {
 		if have.ID == target.ID {
-			return b.Save(Orm, target)
+			return dao.Save(Orm, target)
 		} else {
 			return errors.New("名称已经存在")
 		}

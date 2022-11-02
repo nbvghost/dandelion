@@ -1,9 +1,11 @@
 package model
 
-import "github.com/nbvghost/dandelion/entity/base"
+import (
+	"github.com/nbvghost/gpa/types"
+)
 
 type Manager struct {
-	base.BaseModel
+	types.Entity
 	Account  string `gorm:"column:Account;not null;unique"`
 	PassWord string `gorm:"column:PassWord;not null"`
 }

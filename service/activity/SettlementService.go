@@ -1,20 +1,23 @@
 package activity
 
 import (
+	"math"
+	"strconv"
+	"time"
+
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/service/configuration"
 	"github.com/nbvghost/dandelion/service/journal"
 	"github.com/nbvghost/dandelion/service/user"
 	"github.com/nbvghost/dandelion/service/wechat"
 
+	"gorm.io/gorm"
+
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/tool/object"
-	"gorm.io/gorm"
-	"math"
-	"strconv"
-	"time"
 )
 
 type SettlementService struct {
@@ -24,6 +27,7 @@ type SettlementService struct {
 	GiveVoucher   GiveVoucherService
 	CardItem      CardItemService
 	Wx            wechat.WxService
+	MessageNotify wechat.MessageNotify
 	User          user.UserService
 }
 
@@ -35,9 +39,9 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, Brokerage uint, or
 	//var orders model.Orders
 	//service.Get(Orm, OrderID, &orders)
 
-	var user model.User
-	service.Get(Orm, orders.UserID, &user)
-
+	//var user model.User
+	//service.Get(Orm, orders.UserID, &user)
+	user := dao.GetByPrimaryKey(Orm, &model.User{}, orders.UserID).(*model.User)
 	//fmt.Println(user.Name)
 
 	leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve1).V)
@@ -53,7 +57,7 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, Brokerage uint, or
 
 	user.Score = user.Score + orders.PayMoney
 	user.Growth = user.Growth + (uint(math.Floor(float64(orders.PayMoney)/100+0.5)) * GrowValue)
-	err = service.ChangeModel(Orm, user.ID, &model.User{Growth: user.Growth})
+	err = dao.UpdateByPrimaryKey(Orm, &model.User{}, user.ID, &model.User{Growth: user.Growth})
 	if err != nil {
 		return err
 	}
@@ -84,8 +88,8 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, Brokerage uint, or
 		if value <= 0 {
 			break
 		}
-		var _user model.User
-		service.Get(Orm, user.SuperiorID, &_user)
+		//var _user model.User
+		_user := dao.GetByPrimaryKey(Orm, &model.User{}, user.SuperiorID).(*model.User)
 		if _user.ID <= 0 {
 			return nil
 		}
@@ -117,7 +121,7 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, Brokerage uint, or
 
 		workTime := time.Now().Unix() - orders.CreatedAt.Unix()
 
-		service.Wx.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "收入："+strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64)+"元")
+		service.MessageNotify.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "收入："+strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64)+"元")
 
 		user = _user
 	}

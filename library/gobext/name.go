@@ -2,10 +2,10 @@ package gobext
 
 import (
 	"encoding/gob"
+	"reflect"
+
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/pkg/errors"
-
-	"reflect"
 )
 
 var structMap = make(map[string]reflect.Type)

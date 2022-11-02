@@ -23,42 +23,45 @@ type BaseDao struct {
 
 	return DB.Unscoped().Delete(target, "ID=?", ID).Error
 }*/
-func (b BaseDao) DeleteWhere(DB *gorm.DB, target interface{}, where map[string]interface{}) error {
+/*func (b BaseDao) DeleteWhere(DB *gorm.DB, target interface{}, where map[string]interface{}) error {
 	//db.Where("email LIKE ?", "%jinzhu%").Delete(Email{})
 	//DB *gorm.DB, target interface{}, where interface{}
 	return DB.Where(where).Delete(target).Error
 }
-func (b BaseDao) Delete(DB *gorm.DB, target interface{}, ID types.PrimaryKey) error {
+*/
+/*func (b BaseDao) Delete(DB *gorm.DB, target interface{}, ID types.PrimaryKey) error {
 
 	return DB.Delete(target, map[string]interface{}{"ID": ID}).Error
-}
-func (b BaseDao) Add(DB *gorm.DB, target interface{}) error {
+}*/
+
+/*func (b BaseDao) Add(DB *gorm.DB, target interface{}) error {
 
 	return DB.Create(target).Error
 }
 func (b BaseDao) Save(DB *gorm.DB, target interface{}) error {
 
 	return DB.Save(target).Error
-}
-func (b BaseDao) ChangeModel(DB *gorm.DB, ID types.PrimaryKey, target interface{}) error {
+}*/
+
+/*func (b BaseDao) ChangeModel(DB *gorm.DB, ID types.PrimaryKey, target interface{}) error {
 	err := DB.Model(target).Where(map[string]interface{}{"ID": ID}).Updates(target).Error
 	return err
 }
 func (b BaseDao) ChangeMap(DB *gorm.DB, ID types.PrimaryKey, model interface{}, params map[string]interface{}) error {
 
 	return DB.Model(model).Where(map[string]interface{}{"ID": ID}).Updates(params).Error
-}
-func (b BaseDao) Get(DB *gorm.DB, ID types.PrimaryKey, target interface{}) error {
+}*/
+/*func (b BaseDao) Get(DB *gorm.DB, ID types.PrimaryKey, target interface{}) error {
 	return DB.Where(map[string]interface{}{"ID": ID}).First(target).Error
-}
-func (b BaseDao) FindAllByOID(DB *gorm.DB, target interface{}, OID types.PrimaryKey) error {
+}*/
+/*func (b BaseDao) FindAllByOID(DB *gorm.DB, target interface{}, OID types.PrimaryKey) error {
 
 	return DB.Where(map[string]interface{}{"OID": OID}).Find(target).Error
-}
-func (b BaseDao) FindAll(DB *gorm.DB, target interface{}) error {
+}*/
+/*func (b BaseDao) FindAll(DB *gorm.DB, target interface{}) error {
 
 	return DB.Find(target).Error
-}
+}*/
 func (b BaseDao) FindWhere(DB *gorm.DB, target interface{}, where interface{}, args ...interface{}) error {
 
 	return DB.Model(target).Where(where, args...).Find(target).Error

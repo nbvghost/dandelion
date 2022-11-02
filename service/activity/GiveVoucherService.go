@@ -2,6 +2,7 @@ package activity
 
 import (
 	"errors"
+
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/singleton"
 )

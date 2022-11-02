@@ -1,8 +1,9 @@
 package wechat
 
 import (
-	"github.com/nbvghost/dandelion/entity/model"
 	"testing"
+
+	"github.com/nbvghost/dandelion/entity/model"
 )
 
 func TestWxService_OrderDeliveryNotify(t *testing.T) {

@@ -6,13 +6,12 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //拼团
 type Collage struct {
-	base.BaseModel
+	types.Entity
 	OID      types.PrimaryKey `gorm:"column:OID"`
 	Hash     string           `gorm:"column:Hash"`     //同一个Hash表示同一个活动
 	Num      int              `gorm:"column:Num"`      //拼团人数

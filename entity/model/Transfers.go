@@ -1,12 +1,11 @@
 package model
 
 import (
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 type Transfers struct {
-	base.BaseModel
+	types.Entity
 	OrderNo    string           `gorm:"column:OrderNo;unique"` //订单号
 	UserID     types.PrimaryKey `gorm:"column:UserID"`         //
 	StoreID    types.PrimaryKey `gorm:"column:StoreID"`

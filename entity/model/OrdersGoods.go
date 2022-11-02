@@ -3,7 +3,6 @@ package model
 import (
 	"strings"
 
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
@@ -19,7 +18,7 @@ const (
 )
 
 type OrdersGoods struct {
-	base.BaseModel
+	types.Entity
 	OID            types.PrimaryKey  `gorm:"column:OID"`
 	OrdersGoodsNo  string            `gorm:"column:OrdersGoodsNo;unique"`    //
 	Status         OrdersGoodsStatus `gorm:"column:Status"`                  //OGAskRefund，OGRefundNo，OGRefundOk，OGRefundInfo，OGRefundComplete

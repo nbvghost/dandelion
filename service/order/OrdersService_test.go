@@ -2,9 +2,10 @@ package order
 
 import (
 	"fmt"
-	"github.com/nbvghost/dandelion/entity/model"
 	"math"
 	"testing"
+
+	"github.com/nbvghost/dandelion/entity/model"
 )
 
 func init() {

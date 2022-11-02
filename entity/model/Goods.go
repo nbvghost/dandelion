@@ -2,9 +2,10 @@ package model
 
 import (
 	"errors"
+	"runtime/debug"
+
 	"github.com/lib/pq"
 	"github.com/nbvghost/dandelion/entity/sqltype"
-	"runtime/debug"
 
 	"gorm.io/gorm"
 

@@ -6,8 +6,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/entity/base"
-
 	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/dandelion/library/util"
 
@@ -17,7 +15,7 @@ import (
 
 // 卡
 type CardItem struct {
-	base.BaseModel
+	types.Entity
 	OrderNo       string                 `gorm:"column:OrderNo;unique"` //订单号
 	UserID        types.PrimaryKey       `gorm:"column:UserID"`         //
 	Type          string                 `gorm:"column:Type"`           //OrdersGoods,Voucher,ScoreGoods

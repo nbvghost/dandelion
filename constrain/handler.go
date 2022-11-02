@@ -1,8 +1,9 @@
 package constrain
 
 import (
-	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc/status"
+
+	"github.com/golang/protobuf/proto"
 )
 
 type IHandlerPost interface {

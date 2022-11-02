@@ -6,13 +6,12 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //满减
 type FullCut struct {
-	base.BaseModel
+	types.Entity
 	OID       types.PrimaryKey `gorm:"column:OID"`
 	Amount    uint             `gorm:"column:Amount"`
 	CutAmount uint             `gorm:"column:CutAmount"`

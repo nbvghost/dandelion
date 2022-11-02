@@ -2,10 +2,12 @@ package config
 
 import (
 	"crypto/tls"
+	"time"
+
+	clientv3 "go.etcd.io/etcd/client/v3"
+
 	"github.com/go-redis/redis/v8"
 	"github.com/nbvghost/dandelion/constrain/key"
-	clientv3 "go.etcd.io/etcd/client/v3"
-	"time"
 )
 
 type MicroServerConfig struct {

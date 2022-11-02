@@ -2,9 +2,10 @@ package pinyin
 
 import (
 	"fmt"
-	"github.com/nbvghost/dandelion/service/cache"
 	"regexp"
 	"strings"
+
+	"github.com/nbvghost/dandelion/service/cache"
 )
 
 //[`~!@#$%^&*()_\-+=<>?:"{}|,.\/;'\\[\]·~！@#￥%……&*（）——\-+={}|《》？：“”【】、；‘’，。、]

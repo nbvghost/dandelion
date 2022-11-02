@@ -1,13 +1,12 @@
 package model
 
 import (
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //合并支付
 type OrdersPackage struct {
-	base.BaseModel
+	types.Entity
 	OrderNo string `gorm:"column:OrderNo;unique"` //订单号
 	//OrderList     string `gorm:"column:OrderList;type:text"` //json []
 	TotalPayMoney uint             `gorm:"column:TotalPayMoney"` //支付价

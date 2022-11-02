@@ -9,6 +9,7 @@ import (
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/internal/repository"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/singleton"
@@ -91,10 +92,9 @@ func (service UserService) Situation(StartTime, EndTime int64) interface{} {
 }
 func (service UserService) AddUserBlockAmount(Orm *gorm.DB, UserID types.PrimaryKey, Menoy int64) error {
 
-	var user model.User
-	err := service.Get(Orm, UserID, &user)
-	if err != nil {
-		return err
+	user := dao.GetByPrimaryKey(Orm, &model.User{}, UserID).(*model.User)
+	if user.IsZero() {
+		return gorm.ErrRecordNotFound
 	}
 
 	tm := int64(user.BlockAmount) + Menoy
@@ -102,7 +102,7 @@ func (service UserService) AddUserBlockAmount(Orm *gorm.DB, UserID types.Primary
 		return errors.New("冻结金额不足，无法扣款")
 	}
 
-	err = service.ChangeMap(Orm, UserID, &model.User{}, map[string]interface{}{"BlockAmount": tm})
+	err := dao.UpdateByPrimaryKey(Orm, &model.User{}, UserID, map[string]interface{}{"BlockAmount": tm})
 	return err
 }
 
@@ -203,7 +203,7 @@ func (service UserService) GetUserInfo(UserID types.PrimaryKey) model.UserInfo {
 	Orm.Where(&model.UserInfo{UserID: UserID}).First(&userInfo)
 	if userInfo.ID == 0 && UserID != 0 {
 		userInfo.UserID = UserID
-		service.Add(Orm, &userInfo)
+		dao.Create(Orm, &userInfo)
 	}
 	return userInfo
 }
@@ -243,7 +243,7 @@ func (service UserService) AddUserByOpenID(Orm *gorm.DB, OID types.PrimaryKey, O
 	if user.ID == 0 {
 		user.OID = OID
 		user.OpenID = OpenID
-		service.Add(Orm, user)
+		dao.Create(Orm, user)
 	} else {
 
 	}

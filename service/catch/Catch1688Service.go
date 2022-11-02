@@ -3,14 +3,6 @@ package catch
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/singleton"
-	"github.com/nbvghost/dandelion/library/util"
-	"github.com/nbvghost/dandelion/service/activity"
-	"github.com/nbvghost/dandelion/service/admin"
-	"github.com/nbvghost/dandelion/service/company"
-	"github.com/nbvghost/dandelion/service/express"
-	"github.com/nbvghost/dandelion/service/goods"
 	"html"
 	"io/ioutil"
 	"log"
@@ -22,11 +14,21 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/singleton"
+	"github.com/nbvghost/dandelion/library/util"
+	"github.com/nbvghost/dandelion/service/activity"
+	"github.com/nbvghost/dandelion/service/admin"
+	"github.com/nbvghost/dandelion/service/company"
+	"github.com/nbvghost/dandelion/service/express"
+	"github.com/nbvghost/dandelion/service/goods"
+
 	"github.com/nbvghost/glog"
 
-	"github.com/PuerkitoBio/goquery"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 type Catch1688Service struct {

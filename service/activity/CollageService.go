@@ -1,10 +1,11 @@
 package activity
 
 import (
+	"strings"
+
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/gpa/types"
-	"strings"
 
 	"github.com/nbvghost/glog"
 

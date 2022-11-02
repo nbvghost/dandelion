@@ -1,13 +1,12 @@
 package model
 
 import (
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //账目明细
 type UserJournal struct {
-	base.BaseModel
+	types.Entity
 	UserID     types.PrimaryKey `gorm:"column:UserID"`           //受益者
 	Name       string           `gorm:"column:Name;not null"`    //
 	Detail     string           `gorm:"column:Detail;not null"`  //

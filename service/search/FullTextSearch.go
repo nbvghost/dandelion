@@ -2,6 +2,7 @@ package search
 
 import (
 	"fmt"
+
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/gpa/types"
 )

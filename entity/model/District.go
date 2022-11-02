@@ -1,10 +1,12 @@
 package model
 
-import "github.com/nbvghost/dandelion/entity/base"
+import (
+	"github.com/nbvghost/gpa/types"
+)
 
 //省市
 type District struct {
-	base.BaseModel
+	types.Entity
 	Code string `gorm:"column:Code;primary_key;unique"`
 	Name string `gorm:"column:Name"`
 }

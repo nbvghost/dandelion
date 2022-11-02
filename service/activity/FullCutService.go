@@ -1,9 +1,10 @@
 package activity
 
 import (
+	"gorm.io/gorm"
+
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/gpa/types"
-	"gorm.io/gorm"
 )
 
 type FullCutService struct {

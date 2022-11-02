@@ -1,10 +1,12 @@
 package model
 
-import "github.com/nbvghost/dandelion/entity/base"
+import (
+	"github.com/nbvghost/gpa/types"
+)
 
 // GoodsReview helpful
 type GoodsReview struct {
-	base.BaseModel
+	types.Entity
 	GoodsID          uint
 	Content          string
 	Portrait         string

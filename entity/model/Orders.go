@@ -7,7 +7,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/gpa/types"
 )
@@ -30,7 +29,7 @@ const (
 
 //订单信息
 type Orders struct {
-	base.BaseModel
+	types.Entity
 	OID             types.PrimaryKey       `gorm:"column:OID"`             //
 	UserID          types.PrimaryKey       `gorm:"column:UserID"`          //用户ID
 	PrepayID        string                 `gorm:"column:PrepayID"`        //

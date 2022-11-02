@@ -6,13 +6,12 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/entity/base"
 	"github.com/nbvghost/gpa/types"
 )
 
 //积分兑换产品
 type ScoreGoods struct {
-	base.BaseModel
+	types.Entity
 	OID       types.PrimaryKey `gorm:"column:OID"`
 	Name      string           `gorm:"column:Name"`
 	Score     int              `gorm:"column:Score"`

@@ -1,10 +1,11 @@
 package constrain
 
 import (
+	"google.golang.org/grpc"
+
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/etcd"
-	"google.golang.org/grpc"
 
 	"github.com/nbvghost/dandelion/server/serviceobject"
 )
