@@ -23,7 +23,7 @@ type MessageNotify struct {
 }
 
 //新用户加入，绑定上下级关系
-func (service MessageNotify) NewUserJoinNotify(NewUser model.User, notifyUser model.User) *result.ActionResult {
+func (service MessageNotify) NewUserJoinNotify(NewUser *model.User, notifyUser *model.User) *result.ActionResult {
 
 	as := &result.ActionResult{}
 

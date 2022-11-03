@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -15,8 +16,6 @@ import (
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/encryption"
-
-	"github.com/nbvghost/glog"
 )
 
 type ExpressTemplateService struct {
@@ -64,7 +63,7 @@ func (b ExpressTemplateService) GetExpressInfo(OrdersID types.PrimaryKey, Logist
 	//resp, err := http.PostForm("http://sandboxapi.kdniao.cc:8080/kdniaosandbox/gateway/exterfaceInvoke.json", postData)
 
 	bsdfsd, errs := ioutil.ReadAll(resp.Body)
-	glog.Error(errs)
+	log.Println(errs)
 	json.Unmarshal(bsdfsd, &result)
 
 	result["ShipperName"] = ShipperName

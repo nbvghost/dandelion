@@ -3,6 +3,7 @@ package order
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -22,8 +23,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/nbvghost/gpa/types"
-
-	"github.com/nbvghost/glog"
 )
 
 type VerificationService struct {
@@ -203,7 +202,7 @@ func (service VerificationService) GetVerificationByVerificationNo(VerificationN
 	Orm := singleton.Orm()
 	item := model.Verification{}
 	err := Orm.Where("VerificationNo=?", VerificationNo).First(&item).Error //SelectOne(user, "select * from User where Tel=?", Tel)
-	glog.Error(err)
+	log.Println(err)
 	return item
 }
 

@@ -3,6 +3,7 @@ package content
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -177,7 +178,7 @@ func (service ContentService) SaveContentSubType(OID types.PrimaryKey, item *mod
 			}
 		}
 		err := dao.Create(Orm, item)
-		if glog.Error(err) {
+		if err != nil {
 			return &result.ActionResult{
 				Code:    result.SQLError,
 				Message: err.Error(),
@@ -242,7 +243,7 @@ func (service ContentService) SaveContentItem(OID types.PrimaryKey, item *model.
 		}
 		item.Type = mt.Type
 		err := dao.Create(Orm, item)
-		if glog.Error(err) {
+		if err != nil {
 			return &result.ActionResult{
 				Code:    result.SQLError,
 				Message: err.Error(),
@@ -256,7 +257,7 @@ func (service ContentService) SaveContentItem(OID types.PrimaryKey, item *model.
 			"Image":        item.Image,
 			"Introduction": item.Introduction,
 		}).Error
-		if glog.Error(err) {
+		if err != nil {
 			return &result.ActionResult{
 				Code:    result.SQLError,
 				Message: err.Error(),
@@ -585,7 +586,7 @@ func (service ContentService) ChangeContent(article *model.Content) error {
 func (service ContentService) GetContentByTitle(Orm *gorm.DB, OID types.PrimaryKey, Title string) *model.Content {
 	article := &model.Content{}
 	err := Orm.Where(`"OID"=?`, OID).Where(`"Title"=?`, Title).First(article).Error //SelectOne(user, "select * from User where Email=?", Email)
-	glog.Error(err)
+	log.Println(err)
 	return article
 }
 func (service ContentService) DelContent(ID types.PrimaryKey) error {
@@ -596,7 +597,7 @@ func (service ContentService) DelContent(ID types.PrimaryKey) error {
 func (service ContentService) FindContentByContentSubTypeID(ContentSubTypeID types.PrimaryKey) []model.Content {
 	var contentList []model.Content
 	err := service.FindWhere(singleton.Orm(), &contentList, "ContentSubTypeID=?", ContentSubTypeID) //SelectOne(user, "select * from User where Email=?", Email)
-	glog.Error(err)
+	log.Println(err)
 	return contentList
 }
 func (service ContentService) FindContentByContentItemIDAndContentSubTypeID(ContentItemID uint, ContentSubTypeID uint) model.Content {
@@ -769,9 +770,9 @@ func (service ContentService) FindContentListForLeftRight(ContentItemID, Content
 	var left model.Content
 	var right model.Content
 	err := singleton.Orm().Raw(`SELECT * FROM "Content" WHERE `+whereSql+` and "ID"<>? and "CreatedAt">=? ORDER BY "CreatedAt","ID" limit 1`, ContentID, ContentCreatedAt).Scan(&left).Error
-	glog.Error(err)
+	log.Println(err)
 	err = singleton.Orm().Raw(`SELECT * FROM "Content" WHERE `+whereSql+` and "ID"<>? and "CreatedAt"<=? ORDER BY "CreatedAt" desc,"ID" desc limit 1`, ContentID, ContentCreatedAt).Scan(&right).Error
-	glog.Error(err)
+	log.Println(err)
 
 	return [2]model.Content{left, right}
 }
@@ -839,7 +840,7 @@ func (service ContentService) GetContentAndAddLook(ctx constrain.IContext, Artic
 			ctx.UID(),
 			"看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)),
 			play.ScoreJournal_Type_Look_Article, int64(LookArticle), extends.KV{Key: "ArticleID", Value: article.ID})
-		glog.Error(err)
+		log.Println(err)
 		//}
 
 	}

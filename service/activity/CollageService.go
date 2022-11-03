@@ -1,14 +1,13 @@
 package activity
 
 import (
+	"log"
 	"strings"
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/gpa/types"
-
-	"github.com/nbvghost/glog"
 
 	"github.com/nbvghost/tool"
 	"github.com/pkg/errors"
@@ -32,7 +31,7 @@ func (service CollageService) DeleteCollage(TimeSellID types.PrimaryKey) error {
 	err := dao.DeleteBy(singleton.Orm(), &model.Collage{}, map[string]interface{}{
 		"Hash": ts.Hash,
 	})
-	glog.Error(err)
+	log.Println(err)
 
 	return err
 }
@@ -40,7 +39,7 @@ func (service CollageService) DeleteCollage(TimeSellID types.PrimaryKey) error {
 func (service CollageService) GetItemByHash(Hash string) model.Collage {
 	var timesell model.Collage
 	err := singleton.Orm().Model(&model.Collage{}).Where("Hash=?", Hash).First(&timesell).Error
-	glog.Error(err)
+	log.Println(err)
 	return timesell
 }
 
@@ -55,13 +54,13 @@ func (service CollageService) GetCollageByGoodsID(GoodsID types.PrimaryKey, OID 
 
 	/*var timesell model.Collage
 	err := singleton.Orm().Model(&model.Collage{}).Where("GoodsID=?", GoodsID).First(&timesell).Error
-	glog.Error(err)
+	log.Println(err)
 	return timesell*/
 }
 func (service CollageService) GetCollageByHash(Hash string, OID types.PrimaryKey) model.Collage {
 	var timesell model.Collage
 	err := singleton.Orm().Model(&model.Collage{}).Where("Hash=? and OID=?", Hash, OID).First(&timesell).Error
-	glog.Error(err)
+	log.Println(err)
 	return timesell
 }
 func (service CollageService) AddCollageRecord(OrderNo, OrdersGoodsNo, No string, UserID types.PrimaryKey) error {

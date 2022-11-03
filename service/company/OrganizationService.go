@@ -8,7 +8,6 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/singleton"
-	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gpa/types"
 )
 
@@ -72,7 +71,7 @@ func (service OrganizationService) ChangeOrganization(ID types.PrimaryKey, shop 
 		shop.Vip = org.Vip
 		shop.Expire = org.Expire
 		err := dao.UpdateByPrimaryKey(Orm, &model.Organization{}, ID, shop)
-		if glog.Error(err) {
+		if err != nil {
 			return err
 		} else {
 			return nil

@@ -18,10 +18,9 @@ import (
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/gweb"
 
-	"github.com/PuerkitoBio/goquery"
-	"github.com/nbvghost/glog"
-
 	"golang.org/x/net/html"
+
+	"github.com/PuerkitoBio/goquery"
 )
 
 type SpiderService struct {
@@ -154,9 +153,9 @@ func (spider SpiderService) WeixinQuerySogou(urls [][]string) {
 			request.Header.Set("Upgrade-Insecure-Requests","1")
 			request.Header.Set("User-Agent","Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")*/
 
-			glog.Error(err)
+			log.Println(err)
 			response, err := client.Do(request)
-			glog.Error(err)
+			log.Println(err)
 
 			/*reader, err := gzip.NewReader(response.Body)
 
@@ -306,9 +305,9 @@ func (spider SpiderService) WeixinSogou(urls []string, ContentSubTypeName string
 		request.Header.Set("Referer","http://weixin.sogou.com/")
 		request.Header.Set("User-Agent","Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
 		request.Header.Set("X-Requested-With","XMLHttpRequest")
-		glog.Error(err)
+		log.Println(err)
 		response,err:=client.Do(request)
-		glog.Error(err)
+		log.Println(err)
 		if err==nil{
 			spider.GetArticleDataAndAdd(response.Body,ContentSubTypeName)
 		}
@@ -322,9 +321,9 @@ func (spider SpiderService) WeixinSogou(urls []string, ContentSubTypeName string
 		request.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36")
 		request.Header.Set("X-Requested-With", "XMLHttpRequest")
 		request.Header.Set("Content-Type", "text/html;utf-8")
-		glog.Error(err)
+		log.Println(err)
 		response, err := client.Do(request)
-		glog.Error(err)
+		log.Println(err)
 		if err == nil {
 			spider.GetArticleDataAndAdd(response.Body, ContentSubTypeName)
 		}
@@ -337,12 +336,12 @@ func (spider SpiderService) ReadWeiXinArticle(url string) string {
 
 	//doc, err := goquery.NewDocument(url)
 	if err != nil {
-		glog.Error(err)
+		log.Println(err)
 		return ""
 	}
 	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(b))
 	if err != nil {
-		glog.Error(err)
+		log.Println(err)
 		return ""
 	}
 	content := doc.Find("#js_content")
@@ -419,7 +418,7 @@ func (spider SpiderService) ReadWeiXinArticle(url string) string {
 	}
 
 	_html, err := content.Html()
-	glog.Error(err)
+	log.Println(err)
 	//fmt.Println(strings.TrimSpace(_html))
 	return strings.TrimSpace(_html)
 }

@@ -79,20 +79,20 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 	params := map[string]string{"component_appid": OpenAppID, "authorization_code": authorization_code}
 
 	jd, err := json.Marshal(params)
-	glog.Error(err)
+	log.Println(err)
 	fmt.Println(string(jd))
 	buf := bytes.NewBuffer(make([]byte, 0))
 	binary.Write(buf, binary.BigEndian, jd)
 	resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/component/api_query_auth?component_access_token="+Api_component_token(ComponentVerifyTicket), "application/json", buf)
-	glog.Error(err)
+	log.Println(err)
 	b, err := ioutil.ReadAll(resp.Body)
-	glog.Error(err)
+	log.Println(err)
 	fmt.Println(string(b))
 
 	m := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &m)
-	glog.Error(err)
+	log.Println(err)
 
 	if m["authorization_info"] != nil {
 		authorization_info := m["authorization_info"].(map[string]interface{})
@@ -114,12 +114,12 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 		params := map[string]string{"component_appid": OpenAppID, "component_appsecret": OpenAppSecret, "component_verify_ticket": ComponentVerifyTicket}
 
 		jd, err := json.Marshal(params)
-		glog.Error(err)
+		log.Println(err)
 		fmt.Println(string(jd))
 		buf := bytes.NewBuffer(make([]byte, 0))
 		binary.Write(buf, binary.BigEndian, jd)
 		resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/component/api_component_token", "application/json", buf)
-		glog.Error(err)
+		log.Println(err)
 		b, err := ioutil.ReadAll(resp.Body)
 		glog.Error(err)
 		fmt.Println(string(b))

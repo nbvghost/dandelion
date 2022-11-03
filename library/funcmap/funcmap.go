@@ -22,7 +22,6 @@ import (
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/pkg/errors"
 
-	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb/conf"
 	"github.com/nbvghost/tool/object"
 )
@@ -346,7 +345,7 @@ func (fo *templateFuncMap) dateTimeFormat(source time.Time, format string) strin
 }
 func (fo *templateFuncMap) toJSON(source interface{}) template.JS {
 	b, err := json.Marshal(source)
-	glog.Error(err)
+	log.Println(err)
 	return template.JS(b)
 }
 func (fo *templateFuncMap) parseInt(source interface{}) int {
@@ -370,13 +369,13 @@ func cipherEncrypter(source string) string {
 func (fo *templateFuncMap) fromJSONToMap(source string) map[string]interface{} {
 	d := make(map[string]interface{})
 	err := json.Unmarshal([]byte(source), &d)
-	glog.Error(err)
+	log.Println(err)
 	return d
 }
 func (fo *templateFuncMap) fromJSONToArray(source string) []interface{} {
 	d := make([]interface{}, 0)
 	err := json.Unmarshal([]byte(source), &d)
-	glog.Error(err)
+	log.Println(err)
 	return d
 }
 func (fo *templateFuncMap) splitFunc(source string, sep string) []string {

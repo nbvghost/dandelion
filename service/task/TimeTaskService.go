@@ -58,7 +58,9 @@ func (self TimeTaskService) QueryOrdersTask(wxConfig *model.WechatConfig) {
 				//OrderNo := result["out_trade_no"]
 				//TimeEnd := result["time_end"]
 				//attach := result["attach"]
-				self.Orders.OrderNotify(uint(TotalFee), result["out_trade_no"], result["time_end"], result["attach"])
+				payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", result["time_end"], time.Local)
+				log.Println(err)
+				self.Orders.OrderNotify(uint(TotalFee), result["out_trade_no"], payTime, result["attach"])
 				continue
 			}
 		}
@@ -81,7 +83,9 @@ func (self TimeTaskService) QuerySupplyOrdersTask(wxConfig *model.WechatConfig) 
 			//OrderNo := result["out_trade_no"]
 			//TimeEnd := result["time_end"]
 			//attach := result["attach"]
-			self.Orders.OrderNotify(uint(TotalFee), result["out_trade_no"], result["time_end"], result["attach"])
+			payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", result["time_end"], time.Local)
+			log.Println(err)
+			self.Orders.OrderNotify(uint(TotalFee), result["out_trade_no"], payTime, result["attach"])
 			//self.Orders.OrderNotify(result)
 		}
 

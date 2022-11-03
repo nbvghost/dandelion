@@ -1,6 +1,7 @@
 package activity
 
 import (
+	"log"
 	"math"
 	"strconv"
 	"time"
@@ -16,7 +17,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/glog"
 	"github.com/nbvghost/tool/object"
 )
 
@@ -97,25 +97,25 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, Brokerage uint, or
 		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
 		err = service.Journal.AddUserJournal(Orm, _user.ID, "佣金", strconv.Itoa(index+1)+"级用户", play.UserJournal_Type_LEVE, leveMenoy, extends.KV{Key: "OrdersID", Value: orders.ID}, user.ID)
 		if err != nil {
-			glog.Error(err)
+			log.Println(err)
 			continue
 		}
 
 		err = service.User.AddUserBlockAmount(Orm, _user.ID, -leveMenoy)
 		if err != nil {
-			glog.Error(err)
+			log.Println(err)
 			continue
 		}
 
 		err = service.Journal.AddOrganizationJournal(Orm, orders.OID, "商品交易", "推广佣金"+_user.Name, play.OrganizationJournal_Brokerage, -leveMenoy, extends.KV{Key: "OrdersID", Value: orders.ID})
 		if err != nil {
-			glog.Error(err)
+			log.Println(err)
 			continue
 		}
 
 		err = service.Journal.AddScoreJournal(Orm, _user.ID, "积分", "佣金积分", play.ScoreJournal_Type_LEVE, int64(leveMenoy), extends.KV{Key: "OrdersID", Value: orders.ID})
 		if err != nil {
-			glog.Error(err)
+			log.Println(err)
 			continue
 		}
 

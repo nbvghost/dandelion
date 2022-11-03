@@ -25,7 +25,6 @@ import (
 	"github.com/nbvghost/tool/object"
 	"github.com/pkg/errors"
 
-	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
 )
 
@@ -144,7 +143,7 @@ func (service GoodsService) AddGoodsAttributes(goodsID, groupID types.PrimaryKey
 		Name:    name,
 		Value:   value,
 	})
-	if glog.Error(err) {
+	if err != nil {
 		return err
 	}
 	return nil
@@ -186,7 +185,7 @@ func (service GoodsService) ChangeGoodsAttributesGroup(id types.PrimaryKey, grou
 	}
 
 	update := repository.GoodsAttributesGroup.UpdateByID(id, map[string]interface{}{"Name": groupName})
-	if glog.Error(update.Err) {
+	if update.Err != nil {
 		return err
 	}
 	return nil
@@ -209,7 +208,7 @@ func (service GoodsService) AddGoodsAttributesGroup(goodsID types.PrimaryKey, gr
 		GoodsID: goodsID,
 		Name:    groupName,
 	})
-	if glog.Error(err) {
+	if err != nil {
 		return err
 	}
 	return nil
@@ -456,7 +455,7 @@ func (service GoodsService) DeleteTimeSellGoods(DB *gorm.DB, GoodsID types.Prima
 		"TimeSellHash": timesell.Hash,
 		"GoodsID":      GoodsID,
 	}) //Delete(DB, &model.TimeSellGoods{}, timesell.ID)
-	glog.Error(err)
+	log.Println(err)
 	return err
 }
 func (service GoodsService) DeleteCollageGoods(DB *gorm.DB, GoodsID types.PrimaryKey, OID types.PrimaryKey) error {
@@ -466,11 +465,11 @@ func (service GoodsService) DeleteCollageGoods(DB *gorm.DB, GoodsID types.Primar
 		"CollageHash": timesell.Hash,
 		"GoodsID":     GoodsID,
 	}) //Delete(DB, &model.TimeSellGoods{}, timesell.ID)
-	glog.Error(err)
+	log.Println(err)
 	return err
 
 	//err := service.Delete(DB, &model.Collage{}, timesell.ID)
-	//glog.Error(err)
+	//log.Println(err)
 	//return err
 }
 func (service GoodsService) FindGoodsByTimeSellID(TimeSellID types.PrimaryKey) []model.Goods {
@@ -485,7 +484,7 @@ func (service GoodsService) FindGoodsByTimeSellID(TimeSellID types.PrimaryKey) [
 
 	//todo:没有写完整
 	//err = service.FindWhere(Orm, &list, "ID=?", timesell.GoodsID)
-	//glog.Error(err)
+	//log.Println(err)
 	//dao.FindBy(Orm, &model.Goods{}, map[string]any{"ID": timesell.})
 	log.Println(timesell)
 	return list
@@ -498,7 +497,7 @@ func (service GoodsService) FindGoodsByTimeSellHash(Hash string) []model.Goods {
 
 	var list []model.Goods
 	err := service.FindWhere(Orm, &list, `"ID" in (?)`, GoodsIDs)
-	glog.Error(err)
+	log.Println(err)
 	return list
 }
 func (service GoodsService) FindGoodsByCollageHash(Hash string) []model.Goods {
@@ -509,7 +508,7 @@ func (service GoodsService) FindGoodsByCollageHash(Hash string) []model.Goods {
 
 	var list []model.Goods
 	err := service.FindWhere(Orm, &list, `"ID" in (?)`, GoodsIDs)
-	glog.Error(err)
+	log.Println(err)
 	return list
 }
 func (service GoodsService) FindGoodsByOrganizationIDAndGoodsID(OrganizationID types.PrimaryKey, GoodsID types.PrimaryKey) model.Goods {
@@ -574,7 +573,7 @@ gtc."GoodsTypeID" AS GoodsTypeID,
 MIN(g."Price") as Price
 FROM "Goods" AS g LEFT JOIN "GoodsTypeChild" AS gtc ON (gtc."GoodsTypeID"=g."GoodsTypeID" AND gtc."ID"=g."GoodsTypeChildID") GROUP BY g."GoodsTypeID" limit ?
 `, Num).Rows()
-	if glog.Error(err) {
+	if err != nil {
 		return list
 	}
 	for rows.Next() {
@@ -826,7 +825,7 @@ func (service GoodsService) GetGoodsTypeData(OID types.PrimaryKey) *model.GoodsT
 	goodsTypeData := &model.GoodsTypeData{}
 
 	rows, err := singleton.Orm().Raw(`SELECT gt.*,gtc.* FROM "GoodsTypeChild" AS gtc LEFT JOIN "GoodsType" as gt ON (gt."ID"=gtc."GoodsTypeID") WHERE "OID"=?`, OID).Rows()
-	if glog.Error(err) {
+	if err != nil {
 		return goodsTypeData
 	}
 
@@ -835,7 +834,7 @@ func (service GoodsService) GetGoodsTypeData(OID types.PrimaryKey) *model.GoodsT
 	for rows.Next() {
 		var item model.GoodsTypeGoodsTypeChild
 		err := singleton.Orm().ScanRows(rows, &item)
-		glog.Error(err)
+		log.Println(err)
 
 		goodsTypeItem := goodsTypeData.Get(item.GoodsType.ID)
 		if goodsTypeItem.Item.ID == 0 {

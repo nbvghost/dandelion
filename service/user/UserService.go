@@ -23,7 +23,6 @@ import (
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/encryption"
 
-	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gweb"
 )
 
@@ -109,7 +108,7 @@ func (service UserService) AddUserBlockAmount(Orm *gorm.DB, UserID types.Primary
 func (service UserService) FindUserByIDs(IDs []uint) []model.User {
 	var users []model.User
 	err := singleton.Orm().Where(IDs).Find(&users).Error //SelectOne(user, "select * from User where Tel=?", Tel)
-	glog.Error(err)
+	log.Println(err)
 	return users
 }
 func (service UserService) LeveAll6(Orm *gorm.DB, OneSuperiorID types.PrimaryKey) string {
@@ -225,7 +224,7 @@ func (service UserService) UserAction(context *gweb.Context) (r gweb.Result, err
 func (service UserService) FindUserByTel(Orm *gorm.DB, Tel string) *model.User {
 	user := &model.User{}
 	err := Orm.Where(`"Phone"=?`, Tel).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
-	glog.Error(err)
+	log.Println(err)
 	return user
 }
 
@@ -233,7 +232,7 @@ func (service UserService) FindUserByOpenID(Orm *gorm.DB, OID types.PrimaryKey, 
 	user := &model.User{}
 	//CompanyOpenID := user.GetCompanyOpenID(CompanyID, OpenID)
 	err := Orm.Where(`"OpenID"=? and "OID"=?`, OpenID, OID).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
-	glog.Error(err)
+	log.Println(err)
 	return user
 }
 func (service UserService) AddUserByOpenID(Orm *gorm.DB, OID types.PrimaryKey, OpenID string) *model.User {
@@ -249,6 +248,6 @@ func (service UserService) AddUserByOpenID(Orm *gorm.DB, OID types.PrimaryKey, O
 	}
 	//CompanyOpenID := user.GetCompanyOpenID(CompanyID, OpenID)
 	//err := Orm.Where("OpenID=?", OpenID).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
-	//glog.Error(err)
+	//log.Println(err)
 	return user
 }

@@ -77,18 +77,18 @@ func (service *Catch1688Service) Run() {
 
 		for {
 			list, err := os.Open("1688")
-			if glog.Error(err) == false {
+			if err == nil {
 
 				fl, err := list.Readdir(-1)
-				if glog.Error(err) == false {
+				if err == nil {
 
 					for i := range fl {
 
 						f, err := os.Open("1688/" + fl[i].Name())
-						if glog.Error(err) == false {
+						if err == nil {
 
 							b, err := ioutil.ReadAll(f)
-							if glog.Error(err) == false {
+							if err == nil {
 								service.Catch(string(b), fl[i].Name(), false)
 							}
 						}
@@ -153,7 +153,7 @@ func (service *Catch1688Service) getGoodsType(content string) (map[string]interf
 				glog.Trace(ress[0][1])
 
 				err := json.Unmarshal([]byte(ress[0][1]), &goodsInfo)
-				glog.Error(err)
+				log.Println(err)
 				glog.Trace(goodsInfo)
 			}
 
@@ -222,7 +222,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 	goods.ExpressTemplateID = express.ID
 
 	docHtml, err := doc.Html()
-	glog.Error(err)
+	log.Println(err)
 
 	goodsType, goodsInfo := service.getGoodsType(docHtml)
 	glog.Trace(goodsType, goodsInfo)
@@ -416,11 +416,11 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 		u, ise := s.Attr("data-tfs-url")
 		if ise {
 			res, err := http.Get(u)
-			glog.Error(err)
+			log.Println(err)
 			//b, err := ioutil.ReadAll(res.Body)
 			reader := transform.NewReader(res.Body, simplifiedchinese.GBK.NewDecoder())
 			b, err := ioutil.ReadAll(reader)
-			glog.Error(err)
+			log.Println(err)
 			//fmt.Println(string(b))
 			te := strings.TrimSpace(string(b))
 			//fmt.Println(te)
@@ -432,7 +432,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 
 			red := strings.NewReader(ress[1])
 			imgsDoc, err := goquery.NewDocumentFromReader(red)
-			glog.Error(err)
+			log.Println(err)
 
 			//images := make([]string, 0)
 			imgsDoc.Find("img").Each(func(i int, s *goquery.Selection) {

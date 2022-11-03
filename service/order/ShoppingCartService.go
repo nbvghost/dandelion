@@ -1,6 +1,7 @@
 package order
 
 import (
+	"log"
 	"strconv"
 
 	"gorm.io/gorm"
@@ -14,8 +15,6 @@ import (
 	"github.com/nbvghost/dandelion/service/goods"
 
 	"github.com/nbvghost/gpa/types"
-
-	"github.com/nbvghost/glog"
 )
 
 type ShoppingCartService struct {
@@ -31,14 +30,14 @@ func (service ShoppingCartService) GetGSIDs(UserID types.PrimaryKey, GSIDs []str
 	//Orm := Orm()
 	//return Orm.Where("GSID in (?)", IDs).Where(&model.ShoppingCart{UserID: UserID}).Delete(&model.ShoppingCart{}).Error
 	err := Orm.Where(`"GSID" in (?) and "UserID"=?`, GSIDs, UserID).Find(&scs).Error
-	glog.Error(err)
+	log.Println(err)
 	return scs
 }
 func (service ShoppingCartService) GetGSID(UserID types.PrimaryKey, GSID string) model.ShoppingCart {
 	Orm := singleton.Orm()
 	var sc model.ShoppingCart
 	err := Orm.Where(`"GSID"=? and  "UserID"=?`, GSID, UserID).First(&sc).Error
-	glog.Error(err)
+	log.Println(err)
 	return sc
 }
 func (service ShoppingCartService) UpdateByUserIDAndID(UserID types.PrimaryKey, GSID string, Quantity uint) error {
@@ -78,7 +77,7 @@ func (service ShoppingCartService) FindShoppingCartByUserID(UserID types.Primary
 	Orm := singleton.Orm()
 	var list []model.ShoppingCart
 	err := service.FindWhere(Orm, &list, model.ShoppingCart{UserID: UserID})
-	glog.Error(err)
+	log.Println(err)
 	return list
 }
 func (service ShoppingCartService) FindShoppingCartListDetails(UserID types.PrimaryKey) (error, []AnalyseOrdersGoods, uint) {

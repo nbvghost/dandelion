@@ -3,6 +3,7 @@ package admin
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -23,8 +24,6 @@ import (
 
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/object"
-
-	"github.com/nbvghost/glog"
 )
 
 type AdminService struct {
@@ -331,7 +330,7 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	}
 
 	err = service.Content.AddContentConfig(tx, shop)
-	if glog.Error(err) {
+	if err != nil {
 		return nil, err
 	}
 	return admin, err
@@ -340,7 +339,7 @@ func (service AdminService) GetAdmin(ID types.PrimaryKey) *model.Admin {
 	Orm := singleton.Orm()
 	admin := &model.Admin{}
 	err := Orm.Where(`"ID"=?`, ID).First(admin).Error //SelectOne(user, "select * from User where Email=?", Email)
-	glog.Error(err)
+	log.Println(err)
 
 	return admin
 }

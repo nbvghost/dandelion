@@ -113,7 +113,7 @@ func (service WxService) GetAccessToken(WxConfig *model.WechatConfig) string {
 	url := "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + WxConfig.AppID + "&secret=" + WxConfig.AppSecret
 
 	resp, err := http.Get(url)
-	glog.Error(err)
+	log.Println(err)
 
 	b, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
@@ -121,7 +121,7 @@ func (service WxService) GetAccessToken(WxConfig *model.WechatConfig) string {
 	d := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &d)
-	glog.Error(err)
+	log.Println(err)
 	//fmt.Println(string(b))
 	//fmt.Println(d)
 	if d["access_token"] == nil {
@@ -332,11 +332,11 @@ func (service WxService) MPOrder(ctx context.Context, OrderNo string, title, des
 // func (self WxService) GetWxConfig(DB *gorm.DB, CompanyID uint) *WxConfig {
 // 	content_item := &WxConfig{}
 // 	err := DB.Where("CompanyID=?", CompanyID).First(content_item).Error
-// 	glog.Error(err)
+// 	log.Println(err)
 
 // 	if content_item.ID == 0 {
 // 		err = DB.Create(content_item).Error
-// 		glog.Error(err)
+// 		log.Println(err)
 // 		return content_item
 // 	} else {
 // 		return content_item
@@ -352,13 +352,13 @@ func (service WxService) MPOrder(ctx context.Context, OrderNo string, title, des
 /*func (entity WxService) MiniProgramByAppIDAndMchID(AppID, MchID string) model.WxConfig {
 	var wx model.WxConfig
 	err := singleton.Orm().Model(&model.WxConfig{}).Where("AppID=? and MchID=?", AppID, MchID).First(&wx).Error
-	glog.Error(err)
+	log.Println(err)
 	return wx
 }*/
 /*func (entity WxService) GetWxConfig(ID uint) model.WxConfig {
 	var wx model.WxConfig
 	err := singleton.Orm().Model(&model.WxConfig{}).Where("ID=?", ID).First(&wx).Error
-	glog.Error(err)
+	log.Println(err)
 	return wx
 }*/
 func (service WxService) MWQRCodeTemp(OID uint, UserID uint, qrtype, params string, wxConfig *model.WechatConfig) *result.ActionResult {

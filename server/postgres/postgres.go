@@ -12,7 +12,6 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/nbvghost/dandelion/library/environments"
-	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gpa"
 )
 
@@ -33,7 +32,7 @@ func (p *server) Orm() *gorm.DB {
 			Logger: p.logger,
 		})
 		if err != nil {
-			glog.Error(err)
+			log.Println(err)
 		}
 		p.orm = _database
 	})

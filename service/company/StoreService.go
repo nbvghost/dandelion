@@ -1,10 +1,11 @@
 package company
 
 import (
+	"log"
+
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/singleton"
 
-	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gpa/types"
 )
 
@@ -22,7 +23,7 @@ func (service StoreService) LocationList(Latitude, Longitude float64) []map[stri
 	Orm := singleton.Orm()
 
 	rows, err := Orm.Model(&model.Store{}).Select("ID,Images,Name,Address,ServicePhone,Stars,StarsCount,ROUND(6378.138*2*ASIN(SQRT(POW(SIN((?*PI()/180-Latitude*PI()/180)/2),2)+COS(?*PI()/180)*COS(Latitude*PI()/180)*POW(SIN((?*PI()/180-Longitude*PI()/180)/2),2)))*1000) AS Distance", Latitude, Latitude, Longitude).Order("Distance asc").Rows()
-	glog.Error(err)
+	log.Println(err)
 	defer rows.Close()
 
 	list := make([]map[string]interface{}, 0)
@@ -38,7 +39,7 @@ func (service StoreService) LocationList(Latitude, Longitude float64) []map[stri
 		var Distance float64
 
 		err = rows.Scan(&ID, &Images, &Name, &Address, &ServicePhone, &Stars, &StarsCount, &Distance)
-		glog.Error(err)
+		log.Println(err)
 		list = append(list, map[string]interface{}{"ID": ID, "Images": Images, "Name": Name, "Address": Address, "ServicePhone": ServicePhone, "Stars": Stars, "StarsCount": StarsCount, "Distance": Distance})
 	}
 

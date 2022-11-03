@@ -1,10 +1,11 @@
 package activity
 
 import (
+	"log"
+
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/singleton"
-	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gpa/types"
 )
 
@@ -51,6 +52,6 @@ func (service TimeSellService) DeleteTimeSell(TimeSellID types.PrimaryKey) error
 	err := dao.DeleteBy(singleton.Orm(), &model.TimeSell{}, map[string]interface{}{
 		"Hash": ts.Hash,
 	})
-	glog.Error(err)
+	log.Println(err)
 	return err
 }

@@ -5,7 +5,6 @@ import (
 
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gpa"
 	"github.com/nbvghost/gpa/types"
 )
@@ -26,11 +25,11 @@ func (u *GoodsAttributesRepository) Repository() gpa.IRepository {
 }
 func (u *GoodsAttributesRepository) QueryGoodsAttributesNameInfo() ([]*extends.GoodsAttributesNameInfo, error) {
 	rows, err := u.GetDataBase().Query("select * from (select Name,count(Name) as Num from GoodsAttributes group by Name) as m order by m.Num desc", nil)
-	if glog.Error(err) {
+	if err != nil {
 		return nil, err
 	}
 	d, err := gpa.ScanRows(rows, reflect.TypeOf(new(extends.GoodsAttributesNameInfo)), true)
-	if glog.Error(err) {
+	if err != nil {
 		return nil, err
 	}
 	//list := gpa.Rows("select * from (select Value,count(Value) as Num from GoodsAttributes where Name=? group by Value) as m order by m.Num desc", []interface{}{name}, &extends.GoodsAttributesValueInfo{})
@@ -41,11 +40,11 @@ func (u *GoodsAttributesRepository) QueryGoodsAttributesNameInfo() ([]*extends.G
 }
 func (u *GoodsAttributesRepository) QueryGoodsAttributesValueInfoByName(name string) ([]*extends.GoodsAttributesValueInfo, error) {
 	rows, err := u.GetDataBase().Query("select * from (select Value,count(Value) as Num from GoodsAttributes where Name=? group by Value) as m order by m.Num desc", name)
-	if glog.Error(err) {
+	if err != nil {
 		return nil, err
 	}
 	d, err := gpa.ScanRows(rows, reflect.TypeOf(new(extends.GoodsAttributesValueInfo)), true)
-	if glog.Error(err) {
+	if err != nil {
 		return nil, err
 	}
 	//list := gpa.Rows("select * from (select Value,count(Value) as Num from GoodsAttributes where Name=? group by Value) as m order by m.Num desc", []interface{}{name}, &extends.GoodsAttributesValueInfo{})

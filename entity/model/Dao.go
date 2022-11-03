@@ -33,7 +33,7 @@ func Init(dsn string) {
 	//_database.Exec("SET SESSION GROUP_CONCAT_MAX_LEN=1844674407370954752")
 	//_database.Exec("SET GLOBAL max_allowed_packet=1844674407370954752")
 	//err = _database.Exec("set profiling = 1").Error
-	//glog.Error(err)
+	//log.Println(err)
 	go func() {
 
 		/*for {

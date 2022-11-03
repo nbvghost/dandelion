@@ -101,7 +101,7 @@ func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *m
 		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
 		err = service.User.AddUserBlockAmount(tx, _user.ID, -leveMenoy)
 		if err != nil {
-			glog.Error(err)
+			log.Println(err)
 			continue
 		}
 		//OutBrokerageMoney = OutBrokerageMoney + leveMenoy
@@ -162,7 +162,7 @@ func (service OrdersService) FirstSettlementUserBrokerage(tx *gorm.DB, orders mo
 		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
 		err = service.User.AddUserBlockAmount(tx, _user.ID, leveMenoy)
 		if err != nil {
-			glog.Error(err)
+			log.Println(err)
 			continue
 		}
 		//OutBrokerageMoney = OutBrokerageMoney + leveMenoy
@@ -789,7 +789,7 @@ func (service OrdersService) Deliver(ShipName, ShipNo string, OrdersID types.Pri
 	orders.Status = model.OrdersStatusDeliver
 
 	ogs, err := service.FindOrdersGoodsByOrdersID(singleton.Orm(), orders.ID)
-	if glog.Error(err) {
+	if err != nil {
 		Orm.Rollback()
 		return err
 	}
@@ -971,7 +971,7 @@ func (service OrdersService) ListOrders(UserID, OID types.PrimaryKey, PostType i
 	return service.ListOrdersDate(UserID, OID, PostType, Status, time.Unix(0, 0), time.Unix(0, 0), Limit, Offset)
 }
 
-func (service OrdersService) OrderNotify(totalFee uint, outTradeNo, payTime, attach string) (Success bool, Message string) {
+func (service OrdersService) OrderNotify(totalFee uint, outTradeNo string, payTime time.Time, attach string) (Success bool, Message string) {
 
 	//Orm := singleton.Orm()
 
@@ -985,8 +985,7 @@ func (service OrdersService) OrderNotify(totalFee uint, outTradeNo, payTime, att
 		orders := service.GetSupplyOrdersByOrderNo(outTradeNo)
 		if orders.IsPay == 0 {
 			tx := singleton.Orm().Begin()
-			t, _ := time.ParseInLocation("20060102150405", payTime, time.Local)
-			err := dao.UpdateByPrimaryKey(tx, entity.SupplyOrders, orders.ID, &model.SupplyOrders{PayTime: t, IsPay: 1, PayMoney: totalFee})
+			err := dao.UpdateByPrimaryKey(tx, entity.SupplyOrders, orders.ID, &model.SupplyOrders{PayTime: payTime, IsPay: 1, PayMoney: totalFee})
 			if err != nil {
 				tx.Rollback()
 				return false, err.Error()
@@ -1064,18 +1063,18 @@ func (service OrdersService) OrderNotify(totalFee uint, outTradeNo, payTime, att
 
 }
 
-func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, payTime string) (Success bool, Message string) {
+func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, payTime time.Time) (Success bool, Message string) {
 
 	//orders := service.GetOrdersByOrderNo(out_trade_no)
 	if orders.IsPay == 0 {
 		if orders.Status == model.OrdersStatusOrder {
 
-			t, _ := time.ParseInLocation("20060102150405", payTime, time.Local)
+			//t, _ := time.ParseInLocation("20060102150405", payTime, time.Local)
 			//var TotalBrokerage uint
 			var err error
 			if orders.PostType == 1 {
 				//邮寄
-				err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, &model.Orders{PayTime: t, IsPay: 1, Status: model.OrdersStatusPay})
+				err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, &model.Orders{PayTime: payTime, IsPay: 1, Status: model.OrdersStatusPay})
 				if err != nil {
 
 					return false, err.Error()
@@ -1094,7 +1093,7 @@ func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, 
 
 			} else {
 				//线下使用
-				err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, &model.Orders{PayTime: t, IsPay: 1, Status: model.OrdersStatusPay})
+				err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, &model.Orders{PayTime: payTime, IsPay: 1, Status: model.OrdersStatusPay})
 				if err != nil {
 
 					return false, err.Error()

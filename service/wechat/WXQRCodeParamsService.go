@@ -9,7 +9,6 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/singleton"
 
-	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/encryption"
 	"github.com/nbvghost/tool/object"
@@ -25,7 +24,7 @@ func (service WXQRCodeParamsService) addParams(key string, params map[string]int
 	wxParams.CodeKey = key
 	wxParams.Params = string(b)
 	err := dao.Create(singleton.Orm(), wxParams)
-	if glog.Error(err) {
+	if err != nil {
 		return wxParams, err
 	}
 	return wxParams, nil

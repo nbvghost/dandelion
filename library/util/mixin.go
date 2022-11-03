@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -17,7 +18,6 @@ import (
 	"strings"
 
 	"github.com/nbvghost/captcha"
-	"github.com/nbvghost/glog"
 	"github.com/nbvghost/tool/object"
 )
 
@@ -199,7 +199,7 @@ func SignSha1(m string) string {
 func Rounding45(rounding float64, prec int) float64 {
 
 	f, err := strconv.ParseFloat(strconv.FormatFloat(rounding, 'f', prec, 64), 64)
-	glog.Error(err)
+	log.Println(err)
 	return f
 	//strconv.ParseFloat(strconv.FormatFloat(float64(45454)/float64(100),'f',5,64),64)
 	//return math.Floor(rounding+0.5)
@@ -261,7 +261,7 @@ func Rounding45(rounding float64, prec int) float64 {
 	}
 
 	b, err := hex.DecodeString(readyData)
-	glog.Error(err)
+	log.Println(err)
 
 	buffer := bytes.NewBuffer(b)
 	binary.Read(buffer, binary.LittleEndian, &UserID)
