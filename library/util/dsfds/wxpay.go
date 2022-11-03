@@ -127,7 +127,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 	d := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &d)
-	glog.Error(err)
+	log.Println(err)
 	fmt.Println(string(b))
 	fmt.Println(d)
 
@@ -148,7 +148,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 	url := "http://api.weixin.qq.com/cgi-bin/ticket/getticket?type=jsapi&access_token=" + GetAccessToken()
 
 	resp, err := http.Get(url)
-	glog.Error(err)
+	log.Println(err)
 
 	b, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
@@ -156,7 +156,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 	d := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &d)
-	glog.Error(err)
+	log.Println(err)
 	fmt.Println(string(b))
 	fmt.Println(d)
 
@@ -191,20 +191,20 @@ func OrderQuery(OrderNo uint) (return_code, result_code, trade_state, time_end s
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
-	glog.Trace(err)
+	log.Println(err)
 	//fmt.Println(string(b))
 
 	reader := strings.NewReader(string(b))
 	response, err := http.Post("https://api.mch.weixin.qq.com/pay/orderquery", "text/xml", reader)
-	glog.Trace(err)
+	log.Println(err)
 
 	b, err = ioutil.ReadAll(response.Body)
-	glog.Trace(err)
+	log.Println(err)
 	//fmt.Println(string(b))
 
 	inMap := make(util.Map)
 	err = xml.Unmarshal(b, &inMap)
-	glog.Trace(err)
+	log.Println(err)
 	fmt.Println(inMap)
 
 	return_code = inMap["return_code"]

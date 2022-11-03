@@ -24,8 +24,6 @@ import (
 	"github.com/nbvghost/dandelion/service/express"
 	"github.com/nbvghost/dandelion/service/goods"
 
-	"github.com/nbvghost/glog"
-
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
 
@@ -114,16 +112,16 @@ func (service *Catch1688Service) getGoodsType(content string) (map[string]interf
 	reg := regexp.MustCompile(`<script.*?>([\s\S]*?)<\/script>`)
 
 	resss := reg.FindAllStringSubmatch(content, -1)
-	glog.Trace(len(resss))
+	log.Println(len(resss))
 
 	for x := 0; x < len(resss); x++ {
 
 		if strings.EqualFold(resss[x][1], "") == false {
-			glog.Trace("----------------")
+			log.Println("----------------")
 
 			reg := regexp.MustCompile(`\siDetailData.registerRenderData\(({[\s\S]+})\);\s+$`)
 			if reg.MatchString(resss[x][1]) {
-				//glog.Trace(resss[x][1])
+				//log.Println(resss[x][1])
 
 				ress := reg.FindAllStringSubmatch(resss[x][1], -1)
 				//fmt.Println(len(ress))
@@ -137,11 +135,11 @@ func (service *Catch1688Service) getGoodsType(content string) (map[string]interf
 				tesd = strings.ReplaceAll(tesd, "loginId", `"loginId"`)
 				tesd = strings.ReplaceAll(tesd, "categoryList", `"categoryList"`)
 
-				//glog.Trace(tesd)
+				//log.Println(tesd)
 
 				//return goodsType,goodsInfo
 				json.Unmarshal([]byte(tesd), &goodsType)
-				glog.Trace(goodsType)
+				log.Println(goodsType)
 
 			}
 			///------------------------info--------------
@@ -150,14 +148,14 @@ func (service *Catch1688Service) getGoodsType(content string) (map[string]interf
 			if reg.MatchString(resss[x][1]) {
 				ress := reg.FindAllStringSubmatch(resss[x][1], -1)
 
-				glog.Trace(ress[0][1])
+				log.Println(ress[0][1])
 
 				err := json.Unmarshal([]byte(ress[0][1]), &goodsInfo)
 				log.Println(err)
-				glog.Trace(goodsInfo)
+				log.Println(goodsInfo)
 			}
 
-			glog.Trace("----------------")
+			log.Println("----------------")
 
 		}
 
@@ -176,7 +174,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 	//邮件模板
 	express := service.ExpressTemplate.GetExpressTemplateByOID(haveAdmin.OID)
 	if express.ID == 0 {
-		glog.Trace("没有创建快递模板无法添加产品")
+		log.Println("没有创建快递模板无法添加产品")
 		return
 	}
 
@@ -225,7 +223,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 	log.Println(err)
 
 	goodsType, goodsInfo := service.getGoodsType(docHtml)
-	glog.Trace(goodsType, goodsInfo)
+	log.Println(goodsType, goodsInfo)
 
 	totlStock := uint(0)
 	minPrice := math.MaxFloat64
@@ -324,13 +322,13 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 	imageList, exist := doc.Find("div.mod-detail-version2018-gallery").Attr("data-gallery-image-list")
 	if exist {
 		imageLists := strings.Split(imageList, ",")
-		glog.Trace(imageLists)
+		log.Println(imageLists)
 
 		//images := make([]string, 0)
 		for i := 0; i < len(imageLists); i++ {
 			if strings.EqualFold(imageLists[i], "") == false {
 				imgPath := "" //todo tool.DownloadInternetImage(imageLists[i], "", "")
-				glog.Trace(imgPath)
+				log.Println(imgPath)
 				if strings.EqualFold(imgPath, "") == false {
 					//todo images = append(images, "//"+conf.Config.Domain+"/file/load?path="+imgPath)
 					time.Sleep(200 * time.Millisecond)
@@ -347,7 +345,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 
 			imgPath, exist := selection.Attr("data-imgs")
 			if exist {
-				//glog.Trace(imgPath)
+				//log.Println(imgPath)
 				imgPathMap := make(map[string]interface{})
 				util.JSONToStruct(imgPath, &imgPathMap)
 				if imgPathMap["original"] != nil {
@@ -468,7 +466,7 @@ func (service *Catch1688Service) URLCatch(URL string) {
 
 	res, err := http.Get(URL)
 	if err != nil {
-		glog.Trace(err)
+		log.Println(err)
 		time.Sleep(time.Hour * 3)
 		return
 	}
@@ -478,7 +476,7 @@ func (service *Catch1688Service) URLCatch(URL string) {
 	}
 
 	b, err := ioutil.ReadAll(res.Body)
-	glog.Trace(err)
+	log.Println(err)
 	service.Catch(string(b), URL, true)
 
 }

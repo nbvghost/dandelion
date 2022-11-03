@@ -26,8 +26,6 @@ import (
 
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/object"
-
-	"github.com/nbvghost/glog"
 )
 
 func (service ContentService) HotViewList(OID, ContentItemID types.PrimaryKey, count uint) []model.Content {
@@ -523,7 +521,7 @@ func (service ContentService) ListContentTypeByType(Type string) model.ContentTy
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	var list model.ContentType
 	err := service.FindWhere(Orm, &list, "Type=?", Type)
-	glog.Trace(err)
+	log.Println(err)
 	return list
 }
 func (service ContentService) FindContentSubTypesByNameAndContentItemID(Name string, ContentItemID types.PrimaryKey) model.ContentSubType {
@@ -604,11 +602,11 @@ func (service ContentService) FindContentByContentItemIDAndContentSubTypeID(Cont
 
 	var content model.Content
 	if ContentItemID == 0 {
-		glog.Trace("参数ContentItemID为0")
+		log.Println("参数ContentItemID为0")
 		return content
 	}
 	if ContentSubTypeID == 0 {
-		glog.Trace("参数ContentSubTypeID为0")
+		log.Println("参数ContentSubTypeID为0")
 		return content
 	}
 
@@ -625,7 +623,7 @@ func (service ContentService) FindContentByTypeID(menusData *extends.MenusData, 
 	var content model.Content
 
 	/*if ContentItemID == 0 {
-		glog.Trace("参数ContentItemID为0")
+		log.Println("参数ContentItemID为0")
 		return content
 	}
 
@@ -712,7 +710,7 @@ func (service ContentService) FindContentListByTypeID(menusData *extends.MenusDa
 	var pager result.Pager
 
 	if ContentItemID == 0 {
-		glog.Trace("参数ContentItemID为0")
+		log.Println("参数ContentItemID为0")
 		return pager
 	}
 
@@ -745,7 +743,7 @@ func (service ContentService) FindContentListByTypeID(menusData *extends.MenusDa
 func (service ContentService) FindContentListForLeftRight(ContentItemID, ContentSubTypeID types.PrimaryKey, ContentID types.PrimaryKey, ContentCreatedAt time.Time) [2]model.Content {
 	var contentList [2]model.Content
 	if ContentItemID == 0 {
-		glog.Trace("参数ContentItemID为0")
+		log.Println("参数ContentItemID为0")
 		return contentList
 	}
 

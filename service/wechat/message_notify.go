@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/company"
-	"github.com/nbvghost/glog"
 )
 
 type MessageNotify struct {
@@ -224,22 +224,22 @@ func (service MessageNotify) SendUniformMessage(sendData map[string]interface{},
 	//xcx := service.MiniProgram()
 
 	b, err := json.Marshal(sendData)
-	glog.Error(err)
+	log.Println(err)
 
 	access_token := service.WxService.GetAccessToken(wxConfig)
 	strReader := strings.NewReader(string(b))
 	respones, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/uniform_send?access_token="+access_token, "application/json", strReader)
-	glog.Error(err)
+	log.Println(err)
 	if err != nil {
 		return &result.ActionResult{Code: result.Fail, Message: err.Error(), Data: nil}, -1
 	}
 	defer respones.Body.Close()
 	body, err := ioutil.ReadAll(respones.Body)
-	glog.Error(err)
+	log.Println(err)
 	mapData := make(map[string]interface{})
 	fmt.Println(string(body))
 	err = json.Unmarshal(body, &mapData)
-	glog.Error(err)
+	log.Println(err)
 	if mapData["errcode"] != nil {
 		if mapData["errcode"].(float64) == 0 {
 			return &result.ActionResult{Code: result.Success, Message: "发送成功", Data: nil}, 0
@@ -250,24 +250,24 @@ func (service MessageNotify) SendUniformMessage(sendData map[string]interface{},
 }
 func (service MessageNotify) SendWXMessage(sendData map[string]interface{}, wxConfig *model.WechatConfig) *result.ActionResult {
 	b, err := json.Marshal(sendData)
-	glog.Error(err)
+	log.Println(err)
 
 	//WxConfig := service.MiniProgram()
 
 	access_token := service.WxService.GetAccessToken(wxConfig)
 	strReader := strings.NewReader(string(b))
 	respones, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token="+access_token, "application/json", strReader)
-	glog.Error(err)
+	log.Println(err)
 	if err != nil {
 		return &result.ActionResult{Code: result.Fail, Message: err.Error(), Data: nil}
 	}
 	defer respones.Body.Close()
 	body, err := ioutil.ReadAll(respones.Body)
-	glog.Error(err)
+	log.Println(err)
 	mapData := make(map[string]interface{})
 	fmt.Println(string(body))
 	err = json.Unmarshal(body, &mapData)
-	glog.Error(err)
+	log.Println(err)
 	if mapData["errcode"] != nil {
 		if mapData["errcode"].(float64) == 0 {
 			return &result.ActionResult{Code: result.Success, Message: "发送成功", Data: nil}

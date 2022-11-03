@@ -1,6 +1,7 @@
 package model
 
 import (
+	"log"
 	"math"
 	"reflect"
 
@@ -8,7 +9,6 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/glog"
 	//"github.com/go-gorp/gorp"
 	//_ "github.com/go-sql-driver/mysql"
 )
@@ -21,8 +21,7 @@ type Profiling struct {
 
 func Init(dsn string) {
 
-	glog.Param.StandardOut = true
-	glog.Trace("DSN", dsn)
+	log.Println("DSN", dsn)
 
 	//conf.Config.DBUrl = "root:274455411@tcp(miniapp.nutsy.cc:3306)/dandelion?charset=utf8mb4&collation=utf8mb4_unicode_ci&parseTime=True&loc=Local"
 

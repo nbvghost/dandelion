@@ -127,7 +127,7 @@ func refund() {
 				suc := wxpay.Refund(v.ID, v.Score)
 				if suc {
 					err := Appointment.ChangeModel(service.Orm, v.ID, &model.Appointment{State: 4})
-					glog.Trace(err)
+					log.Println(err)
 				}
 			}
 
@@ -148,14 +148,14 @@ func pay() {
 				if v.Score == total_fee {
 
 					t, err := time.ParseInLocation("20060102150405", time_end, time.Local)
-					glog.Trace(err)
+					log.Println(err)
 					err = Appointment.ChangeModel(service.Orm, v.ID, &model.Appointment{State: 1, PayDate: t})
-					glog.Trace(err)
+					log.Println(err)
 				}
 			} else {
 				if (time.Now().Unix() - v.CreatedAt.Unix()) > 30*60 {
 					err := Appointment.ChangeModel(service.Orm, v.ID, &model.Appointment{State: 2})
-					glog.Trace(err)
+					log.Println(err)
 				}
 			}
 

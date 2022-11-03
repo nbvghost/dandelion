@@ -32,7 +32,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool"
 	"github.com/nbvghost/tool/object"
@@ -718,10 +717,10 @@ func (service OrdersService) Cancel(OrdersID types.PrimaryKey, wxConfig *model.W
 			} else {
 				//没支付的订单
 				Success, Message1 := service.Wx.Refund(orders, ordersPackage, orders.PayMoney, orders.PayMoney, "用户取消", 0, wxConfig)
-				glog.Trace("Orders", "Cancel", Message1)
+				log.Println("Orders", "Cancel", Message1)
 				if Success == false {
 					Success, Message1 = service.Wx.Refund(orders, ordersPackage, orders.PayMoney, orders.PayMoney, "用户取消", 1, wxConfig)
-					glog.Trace("Orders", "Cancel", Message1)
+					log.Println("Orders", "Cancel", Message1)
 				}
 
 				if Success {

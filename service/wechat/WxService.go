@@ -38,7 +38,6 @@ import (
 
 	"github.com/nbvghost/tool/encryption"
 
-	"github.com/nbvghost/glog"
 	"github.com/nbvghost/tool"
 	"github.com/nbvghost/tool/collections"
 )
@@ -420,7 +419,7 @@ func (service WxService) OrderQuery(OrderNo string, wxConfig *model.WechatConfig
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
-	glog.Trace(err)
+	log.Println(err)
 	//fmt.Println(string(b))
 
 	client := &http.Client{}
@@ -429,15 +428,15 @@ func (service WxService) OrderQuery(OrderNo string, wxConfig *model.WechatConfig
 	if err != nil {
 		return false, inData
 	}
-	glog.Trace(err)
+	log.Println(err)
 
 	b, err = ioutil.ReadAll(response.Body)
-	glog.Trace(err)
+	log.Println(err)
 
 	//fmt.Println(string(b))
 
 	err = xml.Unmarshal(b, &inData)
-	glog.Trace(err)
+	log.Println(err)
 
 	//fmt.Println(inData)
 
@@ -484,7 +483,7 @@ func (service WxService) GetTransfersInfo(transfers model.Transfers, wxConfig *m
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
-	glog.Trace(err)
+	log.Println(err)
 
 	// Load client cert
 	cert, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")
@@ -512,13 +511,13 @@ func (service WxService) GetTransfersInfo(transfers model.Transfers, wxConfig *m
 
 	reader := strings.NewReader(string(b))
 	response, err := client.Post("https://api.mch.weixin.qq.com/mmpaymkttransfers/gettransferinfo", "text/xml", reader)
-	glog.Trace(err)
+	log.Println(err)
 	if err != nil {
 		return false
 	}
 
 	b, err = ioutil.ReadAll(response.Body)
-	glog.Trace(err)
+	log.Println(err)
 	if err != nil {
 		return false
 	}
@@ -527,7 +526,7 @@ func (service WxService) GetTransfersInfo(transfers model.Transfers, wxConfig *m
 
 	var inData = make(util.Map)
 	err = xml.Unmarshal(b, &inData)
-	glog.Trace(err)
+	log.Println(err)
 	if err != nil {
 		return false
 	}
@@ -582,7 +581,7 @@ func (service WxService) Transfers(transfers model.Transfers, wxConfig *model.We
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
-	glog.Trace(err)
+	log.Println(err)
 
 	// Load client cert
 	cert, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")
@@ -609,16 +608,16 @@ func (service WxService) Transfers(transfers model.Transfers, wxConfig *model.We
 
 	reader := strings.NewReader(string(b))
 	response, err := client.Post("https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers", "text/xml", reader)
-	glog.Trace(err)
+	log.Println(err)
 
 	b, err = ioutil.ReadAll(response.Body)
-	glog.Trace(err)
+	log.Println(err)
 
 	//fmt.Println(string(b))
 
 	var inData = make(util.Map)
 	err = xml.Unmarshal(b, &inData)
-	glog.Trace(err)
+	log.Println(err)
 
 	//fmt.Println(inData)
 
@@ -667,20 +666,20 @@ func (service WxService) CloseOrder(OrderNo string, OID types.PrimaryKey, wxConf
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
-	glog.Trace(err)
+	log.Println(err)
 
 	reader := strings.NewReader(string(b))
 	response, err := http.Post("https://api.mch.weixin.qq.com/pay/closeorder", "text/xml", reader)
-	glog.Trace(err)
+	log.Println(err)
 
 	b, err = ioutil.ReadAll(response.Body)
-	glog.Trace(err)
+	log.Println(err)
 
 	fmt.Println(string(b))
 
 	var inData = make(util.Map)
 	err = xml.Unmarshal(b, &inData)
-	glog.Trace(err)
+	log.Println(err)
 	//fmt.Println(inData)
 
 	if strings.EqualFold(inData["return_code"], "SUCCESS") && strings.EqualFold(inData["result_code"], "SUCCESS") {
@@ -745,7 +744,7 @@ func (service WxService) Refund(order *model.Orders, ordersPackage model.OrdersP
 	outMap["sign"] = sign
 
 	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
-	glog.Trace(err)
+	log.Println(err)
 
 	// Load client cert
 	cert, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")
@@ -772,7 +771,7 @@ func (service WxService) Refund(order *model.Orders, ordersPackage model.OrdersP
 
 	reader := strings.NewReader(string(b))
 	response, err := client.Post("https://api.mch.weixin.qq.com/secapi/pay/refund", "text/xml", reader)
-	glog.Trace(err)
+	log.Println(err)
 	if err != nil {
 		Success = false
 		Message = err.Error()
@@ -780,7 +779,7 @@ func (service WxService) Refund(order *model.Orders, ordersPackage model.OrdersP
 	}
 
 	b, err = ioutil.ReadAll(response.Body)
-	glog.Trace(err)
+	log.Println(err)
 	if err != nil {
 		Success = false
 		Message = err.Error()
@@ -791,7 +790,7 @@ func (service WxService) Refund(order *model.Orders, ordersPackage model.OrdersP
 
 	var inData = make(util.Map)
 	err = xml.Unmarshal(b, &inData)
-	glog.Trace(err)
+	log.Println(err)
 	//fmt.Println(inData)
 
 	if strings.EqualFold(inData["return_code"], "SUCCESS") && strings.EqualFold(inData["result_code"], "SUCCESS") {
@@ -873,7 +872,7 @@ func (service WxService) MwGetTicket(WxConfig *model.WechatConfig) string {
 	url := "http://api.weixin.qq.com/cgi-bin/ticket/getticket?type=jsapi&access_token=" + service.GetAccessToken(WxConfig)
 
 	resp, err := http.Get(url)
-	glog.Error(err)
+	log.Println(err)
 
 	b, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
@@ -881,7 +880,7 @@ func (service WxService) MwGetTicket(WxConfig *model.WechatConfig) string {
 	d := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &d)
-	glog.Error(err)
+	log.Println(err)
 	//fmt.Println(string(b))
 	//fmt.Println(d)
 	if d["ticket"] != nil && d["expires_in"] != nil {

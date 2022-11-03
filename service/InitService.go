@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
@@ -10,8 +11,6 @@ import (
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/cache"
-
-	"github.com/nbvghost/glog"
 	"github.com/nbvghost/tool/encryption"
 )
 
@@ -166,7 +165,7 @@ $Goods$ LANGUAGE plpgsql;`
 			}
 		}
 		if !environments.Release() {
-			glog.Debug("migrate:", models[index].TableName())
+			log.Println("migrate:", models[index].TableName())
 			if err := _database.AutoMigrate(models[index]); err != nil {
 				panic(err)
 			}

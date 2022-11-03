@@ -4,18 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/nbvghost/dandelion/library/util"
-
 	"github.com/nbvghost/tool"
 	"github.com/nbvghost/tool/collections"
 	"github.com/nbvghost/tool/object"
-
-	"github.com/nbvghost/glog"
 )
 
 /*const OpenToken = "JksTRaZE320kujOPZwpfQ6fHIdX3tV718ccg7es0EFY"
@@ -121,7 +119,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 		resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/component/api_component_token", "application/json", buf)
 		log.Println(err)
 		b, err := ioutil.ReadAll(resp.Body)
-		glog.Error(err)
+		log.Println(err)
 		fmt.Println(string(b))
 
 		var respData = &struct {
@@ -130,7 +128,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 		}{}
 
 		err = json.Unmarshal(b, respData)
-		glog.Error(err)
+		log.Println(err)
 
 		VerifyCache.Component_access_token = respData.Component_access_token
 		VerifyCache.Component_access_token_expires_in = respData.Expires_in
@@ -148,14 +146,14 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 
 		params := map[string]string{"component_appid": OpenAppID}
 		jd, err := json.Marshal(params)
-		glog.Error(err)
+		log.Println(err)
 		fmt.Println(string(jd))
 		buf := bytes.NewBuffer(make([]byte, 0))
 		binary.Write(buf, binary.BigEndian, jd)
 		resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token="+component_access_token, "application/json", buf)
-		glog.Error(err)
+		log.Println(err)
 		b, err := ioutil.ReadAll(resp.Body)
-		glog.Error(err)
+		log.Println(err)
 		fmt.Println(string(b))
 
 		var respData = &struct {
@@ -164,7 +162,7 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 		}{}
 
 		err = json.Unmarshal(b, respData)
-		glog.Error(err)
+		log.Println(err)
 
 		VerifyCache.Pre_auth_code = respData.Pre_auth_code
 		VerifyCache.Pre_auth_code_expires_in = respData.Expires_in
@@ -186,7 +184,7 @@ func GetAccessToken() string {
 	url := "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + AppID + "&secret=" + AppSecret
 
 	resp, err := http.Get(url)
-	glog.Error(err)
+	log.Println(err)
 
 	b, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
@@ -194,7 +192,7 @@ func GetAccessToken() string {
 	d := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &d)
-	glog.Error(err)
+	log.Println(err)
 	fmt.Println(string(b))
 	fmt.Println(d)
 
@@ -215,7 +213,7 @@ func GetTicket() string {
 	url := "http://api.weixin.qq.com/cgi-bin/ticket/getticket?type=jsapi&access_token=" + GetAccessToken()
 
 	resp, err := http.Get(url)
-	glog.Error(err)
+	log.Println(err)
 
 	b, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
@@ -223,7 +221,7 @@ func GetTicket() string {
 	d := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &d)
-	glog.Error(err)
+	log.Println(err)
 	fmt.Println(string(b))
 	fmt.Println(d)
 
