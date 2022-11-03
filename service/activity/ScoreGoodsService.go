@@ -6,6 +6,7 @@ import (
 
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/journal"
@@ -23,8 +24,8 @@ type ScoreGoodsService struct {
 func (service ScoreGoodsService) Exchange(user *model.User, ScoreGoodsID types.PrimaryKey) error {
 
 	tx := singleton.Orm().Begin()
-	var scoreGoods model.ScoreGoods
-	service.Get(tx, ScoreGoodsID, &scoreGoods)
+	//var scoreGoods model.ScoreGoods
+	scoreGoods := dao.GetByPrimaryKey(tx, &model.ScoreGoods{}, ScoreGoodsID).(*model.ScoreGoods)
 	if scoreGoods.ID == 0 {
 		tx.Rollback()
 		return errors.New("暂时无法兑换")
@@ -79,9 +80,9 @@ func (service ScoreGoodsService) Situation(StartTime, EndTime int64) interface{}
 	return result
 }
 
-func (service ScoreGoodsService) ListScoreGoods() []model.ScoreGoods {
+func (service ScoreGoodsService) ListScoreGoods() []types.IEntity {
 	Orm := singleton.Orm()
-	var list []model.ScoreGoods
-	service.FindAll(Orm, &list)
-	return list
+	//var list []model.ScoreGoods
+	//dao.Find(Orm, &model.ScoreGoods{})
+	return dao.Find(Orm, &model.ScoreGoods{})
 }

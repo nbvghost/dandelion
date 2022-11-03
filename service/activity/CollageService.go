@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/gpa/types"
 
@@ -25,10 +26,10 @@ func (service CollageService) GetCollageGoodsByGoodsID(GoodsID types.PrimaryKey,
 
 func (service CollageService) DeleteCollage(TimeSellID types.PrimaryKey) error {
 	//timesell := TimeSellService{}.GetTimeSellByGoodsID(GoodsID)
-	var ts model.Collage
-	service.Get(singleton.Orm(), TimeSellID, &ts)
+	//var ts model.Collage
+	ts := dao.GetByPrimaryKey(singleton.Orm(), &model.Collage{}, TimeSellID).(*model.Collage)
 	//err := service.Delete(singleton.Orm(), &model.TimeSell{}, ts.ID)
-	err := service.DeleteWhere(singleton.Orm(), &model.Collage{}, map[string]interface{}{
+	err := dao.DeleteBy(singleton.Orm(), &model.Collage{}, map[string]interface{}{
 		"Hash": ts.Hash,
 	})
 	glog.Error(err)
@@ -80,7 +81,7 @@ func (service CollageService) AddCollageRecord(OrderNo, OrdersGoodsNo, No string
 			return errors.New("您已经参加了这个活动，看看其它活动吧！")
 		}
 	}
-	return service.Add(singleton.Orm(), cr)
+	return dao.Create(singleton.Orm(), cr)
 }
 func (service CollageService) FindCollageRecordByUserIDAndNo(UserID types.PrimaryKey, No string) model.CollageRecord {
 	Orm := singleton.Orm()

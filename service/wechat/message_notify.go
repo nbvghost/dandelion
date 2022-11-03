@@ -71,7 +71,7 @@ func (service MessageNotify) NewUserJoinNotify(NewUser model.User, notifyUser mo
 }
 
 //发货通知
-func (service MessageNotify) OrderDeliveryNotify(Order model.Orders, ogs []model.OrdersGoods, wxConfig *model.WechatConfig) *result.ActionResult {
+func (service MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []model.OrdersGoods, wxConfig *model.WechatConfig) *result.ActionResult {
 
 	if Order.ID == 0 {
 		return &result.ActionResult{Code: result.Fail, Message: "找不到订单", Data: nil}

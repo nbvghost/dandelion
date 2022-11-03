@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/singleton"
 )
 
@@ -30,7 +31,7 @@ func (service GiveVoucherService) AddItem(item model.GiveVoucher) error {
 	if hasRank.ID != 0 {
 		return errors.New("条件已经存在")
 	}
-	err := service.Add(Orm, &item)
+	err := dao.Create(Orm, &item)
 	return err
 
 }
@@ -42,7 +43,7 @@ func (service GiveVoucherService) SaveItem(item model.GiveVoucher) error {
 
 		return errors.New("条件已经存在")
 	}
-	err := service.Save(Orm, &item)
+	err := dao.Save(Orm, &item)
 	return err
 
 }

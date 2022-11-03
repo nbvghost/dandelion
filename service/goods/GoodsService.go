@@ -2,6 +2,7 @@ package goods
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/internal/repository"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
@@ -96,11 +98,9 @@ func (service GoodsService) PaginationGoods(OID, GoodsTypeID, GoodsTypeChildID t
 	}
 	return repository.Goods.FindByOIDAndGoodsTypeIDAndGoodsTypeChildIDLimit(OID, GoodsTypeID, GoodsTypeChildID, params.NewLimit(pageIndex, 20))
 }
-func (service GoodsService) GetSpecification(ID types.PrimaryKey, target *model.Specification) error {
+func (service GoodsService) GetSpecification(ID types.PrimaryKey) *model.Specification {
 	Orm := singleton.Orm()
-	err := service.Get(Orm, ID, &target)
-
-	return err
+	return dao.GetByPrimaryKey(Orm, &model.Specification{}, ID).(*model.Specification)
 }
 
 /*func (service GoodsService) AddSpecification(context *gweb.Context) (r gweb.Result,err error) {
@@ -120,7 +120,7 @@ func (service GoodsService) ListSpecification(context *gweb.Context) (r gweb.Res
 }*/
 func (service GoodsService) DeleteSpecification(ID types.PrimaryKey) error {
 	Orm := singleton.Orm()
-	err := service.Delete(Orm, &model.Specification{}, ID)
+	err := dao.DeleteByPrimaryKey(Orm, &model.Specification{}, ID)
 	return err
 }
 func (service GoodsService) DeleteGoodsAttributes(ID types.PrimaryKey) error {
@@ -223,7 +223,7 @@ func (service GoodsService) ChangeSpecification(context *gweb.Context) (r gweb.R
 	if err != nil {
 		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, err
 	}
-	err = service.ChangeModel(Orm, types.PrimaryKey(GoodsID), item)
+	err = dao.UpdateByPrimaryKey(Orm, &model.Specification{}, types.PrimaryKey(GoodsID), item)
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
 }
 func (service GoodsService) getGoodsByUri(OID types.PrimaryKey, uri string) model.Goods {
@@ -304,7 +304,7 @@ func (service GoodsService) SaveGoods(OID types.PrimaryKey, goods *model.Goods, 
 
 	return err
 }
-func (service GoodsService) GetGoodsInfo(goods model.Goods) (*extends.GoodsInfo, error) {
+func (service GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsInfo, error) {
 	Orm := singleton.Orm()
 
 	//Orm := singleton.Orm()
@@ -317,7 +317,7 @@ func (service GoodsService) GetGoodsInfo(goods model.Goods) (*extends.GoodsInfo,
 	//VIPDiscount, _ := strconv.ParseUint(vipdiscountConf.V, 10, 64)
 	timeSell := service.TimeSell.GetTimeSellByGoodsID(goods.ID, goods.OID)
 	goodsInfo := extends.GoodsInfo{}
-	goodsInfo.Goods = goods
+	goodsInfo.Goods = *goods
 	goodsInfo.GoodsType = service.GetGoodsType(goods.GoodsTypeID)
 	goodsInfo.GoodsTypeChild = service.GetGoodsTypeChild(goods.GoodsTypeChildID)
 	goodsInfo.Discounts = make([]extends.Discount, 0)
@@ -384,16 +384,16 @@ func (service GoodsService) GetGoodsInfoList(goodsList []model.Goods) []extends.
 }
 func (service GoodsService) GetGoods(DB *gorm.DB, context constrain.IContext, ID types.PrimaryKey) (*extends.GoodsInfo, error) {
 	Orm := singleton.Orm()
-	var goods model.Goods
-	err := service.Get(Orm, ID, &goods)
-	glog.Error(err)
+	//var goods model.Goods
+	goods := dao.GetByPrimaryKey(Orm, &model.Goods{}, ID).(*model.Goods)
+
 	return service.GetGoodsInfo(goods)
 }
 
 func (service GoodsService) DeleteGoods(ID types.PrimaryKey) *result.ActionResult {
 	Orm := singleton.Orm()
 	tx := Orm.Begin()
-	err := service.Delete(tx, &model.Goods{}, ID)
+	err := dao.DeleteByPrimaryKey(tx, &model.Goods{}, ID)
 	if err != nil {
 		tx.Rollback()
 	}
@@ -418,7 +418,7 @@ func (service GoodsService) DeleteGoodsType(ID types.PrimaryKey) *result.ActionR
 
 	var err error
 	if len(gtcs) <= 0 {
-		err = service.Delete(tx, &model.GoodsType{}, ID)
+		err = dao.DeleteByPrimaryKey(tx, &model.GoodsType{}, ID)
 		if err != nil {
 			tx.Rollback()
 		}
@@ -437,7 +437,7 @@ func (service GoodsService) DeleteGoodsTypeChild(GoodsTypeChildID types.PrimaryK
 	Orm := singleton.Orm()
 	tx := Orm.Begin()
 	tx.Model(&model.Goods{GoodsTypeChildID: GoodsTypeChildID}).Updates(map[string]interface{}{"GoodsTypeChildID": 0})
-	err := service.Delete(tx, &model.GoodsTypeChild{}, GoodsTypeChildID)
+	err := dao.DeleteByPrimaryKey(tx, &model.GoodsTypeChild{}, GoodsTypeChildID)
 	if err != nil {
 		tx.Rollback()
 	}
@@ -452,7 +452,7 @@ func (service GoodsService) DeleteGoodsTypeChild(GoodsTypeChildID types.PrimaryK
 
 func (service GoodsService) DeleteTimeSellGoods(DB *gorm.DB, GoodsID types.PrimaryKey, OID types.PrimaryKey) error {
 	timesell := service.TimeSell.GetTimeSellByGoodsID(GoodsID, OID)
-	err := service.DeleteWhere(DB, &model.TimeSellGoods{}, map[string]interface{}{
+	err := dao.DeleteBy(DB, &model.TimeSellGoods{}, map[string]interface{}{
 		"TimeSellHash": timesell.Hash,
 		"GoodsID":      GoodsID,
 	}) //Delete(DB, &model.TimeSellGoods{}, timesell.ID)
@@ -462,7 +462,7 @@ func (service GoodsService) DeleteTimeSellGoods(DB *gorm.DB, GoodsID types.Prima
 func (service GoodsService) DeleteCollageGoods(DB *gorm.DB, GoodsID types.PrimaryKey, OID types.PrimaryKey) error {
 	timesell := service.Collage.GetCollageByGoodsID(GoodsID, OID)
 
-	err := service.DeleteWhere(DB, &model.CollageGoods{}, map[string]interface{}{
+	err := dao.DeleteBy(DB, &model.CollageGoods{}, map[string]interface{}{
 		"CollageHash": timesell.Hash,
 		"GoodsID":     GoodsID,
 	}) //Delete(DB, &model.TimeSellGoods{}, timesell.ID)
@@ -476,9 +476,8 @@ func (service GoodsService) DeleteCollageGoods(DB *gorm.DB, GoodsID types.Primar
 func (service GoodsService) FindGoodsByTimeSellID(TimeSellID types.PrimaryKey) []model.Goods {
 	Orm := singleton.Orm()
 
-	var timesell model.TimeSell
-	err := service.Get(Orm, TimeSellID, &timesell)
-	glog.Error(err)
+	//var timesell model.TimeSell
+	timesell := dao.GetByPrimaryKey(Orm, &model.TimeSell{}, TimeSellID).(*model.TimeSell)
 
 	var list []model.Goods
 
@@ -487,6 +486,8 @@ func (service GoodsService) FindGoodsByTimeSellID(TimeSellID types.PrimaryKey) [
 	//todo:没有写完整
 	//err = service.FindWhere(Orm, &list, "ID=?", timesell.GoodsID)
 	//glog.Error(err)
+	//dao.FindBy(Orm, &model.Goods{}, map[string]any{"ID": timesell.})
+	log.Println(timesell)
 	return list
 }
 func (service GoodsService) FindGoodsByTimeSellHash(Hash string) []model.Goods {
@@ -776,14 +777,14 @@ func (service GoodsService) AddGoodsTypeByNameByChild(name string, childName str
 	err := Orm.Model(&model.GoodsType{}).Where(`"Name"=?`, name).First(&gt).Error
 	if gorm.ErrRecordNotFound == err {
 		gt.Name = name
-		service.Save(Orm, &gt)
+		dao.Save(Orm, &gt)
 	}
 
 	err = Orm.Model(&model.GoodsTypeChild{}).Where(`"Name"=? and "GoodsTypeID"=?`, childName, gt.ID).First(&gtc).Error
 	if gorm.ErrRecordNotFound == err {
 		gtc.Name = childName
 		gtc.GoodsTypeID = gt.ID
-		service.Save(Orm, &gtc)
+		dao.Save(Orm, &gtc)
 	}
 
 	return gt, gtc

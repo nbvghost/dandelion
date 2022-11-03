@@ -2,6 +2,7 @@ package activity
 
 import (
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/glog"
 	"github.com/nbvghost/gpa/types"
@@ -44,10 +45,10 @@ func (service TimeSellService) AddTimeSellAction(context *gweb.Context) (r gweb.
 
 func (service TimeSellService) DeleteTimeSell(TimeSellID types.PrimaryKey) error {
 	//timesell := TimeSellService{}.GetTimeSellByGoodsID(GoodsID)
-	var ts model.TimeSell
-	service.Get(singleton.Orm(), TimeSellID, &ts)
+	//var ts model.TimeSell
+	ts := dao.GetByPrimaryKey(singleton.Orm(), &model.TimeSell{}, TimeSellID).(*model.TimeSell)
 	//err := service.Delete(singleton.Orm(), &model.TimeSell{}, ts.ID)
-	err := service.DeleteWhere(singleton.Orm(), &model.TimeSell{}, map[string]interface{}{
+	err := dao.DeleteBy(singleton.Orm(), &model.TimeSell{}, map[string]interface{}{
 		"Hash": ts.Hash,
 	})
 	glog.Error(err)

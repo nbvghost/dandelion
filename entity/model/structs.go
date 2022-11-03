@@ -13,7 +13,7 @@ type ExpressTemplateItem struct {
 	ANM   float64 //增加，元
 }
 
-func (m ExpressTemplateItem) CalculateExpressPrice(et ExpressTemplate, nmw ExpressTemplateNMW) uint {
+func (m ExpressTemplateItem) CalculateExpressPrice(et *ExpressTemplate, nmw ExpressTemplateNMW) uint {
 
 	if strings.EqualFold(et.Drawee, "BUSINESS") {
 		return 0
@@ -55,7 +55,7 @@ type ExpressTemplateFreeItem struct {
 
 //et 快递模板
 //nmw 包邮方式
-func (m ExpressTemplateFreeItem) IsFree(et ExpressTemplate, nmw ExpressTemplateNMW) bool {
+func (m ExpressTemplateFreeItem) IsFree(et *ExpressTemplate, nmw ExpressTemplateNMW) bool {
 	//ITEM  KG
 	if strings.EqualFold(et.Drawee, "BUSINESS") {
 		return true

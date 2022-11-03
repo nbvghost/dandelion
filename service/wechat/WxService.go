@@ -705,7 +705,7 @@ func (service WxService) CloseOrder(OrderNo string, OID types.PrimaryKey, wxConf
 }
 
 //退款
-func (service WxService) Refund(order model.Orders, ordersPackage model.OrdersPackage, PayMoney, RefundMoney uint, Desc string, Type uint, wxConfig *model.WechatConfig) (Success bool, Message string) {
+func (service WxService) Refund(order *model.Orders, ordersPackage model.OrdersPackage, PayMoney, RefundMoney uint, Desc string, Type uint, wxConfig *model.WechatConfig) (Success bool, Message string) {
 
 	outMap := make(util.Map)
 	outMap["appid"] = wxConfig.AppID

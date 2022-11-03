@@ -3,8 +3,12 @@ package order
 import (
 	"errors"
 
+	"gorm.io/gorm"
+
+	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/journal"
@@ -23,11 +27,11 @@ type TransfersService struct {
 func (service TransfersService) UserTransfers(UserID types.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
 	Orm := singleton.Orm().Begin()
 
-	var user model.User
-	err := service.Get(Orm, UserID, &user)
-	if err != nil {
+	//var user model.User
+	user := dao.GetByPrimaryKey(Orm, entity.User, UserID).(*model.User)
+	if user.IsZero() {
 		Orm.Rollback()
-		return err
+		return gorm.ErrRecordNotFound
 	}
 	if user.Amount <= 0 {
 		Orm.Rollback()
@@ -49,7 +53,7 @@ func (service TransfersService) UserTransfers(UserID types.PrimaryKey, ReUserNam
 	transfers.UserID = user.ID
 	transfers.OpenId = user.OpenID
 	transfers.IP = IP
-	err = service.Add(Orm, &transfers)
+	err := dao.Create(Orm, &transfers)
 	if err != nil {
 		Orm.Rollback()
 		return err
@@ -74,11 +78,11 @@ func (service TransfersService) UserTransfers(UserID types.PrimaryKey, ReUserNam
 func (service TransfersService) StoreTransfers(StoreID types.PrimaryKey, UserID types.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
 	Orm := singleton.Orm().Begin()
 
-	var store model.Store
-	err := service.Get(Orm, StoreID, &store)
-	if err != nil {
+	//var store model.Store
+	store := dao.GetByPrimaryKey(Orm, entity.Store, StoreID).(*model.Store)
+	if store.IsZero() {
 		Orm.Rollback()
-		return err
+		return gorm.ErrRecordNotFound
 	}
 
 	if store.Amount <= 0 {
@@ -86,11 +90,11 @@ func (service TransfersService) StoreTransfers(StoreID types.PrimaryKey, UserID 
 		return errors.New("金额不足，无法提现")
 	}
 
-	var user model.User
-	err = service.Get(Orm, UserID, &user)
-	if err != nil {
+	//var user model.User
+	user := dao.GetByPrimaryKey(Orm, entity.User, UserID).(*model.User)
+	if user.IsZero() {
 		Orm.Rollback()
-		return err
+		return gorm.ErrRecordNotFound
 	}
 	transfers := model.Transfers{}
 	transfers.StoreID = store.ID
@@ -103,7 +107,7 @@ func (service TransfersService) StoreTransfers(StoreID types.PrimaryKey, UserID 
 	transfers.UserID = user.ID
 	transfers.OpenId = user.OpenID
 	transfers.IP = IP
-	err = service.Add(Orm, &transfers)
+	err := dao.Create(Orm, &transfers)
 	if err != nil {
 		Orm.Rollback()
 		return err

@@ -6,7 +6,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/singleton"
@@ -45,10 +47,10 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 		return errors.New("找不到核销单")
 	}
 
-	var cardItem model.CardItem
-	err := service.CardItem.Get(DB, verification.CardItemID, &cardItem)
-	if err != nil {
-		return err
+	//var cardItem model.CardItem
+	cardItem := dao.GetByPrimaryKey(DB, entity.CardItem, verification.CardItemID).(*model.CardItem)
+	if cardItem.IsZero() {
+		return gorm.ErrRecordNotFound
 	}
 
 	if Quantity == 0 {
@@ -66,33 +68,29 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 		return errors.New("卡卷已经核销")
 	}
 
-	err = service.ChangeModel(DB, verification.ID, &model.Verification{StoreID: store.ID, StoreUserID: user.ID, Quantity: Quantity})
+	err := dao.UpdateByPrimaryKey(DB, entity.Verification, verification.ID, &model.Verification{StoreID: store.ID, StoreUserID: user.ID, Quantity: Quantity})
 	if err != nil {
 		return err
 	}
-	err = service.ChangeModel(DB, cardItem.ID, &model.CardItem{UseQuantity: cardItem.UseQuantity + Quantity})
+	err = dao.UpdateByPrimaryKey(DB, entity.CardItem, cardItem.ID, &model.CardItem{UseQuantity: cardItem.UseQuantity + Quantity})
 	if err != nil {
 		return err
 	}
 
 	if strings.EqualFold(cardItem.Type, play.CardItem_Type_OrdersGoods) {
 		//如果是商品订单结算门店佣金/结算用户上下级佣金
-		var ordersGoods model.OrdersGoods
-		err = service.Goods.Get(DB, cardItem.OrdersGoodsID, &ordersGoods)
+		//var ordersGoods model.OrdersGoods
+		ordersGoods := dao.GetByPrimaryKey(DB, entity.OrdersGoods, cardItem.OrdersGoodsID).(*model.OrdersGoods)
 		//err := util.StringToJSON(cardItem.Data, &ordersGoods)
-		if err != nil {
-			return err
+		if ordersGoods.IsZero() {
+			return gorm.ErrRecordNotFound
 		}
-		var orders model.Orders
+		//var orders model.Orders
 
-		err = service.Orders.Get(DB, ordersGoods.OrdersID, &orders)
-		if err != nil {
-			return err
-		}
+		orders := dao.GetByPrimaryKey(DB, entity.Orders, ordersGoods.OrdersID).(*model.Orders)
 		if orders.ID == 0 {
 			return errors.New("找不到订单或无效订单")
 		}
-
 		//CardItem
 
 		var goods model.Goods
@@ -102,10 +100,10 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 		}
 
 		go func() {
-			var _goods model.Goods
-			service.Goods.Get(singleton.Orm(), goods.ID, &_goods)
+			//var _goods model.Goods
+			_goods := dao.GetByPrimaryKey(singleton.Orm(), entity.Goods, goods.ID).(*model.Goods)
 			if _goods.ID != 0 {
-				service.Goods.ChangeModel(singleton.Orm(), _goods.ID, &model.Goods{CountSale: _goods.CountSale + uint(Quantity)})
+				dao.UpdateByPrimaryKey(singleton.Orm(), entity.Goods, _goods.ID, &model.Goods{CountSale: _goods.CountSale + uint(Quantity)})
 			}
 		}()
 
@@ -132,7 +130,7 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 			if int64(storeStock.Stock-storeStock.UseStock-uint(Quantity)) < 0 {
 				return errors.New("门店库存不足，无法核销")
 			} else {
-				err = service.ChangeModel(DB, storeStock.ID, &model.StoreStock{UseStock: storeStock.UseStock + uint(Quantity)})
+				err = dao.UpdateByPrimaryKey(DB, entity.StoreStock, storeStock.ID, &model.StoreStock{UseStock: storeStock.UseStock + uint(Quantity)})
 				if err != nil {
 					return err
 				}
@@ -140,7 +138,7 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 
 			if !(orders.Status == model.OrdersStatusOrderOk) {
 				//当线下订单被核销后，主订单完成，并产生用户的结算
-				err = service.ChangeModel(DB, orders.ID, &model.Orders{Status: model.OrdersStatusOrderOk, ReceiptTime: time.Now()})
+				err = dao.UpdateByPrimaryKey(DB, entity.Orders, orders.ID, &model.Orders{Status: model.OrdersStatusOrderOk, ReceiptTime: time.Now()})
 				if err != nil {
 					return err
 				}
@@ -211,10 +209,10 @@ func (service VerificationService) GetVerificationByVerificationNo(VerificationN
 
 func (service VerificationService) VerificationSelf(StoreID, StoreStockID types.PrimaryKey, Quantity uint) *result.ActionResult {
 	Orm := singleton.Orm()
-	var ss model.StoreStock
-	err := service.Get(Orm, StoreStockID, &ss)
-	if err != nil {
-		return (&result.ActionResult{}).SmartError(err, "", 0)
+	//var ss model.StoreStock
+	ss := dao.GetByPrimaryKey(Orm, entity.StoreStock, StoreStockID).(*model.StoreStock)
+	if ss.IsZero() {
+		return (&result.ActionResult{}).SmartError(gorm.ErrRecordNotFound, "", 0)
 	}
 
 	if ss.StoreID != StoreID {
@@ -230,14 +228,14 @@ func (service VerificationService) VerificationSelf(StoreID, StoreStockID types.
 		return (&result.ActionResult{}).SmartError(errors.New("库存不足"), "", 0)
 	} else {
 
-		var specification model.Specification
-		service.Get(Orm, ss.SpecificationID, &specification)
+		//var specification model.Specification
+		specification := dao.GetByPrimaryKey(Orm, entity.Specification, ss.SpecificationID).(*model.Specification)
 
-		var store model.Store
-		service.Get(Orm, StoreID, &store)
+		//var store model.Store
+		store := dao.GetByPrimaryKey(Orm, entity.Store, StoreID).(*model.Store)
 
-		var goods model.Goods
-		service.Get(Orm, ss.GoodsID, &goods)
+		//var goods model.Goods
+		goods := dao.GetByPrimaryKey(Orm, entity.Goods, ss.GoodsID).(*model.Goods)
 
 		if ss.GoodsID != specification.GoodsID {
 			return (&result.ActionResult{}).SmartError(errors.New("找不到相关库存"), "", 0)
@@ -251,7 +249,7 @@ func (service VerificationService) VerificationSelf(StoreID, StoreStockID types.
 
 				tx := Orm.Begin()
 
-				err := service.ChangeMap(tx, StoreStockID, &model.StoreStock{}, map[string]interface{}{"UseStock": ss.UseStock + Quantity})
+				err := dao.UpdateByPrimaryKey(tx, entity.StoreStock, StoreStockID, map[string]interface{}{"UseStock": ss.UseStock + Quantity})
 				if err != nil {
 					tx.Rollback()
 					return (&result.ActionResult{}).SmartError(err, "", 0)

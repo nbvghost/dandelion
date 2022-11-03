@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/activity"
@@ -457,10 +458,10 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 
 	//goods.Videos = "[]"
 
-	service.Goods.Add(singleton.Orm(), goods)
+	dao.Create(singleton.Orm(), goods)
 	for s := 0; s < len(specifications); s++ {
 		specifications[s].GoodsID = goods.ID
-		service.Goods.Add(singleton.Orm(), &(specifications[s]))
+		dao.Create(singleton.Orm(), &(specifications[s]))
 	}
 }
 func (service *Catch1688Service) URLCatch(URL string) {

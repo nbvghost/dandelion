@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/singleton"
 )
 
@@ -28,7 +29,7 @@ func (service RankService) AddRank(rank model.Rank) error {
 	if hasRank.ID != 0 {
 		return errors.New("添加的等级已经存在")
 	}
-	err := service.Add(Orm, &rank)
+	err := dao.Create(Orm, &rank)
 	return err
 
 }

@@ -5,7 +5,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/order"
 	"github.com/nbvghost/dandelion/service/wechat"
@@ -95,10 +97,10 @@ func (self TimeTaskService) QueryTransfersTask(wxConfig *model.WechatConfig) {
 	for _, value := range transfersList {
 		su := self.Wx.GetTransfersInfo(value, wxConfig)
 		if su {
-			self.Transfers.ChangeModel(Orm, value.ID, &model.Transfers{IsPay: 1})
+			dao.UpdateByPrimaryKey(Orm, entity.Transfers, value.ID, &model.Transfers{IsPay: 1})
 		} else {
 			if time.Now().Unix() > value.CreatedAt.Add(30*time.Hour*24).Unix() {
-				self.Transfers.ChangeModel(Orm, value.ID, &model.Transfers{IsPay: 2})
+				dao.UpdateByPrimaryKey(Orm, entity.Transfers, value.ID, &model.Transfers{IsPay: 2})
 			}
 		}
 	}

@@ -25,7 +25,7 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 
 	models := make([]model.IDataBaseFace, 0)
 
-	models = append(models, &model.User{})
+	models = append(models, model.User{})
 	models = append(models, model.UserInfo{})
 	models = append(models, model.Admin{})
 	models = append(models, model.Configuration{})

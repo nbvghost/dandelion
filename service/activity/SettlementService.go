@@ -32,7 +32,7 @@ type SettlementService struct {
 }
 
 //结算佣金，结算积分，结算成长值，是否送福利卷
-func (service SettlementService) SettlementUser(Orm *gorm.DB, Brokerage uint, orders model.Orders) error {
+func (service SettlementService) SettlementUser(Orm *gorm.DB, Brokerage uint, orders *model.Orders) error {
 	var err error
 	//用户自己。下单者
 
