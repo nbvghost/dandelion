@@ -19,6 +19,10 @@ var gRegexp = regexp.MustCompile("-+")
 
 //var enRegexp = regexp.MustCompile("[a-zA-Z\u4E00-\u9FA5\u9FA6-\u9FFF]+")
 
+func Eat() error {
+
+	return nil
+}
 func (Service) AutoDetectUri(s string) string {
 
 	var ll []string

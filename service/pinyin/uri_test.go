@@ -25,10 +25,28 @@ func TestAutoDetectUri(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := service.AutoDetectUri(tt.args.s); got != tt.want {
-				//t.Errorf("AutoDetectUri() = %v, want %v", got, tt.want)
+				t.Errorf("AutoDetectUri() = %v, want %v", got, tt.want)
 			} else {
-				//log.Println(got)
+				t.Log(got)
+			}
+
+		})
+	}
+}
+
+func TestEat(t *testing.T) {
+	tests := []struct {
+		name    string
+		wantErr bool
+	}{
+		{name: "eat", wantErr: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if err := Eat(); (err != nil) != tt.wantErr {
+				t.Errorf("Eat() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
+
 }
