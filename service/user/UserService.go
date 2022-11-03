@@ -107,6 +107,9 @@ func (service UserService) AddUserBlockAmount(Orm *gorm.DB, UserID types.Primary
 
 func (service UserService) FindUserByIDs(IDs []uint) []model.User {
 	var users []model.User
+	if len(IDs) == 0 {
+		return users
+	}
 	err := singleton.Orm().Where(IDs).Find(&users).Error //SelectOne(user, "select * from User where Tel=?", Tel)
 	log.Println(err)
 	return users

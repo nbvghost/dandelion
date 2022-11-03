@@ -1,8 +1,9 @@
 package task
 
 import (
+	"context"
 	"log"
-	"strconv"
+	"strings"
 	"time"
 
 	"github.com/nbvghost/dandelion/entity"
@@ -46,21 +47,26 @@ func (self TimeTaskService) QueryTask(wxConfig *model.WechatConfig) {
 func (self TimeTaskService) QueryOrdersTask(wxConfig *model.WechatConfig) {
 	Orm := singleton.Orm()
 	var ordersList []model.Orders
-	self.Orders.FindWhere(Orm, &ordersList, "Status<>? and Status<>? and Status<>? and Status<>?", model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed)
+	self.Orders.FindWhere(Orm, &ordersList, `"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed)
 	for _, value := range ordersList {
 
 		if value.IsPay == 0 {
 
 			//当前状态为没有支付，去检测一下，订单状态。
-			su, result := self.Wx.OrderQuery(value.OrderNo, wxConfig)
-			if su {
-				TotalFee, _ := strconv.ParseUint(result["total_fee"], 10, 64)
+			transaction, err := self.Wx.OrderQuery(context.TODO(), value.OrderNo, wxConfig)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+			if strings.EqualFold(*transaction.TradeState, "SUCCESS") {
+				//TotalFee, _ := strconv.ParseUint(result["total_fee"], 10, 64)
 				//OrderNo := result["out_trade_no"]
 				//TimeEnd := result["time_end"]
 				//attach := result["attach"]
-				payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", result["time_end"], time.Local)
+				payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", *transaction.SuccessTime, time.Local)
 				log.Println(err)
-				self.Orders.OrderNotify(uint(TotalFee), result["out_trade_no"], payTime, result["attach"])
+				self.Orders.OrderNotify(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, payTime, *transaction.Attach)
 				continue
 			}
 		}
@@ -73,19 +79,23 @@ func (self TimeTaskService) QueryOrdersTask(wxConfig *model.WechatConfig) {
 func (self TimeTaskService) QuerySupplyOrdersTask(wxConfig *model.WechatConfig) {
 	Orm := singleton.Orm()
 	var supplyOrdersList []model.SupplyOrders
-	self.Orders.FindWhere(Orm, &supplyOrdersList, "IsPay=?", 0)
+	self.Orders.FindWhere(Orm, &supplyOrdersList, `"IsPay"=?`, 0)
 	for _, value := range supplyOrdersList {
 
-		su, result := self.Wx.OrderQuery(value.OrderNo, wxConfig)
-		if su {
+		transaction, err := self.Wx.OrderQuery(context.TODO(), value.OrderNo, wxConfig)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		if strings.EqualFold(*transaction.TradeState, "SUCCESS") {
 
-			TotalFee, _ := strconv.ParseUint(result["total_fee"], 10, 64)
+			//TotalFee, _ := strconv.ParseUint(result["total_fee"], 10, 64)
 			//OrderNo := result["out_trade_no"]
 			//TimeEnd := result["time_end"]
 			//attach := result["attach"]
-			payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", result["time_end"], time.Local)
+			payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", *transaction.SuccessTime, time.Local)
 			log.Println(err)
-			self.Orders.OrderNotify(uint(TotalFee), result["out_trade_no"], payTime, result["attach"])
+			self.Orders.OrderNotify(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, payTime, *transaction.Attach)
 			//self.Orders.OrderNotify(result)
 		}
 
@@ -97,7 +107,7 @@ func (self TimeTaskService) QuerySupplyOrdersTask(wxConfig *model.WechatConfig) 
 func (self TimeTaskService) QueryTransfersTask(wxConfig *model.WechatConfig) {
 	Orm := singleton.Orm()
 	var transfersList []model.Transfers
-	self.Transfers.FindWhere(Orm, &transfersList, "IsPay=?", 0)
+	self.Transfers.FindWhere(Orm, &transfersList, `"IsPay"=?`, 0)
 	for _, value := range transfersList {
 		su := self.Wx.GetTransfersInfo(value, wxConfig)
 		if su {

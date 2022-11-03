@@ -30,7 +30,9 @@ import (
 	"github.com/nbvghost/dandelion/service/user"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/option"
+	"github.com/wechatpay-apiv3/wechatpay-go/services/payments"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/jsapi"
+	"github.com/wechatpay-apiv3/wechatpay-go/services/refunddomestic"
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
 
 	"github.com/nbvghost/gpa/types"
@@ -398,68 +400,23 @@ func (service WxService) MWQRCodeTemp(OID uint, UserID uint, qrtype, params stri
 }
 
 //订单查询
-func (service WxService) OrderQuery(OrderNo string, wxConfig *model.WechatConfig) (Success bool, Result util.Map) {
-	var inData = make(util.Map)
-	//WxConfig := service.MiniProgram()
-
-	outMap := make(util.Map)
-	outMap["mch_id"] = wxConfig.MchID
-	outMap["appid"] = wxConfig.AppID
-	outMap["nonce_str"] = tool.UUID()
-	outMap["out_trade_no"] = OrderNo
-	outMap["sign_type"] = "MD5"
-
-	list := &collections.ListString{}
-	for k, v := range outMap {
-		list.Append(k + "=" + v)
-	}
-	list.SortL()
-
-	sign := encryption.Md5ByString(list.Join("&") + "&key=" + wxConfig.MchAPIv2Key)
-	outMap["sign"] = sign
-
-	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
-	log.Println(err)
-	//fmt.Println(string(b))
-
-	client := &http.Client{}
-	reader := strings.NewReader(string(b))
-	response, err := client.Post("https://api.mch.weixin.qq.com/pay/orderquery", "text/xml", reader)
+func (service WxService) OrderQuery(ctx context.Context, OrderNo string, wxConfig *model.WechatConfig) (*payments.Transaction, error) {
+	client, err := NewClient(wxConfig)
 	if err != nil {
-		return false, inData
+		return nil, err
 	}
-	log.Println(err)
+	svc := jsapi.JsapiApiService{Client: client}
 
-	b, err = ioutil.ReadAll(response.Body)
-	log.Println(err)
-
-	//fmt.Println(string(b))
-
-	err = xml.Unmarshal(b, &inData)
-	log.Println(err)
-
-	//fmt.Println(inData)
-
-	if strings.EqualFold(inData["return_code"], "SUCCESS") && strings.EqualFold(inData["result_code"], "SUCCESS") && strings.EqualFold(inData["trade_state"], "SUCCESS") {
-		Success = true
-		Result = inData
-		return
-	} else {
-		//loggerService := service.LoggerService{}
-		//loggerService.Error("Appointment:"+strconv.Itoa(int(OrderNo)), inData["err_code"]+":"+inData["err_code_des"])
-
-		if strings.EqualFold(inData["return_code"], "FAIL") {
-			Success = false
-			return
-		} else {
-			//fmt.Println(inData["err_code"])
-			//fmt.Println(inData["err_code_des"])
-			Success = false
-			return
-		}
-		//return false, inData["err_code_des"]
+	resp, _, err := svc.QueryOrderByOutTradeNo(ctx,
+		jsapi.QueryOrderByOutTradeNoRequest{
+			OutTradeNo: core.String(OrderNo),
+			Mchid:      core.String(wxConfig.MchID),
+		},
+	)
+	if err != nil {
+		return nil, err
 	}
-
+	return resp, nil
 }
 
 //查询提现接口
@@ -704,37 +661,72 @@ func (service WxService) CloseOrder(OrderNo string, OID types.PrimaryKey, wxConf
 }
 
 //退款
-func (service WxService) Refund(order *model.Orders, ordersPackage model.OrdersPackage, PayMoney, RefundMoney uint, Desc string, Type uint, wxConfig *model.WechatConfig) (Success bool, Message string) {
+func (service WxService) Refund(ctx context.Context, order *model.Orders, ordersPackage model.OrdersPackage, PayMoney uint, reason string, wxConfig *model.WechatConfig) (*refunddomestic.Refund, error) {
 
-	outMap := make(util.Map)
-	outMap["appid"] = wxConfig.AppID
-	outMap["mch_id"] = wxConfig.MchID
-	outMap["nonce_str"] = tool.UUID()
+	client, err := NewClient(wxConfig)
+	if err != nil {
+		return nil, err
+	}
+	svc := refunddomestic.RefundsApiService{Client: client}
+
+	var createRequest refunddomestic.CreateRequest
 
 	if strings.EqualFold(order.OrdersPackageNo, "") {
-		outMap["out_refund_no"] = order.OrderNo
-		outMap["out_trade_no"] = order.OrderNo
-		outMap["refund_fee"] = strconv.Itoa(int(order.PayMoney))
-		outMap["total_fee"] = strconv.Itoa(int(order.PayMoney))
+		//outMap["out_refund_no"] = order.OrderNo
+		//outMap["out_trade_no"] = order.OrderNo
+		//outMap["refund_fee"] = strconv.Itoa(int(order.PayMoney))
+		//outMap["total_fee"] = strconv.Itoa(int(order.PayMoney))
+		createRequest = refunddomestic.CreateRequest{
+			OutTradeNo:   core.String(order.OrderNo),
+			OutRefundNo:  core.String(order.OrderNo),
+			Reason:       core.String(reason),
+			NotifyUrl:    core.String(wxConfig.RefundNotifyUrl),
+			FundsAccount: refunddomestic.REQFUNDSACCOUNT_AVAILABLE.Ptr(),
+			Amount: &refunddomestic.AmountReq{
+				Refund:   core.Int64(int64(PayMoney)),
+				Total:    core.Int64(int64(PayMoney)),
+				From:     nil,
+				Currency: core.String("CNY"),
+			},
+			GoodsDetail: nil,
+		}
 	} else {
-
 		//op := model.Orders.GetOrdersPackageByOrderNo(order.OrdersPackageNo)
 		//op := Orders.GetOrdersByOrderNo(order.OrdersPackageNo)
-		outMap["out_refund_no"] = order.OrderNo
-		outMap["out_trade_no"] = order.OrdersPackageNo
-		outMap["refund_fee"] = strconv.Itoa(int(order.PayMoney))
-		outMap["total_fee"] = strconv.Itoa(int(ordersPackage.TotalPayMoney))
+		//outMap["out_refund_no"] = order.OrderNo
+		//outMap["out_trade_no"] = order.OrdersPackageNo
+		//outMap["refund_fee"] = strconv.Itoa(int(order.PayMoney))
+		//outMap["total_fee"] = strconv.Itoa(int(ordersPackage.TotalPayMoney))
+		createRequest = refunddomestic.CreateRequest{
+			OutTradeNo:   core.String(order.OrderNo),
+			OutRefundNo:  core.String(order.OrdersPackageNo),
+			Reason:       core.String(reason),
+			NotifyUrl:    core.String(wxConfig.RefundNotifyUrl),
+			FundsAccount: refunddomestic.REQFUNDSACCOUNT_AVAILABLE.Ptr(),
+			Amount: &refunddomestic.AmountReq{
+				Refund:   core.Int64(int64(ordersPackage.TotalPayMoney)),
+				Total:    core.Int64(int64(PayMoney)),
+				From:     nil,
+				Currency: core.String("CNY"),
+			},
+			GoodsDetail: nil,
+		}
 	}
 
-	outMap["refund_desc"] = Desc
+	resp, _, err := svc.Create(ctx, createRequest)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+	//outMap["refund_desc"] = Desc
 
-	if Type == 0 {
+	/*if Type == 0 {
 		outMap["refund_account"] = "REFUND_SOURCE_UNSETTLED_FUNDS" //0
 	} else {
 		outMap["refund_account"] = "REFUND_SOURCE_RECHARGE_FUNDS" //1
-	}
+	}*/
 
-	list := &collections.ListString{}
+	/*list := &collections.ListString{}
 	for k, v := range outMap {
 		list.Append(k + "=" + v)
 	}
@@ -750,7 +742,7 @@ func (service WxService) Refund(order *model.Orders, ordersPackage model.OrdersP
 	cert, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")
 	if err != nil {
 		log.Fatal(err)
-	}
+	}*/
 
 	// Load CA cert
 	//caCert, err := ioutil.ReadFile("cert/wxpay/rootca.pem")
@@ -761,7 +753,7 @@ func (service WxService) Refund(order *model.Orders, ordersPackage model.OrdersP
 	//caCertPool.AppendCertsFromPEM(caCert)
 
 	// Setup HTTPS client
-	tlsConfig := &tls.Config{
+	/*tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{cert},
 		//RootCAs:      caCertPool,
 	}
@@ -790,10 +782,10 @@ func (service WxService) Refund(order *model.Orders, ordersPackage model.OrdersP
 
 	var inData = make(util.Map)
 	err = xml.Unmarshal(b, &inData)
-	log.Println(err)
+	log.Println(err)*/
 	//fmt.Println(inData)
 
-	if strings.EqualFold(inData["return_code"], "SUCCESS") && strings.EqualFold(inData["result_code"], "SUCCESS") {
+	/*if strings.EqualFold(inData["return_code"], "SUCCESS") && strings.EqualFold(inData["result_code"], "SUCCESS") {
 		Success = true
 		Message = "退款申请成功"
 		return
@@ -823,7 +815,7 @@ func (service WxService) Refund(order *model.Orders, ordersPackage model.OrdersP
 			return
 		}
 		//return false, inData["err_code_des"]
-	}
+	}*/
 }
 func (service WxService) Decrypt(encryptedData, session_key, iv_text string) (bool, string) {
 	bkey, err := base64.StdEncoding.DecodeString(session_key)

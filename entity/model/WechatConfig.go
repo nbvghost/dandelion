@@ -16,6 +16,7 @@ type WechatConfig struct {
 	MchCertificateSerialNumber string           `gorm:"column:MchCertificateSerialNumber"`
 	PrivateKey                 string           `gorm:"column:PrivateKey"`
 	OrderNotifyUrl             string           `gorm:"column:OrderNotifyUrl"`
+	RefundNotifyUrl            string           `gorm:"column:RefundNotifyUrl"`
 }
 
 func (WechatConfig) TableName() string {
