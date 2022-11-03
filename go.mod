@@ -13,11 +13,11 @@ require (
 	github.com/json-iterator/go v1.1.11
 	github.com/lib/pq v1.10.4
 	github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89
-	github.com/nbvghost/glog v0.0.0-20220325163842-3accd57fda66
 	github.com/nbvghost/gpa v0.0.0-20221021055612-4803aa7753df
 	github.com/nbvghost/gweb v0.0.0-20220325183229-6c8eee4ff8a5
 	github.com/nbvghost/tool v0.0.0-20220325180651-f5c6376d74d4
 	github.com/pkg/errors v0.9.1
+	github.com/wechatpay-apiv3/wechatpay-go v0.2.16
 	go.etcd.io/etcd/client/v3 v3.5.4
 	go.uber.org/zap v1.17.0
 	golang.org/x/net v0.0.0-20210916014120-12bc252f5db8
@@ -34,7 +34,6 @@ require (
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd/v22 v22.3.2 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
@@ -49,11 +48,10 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.2 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
+	github.com/nbvghost/glog v0.0.0-20220325163842-3accd57fda66 // indirect
 	github.com/ugorji/go/codec v1.1.7 // indirect
-	github.com/wechatpay-apiv3/wechatpay-go v0.2.16 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.4 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.4 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
