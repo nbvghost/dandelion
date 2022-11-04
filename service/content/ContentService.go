@@ -514,7 +514,7 @@ func (service ContentService) FindContentItemByType(Type model.ContentTypeType, 
 
 func (service ContentService) ListContentType() []types.IEntity {
 	Orm := singleton.Orm()
-	return dao.Find(Orm, &model.ContentType{})
+	return dao.Find(Orm, &model.ContentType{}).List()
 }
 func (service ContentService) ListContentTypeByType(Type string) model.ContentType {
 	Orm := singleton.Orm()

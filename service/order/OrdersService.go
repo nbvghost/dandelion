@@ -469,7 +469,7 @@ func (service OrdersService) AskRefund(OrdersGoodsID types.PrimaryKey, RefundInf
 	err := dao.Create((singleton.Orm(), &orderbrokerage)
 	return err
 }*/
-func (service OrdersService) AddOrdersPackage(TotalMoney uint, UserID types.PrimaryKey) (error, model.OrdersPackage) {
+func (service OrdersService) AddOrdersPackage(db *gorm.DB, TotalMoney uint, UserID types.PrimaryKey) (model.OrdersPackage, error) {
 
 	//OrderNo       string    `gorm:"column:OrderNo;unique"` //订单号
 	//OrderList string `gorm:"column:OrderList;type:LONGTEXT"`//json []
@@ -490,8 +490,8 @@ func (service OrdersService) AddOrdersPackage(TotalMoney uint, UserID types.Prim
 	orderbrokerage.TotalPayMoney = TotalMoney
 	orderbrokerage.IsPay = 0
 	orderbrokerage.UserID = UserID
-	err := dao.Create(singleton.Orm(), &orderbrokerage)
-	return err, orderbrokerage
+	err := dao.Create(db, &orderbrokerage)
+	return orderbrokerage, err
 }
 
 //确认收货
@@ -729,7 +729,7 @@ func (service OrdersService) Cancel(ctx context.Context, OrdersID types.PrimaryK
 			err := dao.UpdateByPrimaryKey(Orm, entity.Orders, OrdersID, map[string]interface{}{"Status": model.OrdersStatusCancel})
 			return "申请取消，等待客服确认", err
 		} else {
-			transaction, err := service.Wx.OrderQuery(ctx, orders.OrderNo, wxConfig)
+			/*transaction, err := service.Wx.OrderQuery(ctx, orders.OrderNo, wxConfig)
 			if err != nil {
 				return "", err
 			}
@@ -737,7 +737,8 @@ func (service OrdersService) Cancel(ctx context.Context, OrdersID types.PrimaryK
 				//如果查询订单已经支付，由客服确认
 				err := dao.UpdateByPrimaryKey(Orm, entity.Orders, OrdersID, map[string]interface{}{"Status": model.OrdersStatusCancel})
 				return "申请取消，等待客服确认", err
-			} else {
+			} else*/
+			{
 				//没支付的订单
 				//管理商品库存
 				err := service.OrdersStockManager(Orm, orders, false)
@@ -1196,7 +1197,7 @@ func (service OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, Go
 	shoppingCart.Goods = util.StructToJSON(goods)
 	shoppingCart.UserID = UserID
 
-	ordersGoods := service.createOrdersGoods(shoppingCart)
+	ordersGoods := service.createOrdersGoods(&shoppingCart)
 
 	//ordersGoods.CollageNo = tool.UUID()
 	collage := service.Collage.GetCollageByGoodsID(goods.ID, goods.OID)
@@ -1215,7 +1216,7 @@ func (service OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, Go
 }
 
 //从商品外直接购买，生成OrdersGoods，添加到 play.SessionConfirmOrders
-func (service OrdersService) BuyOrders(ctx constrain.IContext, UserID, GoodsID, SpecificationID types.PrimaryKey, Quantity uint) error {
+func (service OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, GoodsID, SpecificationID types.PrimaryKey, Quantity uint) ([]model.OrdersGoods, error) {
 	Orm := singleton.Orm()
 	//var goods model.Goods
 	//var specification model.Specification
@@ -1223,14 +1224,14 @@ func (service OrdersService) BuyOrders(ctx constrain.IContext, UserID, GoodsID, 
 
 	goods := dao.GetByPrimaryKey(Orm, &model.Goods{}, GoodsID).(*model.Goods)
 	if goods.IsZero() {
-		return gorm.ErrRecordNotFound
+		return nil, gorm.ErrRecordNotFound
 	}
 	specification := dao.GetByPrimaryKey(Orm, &model.Specification{}, SpecificationID).(*model.Specification)
 	if specification.IsZero() {
-		return gorm.ErrRecordNotFound
+		return nil, gorm.ErrRecordNotFound
 	}
 	if specification.GoodsID != goods.ID {
-		return errors.New("产品与规格不匹配")
+		return nil, errors.New("产品与规格不匹配")
 	}
 
 	shoppingCart := model.ShoppingCart{}
@@ -1239,13 +1240,13 @@ func (service OrdersService) BuyOrders(ctx constrain.IContext, UserID, GoodsID, 
 	shoppingCart.Goods = util.StructToJSON(goods)
 	shoppingCart.UserID = UserID
 
-	ordersGoods := service.createOrdersGoods(shoppingCart)
+	ordersGoods := service.createOrdersGoods(&shoppingCart)
 
 	ogs := make([]model.OrdersGoods, 0)
 	ogs = append(ogs, ordersGoods)
 	//Session.Attributes.Put(gweb.AttributesKey(string(play.SessionConfirmOrders)), &ogs)
-	ctx.Redis().Set(ctx, redis.NewConfirmOrders(ctx.UID()), &ogs, 24*time.Hour)
-	return nil
+	//ctx.Redis().Set(ctx, redis.NewConfirmOrders(ctx.UID()), &ogs, 24*time.Hour)
+	return ogs, nil
 
 }
 
@@ -1261,7 +1262,7 @@ func (service OrdersService) AddCartOrdersByShoppingCartIDs(ctx constrain.IConte
 	ogs := make([]model.OrdersGoods, 0)
 	for _, value := range scs {
 
-		ordersGoods := service.createOrdersGoods(value)
+		ordersGoods := service.createOrdersGoods(&value)
 
 		ogs = append(ogs, ordersGoods)
 	}
@@ -1272,7 +1273,7 @@ func (service OrdersService) AddCartOrdersByShoppingCartIDs(ctx constrain.IConte
 	return nil
 
 }
-func (service OrdersService) createOrdersGoods(shoppingCart model.ShoppingCart) model.OrdersGoods {
+func (service OrdersService) createOrdersGoods(shoppingCart *model.ShoppingCart) model.OrdersGoods {
 	//Orm := Orm()
 
 	ordersGoods := model.OrdersGoods{}
@@ -1340,27 +1341,15 @@ func (service OrdersService) createOrdersGoods(shoppingCart model.ShoppingCart) 
 
 	return ordersGoods
 }
-func (service OrdersService) AddOrders(orders *model.Orders, list []extends.OrdersGoodsInfo) error {
-	Orm := singleton.Orm()
-
-	tx := Orm.Begin()
-
-	err := dao.Create(tx, orders)
+func (service OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list []extends.OrdersGoodsInfo) error {
+	err := dao.Create(db, orders)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		} else {
-			//减掉商品库存
-			tx.Commit()
-		}
-	}()
 	for _, value := range list {
 		(&value).OrdersGoods.OrdersID = orders.ID
 		(&value).OrdersGoods.Discounts = util.StructToJSON((&value).Discounts)
-		err = dao.Create(tx, &((&value).OrdersGoods))
+		err = dao.Create(db, &((&value).OrdersGoods))
 		if err != nil {
 			return err
 		}
@@ -1375,17 +1364,16 @@ func (service OrdersService) AddOrders(orders *model.Orders, list []extends.Orde
 		if err != nil {
 			return err
 		}
-		err = service.ShoppingCart.DeleteByUserIDAndGoodsIDAndSpecificationID(tx, orders.UserID, goods.ID, specification.ID)
+		err = service.ShoppingCart.DeleteByUserIDAndGoodsIDAndSpecificationID(db, orders.UserID, goods.ID, specification.ID)
 		if err != nil {
 			return err
 		}
 	}
 
-	err = service.OrdersStockManager(tx, orders, true)
+	err = service.OrdersStockManager(db, orders, true)
 	if err != nil {
 		return err
 	}
-
 	return nil
 
 }
@@ -1427,7 +1415,7 @@ type AnalyseOrdersGoods struct {
 }
 
 //订单分析，
-func (service OrdersService) AnalyseOrdersGoodsList(UserID types.PrimaryKey, addressee extends.Address, PostType int, AllList []model.OrdersGoods) (error, []AnalyseOrdersGoods, uint) {
+func (service OrdersService) AnalyseOrdersGoodsList(UserID types.PrimaryKey, addressee extends.Address, PostType int, AllList []model.OrdersGoods) ([]AnalyseOrdersGoods, uint, error) {
 
 	oslist := make(map[types.PrimaryKey][]model.OrdersGoods)
 	for index, v := range AllList {
@@ -1466,7 +1454,7 @@ func (service OrdersService) AnalyseOrdersGoodsList(UserID types.PrimaryKey, add
 		out_result = append(out_result, result)
 	}
 
-	return golErr, out_result, TotalPrice
+	return out_result, TotalPrice, golErr
 }
 
 //订单分析，
@@ -1713,19 +1701,20 @@ func (service OrdersService) AddCartOrders(UserID types.PrimaryKey, GoodsID, Spe
 
 	have := false
 	for _, value := range shoppingCarts {
+		shoppingCart := value.(*model.ShoppingCart)
 		var mgoods model.Goods
 		var mspecification model.Specification
-		util.JSONToStruct(value.Goods, &mgoods)
-		util.JSONToStruct(value.Specification, &mspecification)
+		util.JSONToStruct(shoppingCart.Goods, &mgoods)
+		util.JSONToStruct(shoppingCart.Specification, &mspecification)
 
 		if mgoods.ID == goods.ID && mspecification.ID == specification.ID {
 
 			//已经存在，添加数量
-			value.Quantity = value.Quantity + Quantity
-			if value.Quantity > specification.Stock {
-				value.Quantity = specification.Stock
+			shoppingCart.Quantity = shoppingCart.Quantity + Quantity
+			if shoppingCart.Quantity > specification.Stock {
+				shoppingCart.Quantity = specification.Stock
 			}
-			err := dao.UpdateByPrimaryKey(tx, entity.ShoppingCart, value.ID, value)
+			err := dao.UpdateByPrimaryKey(tx, entity.ShoppingCart, shoppingCart.ID, shoppingCart)
 			if err != nil {
 				tx.Rollback()
 				return err
@@ -1737,13 +1726,14 @@ func (service OrdersService) AddCartOrders(UserID types.PrimaryKey, GoodsID, Spe
 	}
 
 	if have == false {
-
 		sc := model.ShoppingCart{}
 		sc.UserID = UserID
 		sc.Quantity = Quantity
 		sc.Specification = util.StructToJSON(specification)
 		sc.Goods = util.StructToJSON(goods)
-		sc.GSID = strconv.Itoa(int(goods.ID)) + strconv.Itoa(int(specification.ID))
+		//sc.GSID = strconv.Itoa(int(goods.ID)) + strconv.Itoa(int(specification.ID))
+		sc.GoodsID = goods.ID
+		sc.SpecificationID = specification.ID
 		err := dao.Create(tx, &sc)
 		if err != nil {
 			tx.Rollback()

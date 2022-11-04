@@ -13,5 +13,5 @@ type QuestionService struct {
 
 func (service QuestionService) ListQuestion() []types.IEntity {
 
-	return dao.Find(singleton.Orm(), &model.Question{})
+	return dao.Find(singleton.Orm(), &model.Question{}).List()
 }

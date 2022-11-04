@@ -2,6 +2,7 @@ package dao
 
 import (
 	"reflect"
+	"strings"
 
 	"gorm.io/gorm"
 
@@ -28,9 +29,6 @@ func Create(tx *gorm.DB, value types.IEntity) error {
 func Save(tx *gorm.DB, value types.IEntity) error {
 	return tx.Save(value).Error
 }
-func Find(tx *gorm.DB, model types.IEntity) []types.IEntity {
-	return FindBy(tx, model, map[string]any{})
-}
 
 func DeleteByPrimaryKey(tx *gorm.DB, model types.IEntity, id types.PrimaryKey) error {
 	return tx.Delete(reflect.New(reflect.TypeOf(model).Elem()).Interface(), id).Error
@@ -38,9 +36,27 @@ func DeleteByPrimaryKey(tx *gorm.DB, model types.IEntity, id types.PrimaryKey) e
 func DeleteBy(tx *gorm.DB, model types.IEntity, where map[string]any) error {
 	return tx.Where(where).Delete(reflect.New(reflect.TypeOf(model).Elem()).Interface()).Error
 }
-func FindBy(tx *gorm.DB, model types.IEntity, where map[string]any) []types.IEntity {
-	var list = reflect.New(reflect.SliceOf(reflect.TypeOf(model)))
-	tx.Model(model).Where(where).Find(list.Interface())
+
+type FindQuery struct {
+	model types.IEntity
+	order []string
+	db    *gorm.DB
+}
+
+func (m *FindQuery) Where(query interface{}, args ...interface{}) *FindQuery {
+	m.db.Where(query, args...)
+	return m
+}
+func (m *FindQuery) Order(order ...string) *FindQuery {
+	m.db.Order(strings.Join(order, ","))
+	return m
+}
+func (m *FindQuery) List() []types.IEntity {
+	var list = reflect.New(reflect.SliceOf(reflect.TypeOf(m.model)))
+	if len(m.order) == 0 {
+		m.db.Order(`"ID" asc`)
+	}
+	m.db.Find(list.Interface())
 	arr := list.Elem()
 	l := arr.Len()
 	resultList := make([]types.IEntity, l)
@@ -48,4 +64,11 @@ func FindBy(tx *gorm.DB, model types.IEntity, where map[string]any) []types.IEnt
 		resultList[i] = arr.Index(i).Interface().(types.IEntity)
 	}
 	return resultList
+
+}
+func Find(tx *gorm.DB, model types.IEntity) *FindQuery {
+	return &FindQuery{
+		model: model,
+		db:    tx.Model(model),
+	}
 }

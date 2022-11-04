@@ -84,5 +84,5 @@ func (service ScoreGoodsService) ListScoreGoods() []types.IEntity {
 	Orm := singleton.Orm()
 	//var list []model.ScoreGoods
 	//dao.Find(Orm, &model.ScoreGoods{})
-	return dao.Find(Orm, &model.ScoreGoods{})
+	return dao.Find(Orm, &model.ScoreGoods{}).List()
 }
