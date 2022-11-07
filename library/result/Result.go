@@ -101,10 +101,14 @@ func NewProtoResult(d proto.Message) *protoResult {
 
 type JsonResult struct {
 	error
-	Data interface{}
-	///sync.RWMutex
+	Data       interface{}
+	statusCode int
 }
 
+func (r *JsonResult) WithStatusCode(statusCode int) *JsonResult {
+	r.statusCode = statusCode
+	return r
+}
 func (r *JsonResult) Apply(context constrain.IContext) {
 	v := contexext.FromContext(context)
 
@@ -116,17 +120,13 @@ func (r *JsonResult) Apply(context constrain.IContext) {
 		(&ErrorResult{Error: err}).Apply(context)
 		return
 	}
-	//return buffer.Bytes(), err
-	//b, err = json.Marshal(r.Data)
-	//b = buffer.Bytes()
-
 	v.Response.Header().Set("Content-Type", "application/json; charset=utf-8")
-	v.Response.WriteHeader(http.StatusOK)
+	v.Response.WriteHeader(r.statusCode)
 	//context.Response.Header().Add("Content-Type", "application/json")
 	v.Response.Write(b)
 }
 func NewJsonResult(d interface{}) *JsonResult {
-	return &JsonResult{Data: d}
+	return &JsonResult{Data: d, statusCode: http.StatusOK}
 }
 
 type TextResult struct {
