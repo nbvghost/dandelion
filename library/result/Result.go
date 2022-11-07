@@ -121,6 +121,9 @@ func (r *JsonResult) Apply(context constrain.IContext) {
 		return
 	}
 	v.Response.Header().Set("Content-Type", "application/json; charset=utf-8")
+	if r.statusCode == 0 {
+		r.statusCode = http.StatusOK
+	}
 	v.Response.WriteHeader(r.statusCode)
 	//context.Response.Header().Add("Content-Type", "application/json")
 	v.Response.Write(b)
