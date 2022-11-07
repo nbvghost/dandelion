@@ -15,7 +15,6 @@ type WechatConfig struct {
 	MchAPIv3Key                string           `gorm:"column:MchAPIv3Key"`
 	MchCertificateSerialNumber string           `gorm:"column:MchCertificateSerialNumber"`
 	PrivateKey                 string           `gorm:"column:PrivateKey"`
-	Certificate                string           `gorm:"column:Certificate"`
 	OrderNotifyUrl             string           `gorm:"column:OrderNotifyUrl"`
 	RefundNotifyUrl            string           `gorm:"column:RefundNotifyUrl"`
 }
