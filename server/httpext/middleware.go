@@ -1,9 +1,11 @@
 package httpext
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -49,14 +51,14 @@ func (m *httpMiddleware) filterFlags(content string) string {
 	}
 	return content
 }
-func (m *httpMiddleware) bindData(apiHandler any, r *http.Request) error {
+func (m *httpMiddleware) bindData(apiHandler any, contextValue *contexext.ContextValue) error {
 	v := reflect.ValueOf(apiHandler)
 	t := reflect.TypeOf(apiHandler).Elem()
 	num := t.NumField()
 	fieldIndex := -1
 	for i := 0; i < num; i++ {
 		method := t.Field(i).Tag.Get("method")
-		if strings.EqualFold(method, r.Method) {
+		if strings.EqualFold(method, contextValue.Request.Method) {
 			fieldIndex = i
 			break
 		}
@@ -68,16 +70,21 @@ func (m *httpMiddleware) bindData(apiHandler any, r *http.Request) error {
 		vv = v.Elem()
 	}
 
-	err := binding.Default(r.Method, m.filterFlags(r.Header.Get("Content-Type"))).Bind(r, vv.Addr().Interface())
+	body, err := ioutil.ReadAll(contextValue.Request.Body)
 	if err != nil {
 		return err
 	}
-	err = binding.Header.Bind(r, vv.Addr().Interface())
+	contextValue.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+	err = binding.Default(contextValue.Request.Method, m.filterFlags(contextValue.Request.Header.Get("Content-Type"))).Bind(contextValue.Request.Clone(contextValue.Request.Context()), vv.Addr().Interface())
+	if err != nil {
+		return err
+	}
+	err = binding.Header.Bind(contextValue.Request, vv.Addr().Interface())
 	if err != nil {
 		return err
 	}
 
-	uriVars := mux.Vars(r)
+	uriVars := mux.Vars(contextValue.Request)
 	if len(uriVars) > 0 {
 		uriMap := make(map[string][]string)
 		for uriKey := range uriVars {
@@ -91,10 +98,11 @@ func (m *httpMiddleware) bindData(apiHandler any, r *http.Request) error {
 		}
 	}
 
-	err = binding.Query.Bind(r, vv.Addr().Interface())
+	err = binding.Query.Bind(contextValue.Request, vv.Addr().Interface())
 	if err != nil {
 		return err
 	}
+	contextValue.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 	return err
 }
 
@@ -270,7 +278,7 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 	//创建新的handler处理器
 	apiHandler = reflect.New(routeInfo.GetHandlerType()).Interface()
 
-	if err = m.bindData(apiHandler, r); err != nil {
+	if err = m.bindData(apiHandler, contextValue); err != nil {
 		return false, err
 	}
 
