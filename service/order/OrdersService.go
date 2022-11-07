@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"math"
 	"strconv"
@@ -80,12 +79,12 @@ func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *m
 		return gorm.ErrRecordNotFound
 	}
 
-	leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve1).V)
-	leve2 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve2).V)
-	leve3 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve3).V)
-	leve4 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve4).V)
-	leve5 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve5).V)
-	leve6 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve6).V)
+	leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve1).V)
+	leve2 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve2).V)
+	leve3 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve3).V)
+	leve4 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve4).V)
+	leve5 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve5).V)
+	leve6 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve6).V)
 
 	leves := []uint{leve1, leve2, leve3, leve4, leve5, leve6}
 
@@ -137,12 +136,12 @@ func (service OrdersService) FirstSettlementUserBrokerage(tx *gorm.DB, orders mo
 		return gorm.ErrRecordNotFound
 	}
 
-	leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve1).V)
-	leve2 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve2).V)
-	leve3 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve3).V)
-	leve4 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve4).V)
-	leve5 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve5).V)
-	leve6 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve6).V)
+	leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve1).V)
+	leve2 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve2).V)
+	leve3 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve3).V)
+	leve4 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve4).V)
+	leve5 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve5).V)
+	leve6 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve6).V)
 
 	leves := []uint{leve1, leve2, leve3, leve4, leve5, leve6}
 
@@ -199,12 +198,12 @@ func (service OrdersService) MinusSettlementUserBrokerage(tx *gorm.DB, orders *m
 		return gorm.ErrRecordNotFound
 	}
 
-	leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve1).V)
-	leve2 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve2).V)
-	leve3 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve3).V)
-	leve4 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve4).V)
-	leve5 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve5).V)
-	leve6 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve6).V)
+	leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve1).V)
+	leve2 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve2).V)
+	leve3 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve3).V)
+	leve4 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve4).V)
+	leve5 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve5).V)
+	leve6 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve6).V)
 
 	leves := []uint{leve1, leve2, leve3, leve4, leve5, leve6}
 
@@ -908,12 +907,12 @@ func (service OrdersService) ListCollageRecord(UserID types.PrimaryKey, Index in
 
 	db := Orm.Raw(`
 SELECT
-o.ID AS "OrdersID",cr."No" as "No",cr."UserID" as "UserID",cr."Collager" as "Collager",og."Favoured" as "Favoured",og."Goods" as "Goods",og."Specification" as "Specification",o."Status" AS "Status",o."IsPay" AS "IsPay",og."Quantity" as "Quantity",
-(SELECT mcr."CreatedAt" FROM CollageRecord mcr WHERE mcr."No"=cr."No" AND mcr."Collager">0) AS "CreatedAt",
-(SELECT COUNT(mo."IsPay") FROM CollageRecord mcr,Orders mo WHERE mcr."No"=cr."No" AND mo."OrderNo"=mcr."OrderNo") AS COUNT,
-(SELECT SUM(mo."IsPay") FROM CollageRecord mcr,Orders mo WHERE mcr."No"=cr."No" AND mo."OrderNo"=mcr."OrderNo") AS IsPaySUM
+o."ID" AS "OrdersID",cr."No" as "No",cr."UserID" as "UserID",cr."Collager" as "Collager",og."Favoured" as "Favoured",og."Goods" as "Goods",og."Specification" as "Specification",o."Status" AS "Status",o."IsPay" AS "IsPay",og."Quantity" as "Quantity",
+(SELECT mcr."CreatedAt" FROM "CollageRecord" mcr WHERE mcr."No"=cr."No" AND mcr."Collager">0) AS "CreatedAt",
+(SELECT COUNT(mo."IsPay") FROM "CollageRecord" mcr,"Orders" mo WHERE mcr."No"=cr."No" AND mo."OrderNo"=mcr."OrderNo") AS COUNT,
+(SELECT SUM(mo."IsPay") FROM "CollageRecord" mcr,"Orders" mo WHERE mcr."No"=cr."No" AND mo."OrderNo"=mcr."OrderNo") AS "IsPaySUM"
 FROM
-User u,Orders o,CollageRecord cr,OrdersGoods og
+"User" u,"Orders" o,"CollageRecord" cr,"OrdersGoods" og
 WHERE
 cr."UserID"=? AND u."ID"=cr."UserID" AND o."OrderNo"=cr."OrderNo" AND og."OrdersGoodsNo"=cr."OrdersGoodsNo"
 GROUP BY cr."No"
@@ -921,10 +920,9 @@ GROUP BY cr."No"
 	//db := Orm.Raw("SELECT o.ID AS OrdersID,cr.No,cr.UserID,cr.Collager,cr.IsPay,sdf.*,og.Favoured,og.Goods,cr.CreatedAt as CreatedAt from User u,Orders o,CollageRecord cr,OrdersGoods og,(SELECT COUNT(cr.NO) AS COUNT,SUM(cr.IsPay) AS SUM FROM CollageRecord cr GROUP BY cr.NO) AS sdf WHERE cr.UserID=? AND u.ID=cr.UserID AND o.OrderNo=cr.OrderNo AND og.OrdersGoodsNo=cr.OrdersGoodsNo GROUP BY cr.No", UserID)
 
 	packs := make([]CollageRecord, 0)
-	db = db.Limit(play.Paging).Offset(play.Paging * Index).Order("CreatedAt desc")
+	db = db.Limit(play.Paging).Offset(play.Paging * Index).Order(`"CreatedAt" desc`)
 	db.Scan(&packs)
 
-	fmt.Println(packs)
 	//var recordsTotal = 0
 	if Index >= 0 {
 		//db = db.Limit(play.Paging).Offset(play.Paging * Index).Order("CreatedAt desc").Offset(0).Count(&recordsTotal)

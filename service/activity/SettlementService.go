@@ -44,16 +44,16 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, Brokerage uint, or
 	user := dao.GetByPrimaryKey(Orm, &model.User{}, orders.UserID).(*model.User)
 	//fmt.Println(user.Name)
 
-	leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve1).V)
-	leve2 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve2).V)
-	leve3 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve3).V)
-	leve4 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve4).V)
-	leve5 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve5).V)
-	leve6 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyBrokerageLeve6).V)
+	leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve1).V)
+	leve2 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve2).V)
+	leve3 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve3).V)
+	leve4 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve4).V)
+	leve5 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve5).V)
+	leve6 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve6).V)
 
 	leves := []uint{leve1, leve2, leve3, leve4, leve5, leve6}
 
-	GrowValue := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, configuration.ConfigurationKeyScoreConvertGrowValue).V)
+	GrowValue := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyScoreConvertGrowValue).V)
 
 	user.Score = user.Score + orders.PayMoney
 	user.Growth = user.Growth + (uint(math.Floor(float64(orders.PayMoney)/100+0.5)) * GrowValue)

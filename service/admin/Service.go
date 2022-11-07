@@ -222,13 +222,13 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 
 	var _Configuration model.Configuration
 
-	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, configuration.ConfigurationKeyBrokerageLeve1, shop.ID)
+	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, model.ConfigurationKeyBrokerageLeve1, shop.ID)
 	if err != nil {
 
 		return nil, err
 	}
 	if _Configuration.ID == 0 {
-		a := model.Configuration{K: configuration.ConfigurationKeyBrokerageLeve1, V: "0"}
+		a := model.Configuration{K: model.ConfigurationKeyBrokerageLeve1, V: "0"}
 		a.OID = shop.ID
 		err = dao.Create(tx, &a)
 		if err != nil {
@@ -238,13 +238,13 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	}
 
 	_Configuration = model.Configuration{}
-	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, configuration.ConfigurationKeyBrokerageLeve2, shop.ID)
+	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, model.ConfigurationKeyBrokerageLeve2, shop.ID)
 	if err != nil {
 
 		return nil, err
 	}
 	if _Configuration.ID == 0 {
-		a := model.Configuration{K: configuration.ConfigurationKeyBrokerageLeve2, V: "0"}
+		a := model.Configuration{K: model.ConfigurationKeyBrokerageLeve2, V: "0"}
 		a.OID = shop.ID
 		err = dao.Create(tx, &a)
 		if err != nil {
@@ -254,13 +254,13 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	}
 
 	_Configuration = model.Configuration{}
-	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, configuration.ConfigurationKeyBrokerageLeve3, shop.ID)
+	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, model.ConfigurationKeyBrokerageLeve3, shop.ID)
 	if err != nil {
 
 		return nil, err
 	}
 	if _Configuration.ID == 0 {
-		a := model.Configuration{K: configuration.ConfigurationKeyBrokerageLeve3, V: "0"}
+		a := model.Configuration{K: model.ConfigurationKeyBrokerageLeve3, V: "0"}
 		a.OID = shop.ID
 		err = dao.Create(tx, &a)
 		if err != nil {
@@ -270,13 +270,13 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	}
 
 	_Configuration = model.Configuration{}
-	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, configuration.ConfigurationKeyBrokerageLeve4, shop.ID)
+	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, model.ConfigurationKeyBrokerageLeve4, shop.ID)
 	if err != nil {
 
 		return nil, err
 	}
 	if _Configuration.ID == 0 {
-		a := model.Configuration{K: configuration.ConfigurationKeyBrokerageLeve4, V: "0"}
+		a := model.Configuration{K: model.ConfigurationKeyBrokerageLeve4, V: "0"}
 		a.OID = shop.ID
 		err = dao.Create(tx, &a)
 		if err != nil {
@@ -286,13 +286,13 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	}
 
 	_Configuration = model.Configuration{}
-	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, configuration.ConfigurationKeyBrokerageLeve5, shop.ID)
+	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, model.ConfigurationKeyBrokerageLeve5, shop.ID)
 	if err != nil {
 
 		return nil, err
 	}
 	if _Configuration.ID == 0 {
-		a := model.Configuration{K: configuration.ConfigurationKeyBrokerageLeve5, V: "0"}
+		a := model.Configuration{K: model.ConfigurationKeyBrokerageLeve5, V: "0"}
 		a.OID = shop.ID
 		err = dao.Create(tx, &a)
 		if err != nil {
@@ -302,13 +302,13 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	}
 
 	_Configuration = model.Configuration{}
-	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, configuration.ConfigurationKeyBrokerageLeve6, shop.ID)
+	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, model.ConfigurationKeyBrokerageLeve6, shop.ID)
 	if err != nil {
 
 		return nil, err
 	}
 	if _Configuration.ID == 0 {
-		a := model.Configuration{K: configuration.ConfigurationKeyBrokerageLeve6, V: "0"}
+		a := model.Configuration{K: model.ConfigurationKeyBrokerageLeve6, V: "0"}
 		a.OID = shop.ID
 		err = dao.Create(tx, &a)
 		if err != nil {
@@ -316,12 +316,12 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 			return nil, err
 		}
 	}
-	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, configuration.ConfigurationKeyBrokerageLeve6, shop.ID)
+	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, model.ConfigurationKeyBrokerageLeve6, shop.ID)
 	if err != nil {
 		return nil, err
 	}
 	if _Configuration.ID == 0 {
-		a := model.Configuration{K: configuration.ConfigurationKeyBrokerageLeve6, V: "0"}
+		a := model.Configuration{K: model.ConfigurationKeyBrokerageLeve6, V: "0"}
 		a.OID = shop.ID
 		err = dao.Create(tx, &a)
 		if err != nil {

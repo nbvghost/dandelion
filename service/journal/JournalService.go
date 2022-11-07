@@ -88,7 +88,7 @@ func (service JournalService) ListUserJournalLeveBrokerage(UserID types.PrimaryK
 
 	*/
 	//var recordsTotal uint
-	db := Orm.Table("UserJournal").Select("SUM(UserJournal.Amount) as TotalAmount,User.*").Joins("JOIN User on User.ID = UserJournal.FromUserID").Where("UserJournal.FromUserID in (?)", IDs).Where("UserJournal.UserID = ?", UserID).Group("UserJournal.FromUserID")
+	db := Orm.Table(`"UserJournal"`).Select(`SUM("UserJournal"."Amount") as "TotalAmount",User.*`).Joins(`JOIN "User" on "User"."ID" = "UserJournal"."FromUserID"`).Where(`"UserJournal"."FromUserID" in (?)`, IDs).Where(`"UserJournal"."UserID" = ?`, UserID).Group(`"UserJournal"."FromUserID"`)
 	//db.Limit(10).Offset(0).Find(&result)
 	db.Find(&result)
 	//db.Offset(0).Count(&recordsTotal)
