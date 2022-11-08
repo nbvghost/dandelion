@@ -43,6 +43,10 @@ type FindQuery struct {
 	db    *gorm.DB
 }
 
+func (m *FindQuery) PrimaryKey(ID types.PrimaryKey) *FindQuery {
+	m.db.Where(ID)
+	return m
+}
 func (m *FindQuery) Where(query interface{}, args ...interface{}) *FindQuery {
 	m.db.Where(query, args...)
 	return m

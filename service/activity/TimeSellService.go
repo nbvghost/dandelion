@@ -13,10 +13,10 @@ type TimeSellService struct {
 	model.BaseDao
 }
 
-func (service TimeSellService) GetTimeSellByHash(Hash string, OID types.PrimaryKey) model.TimeSell {
+func (service TimeSellService) GetTimeSellByHash(Hash string, OID types.PrimaryKey) *model.TimeSell {
 	var timesell model.TimeSell
 	singleton.Orm().Model(&model.TimeSell{}).Where("Hash=? and OID=?", Hash, OID).First(&timesell)
-	return timesell
+	return &timesell
 }
 
 func (service TimeSellService) GetTimeSellByGoodsID(GoodsID types.PrimaryKey, OID types.PrimaryKey) *model.TimeSell {

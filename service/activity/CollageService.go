@@ -57,11 +57,11 @@ func (service CollageService) GetCollageByGoodsID(GoodsID types.PrimaryKey, OID 
 	log.Println(err)
 	return timesell*/
 }
-func (service CollageService) GetCollageByHash(Hash string, OID types.PrimaryKey) model.Collage {
+func (service CollageService) GetCollageByHash(Hash string, OID types.PrimaryKey) *model.Collage {
 	var timesell model.Collage
 	err := singleton.Orm().Model(&model.Collage{}).Where("Hash=? and OID=?", Hash, OID).First(&timesell).Error
 	log.Println(err)
-	return timesell
+	return &timesell
 }
 func (service CollageService) AddCollageRecord(OrderNo, OrdersGoodsNo, No string, UserID types.PrimaryKey) error {
 	cr := &model.CollageRecord{}
