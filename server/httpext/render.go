@@ -40,13 +40,18 @@ func (v *viewRender) Render(context constrain.IContext, request *http.Request, w
 		}
 
 	} else {
-		fileByte, err = ioutil.ReadFile(fmt.Sprintf("view/%s.html", strings.TrimSuffix(context.Route(), "/")))
-		if err != nil {
-			if _, ok := err.(*fs.PathError); ok {
-				fileByte, err = ioutil.ReadFile(fmt.Sprintf("view/%s.html", "index"))
+		path := strings.Trim(context.Route(), "/")
+		ext := filepath.Ext(path)
+		if len(ext) > 0 {
+			fileByte, err = ioutil.ReadFile(fmt.Sprintf("view/%s", path))
+		} else {
+			fileByte, err = ioutil.ReadFile(fmt.Sprintf("view/%s.html", path))
+			if err != nil {
+				if _, ok := err.(*fs.PathError); ok {
+					fileByte, err = ioutil.ReadFile(fmt.Sprintf("view/%s.html", "index"))
+				}
 			}
 		}
-
 	}
 
 	if err != nil {
