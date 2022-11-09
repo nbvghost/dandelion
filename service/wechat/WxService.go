@@ -107,7 +107,7 @@ func (service WxService) MiniProgramByAppId(db *gorm.DB, appId string) *model.We
 	db.Model(model.WechatConfig{}).Where(`"AppID"=?`, appId).Take(&wc)
 	return &wc
 }
-func (service WxService) MiniProgram(db *gorm.DB, OID types.PrimaryKey) *model.WechatConfig {
+func (service WxService) MiniProgramByOID(db *gorm.DB, OID types.PrimaryKey) *model.WechatConfig {
 	var wc model.WechatConfig
 	db.Model(model.WechatConfig{}).Where(`"OID"=?`, OID).Take(&wc)
 	return &wc
@@ -899,7 +899,7 @@ func (service WxService) MwGetTicket(WxConfig *model.WechatConfig) string {
 }
 func (service WxService) MwGetWXJSConfig(url string, OID types.PrimaryKey) map[string]interface{} {
 
-	wxConfig := service.MiniProgram(singleton.Orm(), OID)
+	wxConfig := service.MiniProgramByOID(singleton.Orm(), OID)
 
 	appId := wxConfig.AppID
 	timestamp := time.Now().Unix()
