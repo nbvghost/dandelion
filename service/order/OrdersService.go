@@ -786,7 +786,6 @@ func (service OrdersService) Cancel(ctx context.Context, OrdersID types.PrimaryK
 	} else if orders.Status == model.OrdersStatusPay {
 		if orders.IsPay == model.OrdersIsPayPayed {
 			//已经支付的订单，发起退款
-
 			//ordersPackage := service.GetOrdersPackageByOrderNo(orders.OrdersPackageNo)
 			refund, err := service.Wx.Refund(ctx, orders, nil, "用户取消", wxConfig)
 			if err != nil {
@@ -796,7 +795,10 @@ func (service OrdersService) Cancel(ctx context.Context, OrdersID types.PrimaryK
 				return "", errors.New("退款异常")
 			}
 			err = dao.UpdateByPrimaryKey(Orm, &model.Orders{}, OrdersID, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
-			return "申请取消，等待客服确认", err
+			if err != nil {
+				return "", err
+			}
+			return "订单已经取消，退款资金已经按原路退回，请注意查收信息", nil
 
 		} else {
 			return "", errors.New("不允许取消订单,订单没有支付或已经过期")
