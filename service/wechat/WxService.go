@@ -22,7 +22,9 @@ import (
 
 	"gorm.io/gorm"
 
+	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
@@ -111,6 +113,11 @@ func (service WxService) MiniProgramByOID(db *gorm.DB, OID types.PrimaryKey) *mo
 	var wc model.WechatConfig
 	db.Model(model.WechatConfig{}).Where(`"OID"=?`, OID).Take(&wc)
 	return &wc
+}
+func (service WxService) MiniProgram(db *gorm.DB) []types.IEntity {
+	//var wc []model.WechatConfig
+	//db.Model(model.WechatConfig{}).Where(`"OID"=?`, OID).Take(&wc)
+	return dao.Find(db, entity.WechatConfig).List()
 }
 func (service WxService) GetAccessToken(WxConfig *model.WechatConfig) string {
 
