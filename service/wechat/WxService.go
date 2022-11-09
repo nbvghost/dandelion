@@ -670,8 +670,8 @@ func (service WxService) CloseOrder(OrderNo string, OID types.PrimaryKey, wxConf
 
 }
 
-//退款
-func (service WxService) Refund(ctx context.Context, order *model.Orders, ordersPackage model.OrdersPackage, PayMoney uint, reason string, wxConfig *model.WechatConfig) (*refunddomestic.Refund, error) {
+//退款-订单内的所有的商品/订单内某个商品
+func (service WxService) Refund(ctx context.Context, order *model.Orders, ordersGoods *model.OrdersGoods, reason string, wxConfig *model.WechatConfig) (*refunddomestic.Refund, error) {
 
 	client, err := NewClient(wxConfig)
 	if err != nil {
@@ -681,7 +681,7 @@ func (service WxService) Refund(ctx context.Context, order *model.Orders, orders
 
 	var createRequest refunddomestic.CreateRequest
 
-	if strings.EqualFold(order.OrdersPackageNo, "") {
+	if ordersGoods == nil {
 		//outMap["out_refund_no"] = order.OrderNo
 		//outMap["out_trade_no"] = order.OrderNo
 		//outMap["refund_fee"] = strconv.Itoa(int(order.PayMoney))
@@ -693,8 +693,8 @@ func (service WxService) Refund(ctx context.Context, order *model.Orders, orders
 			NotifyUrl:    core.String(wxConfig.RefundNotifyUrl),
 			FundsAccount: refunddomestic.REQFUNDSACCOUNT_AVAILABLE.Ptr(),
 			Amount: &refunddomestic.AmountReq{
-				Refund:   core.Int64(int64(PayMoney)),
-				Total:    core.Int64(int64(PayMoney)),
+				Refund:   core.Int64(int64(order.PayMoney)),
+				Total:    core.Int64(int64(order.PayMoney)),
 				From:     nil,
 				Currency: core.String("CNY"),
 			},
@@ -714,8 +714,8 @@ func (service WxService) Refund(ctx context.Context, order *model.Orders, orders
 			NotifyUrl:    core.String(wxConfig.RefundNotifyUrl),
 			FundsAccount: refunddomestic.REQFUNDSACCOUNT_AVAILABLE.Ptr(),
 			Amount: &refunddomestic.AmountReq{
-				Refund:   core.Int64(int64(ordersPackage.TotalPayMoney)),
-				Total:    core.Int64(int64(PayMoney)),
+				Refund:   core.Int64(int64(ordersGoods.SellPrice)),
+				Total:    core.Int64(int64(order.PayMoney)),
 				From:     nil,
 				Currency: core.String("CNY"),
 			},

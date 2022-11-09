@@ -341,7 +341,7 @@ func (service OrdersService) RefundComplete(OrdersGoodsID types.PrimaryKey, Refu
 	//var orders model.Orders
 	orders := dao.GetByPrimaryKey(tx, entity.Orders, ordersGoods.OrdersID).(*model.Orders)
 
-	ordersPackage := service.GetOrdersPackageByOrderNo(orders.OrdersPackageNo)
+	//ordersPackage := service.GetOrdersPackageByOrderNo(orders.OrdersPackageNo)
 
 	//RefundPrice := int64(ordersGoods.SellPrice) - int64(math.Floor(((float64(ordersGoods.SellPrice)*float64(ordersGoods.Quantity))/float64(orders.GoodsMoney)*float64(orders.DiscountMoney))+0.5))
 	RefundPrice := ordersGoods.SellPrice * uint(ordersGoods.Quantity)
@@ -358,7 +358,7 @@ func (service OrdersService) RefundComplete(OrdersGoodsID types.PrimaryKey, Refu
 		return "", err
 	}
 
-	refund, err := service.Wx.Refund(context.TODO(), orders, ordersPackage, RefundInfo.RefundPrice, "用户申请退款", wxConfig)
+	refund, err := service.Wx.Refund(context.TODO(), orders, nil, "用户申请退款", wxConfig)
 	if err != nil {
 		tx.Rollback()
 		return "", err
@@ -626,17 +626,17 @@ func (service OrdersService) CancelOk(context context.Context, OrdersID types.Pr
 		return "", errors.New("订单不存在")
 	}
 
-	ordersPackage := service.GetOrdersPackageByOrderNo(orders.OrdersPackageNo)
+	//ordersPackage := service.GetOrdersPackageByOrderNo(orders.OrdersPackageNo)
 
 	//下单状态
 	if orders.Status == model.OrdersStatusCancel {
-		if orders.IsPay == sqltype.OrdersIsPayPayed {
+		if orders.IsPay == model.OrdersIsPayPayed {
 
 			var refund *refunddomestic.Refund
 			var err error
 			//邮寄
 			if orders.PostType == sqltype.OrdersPostTypePost {
-				refund, err = service.Wx.Refund(context, orders, ordersPackage, orders.PayMoney, "用户取消", wxConfig)
+				refund, err = service.Wx.Refund(context, orders, nil, "用户取消", wxConfig)
 				if err != nil {
 					return "", err
 				}
@@ -656,7 +656,7 @@ func (service OrdersService) CancelOk(context context.Context, OrdersID types.Pr
 					}
 				}
 			} else if orders.PostType == sqltype.OrdersPostTypeOffline {
-				refund, err = service.Wx.Refund(context, orders, ordersPackage, orders.PayMoney, "用户取消", wxConfig)
+				refund, err = service.Wx.Refund(context, orders, nil, "用户取消", wxConfig)
 				if err != nil {
 					return "", err
 				}
@@ -724,7 +724,7 @@ func (service OrdersService) Cancel(ctx context.Context, OrdersID types.PrimaryK
 
 	//下单状态
 	if orders.Status == model.OrdersStatusOrder {
-		if orders.IsPay == 1 {
+		if orders.IsPay == model.OrdersIsPayPayed {
 			err := dao.UpdateByPrimaryKey(Orm, entity.Orders, OrdersID, map[string]interface{}{"Status": model.OrdersStatusCancel})
 			return "申请取消，等待客服确认", err
 		} else {
@@ -784,8 +784,24 @@ func (service OrdersService) Cancel(ctx context.Context, OrdersID types.PrimaryK
 			}
 		}
 	} else if orders.Status == model.OrdersStatusPay {
-		err := dao.UpdateByPrimaryKey(Orm, &model.Orders{}, OrdersID, map[string]interface{}{"Status": model.OrdersStatusCancel})
-		return "申请取消，等待客服确认", err
+		if orders.IsPay == model.OrdersIsPayPayed {
+			//已经支付的订单，发起退款
+
+			//ordersPackage := service.GetOrdersPackageByOrderNo(orders.OrdersPackageNo)
+			refund, err := service.Wx.Refund(ctx, orders, nil, "用户取消", wxConfig)
+			if err != nil {
+				return "", err
+			}
+			if refund.Status == refunddomestic.STATUS_ABNORMAL.Ptr() {
+				return "", errors.New("退款异常")
+			}
+			err = dao.UpdateByPrimaryKey(Orm, &model.Orders{}, OrdersID, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
+			return "申请取消，等待客服确认", err
+
+		} else {
+			return "", errors.New("不允许取消订单,订单没有支付或已经过期")
+		}
+
 	} else {
 		return "", errors.New("不允许取消订单")
 	}

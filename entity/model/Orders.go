@@ -27,13 +27,21 @@ const (
 
 )
 
+type OrdersIsPay uint
+
+const (
+	OrdersIsPayUnPay  OrdersIsPay = 0 //未支付
+	OrdersIsPayPayed  OrdersIsPay = 1 //支付成功
+	OrdersIsPayExpire OrdersIsPay = 2 //过期
+)
+
 //订单信息
 type Orders struct {
 	types.Entity
 	OID             types.PrimaryKey       `gorm:"column:OID"`             //
 	UserID          types.PrimaryKey       `gorm:"column:UserID"`          //用户ID
 	PrepayID        string                 `gorm:"column:PrepayID"`        //
-	IsPay           sqltype.OrdersIsPay    `gorm:"column:IsPay"`           //是否支付成功,0=未支付，1，支付成功，2过期
+	IsPay           OrdersIsPay            `gorm:"column:IsPay"`           //是否支付成功,0=未支付，1，支付成功，2过期
 	OrderNo         string                 `gorm:"column:OrderNo;unique"`  //订单号
 	OrdersPackageNo string                 `gorm:"column:OrdersPackageNo"` //订单号
 	PayMoney        uint                   `gorm:"column:PayMoney"`        //支付价
