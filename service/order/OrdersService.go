@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"math"
 	"strconv"
@@ -1016,7 +1017,7 @@ func (service OrdersService) ListOrders(UserID, OID types.PrimaryKey, PostType i
 	return service.ListOrdersDate(UserID, OID, PostType, Status, time.Unix(0, 0), time.Unix(0, 0), Limit, Offset)
 }
 
-func (service OrdersService) OrderNotify(totalFee uint, outTradeNo string, payTime time.Time, attach string) (Success bool, Message string) {
+func (service OrdersService) OrderNotify(totalFee uint, outTradeNo string, payTime time.Time, attach string) (string, error) {
 
 	//Orm := singleton.Orm()
 
@@ -1033,26 +1034,26 @@ func (service OrdersService) OrderNotify(totalFee uint, outTradeNo string, payTi
 			err := dao.UpdateByPrimaryKey(tx, entity.SupplyOrders, orders.ID, &model.SupplyOrders{PayTime: payTime, IsPay: 1, PayMoney: totalFee})
 			if err != nil {
 				tx.Rollback()
-				return false, err.Error()
+				return "", err
 			} else {
 				if strings.EqualFold(orders.Type, play.SupplyType_Store) {
 					err := service.Journal.AddStoreJournal(tx, orders.StoreID, "门店", "充值", play.StoreJournal_Type_CZ, int64(totalFee), orders.ID)
 					if err != nil {
 						tx.Rollback()
-						return false, err.Error()
+						return "", err
 					} else {
 						tx.Commit()
-						return true, "已经支付成功"
+						return "已经支付成功", nil
 					}
 				} else {
 					tx.Commit()
 					strings.EqualFold(orders.Type, play.SupplyType_User)
-					return false, "未实现的数据类型" + orders.Type
+					return "", fmt.Errorf("未实现的数据类型:%s", orders.Type)
 				}
 
 			}
 		} else {
-			return false, "订单已经处理或过期"
+			return "", errors.New("订单已经处理或过期")
 		}
 
 	} else if strings.EqualFold(attach, play.OrdersType_GoodsPackage) { //合并商品订单
@@ -1065,7 +1066,7 @@ func (service OrdersService) OrderNotify(totalFee uint, outTradeNo string, payTi
 			err := dao.UpdateByPrimaryKey(tx, entity.OrdersPackage, ordersPackage.ID, &model.OrdersPackage{IsPay: 1})
 			if err != nil {
 				tx.Rollback()
-				return false, err.Error()
+				return "", err
 			}
 
 			OrderList := service.GetOrdersByOrdersPackageNo(ordersPackage.OrderNo)
@@ -1075,14 +1076,14 @@ func (service OrdersService) OrderNotify(totalFee uint, outTradeNo string, payTi
 				df, msg := service.ProcessingOrders(tx, OrderList[index], payTime)
 				if df == false {
 					tx.Rollback()
-					return df, msg
+					return "", errors.New(msg)
 				}
 			}
 			tx.Commit()
-			return true, "已经支付成功"
+			return "已经支付成功", nil
 		} else {
 			tx.Commit()
-			return false, "金额不正确或订单不允许"
+			return "", errors.New("金额不正确或订单不允许")
 		}
 
 	} else if strings.EqualFold(attach, play.OrdersType_Goods) { //商品订单
@@ -1093,17 +1094,17 @@ func (service OrdersService) OrderNotify(totalFee uint, outTradeNo string, payTi
 			su, msg := service.ProcessingOrders(tx, orders, payTime)
 			if su == false {
 				tx.Rollback()
-				return su, msg
+				return "", errors.New(msg)
 			}
 			tx.Commit()
-			return su, msg
+			return msg, nil
 		} else {
 			tx.Commit()
-			return false, "金额不正确或订单不允许"
+			return "", errors.New("金额不正确或订单不允许")
 		}
 
 	} else {
-		return false, "未实现的订单类型" + attach
+		return "", fmt.Errorf("未实现的订单类型:%s", attach)
 	}
 
 }
@@ -1774,4 +1775,47 @@ func (service OrdersService) FindOrdersGoodsByCollageUser(CollageNo string) []mo
 	orm.Raw(`SELECT u.* FROM Orders o,OrdersGoods og,USER u WHERE og."CollageNo"=? AND o."IsPay"=1 and o."ID"=og."OrdersID" AND u."ID"=o."UserID"`, CollageNo).Scan(&user)
 	//orm.Exec("SELECT u.* FROM Orders o,OrdersGoods og,USER u WHERE og.CollageNo=? AND o.ID=og.OrdersID AND u.ID=o.UserID", CollageNo).Find(&user)
 	return user
+}
+
+func (service OrdersService) QueryOrdersTask(wxConfig *model.WechatConfig) error {
+	Orm := singleton.Orm()
+	//var ordersList []model.Orders
+	ordersList := dao.Find(Orm, entity.Orders).Where(`"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed).List()
+	//service.FindWhere(Orm, &ordersList, `"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed)
+	for _, v := range ordersList {
+		value := v.(*model.Orders)
+		if value.IsPay == 0 {
+
+			//当前状态为没有支付，去检测一下，订单状态。
+			transaction, err := service.Wx.OrderQuery(context.TODO(), value.OrderNo, wxConfig)
+			if err != nil {
+				log.Println(err)
+				return err
+			}
+
+			if strings.EqualFold(*transaction.TradeState, "SUCCESS") {
+				//TotalFee, _ := strconv.ParseUint(result["total_fee"], 10, 64)
+				//OrderNo := result["out_trade_no"]
+				//TimeEnd := result["time_end"]
+				//attach := result["attach"]
+				payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", *transaction.SuccessTime, time.Local)
+				if err != nil {
+					log.Println(err)
+					return err
+				}
+				_, err = service.OrderNotify(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, payTime, *transaction.Attach)
+				if err != nil {
+					log.Println(err)
+					return err
+				}
+				continue
+			}
+		}
+		err := service.AnalysisOrdersStatus(value.ID, wxConfig)
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+	}
+	return nil
 }

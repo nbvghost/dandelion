@@ -21,18 +21,13 @@ type TimeTaskService struct {
 	Orders    order.OrdersService
 }
 
-func init() {
-	//TimeTaskService := TimeTaskService{}
-	//go TimeTaskService.QueryTask()
-}
-func (self TimeTaskService) QueryTask(wxConfig *model.WechatConfig) {
+func (m TimeTaskService) QueryTask(wxConfig *model.WechatConfig) {
 
 	go func() {
 
 		c := time.Tick(60 * time.Second)
 		for range c {
-			self.QuerySupplyOrdersTask(wxConfig)
-			self.QueryOrdersTask(wxConfig)
+			m.QuerySupplyOrdersTask(wxConfig)
 		}
 
 	}()
@@ -40,49 +35,18 @@ func (self TimeTaskService) QueryTask(wxConfig *model.WechatConfig) {
 	c := time.Tick(15 * time.Second)
 	for range c {
 		//fmt.Printf("在线人数：%v\n", len(gweb.Sessions.Data))
-		self.QueryTransfersTask(wxConfig)
+		m.QueryTransfersTask(wxConfig)
 	}
 
 }
-func (self TimeTaskService) QueryOrdersTask(wxConfig *model.WechatConfig) {
-	Orm := singleton.Orm()
-	var ordersList []model.Orders
-	self.Orders.FindWhere(Orm, &ordersList, `"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed)
-	for _, value := range ordersList {
 
-		if value.IsPay == 0 {
-
-			//当前状态为没有支付，去检测一下，订单状态。
-			transaction, err := self.Wx.OrderQuery(context.TODO(), value.OrderNo, wxConfig)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-
-			if strings.EqualFold(*transaction.TradeState, "SUCCESS") {
-				//TotalFee, _ := strconv.ParseUint(result["total_fee"], 10, 64)
-				//OrderNo := result["out_trade_no"]
-				//TimeEnd := result["time_end"]
-				//attach := result["attach"]
-				payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", *transaction.SuccessTime, time.Local)
-				log.Println(err)
-				self.Orders.OrderNotify(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, payTime, *transaction.Attach)
-				continue
-			}
-		}
-		err := self.Orders.AnalysisOrdersStatus(value.ID, wxConfig)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-}
-func (self TimeTaskService) QuerySupplyOrdersTask(wxConfig *model.WechatConfig) {
+func (m TimeTaskService) QuerySupplyOrdersTask(wxConfig *model.WechatConfig) {
 	Orm := singleton.Orm()
 	var supplyOrdersList []model.SupplyOrders
-	self.Orders.FindWhere(Orm, &supplyOrdersList, `"IsPay"=?`, 0)
+	m.Orders.FindWhere(Orm, &supplyOrdersList, `"IsPay"=?`, 0)
 	for _, value := range supplyOrdersList {
 
-		transaction, err := self.Wx.OrderQuery(context.TODO(), value.OrderNo, wxConfig)
+		transaction, err := m.Wx.OrderQuery(context.TODO(), value.OrderNo, wxConfig)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -95,8 +59,8 @@ func (self TimeTaskService) QuerySupplyOrdersTask(wxConfig *model.WechatConfig) 
 			//attach := result["attach"]
 			payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", *transaction.SuccessTime, time.Local)
 			log.Println(err)
-			self.Orders.OrderNotify(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, payTime, *transaction.Attach)
-			//self.Orders.OrderNotify(result)
+			m.Orders.OrderNotify(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, payTime, *transaction.Attach)
+			//m.Orders.OrderNotify(result)
 		}
 
 	}
@@ -104,12 +68,12 @@ func (self TimeTaskService) QuerySupplyOrdersTask(wxConfig *model.WechatConfig) 
 }
 
 //查询提现状态
-func (self TimeTaskService) QueryTransfersTask(wxConfig *model.WechatConfig) {
+func (m TimeTaskService) QueryTransfersTask(wxConfig *model.WechatConfig) {
 	Orm := singleton.Orm()
 	var transfersList []model.Transfers
-	self.Transfers.FindWhere(Orm, &transfersList, `"IsPay"=?`, 0)
+	m.Transfers.FindWhere(Orm, &transfersList, `"IsPay"=?`, 0)
 	for _, value := range transfersList {
-		su := self.Wx.GetTransfersInfo(value, wxConfig)
+		su := m.Wx.GetTransfersInfo(value, wxConfig)
 		if su {
 			dao.UpdateByPrimaryKey(Orm, entity.Transfers, value.ID, &model.Transfers{IsPay: 1})
 		} else {
