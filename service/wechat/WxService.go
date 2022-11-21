@@ -1,6 +1,7 @@
 package wechat
 
 import (
+	"bytes"
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
@@ -118,6 +119,35 @@ func (service WxService) MiniProgram(db *gorm.DB) []types.IEntity {
 	//var wc []model.WechatConfig
 	//db.Model(model.WechatConfig{}).Where(`"OID"=?`, OID).Take(&wc)
 	return dao.Find(db, entity.WechatConfig).List()
+}
+
+type DeliveryInfo struct {
+	DeliveryId   string `json:"delivery_id"`
+	DeliveryName string `json:"delivery_name"`
+}
+
+func (service WxService) GetDeliveryList(accessToken string) ([]DeliveryInfo, error) {
+	url := "https://api.weixin.qq.com/cgi-bin/express/delivery/open_msg/get_delivery_list?access_token=" + accessToken
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer([]byte(`{}`)))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	var list struct {
+		ErrCode      int            `json:"errcode"`
+		DeliveryList []DeliveryInfo `json:"delivery_list"`
+		Count        int            `json:"count"`
+	}
+	err = json.Unmarshal(body, &list)
+	if err != nil {
+		return nil, err
+	}
+	return list.DeliveryList, nil
 }
 func (service WxService) GetAccessToken(WxConfig *model.WechatConfig) string {
 

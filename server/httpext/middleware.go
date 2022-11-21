@@ -75,7 +75,28 @@ func (m *httpMiddleware) bindData(apiHandler any, contextValue *contexext.Contex
 		return err
 	}
 	contextValue.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-	err = binding.Default(contextValue.Request.Method, m.filterFlags(contextValue.Request.Header.Get("Content-Type"))).Bind(contextValue.Request.Clone(contextValue.Request.Context()), vv.Addr().Interface())
+
+	var bodyValue reflect.Value
+	var hasBodyField bool
+
+	vvNum := vv.NumField()
+	for i := 0; i < vvNum; i++ {
+		_, ok := vv.Type().Field(i).Tag.Lookup("body")
+		if ok {
+			hasBodyField = true
+			bodyValue = vv.Field(i)
+			if bodyValue.Kind() == reflect.Ptr {
+				//bodyValue = bodyValue.Elem()
+			}
+			break
+		}
+	}
+
+	if !hasBodyField {
+		bodyValue = vv
+	}
+
+	err = binding.Default(contextValue.Request.Method, m.filterFlags(contextValue.Request.Header.Get("Content-Type"))).Bind(contextValue.Request.Clone(contextValue.Request.Context()), bodyValue.Addr().Interface())
 	if err != nil {
 		return err
 	}

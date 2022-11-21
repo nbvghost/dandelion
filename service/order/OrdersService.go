@@ -1777,45 +1777,36 @@ func (service OrdersService) FindOrdersGoodsByCollageUser(CollageNo string) []mo
 	return user
 }
 
-func (service OrdersService) QueryOrdersTask(wxConfig *model.WechatConfig) error {
-	Orm := singleton.Orm()
-	//var ordersList []model.Orders
-	ordersList := dao.Find(Orm, entity.Orders).Where(`"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed).List()
-	//service.FindWhere(Orm, &ordersList, `"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed)
-	for _, v := range ordersList {
-		value := v.(*model.Orders)
-		if value.IsPay == 0 {
-
-			//当前状态为没有支付，去检测一下，订单状态。
-			transaction, err := service.Wx.OrderQuery(context.TODO(), value.OrderNo, wxConfig)
-			if err != nil {
-				log.Println(err)
-				return err
-			}
-
-			if strings.EqualFold(*transaction.TradeState, "SUCCESS") {
-				//TotalFee, _ := strconv.ParseUint(result["total_fee"], 10, 64)
-				//OrderNo := result["out_trade_no"]
-				//TimeEnd := result["time_end"]
-				//attach := result["attach"]
-				payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", *transaction.SuccessTime, time.Local)
-				if err != nil {
-					log.Println(err)
-					return err
-				}
-				_, err = service.OrderNotify(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, payTime, *transaction.Attach)
-				if err != nil {
-					log.Println(err)
-					return err
-				}
-				continue
-			}
-		}
-		err := service.AnalysisOrdersStatus(value.ID, wxConfig)
+func (service OrdersService) QueryOrdersTask(wxConfig *model.WechatConfig, orders *model.Orders) error {
+	if orders.IsPay == 0 {
+		//当前状态为没有支付，去检测一下，订单状态。
+		transaction, err := service.Wx.OrderQuery(context.TODO(), orders.OrderNo, wxConfig)
 		if err != nil {
 			log.Println(err)
 			return err
 		}
+
+		if strings.EqualFold(*transaction.TradeState, "SUCCESS") {
+			//TotalFee, _ := strconv.ParseUint(result["total_fee"], 10, 64)
+			//OrderNo := result["out_trade_no"]
+			//TimeEnd := result["time_end"]
+			//attach := result["attach"]
+			payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", *transaction.SuccessTime, time.Local)
+			if err != nil {
+				log.Println(err)
+				return err
+			}
+			_, err = service.OrderNotify(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, payTime, *transaction.Attach)
+			if err != nil {
+				log.Println(err)
+				return err
+			}
+		}
+	}
+	err := service.AnalysisOrdersStatus(orders.ID, wxConfig)
+	if err != nil {
+		log.Println(err)
+		return err
 	}
 	return nil
 }

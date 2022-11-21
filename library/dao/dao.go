@@ -9,6 +9,10 @@ import (
 	"github.com/nbvghost/gpa/types"
 )
 
+func UpdateBy(tx *gorm.DB, model types.IEntity, value interface{}, query interface{}, args ...interface{}) error {
+	return tx.Model(model).Where(query, args...).Updates(value).Error
+}
+
 func UpdateByPrimaryKey(tx *gorm.DB, model types.IEntity, id types.PrimaryKey, value any) error {
 	return tx.Model(model).Where(`"ID"=?`, id).Updates(value).Error
 }
