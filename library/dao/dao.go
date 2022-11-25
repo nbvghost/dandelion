@@ -59,6 +59,14 @@ func (m *FindQuery) Order(order ...string) *FindQuery {
 	m.db.Order(strings.Join(order, ","))
 	return m
 }
+func (m *FindQuery) Limit(index, pageSize int) int64 {
+	if index < 0 {
+		index = 0
+	}
+	var total int64
+	m.db.Limit(pageSize).Offset(pageSize * index).Count(&total)
+	return total
+}
 func (m *FindQuery) List() []types.IEntity {
 	var list = reflect.New(reflect.SliceOf(reflect.TypeOf(m.model)))
 	if len(m.order) == 0 {
