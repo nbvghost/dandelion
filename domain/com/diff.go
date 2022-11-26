@@ -15,6 +15,21 @@ func IndexOf(s []string, v string) int {
 	}
 	return -1
 }
+func CreateStructByMap(m map[string]any, structType any) any {
+	st := reflect.TypeOf(structType)
+	if st.Kind() == reflect.Ptr {
+		st = st.Elem()
+	}
+	newStruct := reflect.New(st)
+	for k := range m {
+		field := newStruct.Elem().FieldByName(k)
+		if field.IsValid() {
+			field.Set(reflect.ValueOf(m[k]))
+		}
+	}
+	return newStruct.Interface()
+
+}
 
 // Diff 只比较struct 里元字段类型的字段，如果字段是struct则不进行比较，from,to 都是(*struct)
 func Diff(fromPtr, toPtr any, ignoreField ...string) map[string]any {

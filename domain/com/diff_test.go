@@ -38,3 +38,44 @@ func Test_diff(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateStructByMap(t *testing.T) {
+	type User struct {
+		Name string
+		Age  int
+		Len  float64
+	}
+	type args struct {
+		m          map[string]any
+		structType any
+	}
+	tests := []struct {
+		name string
+		args args
+		want any
+	}{
+		{name: "set struct", args: args{
+			m:          map[string]any{"Name": "dsfds", "Age": 545, "Len": 5.5},
+			structType: &User{},
+		}, want: &User{
+			Name: "dsfds",
+			Age:  545,
+			Len:  5.5,
+		}},
+		{name: "set struct fail", args: args{
+			m:          map[string]any{"Name": "dsfds", "Age": 545.5, "Len": 5.5},
+			structType: &User{},
+		}, want: &User{
+			Name: "dsfds",
+			Age:  545,
+			Len:  5.5,
+		}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := CreateStructByMap(tt.args.m, tt.args.structType); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("CreateStructByMap() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
