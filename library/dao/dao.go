@@ -64,7 +64,7 @@ func (m *FindQuery) Limit(index, pageSize int) int64 {
 		index = 0
 	}
 	var total int64
-	m.db.Limit(pageSize).Offset(pageSize * index).Count(&total)
+	m.db.Count(&total).Limit(pageSize).Offset(pageSize * index)
 	return total
 }
 func (m *FindQuery) List() []types.IEntity {
