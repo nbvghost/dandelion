@@ -59,6 +59,11 @@ func (m *FindQuery) Order(order ...string) *FindQuery {
 	m.db.Order(strings.Join(order, ","))
 	return m
 }
+func (m *FindQuery) Count() int64 {
+	var total int64
+	m.db.Count(&total)
+	return total
+}
 func (m *FindQuery) Limit(index, pageSize int) int64 {
 	if index < 0 {
 		index = 0
