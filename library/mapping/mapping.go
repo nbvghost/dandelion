@@ -9,20 +9,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-type IMapping interface {
-	Call(context constrain.IContext) (instance interface{})
-	Name() string
-	Instance() interface{}
-}
-
 type mapping struct {
-	poolList map[string]map[string]IMapping
+	poolList map[string]map[string]constrain.IMapping
 }
 
-func (m *mapping) register(mapping IMapping) error {
+func (m *mapping) register(mapping constrain.IMapping) error {
 	path := util.GetPkgPath(mapping.Instance())
 	if _, ok := m.poolList[path]; !ok {
-		m.poolList[path] = make(map[string]IMapping)
+		m.poolList[path] = make(map[string]constrain.IMapping)
 	}
 
 	if _, ok := m.poolList[path][mapping.Name()]; ok {
@@ -78,14 +72,15 @@ func (m *mapping) ViewAfter(context constrain.IContext, r constrain.IViewResult)
 	m.Before(context, r)
 	return nil
 }
-func (m *mapping) AddMapping(mapping IMapping) {
+func (m *mapping) AddMapping(mapping constrain.IMapping) constrain.IMappingCallback {
 	if err := m.register(mapping); err != nil {
 		panic(err)
 	}
+	return m
 }
 
-func New(mappings ...IMapping) constrain.IMappingCallback {
-	v := &mapping{poolList: make(map[string]map[string]IMapping)}
+func New(mappings ...constrain.IMapping) constrain.IMappingCallback {
+	v := &mapping{poolList: make(map[string]map[string]constrain.IMapping)}
 	for index := range mappings {
 		mapping := mappings[index]
 		if err := v.register(mapping); err != nil {

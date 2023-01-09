@@ -2,18 +2,18 @@ package constrain
 
 import (
 	"context"
-
 	"go.uber.org/zap"
 
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/gpa/types"
 )
 
-//用于注入的回调方法
+// 用于注入的回调方法
 type IMappingCallback interface {
 	Before(context IContext, handler interface{})
 	// Deprecated: 好像没有用
 	ViewAfter(context IContext, r IViewResult) error
+	AddMapping(mapping IMapping) IMappingCallback
 }
 
 type IContext interface {
