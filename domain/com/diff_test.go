@@ -63,12 +63,12 @@ func TestCreateStructByMap(t *testing.T) {
 			Len:  5.5,
 		}},
 		{name: "set struct fail", args: args{
-			m:          map[string]any{"Name": "dsfds", "Age": 545.5, "Len": 5.5},
+			m:          map[string]any{"Name": "dsfds", "Age": 545, "Len": 5.6},
 			structType: &User{},
 		}, want: &User{
 			Name: "dsfds",
 			Age:  545,
-			Len:  5.5,
+			Len:  5.6,
 		}},
 	}
 	for _, tt := range tests {
