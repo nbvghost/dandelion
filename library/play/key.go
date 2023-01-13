@@ -2,6 +2,7 @@ package play
 
 import (
 	"fmt"
+	"github.com/nbvghost/gweb"
 
 	"github.com/nbvghost/tool/encryption"
 )
@@ -13,25 +14,25 @@ const CookieKeyAdmin CookieKey = "dandelion_admin"
 const CookieKeyUser CookieKey = "dandelion_user"
 
 const (
-	SessionAdmin          CookieKey = "ADMIN"         //商家后台
-	SessionManager        CookieKey = "MANAGER"       //系统管理
-	SessionUser           CookieKey = "USER"          //前台用户
-	SessionOrganization   CookieKey = "Organization"  //前台用户
-	SessionContentConfig  CookieKey = "ContentConfig" //
-	SessionStore          CookieKey = "STORE"         //
-	SessionAction         CookieKey = "ACTION"
-	SessionUserID         CookieKey = "USERID"
-	SessionOpenID         CookieKey = "OPENID"
-	SessionMiniProgramKey CookieKey = "SESSIONMINIPROGRAMKEY"
-	SessionConfirmOrders  CookieKey = "SESSIONCONFIRMORDERS"
-	SessionRedirect       CookieKey = "REDIRECT"
-	SessionCart           CookieKey = "CART"
-	SessionCaptcha        CookieKey = "CAPTCHA"
-	SessionSMSCode        CookieKey = "SMS_CODE"
+	SessionAdmin          gweb.AttributesKey = "ADMIN"         //商家后台
+	SessionManager        gweb.AttributesKey = "MANAGER"       //系统管理
+	SessionUser           gweb.AttributesKey = "USER"          //前台用户
+	SessionOrganization   gweb.AttributesKey = "Organization"  //前台用户
+	SessionContentConfig  gweb.AttributesKey = "ContentConfig" //
+	SessionStore          gweb.AttributesKey = "STORE"         //
+	SessionAction         gweb.AttributesKey = "ACTION"
+	SessionUserID         gweb.AttributesKey = "USERID"
+	SessionOpenID         gweb.AttributesKey = "OPENID"
+	SessionMiniProgramKey gweb.AttributesKey = "SESSIONMINIPROGRAMKEY"
+	SessionConfirmOrders  gweb.AttributesKey = "SESSIONCONFIRMORDERS"
+	SessionRedirect       gweb.AttributesKey = "REDIRECT"
+	SessionCart           gweb.AttributesKey = "CART"
+	SessionCaptcha        gweb.AttributesKey = "CAPTCHA"
+	SessionSMSCode        gweb.AttributesKey = "SMS_CODE"
 )
 
-var SessionGoodsViewFunc = func(goodsID uint) CookieKey {
-	return CookieKey(fmt.Sprintf("SessionGoodsView_%v", goodsID))
+var SessionGoodsViewFunc = func(goodsID uint) gweb.AttributesKey {
+	return gweb.AttributesKey(fmt.Sprintf("SessionGoodsView_%v", goodsID))
 }
 
 const (

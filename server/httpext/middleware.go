@@ -25,7 +25,6 @@ import (
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/server/redis"
 	"github.com/nbvghost/dandelion/server/route"
-	"github.com/nbvghost/gweb/conf"
 	"github.com/nbvghost/tool"
 	"github.com/nbvghost/tool/encryption"
 	"github.com/pkg/errors"
@@ -148,7 +147,7 @@ func (m *httpMiddleware) getToken(w http.ResponseWriter, r *http.Request) string
 	if err != nil || strings.EqualFold(cookie.Value, "") {
 		token = r.Header.Get("X-Token")
 		if len(token) == 0 {
-			token = encryption.CipherEncrypter(encryption.NewSecretKey(conf.Config.SecureKey), fmt.Sprintf("%s", time.Now().Format("2006-01-02 15:04:05")))
+			token = encryption.CipherEncrypter(encryption.NewSecretKey(fmt.Sprintf("%d", time.Now().UnixNano())), fmt.Sprintf("%s", time.Now().Format("2006-01-02 15:04:05")))
 			if environments.Release() {
 				http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 23), SameSite: http.SameSiteNoneMode, Secure: true})
 			} else {
