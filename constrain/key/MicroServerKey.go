@@ -5,6 +5,7 @@ type serverType string
 const (
 	ServerTypeHttp serverType = "http"
 	ServerTypeGrpc serverType = "grpc"
+	ServerTypeDNS  serverType = "dns"
 )
 
 type MicroServer struct {
