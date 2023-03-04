@@ -12,7 +12,7 @@ import (
 	"github.com/nbvghost/gpa/types"
 )
 
-//商品
+// 商品
 type Goods struct {
 	types.Entity
 	OID               types.PrimaryKey    `gorm:"column:OID;index"`               //
@@ -32,6 +32,7 @@ type Goods struct {
 	ExpressTemplateID types.PrimaryKey    `gorm:"column:ExpressTemplateID"`       //
 	CountSale         uint                `gorm:"column:CountSale"`               //销售量
 	CountView         uint                `gorm:"column:CountView"`               //查看数量
+	OrderMinNum       int                 `gorm:"column:Stock"`                   //最小订购数量
 	Tags              pq.StringArray      `gorm:"column:Tags;type:text[]"`        //
 	IsRichText        bool                `gorm:"column:IsRichText;type:boolean"` //指明Introduce字段是否使用rich text编辑
 	//TimeSellID        uint `gorm:"column:TimeSellID"`                          //
@@ -104,18 +105,20 @@ type GoodsTypeChild struct {
 	GoodsTypeID types.PrimaryKey `gorm:"column:GoodsTypeID"`
 }
 
-/*func (u *GoodsTypeChild) BeforeCreate(scope *gorm.Scope) (err error) {
-	if u.OID == 0 {
-		defer func() {
-			if err := recover(); err != nil {
-				debug.PrintStack()
-			}
-		}()
-		panic(errors.New(u.TableName() + ":OID不能为空"))
+/*
+	func (u *GoodsTypeChild) BeforeCreate(scope *gorm.Scope) (err error) {
+		if u.OID == 0 {
+			defer func() {
+				if err := recover(); err != nil {
+					debug.PrintStack()
+				}
+			}()
+			panic(errors.New(u.TableName() + ":OID不能为空"))
+			return nil
+		}
 		return nil
 	}
-	return nil
-}*/
+*/
 func (GoodsTypeChild) TableName() string {
 	return "GoodsTypeChild"
 }
