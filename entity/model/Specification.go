@@ -16,6 +16,7 @@ type Specification struct {
 	CostPrice   uint             `gorm:"column:CostPrice"`   //成本价
 	MarketPrice uint             `gorm:"column:MarketPrice"` //市场价
 	Brokerage   uint             `gorm:"column:Brokerage"`   //总佣金
+	ImageUrl    string           `gorm:"column:ImageUrl"`    //图片地址
 }
 
 func (Specification) TableName() string {
