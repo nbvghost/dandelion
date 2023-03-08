@@ -374,9 +374,9 @@ func (m *server) Register(desc *serviceobject.ServerDesc) (*serviceobject.Server
 	return desc, nil
 }
 
-var r = rand.New(rand.NewSource(time.Now().UnixNano()))
+var random = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-// SelectInsideServer 服务间通信通过这个方法获取
+// SelectInsideGrpcServer  服务间通信通过这个方法获取
 func (m *server) SelectInsideGrpcServer(appName key.MicroServer) (*grpc.ClientConn, error) {
 	if appName.ServerType != key.ServerTypeGrpc {
 		return nil, errors.Errorf("服务不是grpc服务:%s", appName)
@@ -419,7 +419,7 @@ func (m *server) SelectInsideServer(appName key.MicroServer) (string, error) {
 	if len(resp.Kvs) == 0 {
 		return "", errors.Errorf("没有可以用的服务节点:%s", appName)
 	}
-	v := resp.Kvs[r.Intn(len(resp.Kvs))]
+	v := resp.Kvs[random.Intn(len(resp.Kvs))]
 	var serverDesc serviceobject.ServerDesc
 	if err = json.Unmarshal(v.Value, &serverDesc); err != nil {
 		return "", err
