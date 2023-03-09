@@ -394,21 +394,11 @@ func (m *server) SelectInsideGrpcServer(appName key.MicroServer) (*grpc.ClientCo
 	return d, nil
 }
 func (m *server) SelectInsideServer(appName key.MicroServer) (string, error) {
-	//m.serverLocker.RLock()
-	//defer m.serverLocker.RUnlock()
 	ctx := context.TODO()
 	client := m.getClient()
 	if appName.ServerType != key.ServerTypeHttp {
 		return "", errors.Errorf("服务不是http服务:%s", appName)
 	}
-
-	/*etcdResolver, err := resolver.NewBuilder(client)
-	log.Println(err)
-
-	d, errr := grpc.Dial("etcd:///grpc server", grpc.WithInsecure(), grpc.WithResolvers(etcdResolver))
-	log.Println(errr)
-	d.Connect()
-	log.Println(d.GetState(), d.Target())*/
 
 	serverKey := fmt.Sprintf("%s/%s/%s/", "server", appName.ServerType, appName.Name)
 
