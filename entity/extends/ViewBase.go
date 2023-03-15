@@ -9,6 +9,7 @@ type ViewBase struct {
 	//PkgPath string `json:"-"`
 	//Global Global `json:"-"`
 	HtmlMeta         *HtmlMeta
+	ContentType      string
 	HtmlMetaCallback func(viewBase ViewBase, meta *HtmlMeta) error `json:"-"`
 }
 
@@ -17,6 +18,9 @@ func (m ViewBase) GetResult(context constrain.IContext, viewHandler constrain.IV
 }
 func (m ViewBase) GetName() string {
 	return m.Name
+}
+func (m ViewBase) GetContentType() string {
+	return m.ContentType
 }
 
 /*func (m *ViewBase) SetName(name string) {
