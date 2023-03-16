@@ -21,7 +21,6 @@ func init() {
 	flag.BoolVar(&env.release, "release", true, "release")
 	flag.StringVar(&env.ListenIP, "ip", "", "ip")
 	flag.IntVar(&env.ListenPort, "port", 0, "port")
-	flag.Parse()
 
 	etcdEndpoints, ok := os.LookupEnv("ETCD_ENDPOINTS")
 	if !ok {
