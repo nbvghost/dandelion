@@ -32,7 +32,7 @@ type Goods struct {
 	ExpressTemplateID types.PrimaryKey    `gorm:"column:ExpressTemplateID"`       //
 	CountSale         uint                `gorm:"column:CountSale"`               //销售量
 	CountView         uint                `gorm:"column:CountView"`               //查看数量
-	OrderMinNum       int                 `gorm:"column:Stock"`                   //最小订购数量
+	OrderMinNum       int                 `gorm:"column:OrderMinNum"`             //最小订购数量
 	Tags              pq.StringArray      `gorm:"column:Tags;type:text[]"`        //
 	IsRichText        bool                `gorm:"column:IsRichText;type:boolean"` //指明Introduce字段是否使用rich text编辑
 	//TimeSellID        uint `gorm:"column:TimeSellID"`                          //
