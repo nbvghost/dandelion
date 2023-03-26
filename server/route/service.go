@@ -8,8 +8,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/nbvghost/dandelion/library/result"
-
 	"github.com/gorilla/mux"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
@@ -132,16 +130,17 @@ func (m *service) Handle(context constrain.IContext, withoutAuth bool, routeHand
 		m.mappingCallback.Before(context, routeHandler)
 	}
 
-	if withoutAuth {
+	//todo 权限控制采用拦截器来处理
+	/*if withoutAuth {
 		return false, nil
-	}
+	}*/
 
 	//interceptors 是有状态的，不支持mapping
 	for k := range m.interceptors {
 		l := len(k)
 		route := context.Route()
 		if l > 0 && l <= len(route) {
-			if k == route[:l] {
+			if strings.EqualFold(k, route[:l]) {
 				for i := range m.interceptors[k] {
 					if m.mappingCallback != nil {
 						m.mappingCallback.Before(context, m.interceptors[k][i])
@@ -158,11 +157,12 @@ func (m *service) Handle(context constrain.IContext, withoutAuth bool, routeHand
 		}
 	}
 
-	if !withoutAuth {
+	//通过拦截器处理
+	/*if !withoutAuth {
 		if context.UID() == 0 {
 			return true, result.NewCodeWithMessage(result.AuthError, "用户没有授权")
 		}
-	}
+	}*/
 
 	return false, nil
 

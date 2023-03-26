@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
@@ -22,7 +21,7 @@ type MessageNotify struct {
 	OrganizationService company.OrganizationService
 }
 
-//新用户加入，绑定上下级关系
+// 新用户加入，绑定上下级关系
 func (service MessageNotify) NewUserJoinNotify(NewUser *model.User, notifyUser *model.User) *result.ActionResult {
 
 	as := &result.ActionResult{}
@@ -70,7 +69,7 @@ func (service MessageNotify) NewUserJoinNotify(NewUser *model.User, notifyUser *
 	return as
 }
 
-//发货通知
+// 发货通知
 func (service MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []model.OrdersGoods, wxConfig *model.WechatConfig) *result.ActionResult {
 
 	if Order.ID == 0 {
@@ -163,7 +162,7 @@ func (service MessageNotify) INComeNotify(slUser *model.User, itemName string, t
 	return as
 }
 
-//新订单
+// 新订单
 func (service MessageNotify) NewOrderNotify(Order model.Orders, ogs []model.OrdersGoods, wxConfig *model.WechatConfig) *result.ActionResult {
 
 	if Order.ID == 0 {
@@ -184,7 +183,7 @@ func (service MessageNotify) NewOrderNotify(Order model.Orders, ogs []model.Orde
 	data_data["keyword1"] = map[string]interface{}{"value": notifyUser.Name, "color": "#173177"}
 	data_data["keyword2"] = map[string]interface{}{"value": Order.OrderNo, "color": "#173177"}
 
-	var address extends.Address
+	var address model.Address
 	json.Unmarshal([]byte(Order.Address), &address)
 	addressText := address.Name + "/" + address.ProvinceName + address.CityName + address.CountyName + address.Detail + address.PostalCode + "/" + address.Tel
 

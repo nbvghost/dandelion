@@ -57,7 +57,7 @@ type OrdersService struct {
 	User            user.UserService
 }
 
-//如果订单未完成，或是退款，扣除相应的冻结金额，不用结算，佣金
+// 如果订单未完成，或是退款，扣除相应的冻结金额，不用结算，佣金
 func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *model.Orders) error {
 	var err error
 	//用户自己。下单者
@@ -461,14 +461,16 @@ func (service OrdersService) AskRefund(OrdersGoodsID types.PrimaryKey, RefundInf
 	return errors.New("不允许申请退款"), ""
 }
 
-/*func (service OrdersService) AddOrderBrokerageTemp(UserID uint, OrderNo string, Amount int64) error {
-	var orderbrokerage model.OrderBrokerageTemp
-	orderbrokerage.OrderNo = OrderNo
-	orderbrokerage.Brokerage = uint(Amount)
-	orderbrokerage.UserID = UserID
-	err := dao.Create((singleton.Orm(), &orderbrokerage)
-	return err
-}*/
+/*
+	func (service OrdersService) AddOrderBrokerageTemp(UserID uint, OrderNo string, Amount int64) error {
+		var orderbrokerage model.OrderBrokerageTemp
+		orderbrokerage.OrderNo = OrderNo
+		orderbrokerage.Brokerage = uint(Amount)
+		orderbrokerage.UserID = UserID
+		err := dao.Create((singleton.Orm(), &orderbrokerage)
+		return err
+	}
+*/
 func (service OrdersService) AddOrdersPackage(db *gorm.DB, TotalMoney uint, UserID types.PrimaryKey) (model.OrdersPackage, error) {
 
 	//OrderNo       string    `gorm:"column:OrderNo;unique"` //订单号
@@ -494,7 +496,7 @@ func (service OrdersService) AddOrdersPackage(db *gorm.DB, TotalMoney uint, User
 	return orderbrokerage, err
 }
 
-//确认收货
+// 确认收货
 func (service OrdersService) TakeDeliver(OrdersID types.PrimaryKey) error {
 	Orm := singleton.Orm()
 
@@ -568,7 +570,7 @@ func (service OrdersService) TakeDeliver(OrdersID types.PrimaryKey) error {
 	return errors.New("不允许收货")
 }
 
-//检查订单状态
+// 检查订单状态
 func (service OrdersService) AnalysisOrdersStatus(OrdersID types.PrimaryKey, wxConfig *model.WechatConfig) error {
 
 	Orm := singleton.Orm()
@@ -710,7 +712,7 @@ func (service OrdersService) CancelOk(context context.Context, OrdersID types.Pr
 	return "", errors.New("不允许取消订单")
 }
 
-//申请取消
+// 申请取消
 func (service OrdersService) Cancel(ctx context.Context, OrdersID types.PrimaryKey, wxConfig *model.WechatConfig) (string, error) {
 	Orm := singleton.Orm()
 
@@ -810,7 +812,7 @@ func (service OrdersService) Cancel(ctx context.Context, OrdersID types.PrimaryK
 	}
 }
 
-//发货
+// 发货
 func (service OrdersService) Deliver(ShipName, ShipNo string, OrdersID types.PrimaryKey, wxConfig *model.WechatConfig) error {
 	Orm := singleton.Orm().Begin()
 
@@ -1232,7 +1234,7 @@ func (service OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, Go
 
 }
 
-//从商品外直接购买，生成OrdersGoods，添加到 play.SessionConfirmOrders
+// 从商品外直接购买，生成OrdersGoods，添加到 play.SessionConfirmOrders
 func (service OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, GoodsID, SpecificationID types.PrimaryKey, Quantity uint) ([]model.OrdersGoods, error) {
 	Orm := singleton.Orm()
 	//var goods model.Goods
@@ -1267,7 +1269,7 @@ func (service OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, G
 
 }
 
-//从购买车提交的订单，通过 ShoppingCart ID,生成  OrdersGoods 列表,添加到 play.SessionConfirmOrders
+// 从购买车提交的订单，通过 ShoppingCart ID,生成  OrdersGoods 列表,添加到 play.SessionConfirmOrders
 func (service OrdersService) AddCartOrdersByShoppingCartIDs(ctx constrain.IContext, UserID types.PrimaryKey, IDs []string) error {
 	//Orm := Orm()
 	//var scs []model.ShoppingCart
@@ -1431,8 +1433,8 @@ type AnalyseOrdersGoods struct {
 	FullCut          model.FullCut
 }
 
-//订单分析，
-func (service OrdersService) AnalyseOrdersGoodsList(UserID types.PrimaryKey, addressee extends.Address, PostType int, AllList []model.OrdersGoods) ([]AnalyseOrdersGoods, uint, error) {
+// 订单分析，
+func (service OrdersService) AnalyseOrdersGoodsList(UserID types.PrimaryKey, addressee model.Address, PostType int, AllList []model.OrdersGoods) ([]AnalyseOrdersGoods, uint, error) {
 
 	oslist := make(map[types.PrimaryKey][]model.OrdersGoods)
 	for index, v := range AllList {
@@ -1474,8 +1476,8 @@ func (service OrdersService) AnalyseOrdersGoodsList(UserID types.PrimaryKey, add
 	return out_result, TotalPrice, golErr
 }
 
-//订单分析，
-func (service OrdersService) analyseOne(UserID, OID types.PrimaryKey, addressee extends.Address, PostType int, list []model.OrdersGoods) (Error error, fullcut model.FullCut, oggs []extends.OrdersGoodsInfo, FavouredPrice, FullCutAll uint, GoodsPrice uint, ExpressPrice uint) {
+// 订单分析，
+func (service OrdersService) analyseOne(UserID, OID types.PrimaryKey, addressee model.Address, PostType int, list []model.OrdersGoods) (Error error, fullcut model.FullCut, oggs []extends.OrdersGoodsInfo, FavouredPrice, FullCutAll uint, GoodsPrice uint, ExpressPrice uint) {
 	Orm := singleton.Orm()
 
 	fullcuts := service.FullCut.FindOrderByAmountDesc(Orm, OID)

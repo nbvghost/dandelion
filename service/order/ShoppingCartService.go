@@ -6,7 +6,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/nbvghost/dandelion/entity"
-	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/singleton"
@@ -93,6 +92,6 @@ func (service ShoppingCartService) FindShoppingCartListDetails(UserID types.Prim
 		oredersGoodsList = append(oredersGoodsList, oredersGoods)
 		//results[oredersGoods.OID]=append(results[oredersGoods.OID],oredersGoods)
 	}
-	return ordersService.AnalyseOrdersGoodsList(UserID, extends.Address{}, 0, oredersGoodsList)
+	return ordersService.AnalyseOrdersGoodsList(UserID, model.Address{}, 0, oredersGoodsList)
 
 }

@@ -13,10 +13,8 @@ type User struct {
 	OpenID      string           `gorm:"column:OpenID"`                //
 	Email       string           `gorm:"column:Email"`                 //
 	Phone       string           `gorm:"column:Phone"`                 //
-	CountryCode int              `gorm:"column:CountryCode"`           //
 	Password    string           `gorm:"column:Password" json:"-"`     //
 	Age         int              `gorm:"column:Age"`                   //
-	Region      string           `gorm:"column:Region"`                //
 	Amount      uint             `gorm:"column:Amount"`                //现金
 	BlockAmount uint             `gorm:"column:BlockAmount"`           //冻结现金
 	Score       uint             `gorm:"column:Score"`                 //积分
