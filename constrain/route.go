@@ -15,5 +15,5 @@ type IRoute interface {
 	GetMappingCallback() IMappingCallback
 	CreateHandle(isApi bool, r *http.Request) (IRouteInfo, error)
 	Handle(context IContext, withoutAuth bool, routeHandler any) (bool, error)
-	RegisterInterceptors(prefixPath string, interceptors ...IInterceptor)
+	RegisterInterceptors(prefixPath string, excludedPath []string, interceptors ...IInterceptor)
 }

@@ -52,13 +52,18 @@ func NewNoneViewResult() constrain.IViewResult {
 	}
 }
 
+type scopeInterceptor struct {
+	Interceptors []constrain.IInterceptor
+	ExcludedPath []string
+}
+
 type service struct {
 	Routes     map[string]*RouteInfo
 	ViewRoutes map[string]*RouteInfo
 
 	//redis           constrain.IRedis
 	mappingCallback constrain.IMappingCallback
-	interceptors    map[string][]constrain.IInterceptor
+	interceptors    map[string]scopeInterceptor
 	router          *mux.Router
 }
 
@@ -75,14 +80,14 @@ func (m *service) encodingViewData(ctx constrain.IContext, r constrain.IViewResu
 	return buffer.Bytes(), structName, nil
 
 }
-func (m *service) RegisterInterceptors(prefixPath string, interceptors ...constrain.IInterceptor) {
+func (m *service) RegisterInterceptors(prefixPath string, excluded []string, interceptors ...constrain.IInterceptor) {
 	if len(prefixPath) == 0 {
 		panic(errors.Errorf("prefixPath 不能为空"))
 	}
-	if _, ok := m.interceptors[prefixPath]; !ok {
-		m.interceptors[prefixPath] = make([]constrain.IInterceptor, 0)
+	m.interceptors[prefixPath] = scopeInterceptor{
+		Interceptors: interceptors,
+		ExcludedPath: excluded,
 	}
-	m.interceptors[prefixPath] = append(m.interceptors[prefixPath], interceptors...)
 }
 func (m *service) CheckRoute(isApi bool, route string) (*RouteInfo, bool) {
 	var routeInfo *RouteInfo
@@ -135,24 +140,44 @@ func (m *service) Handle(context constrain.IContext, withoutAuth bool, routeHand
 		return false, nil
 	}*/
 
+	//
+
 	//interceptors 是有状态的，不支持mapping
 	for k := range m.interceptors {
 		l := len(k)
 		route := context.Route()
 		if l > 0 && l <= len(route) {
 			if strings.EqualFold(k, route[:l]) {
-				for i := range m.interceptors[k] {
-					if m.mappingCallback != nil {
-						m.mappingCallback.Before(context, m.interceptors[k][i])
+				//判断是否要执行
+				isExcluded := false
+				for _, excludedPath := range m.interceptors[k].ExcludedPath {
+					excludedPathLen := len(excludedPath)
+					if excludedPathLen > 0 && excludedPathLen <= len(route) {
+						routePath := route[:excludedPathLen]
+						if strings.EqualFold(excludedPath, routePath) {
+							isExcluded = true
+							break
+						}
 					}
-					broken, err := m.interceptors[k][i].Execute(context)
-					if err != nil {
-						return true, err
-					}
-					if broken {
-						return true, nil
+
+				}
+
+				if !isExcluded {
+					//执行拦截器
+					for i := range m.interceptors[k].Interceptors {
+						if m.mappingCallback != nil {
+							m.mappingCallback.Before(context, m.interceptors[k].Interceptors[i])
+						}
+						broken, err := m.interceptors[k].Interceptors[i].Execute(context)
+						if err != nil {
+							return true, err
+						}
+						if broken {
+							return true, nil
+						}
 					}
 				}
+
 			}
 		}
 	}
@@ -215,5 +240,5 @@ func (m *service) RegisterView(pathTemplate string, handler constrain.IViewHandl
 }
 
 func New(router *mux.Router, mappingCallback constrain.IMappingCallback) constrain.IRoute {
-	return &service{router: router, Routes: map[string]*RouteInfo{}, ViewRoutes: map[string]*RouteInfo{}, mappingCallback: mappingCallback, interceptors: make(map[string][]constrain.IInterceptor)}
+	return &service{router: router, Routes: map[string]*RouteInfo{}, ViewRoutes: map[string]*RouteInfo{}, mappingCallback: mappingCallback, interceptors: make(map[string]scopeInterceptor)}
 }

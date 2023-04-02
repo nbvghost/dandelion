@@ -102,21 +102,24 @@ func (service GoodsService) GetSpecification(ID types.PrimaryKey) *model.Specifi
 	return dao.GetByPrimaryKey(Orm, &model.Specification{}, ID).(*model.Specification)
 }
 
-/*func (service GoodsService) AddSpecification(context *gweb.Context) (r gweb.Result,err error) {
-	content_item := &model.Specification{}
-	err := util.RequestBodyToJSON(context.Request.Body, content_item)
-	if err != nil {
-		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
+/*
+	func (service GoodsService) AddSpecification(context *gweb.Context) (r gweb.Result,err error) {
+		content_item := &model.Specification{}
+		err := util.RequestBodyToJSON(context.Request.Body, content_item)
+		if err != nil {
+			return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
+		}
+		err = service.Add(Orm, content_item)
+		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
 	}
-	err = service.Add(Orm, content_item)
-	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
-}
-func (service GoodsService) ListSpecification(context *gweb.Context) (r gweb.Result,err error) {
-	GoodsID, _ := strconv.ParseUint(context.PathParams["GoodsID"], 10, 64)
-	var dts []model.Specification
-	service.FindWhere(Orm, &dts, model.Specification{GoodsID: GoodsID})
-	return &gweb.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "OK", Data: dts}}
-}*/
+
+	func (service GoodsService) ListSpecification(context *gweb.Context) (r gweb.Result,err error) {
+		GoodsID, _ := strconv.ParseUint(context.PathParams["GoodsID"], 10, 64)
+		var dts []model.Specification
+		service.FindWhere(Orm, &dts, model.Specification{GoodsID: GoodsID})
+		return &gweb.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "OK", Data: dts}}
+	}
+*/
 func (service GoodsService) DeleteSpecification(ID types.PrimaryKey) error {
 	Orm := singleton.Orm()
 	err := dao.DeleteByPrimaryKey(Orm, &model.Specification{}, ID)
@@ -277,30 +280,25 @@ func (service GoodsService) SaveGoods(OID types.PrimaryKey, goods *model.Goods, 
 		return err
 	}*/
 
-	var total uint
-	for _, value := range specifications {
-
-		value.GoodsID = goods.ID
-
-		if value.ID.IsZero() {
-			err = tx.Create(&value).Error
-			total = total + value.Stock
-		} else {
-			err = tx.Save(&value).Error
-			//err = tx.Model(&goods).Updates(goods).Error
-			total = total + value.Stock
+	if len(specifications) > 0 {
+		var total uint
+		for _, value := range specifications {
+			value.GoodsID = goods.ID
+			if value.ID.IsZero() {
+				err = tx.Create(&value).Error
+				total = total + value.Stock
+			} else {
+				err = tx.Save(&value).Error
+				//err = tx.Model(&goods).Updates(goods).Error
+				total = total + value.Stock
+			}
+			if err != nil {
+				return err
+			}
 		}
-
-		if err != nil {
-			return err
-		}
-
+		goods.Stock = total
 	}
-
-	goods.Stock = total
-
 	err = tx.Save(goods).Error
-
 	return err
 }
 func (service GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsInfo, error) {
@@ -332,13 +330,33 @@ func (service GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsInfo
 
 	}
 
-	var specifications []model.Specification
-	err := service.FindWhere(Orm, &specifications, model.Specification{GoodsID: goods.ID})
-	if err != nil {
-		return nil, err
+	goodsSkuLabelDataMap := make(map[types.PrimaryKey][]*model.GoodsSkuLabelData, 0)
+	{
+		goodsSkuLabelData := dao.Find(Orm, &model.GoodsSkuLabelData{}).Where(`"GoodsID"=?`, goods.ID).List()
+		for i := range goodsSkuLabelData {
+			item := goodsSkuLabelData[i].(*model.GoodsSkuLabelData)
+			if _, ok := goodsSkuLabelDataMap[item.GoodsSkuLabelID]; !ok {
+				goodsSkuLabelDataMap[item.GoodsSkuLabelID] = make([]*model.GoodsSkuLabelData, 0)
+			}
+			goodsSkuLabelDataMap[item.GoodsSkuLabelID] = append(goodsSkuLabelDataMap[item.GoodsSkuLabelID], item)
+		}
 	}
 
-	goodsInfo.Specifications = specifications
+	goodsSkuLabel := dao.Find(Orm, &model.GoodsSkuLabel{}).Where(`"GoodsID"=? and "Abel"=?`, goods.ID, true).Order(`"Image" desc`).List()
+	skuLabelList := make([]extends.SkuLabel, len(goodsSkuLabel))
+	for i := range goodsSkuLabel {
+		item := goodsSkuLabel[i].(*model.GoodsSkuLabel)
+		skuLabelList[i].Label = item
+		skuLabelList[i].Data = goodsSkuLabelDataMap[item.ID]
+	}
+
+	specifications := dao.Find(Orm, &model.Specification{}).Where(`"GoodsID"=?`, goods.ID).Order(`"CreatedAt" desc`).List() //service.FindWhere(Orm, &specifications, model.Specification{GoodsID: goods.ID})
+	for i := range specifications {
+		specification := specifications[i].(*model.Specification)
+		goodsInfo.Specifications = append(goodsInfo.Specifications, specification)
+	}
+
+	goodsInfo.SkuLabels = skuLabelList
 
 	attributesGroup, err := repository.GoodsAttributesGroup.FindByGoodsID(goods.ID)
 	if err != nil {

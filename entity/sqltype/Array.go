@@ -3,6 +3,7 @@ package sqltype
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"github.com/nbvghost/gpa/types"
 )
 
 type StringArray []string
@@ -23,6 +24,30 @@ func (j StringArray) Value() (driver.Value, error) {
 		j = make(StringArray, 0)
 	}
 
+	return json.Marshal(j)
+}
+
+type Number interface {
+	int64 | types.PrimaryKey
+}
+
+type PrimaryKeyArray []types.PrimaryKey
+
+// Scan 实现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb
+func (j *PrimaryKeyArray) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		bytes = []byte("[]")
+	}
+	err := json.Unmarshal(bytes, &j)
+	return err
+}
+
+// Value 实现 driver.Valuer 接口，Value 返回 json value
+func (j PrimaryKeyArray) Value() (driver.Value, error) {
+	if j == nil {
+		return nil, nil
+	}
 	return json.Marshal(j)
 }
 
