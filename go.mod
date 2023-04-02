@@ -15,8 +15,10 @@ require (
 	github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89
 	github.com/nbvghost/gpa v0.0.0-20221021055612-4803aa7753df
 	github.com/nbvghost/gweb v0.0.0-20220325183229-6c8eee4ff8a5
+	github.com/nbvghost/miniapp v0.0.0-20230307032941-cc9f65667623
 	github.com/nbvghost/tool v0.0.0-20220325180651-f5c6376d74d4
 	github.com/pkg/errors v0.9.1
+	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/wechatpay-apiv3/wechatpay-go v0.2.16
 	go.etcd.io/etcd/client/v3 v3.5.4
 	go.uber.org/zap v1.17.0
