@@ -1,6 +1,7 @@
 package order
 
 import (
+	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/library/viewmodel"
 	"math"
 	"strings"
@@ -55,7 +56,7 @@ func (m *CreateOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 	//No := context.Request.FormValue("No")
 	//fmt.Println(Type, No)
 
-	var list []model.OrdersGoods
+	list := make([]*extends.OrdersGoods, 0)
 	for _, goodsSpecification := range m.Post.List {
 		goods, err := m.OrdersService.CreateOrdersGoods(ctx, m.User.ID, goodsSpecification.GoodsID, goodsSpecification.SpecificationID, goodsSpecification.Quantity)
 		if err != nil {
@@ -70,7 +71,7 @@ func (m *CreateOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 		return nil, err
 	}
 
-	organizationOrders, TotalPrice, Error := m.OrdersService.AnalyseOrdersGoodsList(m.User.ID, address, int(m.Post.PostType), list)
+	organizationOrders, TotalPrice, Error := m.OrdersService.AnalyseOrdersGoodsList(m.User.ID, &address, int(m.Post.PostType), list)
 	//如果 organizationOrders 存在着多个商家的订单，无法进入合拼支付，只能分开支付
 	if len(organizationOrders) == 0 {
 		return nil, errors.New("找不到订单")

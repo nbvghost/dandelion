@@ -2,6 +2,7 @@ package order
 
 import (
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/viewmodel"
@@ -31,7 +32,7 @@ func (m *Buy) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	//SpecificationID := object.ParseUint(context.Request.FormValue("SpecificationID"))
 	//Quantity := object.ParseUint(context.Request.FormValue("Quantity"))
 
-	var list []model.OrdersGoods
+	var list []*extends.OrdersGoods
 	for _, goodsSpecification := range m.Post.List {
 		goods, err := m.OrdersService.CreateOrdersGoods(ctx, m.User.ID, goodsSpecification.GoodsID, goodsSpecification.SpecificationID, goodsSpecification.Quantity)
 		if err != nil {
@@ -40,7 +41,7 @@ func (m *Buy) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 		list = append(list, goods...)
 	}
 
-	results, totalPrice, err := m.OrdersService.AnalyseOrdersGoodsList(m.User.ID, m.Post.Address, int(m.Post.PostType), list)
+	results, totalPrice, err := m.OrdersService.AnalyseOrdersGoodsList(m.User.ID, &m.Post.Address, int(m.Post.PostType), list)
 
 	return result.NewData(map[string]any{"List": results, "TotalPrice": totalPrice}), err
 

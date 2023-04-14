@@ -8,6 +8,7 @@ import (
 	"github.com/nbvghost/dandelion/library/shop/api/journal"
 	"github.com/nbvghost/dandelion/library/shop/api/order"
 	"github.com/nbvghost/dandelion/library/shop/api/order/cart"
+	"github.com/nbvghost/dandelion/library/shop/api/session"
 	"github.com/nbvghost/dandelion/library/shop/api/store"
 	"github.com/nbvghost/dandelion/library/shop/api/user"
 	"github.com/nbvghost/dandelion/library/shop/api/wx"
@@ -93,4 +94,7 @@ func Register(route constrain.IRoute) {
 	route.RegisterRoute("index/read/share/key", &index.ReadShareKey{})
 	route.RegisterRoute("index/configuration/list", &index.ConfigurationList{})
 	route.RegisterRoute("index/push-data", &index.PushData{})
+
+	//session
+	route.RegisterRoute("session/index", &session.Index{})
 }

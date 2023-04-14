@@ -443,7 +443,7 @@ func NewServer(config clientv3.Config) constrain.IEtcd {
 		panic(err)
 	}
 	for _, v := range resp.Kvs {
-		log.Println(fmt.Sprintf("[%s]", string(v.Key)), string(v.Value))
+		log.Println(fmt.Sprintf("[%s]", string(v.Key)))
 	}
 
 	/*em, err := endpoints.NewManager(client, "grpc server")

@@ -1,8 +1,6 @@
 package extends
 
-import "github.com/nbvghost/dandelion/entity/model"
-
 type OrdersGoodsInfo struct {
-	OrdersGoods model.OrdersGoods
+	OrdersGoods *OrdersGoods
 	Discounts   []Discount
 }

@@ -23,6 +23,13 @@ type Upload struct {
 	Message string
 }
 
+func Url(context constrain.IContext) (string, error) {
+	ossHost, err := context.GetDNSName(key.MicroServerOSS)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("//%s/assets", ossHost), nil
+}
 func ReadUrl(context constrain.IContext, path string) (string, error) {
 	ossHost, err := context.GetDNSName(key.MicroServerOSS)
 	if err != nil {

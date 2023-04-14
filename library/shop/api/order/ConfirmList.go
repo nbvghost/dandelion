@@ -2,12 +2,12 @@ package order
 
 import (
 	"encoding/json"
+	"github.com/nbvghost/dandelion/entity/extends"
 	"log"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/server/redis"
 	"github.com/nbvghost/dandelion/service/order"
 )
@@ -16,15 +16,15 @@ type ConfirmList struct {
 	OrdersService order.OrdersService
 	User          *model.User `mapping:""`
 	Post          struct {
-		PostType int    `form:"PostType"`
-		Address  string `form:"Address"`
+		PostType int           //`form:"PostType"`
+		Address  model.Address //`form:"Address"`
 	} `method:"post"`
 }
 
 func (m *ConfirmList) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 
-	var ogs []model.OrdersGoods
+	ogs := make([]*extends.OrdersGoods, 0)
 
 	confirmOrdersJson, err := ctx.Redis().Get(ctx, redis.NewConfirmOrders(ctx.UID()))
 	if err == nil {
@@ -48,10 +48,10 @@ func (m *ConfirmList) HandlePost(ctx constrain.IContext) (constrain.IResult, err
 	/*
 
 	 */
-	address := model.Address{}
-	util.JSONToStruct(m.Post.Address, &address)
+	//address := model.Address{}
+	//util.JSONToStruct(m.Post.Address, &address)
 
-	results, _, err := m.OrdersService.AnalyseOrdersGoodsList(m.User.ID, address, int(m.Post.PostType), ogs)
+	results, _, err := m.OrdersService.AnalyseOrdersGoodsList(m.User.ID, &m.Post.Address, int(m.Post.PostType), ogs)
 
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", results)}, err
 }

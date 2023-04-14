@@ -1,6 +1,7 @@
 package order
 
 import (
+	"github.com/nbvghost/dandelion/entity/extends"
 	"log"
 
 	"gorm.io/gorm"
@@ -77,7 +78,11 @@ func (service ShoppingCartService) FindShoppingCartByUserID(UserID types.Primary
 	list := dao.Find(Orm, entity.ShoppingCart).Where(model.ShoppingCart{UserID: UserID}).List() //service.FindWhere(Orm, &list, model.ShoppingCart{UserID: UserID})
 	return list
 }
-func (service ShoppingCartService) FindShoppingCartListDetails(UserID types.PrimaryKey) ([]AnalyseOrdersGoods, uint, error) {
+func (service ShoppingCartService) FindShoppingCartListCount(UserID types.PrimaryKey) (uint, error) {
+	list := service.FindShoppingCartByUserID(UserID)
+	return uint(len(list)), nil
+}
+func (service ShoppingCartService) FindShoppingCartListDetails(UserID types.PrimaryKey, address *model.Address) ([]AnalyseOrdersGoods, uint, error) {
 	//Orm := Orm()
 	ordersService := OrdersService{}
 
@@ -85,13 +90,16 @@ func (service ShoppingCartService) FindShoppingCartListDetails(UserID types.Prim
 	//results := make([]map[string]interface{}, 0)
 	//var error error
 
-	oredersGoodsList := make([]model.OrdersGoods, 0)
+	orderGoodsList := make([]*extends.OrdersGoods, 0)
 
 	for i := range list {
-		oredersGoods := ordersService.createOrdersGoods(list[i].(*model.ShoppingCart))
-		oredersGoodsList = append(oredersGoodsList, oredersGoods)
+		orderGoods, err := ordersService.createOrdersGoods(list[i].(*model.ShoppingCart))
+		if err != nil {
+			return nil, 0, err
+		}
+		orderGoodsList = append(orderGoodsList, orderGoods)
 		//results[oredersGoods.OID]=append(results[oredersGoods.OID],oredersGoods)
 	}
-	return ordersService.AnalyseOrdersGoodsList(UserID, model.Address{}, 0, oredersGoodsList)
+	return ordersService.AnalyseOrdersGoodsList(UserID, address, 0, orderGoodsList)
 
 }
