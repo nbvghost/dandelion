@@ -13,9 +13,9 @@ type Buy struct {
 	OrdersService order.OrdersService
 	User          *model.User `mapping:""`
 	Post          struct {
-		List     []viewmodel.GoodsSpecification
-		PostType int
-		Address  model.Address
+		List []viewmodel.GoodsSpecification
+		//PostType int
+		Address model.Address
 	} `method:"post"`
 }
 
@@ -41,7 +41,7 @@ func (m *Buy) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 		list = append(list, goods...)
 	}
 
-	results, totalPrice, err := m.OrdersService.AnalyseOrdersGoodsList(m.User.ID, &m.Post.Address, int(m.Post.PostType), list)
+	results, totalPrice, err := m.OrdersService.AnalyseOrdersGoodsList(m.User.ID, &m.Post.Address, list)
 
 	return result.NewData(map[string]any{"List": results, "TotalPrice": totalPrice}), err
 

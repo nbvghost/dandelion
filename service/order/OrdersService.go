@@ -1464,7 +1464,7 @@ type AnalyseOrdersGoods struct {
 }
 
 // 订单分析，
-func (service OrdersService) AnalyseOrdersGoodsList(UserID types.PrimaryKey, addressee *model.Address, PostType int, orderGoods []*extends.OrdersGoods) ([]AnalyseOrdersGoods, uint, error) {
+func (service OrdersService) AnalyseOrdersGoodsList(UserID types.PrimaryKey, addressee *model.Address, orderGoods []*extends.OrdersGoods) ([]AnalyseOrdersGoods, uint, error) {
 
 	oslist := make(map[types.PrimaryKey][]*extends.OrdersGoods)
 	for index, v := range orderGoods {
@@ -1486,7 +1486,7 @@ func (service OrdersService) AnalyseOrdersGoodsList(UserID types.PrimaryKey, add
 		//var org model.Organization
 		org := dao.GetByPrimaryKey(singleton.Orm(), &model.Organization{}, key).(*model.Organization)
 
-		analyseResult, err := service.analyseOne(UserID, org.ID, addressee, PostType, oslist[key])
+		analyseResult, err := service.analyseOne(UserID, org.ID, addressee, oslist[key])
 		if err != nil {
 			return nil, 0, err
 		}
@@ -1507,7 +1507,7 @@ func (service OrdersService) AnalyseOrdersGoodsList(UserID types.PrimaryKey, add
 }
 
 // 订单分析，
-func (service OrdersService) analyseOne(UserID, OID types.PrimaryKey, address *model.Address, PostType int, list []*extends.OrdersGoods) (*extends.AnalyseResult, error) {
+func (service OrdersService) analyseOne(UserID, OID types.PrimaryKey, address *model.Address, list []*extends.OrdersGoods) (*extends.AnalyseResult, error) {
 
 	analyseResult := &extends.AnalyseResult{}
 
@@ -1561,14 +1561,14 @@ func (service OrdersService) analyseOne(UserID, OID types.PrimaryKey, address *m
 		value.SkuLabelMap = goodsSkuLabelMap
 		value.SkuLabelDataMap = goodsSkuLabelDataMap
 
-		if PostType == 1 {
+		/*if PostType == 1 {
 			//邮寄时，才判断库存
 			if int64(value.Specification.Stock-value.Quantity) < 0 {
 				//Error = errors.New(value.Specification.Label + "库存不足")
 				//value.AddError(Error.Error())
 				return nil, errors.New(value.Specification.Label + "库存不足")
 			}
-		}
+		}*/
 
 		//value.Goods = util.StructToJSON(goods)
 		//value.Specification = util.StructToJSON(specification)
@@ -1682,67 +1682,63 @@ func (service OrdersService) analyseOne(UserID, OID types.PrimaryKey, address *m
 		}
 	}
 
+	if address.IsEmpty() {
+		return nil, errors.New("地址不能为空")
+	}
 	//计算快递费
-	if PostType == 1 && address.IsEmpty() == false {
 
-		for ID, value := range expresstemplateMap {
-			//var expresstemplate model.ExpressTemplate
-			expresstemplate := dao.GetByPrimaryKey(Orm, &model.ExpressTemplate{}, ID).(*model.ExpressTemplate)
+	for ID, value := range expresstemplateMap {
+		//var expresstemplate model.ExpressTemplate
+		expresstemplate := dao.GetByPrimaryKey(Orm, &model.ExpressTemplate{}, ID).(*model.ExpressTemplate)
 
-			etFree := make([]model.ExpressTemplateFreeItem, 0)
-			json.Unmarshal([]byte(expresstemplate.Free), &etFree)
+		etFree := make([]model.ExpressTemplateFreeItem, 0)
+		json.Unmarshal([]byte(expresstemplate.Free), &etFree)
 
-			var expressTemplateFreeItem *model.ExpressTemplateFreeItem
+		var expressTemplateFreeItem *model.ExpressTemplateFreeItem
 
-		al:
-			//从包邮列表中，找出一个计费方式
-			for _, exp_f_value := range etFree {
+	al:
+		//从包邮列表中，找出一个计费方式
+		for _, exp_f_value := range etFree {
 
-				for _, exp_f_a_value := range exp_f_value.Areas {
-					if strings.EqualFold(address.ProvinceName, exp_f_a_value) {
-						expressTemplateFreeItem = &exp_f_value
-						break al
-					}
+			for _, exp_f_a_value := range exp_f_value.Areas {
+				if strings.EqualFold(address.ProvinceName, exp_f_a_value) {
+					expressTemplateFreeItem = &exp_f_value
+					break al
 				}
-
-			}
-
-			if expressTemplateFreeItem != nil && expressTemplateFreeItem.IsFree(expresstemplate, value) {
-				//有包邮项目
-				analyseResult.ExpressPrice = 0
-
-			} else {
-				//无包邮项目
-
-				etTemplate := model.ExpressTemplateTemplate{}
-				json.Unmarshal([]byte(expresstemplate.Template), &etTemplate)
-
-				var expressTemplateItem *model.ExpressTemplateItem
-
-			alt:
-				for _, exp_f_value := range etTemplate.Items {
-
-					for _, exp_f_a_value := range exp_f_value.Areas {
-						if strings.EqualFold(address.ProvinceName, exp_f_a_value) {
-							expressTemplateItem = &exp_f_value
-							break alt
-						}
-					}
-
-				}
-
-				if expressTemplateItem != nil {
-					analyseResult.ExpressPrice = analyseResult.ExpressPrice + expressTemplateItem.CalculateExpressPrice(expresstemplate, value)
-				} else {
-					analyseResult.ExpressPrice = analyseResult.ExpressPrice + etTemplate.Default.CalculateExpressPrice(expresstemplate, value)
-				}
-
 			}
 
 		}
 
-	} else {
-		analyseResult.ExpressPrice = 0
+		if expressTemplateFreeItem != nil && expressTemplateFreeItem.IsFree(expresstemplate, value) {
+			//有包邮项目
+			analyseResult.ExpressPrice = 0
+
+		} else {
+			//无包邮项目
+
+			etTemplate := model.ExpressTemplateTemplate{}
+			json.Unmarshal([]byte(expresstemplate.Template), &etTemplate)
+
+			var expressTemplateItem *model.ExpressTemplateItem
+
+		alt:
+			for _, exp_f_value := range etTemplate.Items {
+
+				for _, exp_f_a_value := range exp_f_value.Areas {
+					if strings.EqualFold(address.ProvinceName, exp_f_a_value) {
+						expressTemplateItem = &exp_f_value
+						break alt
+					}
+				}
+
+			}
+
+			if expressTemplateItem != nil {
+				analyseResult.ExpressPrice = analyseResult.ExpressPrice + expressTemplateItem.CalculateExpressPrice(expresstemplate, value)
+			} else {
+				analyseResult.ExpressPrice = analyseResult.ExpressPrice + etTemplate.Default.CalculateExpressPrice(expresstemplate, value)
+			}
+		}
 	}
 	analyseResult.OrdersGoodsInfo = oggs
 	return analyseResult, nil

@@ -16,8 +16,8 @@ type ConfirmList struct {
 	OrdersService order.OrdersService
 	User          *model.User `mapping:""`
 	Post          struct {
-		PostType int           //`form:"PostType"`
-		Address  model.Address //`form:"Address"`
+		//PostType int           //`form:"PostType"`
+		Address model.Address //`form:"Address"`
 	} `method:"post"`
 }
 
@@ -51,7 +51,7 @@ func (m *ConfirmList) HandlePost(ctx constrain.IContext) (constrain.IResult, err
 	//address := model.Address{}
 	//util.JSONToStruct(m.Post.Address, &address)
 
-	results, _, err := m.OrdersService.AnalyseOrdersGoodsList(m.User.ID, &m.Post.Address, int(m.Post.PostType), ogs)
+	results, _, err := m.OrdersService.AnalyseOrdersGoodsList(m.User.ID, &m.Post.Address, ogs)
 
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", results)}, err
 }

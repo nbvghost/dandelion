@@ -100,6 +100,6 @@ func (service ShoppingCartService) FindShoppingCartListDetails(UserID types.Prim
 		orderGoodsList = append(orderGoodsList, orderGoods)
 		//results[oredersGoods.OID]=append(results[oredersGoods.OID],oredersGoods)
 	}
-	return ordersService.AnalyseOrdersGoodsList(UserID, address, 0, orderGoodsList)
+	return ordersService.AnalyseOrdersGoodsList(UserID, address, orderGoodsList)
 
 }
