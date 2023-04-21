@@ -9,18 +9,18 @@ import (
 	"github.com/nbvghost/gpa/types"
 )
 
-type ConfigurationKey uint
+type ConfigurationKey string
 
 const (
-	ConfigurationKeyComponentVerifyTicket ConfigurationKey = 1001
-	ConfigurationKeyPoster                ConfigurationKey = 1002
-	ConfigurationKeyScoreConvertGrowValue ConfigurationKey = 1100
-	ConfigurationKeyBrokerageLeve1        ConfigurationKey = 1201
-	ConfigurationKeyBrokerageLeve2        ConfigurationKey = 1202
-	ConfigurationKeyBrokerageLeve3        ConfigurationKey = 1203
-	ConfigurationKeyBrokerageLeve4        ConfigurationKey = 1204
-	ConfigurationKeyBrokerageLeve5        ConfigurationKey = 1205
-	ConfigurationKeyBrokerageLeve6        ConfigurationKey = 1206
+	ConfigurationKeyComponentVerifyTicket ConfigurationKey = "ComponentVerifyTicket"
+	ConfigurationKeyPoster                ConfigurationKey = "Poster"
+	ConfigurationKeyScoreConvertGrowValue ConfigurationKey = "ScoreConvertGrowValue"
+	ConfigurationKeyBrokerageLeve1        ConfigurationKey = "BrokerageLeve1"
+	ConfigurationKeyBrokerageLeve2        ConfigurationKey = "BrokerageLeve2"
+	ConfigurationKeyBrokerageLeve3        ConfigurationKey = "BrokerageLeve3"
+	ConfigurationKeyBrokerageLeve4        ConfigurationKey = "BrokerageLeve4"
+	ConfigurationKeyBrokerageLeve5        ConfigurationKey = "BrokerageLeve5"
+	ConfigurationKeyBrokerageLeve6        ConfigurationKey = "BrokerageLeve6"
 	/*
 		[{
 			      "Matching": [
@@ -52,7 +52,7 @@ const (
 			      ]
 			    }]
 	*/
-	ConfigurationKeyAdvert ConfigurationKey = 1300
+	ConfigurationKeyAdvert ConfigurationKey = "Advert"
 	/*
 		[{
 		      "Matching": [
@@ -70,7 +70,7 @@ const (
 		      ]
 		    }]
 	*/
-	ConfigurationKeyPop ConfigurationKey = 1301
+	ConfigurationKeyPop ConfigurationKey = "Pop"
 	/*
 		[
 		    {
@@ -124,7 +124,9 @@ const (
 		    }
 		  ]
 	*/
-	ConfigurationKeyQuickLink ConfigurationKey = 1302
+	ConfigurationKeyQuickLink              ConfigurationKey = "QuickLink"
+	ConfigurationKeyPaymentPaypalClientId  ConfigurationKey = "PaymentPaypalClientId"
+	ConfigurationKeyPaymentPaypalAppSecret ConfigurationKey = "PaymentPaypalAppSecret"
 )
 
 type Configuration struct {

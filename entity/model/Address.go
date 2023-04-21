@@ -9,6 +9,7 @@ type Address struct {
 	types.Entity
 	UserID          types.PrimaryKey `gorm:"column:UserID"`
 	Name            string           `gorm:"column:Name"`
+	CountyCode      string           `gorm:"column:CountyCode"`
 	CountyName      string           `gorm:"column:CountyName"`
 	ProvinceName    string           `gorm:"column:ProvinceName"`
 	CityName        string           `gorm:"column:CityName"`

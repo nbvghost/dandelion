@@ -8,6 +8,7 @@ import (
 	"github.com/nbvghost/dandelion/library/shop/api/journal"
 	"github.com/nbvghost/dandelion/library/shop/api/order"
 	"github.com/nbvghost/dandelion/library/shop/api/order/cart"
+	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal"
 	"github.com/nbvghost/dandelion/library/shop/api/session"
 	"github.com/nbvghost/dandelion/library/shop/api/store"
 	"github.com/nbvghost/dandelion/library/shop/api/user"
@@ -97,4 +98,8 @@ func Register(route constrain.IRoute) {
 
 	//session
 	route.RegisterRoute("session/index", &session.Index{})
+
+	//payment
+	route.RegisterRoute("payment/method/paypal/checkout-orders", &paypal.CheckoutOrders{})
+	route.RegisterRoute("payment/method/paypal/capture/{PaypalOrderID}", &paypal.Capture{})
 }

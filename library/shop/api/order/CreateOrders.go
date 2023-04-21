@@ -24,7 +24,7 @@ type CreateOrders struct {
 	Post           struct {
 		TotalPrice uint
 		//PostType   int
-		Address string
+		Address model.Address
 		Type    string
 		No      string
 		List    []viewmodel.GoodsSpecification
@@ -41,13 +41,13 @@ func (m *CreateOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 		list = append(list, goods...)
 	}
 
-	address := model.Address{}
+	/*address := model.Address{}
 	err := util.JSONToStruct(m.Post.Address, &address)
 	if err != nil {
 		return nil, err
-	}
+	}*/
 
-	organizationOrders, TotalPrice, Error := m.OrdersService.AnalyseOrdersGoodsList(m.User.ID, &address, list)
+	organizationOrders, TotalPrice, Error := m.OrdersService.AnalyseOrdersGoodsList(m.User.ID, &m.Post.Address, list)
 	//如果 organizationOrders 存在着多个商家的订单，无法进入合拼支付，只能分开支付
 	if len(organizationOrders) == 0 {
 		return nil, errors.New("找不到订单")
@@ -91,12 +91,12 @@ func (m *CreateOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 		orders.PayMoney = PayMoney
 		//orders.PostType = sqltype.OrdersPostType(m.Post.PostType)
 		orders.Status = model.OrdersStatusOrder
-		orders.Address = util.StructToJSON(address)
+		orders.Address = util.StructToJSON(&m.Post.Address)
 		orders.DiscountMoney = uint(FullCutAll + FavouredPrice)
 		orders.GoodsMoney = uint(GoodsPrice)
 		orders.ExpressMoney = uint(ExpressPrice)
 
-		err = m.OrdersService.AddOrders(tx, &orders, oggs)
+		err := m.OrdersService.AddOrders(tx, &orders, oggs)
 		if err != nil {
 			tx.Rollback()
 			return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", nil)}, nil

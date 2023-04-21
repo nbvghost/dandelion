@@ -63,21 +63,23 @@ func (m *httpServer) Use(middleware constrain.IMiddleware) {
 			}
 
 			defer func() {
-				if err == nil {
-					if rerr := recover(); rerr != nil {
-						switch rerr.(type) {
-						case error:
-							err = rerr.(error)
-						default:
-							err = fmt.Errorf("%v", rerr)
-						}
+				if rerr := recover(); rerr != nil {
+					switch rerr.(type) {
+					case error:
+						err = rerr.(error)
+					default:
+						err = fmt.Errorf("%v", rerr)
 					}
+					ctx.Logger().Error("http-server", zap.Error(err))
+					m.handleError(ctx, m.customizeViewRender, w, r, err)
 				}
-				m.handleError(ctx, m.customizeViewRender, w, r, err)
+
 			}()
 
 			var isNext bool
 			if isNext, err = middleware.Handle(ctx, m.route, m.customizeViewRender, w, r); err != nil {
+				ctx.Logger().Error("http-server", zap.Error(err))
+				m.handleError(ctx, m.customizeViewRender, w, r, err)
 				return
 			}
 			if !isNext {
@@ -103,7 +105,6 @@ func (m *httpServer) handleError(ctx constrain.IContext, customizeViewRender con
 	contextValue := contexext.FromContext(ctx)
 
 	if err != nil {
-		ctx.Logger().Error(err.Error())
 		if contextValue.IsApi {
 			if m.errorHandleResult != nil {
 				m.errorHandleResult.Apply(ctx, err)
@@ -225,17 +226,18 @@ func NewHttpServer(engine *mux.Router, router *mux.Router, route constrain.IRout
 			ctx := DefaultHttpMiddleware.CreateContent(s.redisClient, route, w, r)
 
 			defer func() {
-				if err == nil {
-					if rerr := recover(); rerr != nil {
-						switch rerr.(type) {
-						case error:
-							err = rerr.(error)
-						default:
-							err = fmt.Errorf("%v", rerr)
-						}
+
+				if rerr := recover(); rerr != nil {
+					switch rerr.(type) {
+					case error:
+						err = rerr.(error)
+					default:
+						err = fmt.Errorf("%v", rerr)
 					}
+					ctx.Logger().Error("http-server", zap.Error(err))
+					s.handleError(ctx, s.customizeViewRender, w, r, err)
 				}
-				s.handleError(ctx, s.customizeViewRender, w, r, err)
+
 			}()
 
 			/*var pathTemplate string
@@ -246,6 +248,7 @@ func NewHttpServer(engine *mux.Router, router *mux.Router, route constrain.IRout
 			ctxValue := contexext.FromContext(ctx)*/
 
 			if isNext, err = DefaultHttpMiddleware.Handle(ctx, route, s.customizeViewRender, w, r); err != nil {
+				ctx.Logger().Error("http-server", zap.Error(err))
 				return
 			}
 			if !isNext {
