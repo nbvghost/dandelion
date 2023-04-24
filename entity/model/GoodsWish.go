@@ -4,8 +4,10 @@ import "github.com/nbvghost/gpa/types"
 
 type GoodsWish struct {
 	types.Entity
-	GoodsID         types.PrimaryKey
-	SpecificationID types.PrimaryKey
+	GoodsID         types.PrimaryKey `gorm:"column:GoodsID"`
+	SpecificationID types.PrimaryKey `gorm:"column:SpecificationID"`
+	Quantity        uint             `gorm:"column:Quantity"`
+	Comment         string           `gorm:"column:Comment"`
 }
 
 func (u GoodsWish) TableName() string {

@@ -19,6 +19,9 @@ type Specification struct {
 	Brokerage   uint                    `gorm:"column:Brokerage"`            //总佣金
 }
 
+func (m *Specification) GetMarketPrice(quantity uint) uint {
+	return m.MarketPrice * quantity
+}
 func (Specification) TableName() string {
 	return "Specification"
 }

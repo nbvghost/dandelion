@@ -13,18 +13,13 @@ type List struct {
 	OrdersService order.OrdersService
 	User          *model.User `mapping:""`
 	Get           struct {
-		Status string `form:"Status"`
-		Index  int    `form:"Index"`
+		Status   string `form:"status"`
+		Index    int    `form:"index"`
+		PageSize int    `form:"page-size"`
 	} `method:"get"`
 }
 
 func (m *List) Handle(ctx constrain.IContext) (constrain.IResult, error) {
-
-	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
-	//company := context.Session.Attributes.Get(play.SessionOrganization).(*entity.Organization)
-	//Status := context.Request.URL.Query().Get("Status")
-	//Index, _ := strconv.Atoi(context.Request.URL.Query().Get("Index"))
-
 	var StatusList []model.OrdersStatus
 	if !strings.EqualFold(m.Get.Status, "") {
 		list := strings.Split(m.Get.Status, ",")
@@ -32,10 +27,9 @@ func (m *List) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 			StatusList = append(StatusList, model.OrdersStatus(list[i]))
 		}
 	}
-
-	list, _ := m.OrdersService.ListOrders(m.User.ID, m.User.OID, 0, StatusList, 10, 10*m.Get.Index)
-	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: list}}, nil
-	//fullcuts := controller.FullCut.FindOrderByAmountASC(service.Orm)
-	//return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "", fullcuts)}
-
+	if m.Get.PageSize == 0 {
+		m.Get.PageSize = 10
+	}
+	list, totalRecords := m.OrdersService.ListOrders(m.User.ID, m.User.OID, 0, StatusList, m.Get.PageSize, m.Get.PageSize*m.Get.Index)
+	return result.NewData(map[string]any{"List": list, "Total": totalRecords, "Index": m.Get.Index}), nil
 }

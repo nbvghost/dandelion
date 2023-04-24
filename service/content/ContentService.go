@@ -516,13 +516,12 @@ func (service ContentService) ListContentType() []types.IEntity {
 	Orm := singleton.Orm()
 	return dao.Find(Orm, &model.ContentType{}).List()
 }
-func (service ContentService) ListContentTypeByType(Type string) model.ContentType {
-	Orm := singleton.Orm()
+func (service ContentService) ListContentTypeByType(Type string) *model.ContentType {
+	//Orm := singleton.Orm()
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
-	var list model.ContentType
-	err := service.FindWhere(Orm, &list, "Type=?", Type)
-	log.Println(err)
-	return list
+	//var list model.ContentType
+	item := dao.GetBy(singleton.Orm(), &model.ContentType{}, map[string]any{"Type": Type}).(*model.ContentType) //service.FindWhere(Orm, &list, "Type=?", Type)
+	return item
 }
 func (service ContentService) FindContentSubTypesByNameAndContentItemID(Name string, ContentItemID types.PrimaryKey) model.ContentSubType {
 	Orm := singleton.Orm()
@@ -531,8 +530,8 @@ func (service ContentService) FindContentSubTypesByNameAndContentItemID(Name str
 	return cst
 }
 
-//-----------------------
-func (service ContentService) AddSpiderContent(OID types.PrimaryKey, ContentName string, ContentSubTypeName string, Author, Title string, FromUrl string, Introduce string, Picture string, Content string, CreatedAt time.Time) {
+// AddSpiderContent -----------------------
+func (service ContentService) AddSpiderContent(OID types.PrimaryKey, ContentName string, ContentSubTypeName string, Author, Title string, FromUrl string, Introduce string, Picture string, Content string, CreatedAt time.Time) error {
 	var article model.Content
 	article.Title = Title
 	article.FromUrl = FromUrl
@@ -558,7 +557,10 @@ func (service ContentService) AddSpiderContent(OID types.PrimaryKey, ContentName
 		content.Type = contentType.Type
 		content.Name = ContentName
 		content.ContentTypeID = contentType.ID
-		dao.Save(singleton.Orm(), &content)
+		err := dao.Save(singleton.Orm(), &content)
+		if err != nil {
+			return err
+		}
 
 	}
 
@@ -567,13 +569,19 @@ func (service ContentService) AddSpiderContent(OID types.PrimaryKey, ContentName
 	if contentSubType.ID == 0 {
 		contentSubType.Name = ContentSubTypeName
 		contentSubType.ContentItemID = content.ID
-		dao.Save(singleton.Orm(), &contentSubType)
+		err := dao.Save(singleton.Orm(), &contentSubType)
+		if err != nil {
+			return err
+		}
 	}
 
 	article.Author = Author
 	article.ContentSubTypeID = contentSubType.ID
-	service.SaveContent(OID, &article)
-
+	err := service.SaveContent(OID, &article)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (service ContentService) ChangeContent(article *model.Content) error {
@@ -592,32 +600,20 @@ func (service ContentService) DelContent(ID types.PrimaryKey) error {
 	return err
 }
 
-func (service ContentService) FindContentByContentSubTypeID(ContentSubTypeID types.PrimaryKey) []model.Content {
-	var contentList []model.Content
-	err := service.FindWhere(singleton.Orm(), &contentList, "ContentSubTypeID=?", ContentSubTypeID) //SelectOne(user, "select * from User where Email=?", Email)
-	log.Println(err)
+func (service ContentService) FindContentByContentSubTypeID(ContentSubTypeID types.PrimaryKey) []types.IEntity {
+	//var contentList []model.Content
+	//err := service.FindWhere(singleton.Orm(), &contentList, "ContentSubTypeID=?", ContentSubTypeID) //SelectOne(user, "select * from User where Email=?", Email)
+
+	contentList := dao.Find(singleton.Orm(), &model.Content{}).Where(`"ContentSubTypeID"=?`, ContentSubTypeID).List()
+
 	return contentList
 }
-func (service ContentService) FindContentByContentItemIDAndContentSubTypeID(ContentItemID uint, ContentSubTypeID uint) model.Content {
-
-	var content model.Content
-	if ContentItemID == 0 {
-		log.Println("参数ContentItemID为0")
-		return content
-	}
-	if ContentSubTypeID == 0 {
-		log.Println("参数ContentSubTypeID为0")
-		return content
-	}
-
-	service.FindWhere(singleton.Orm(), &content, "ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeID) //SelectOne(user, "select * from User where Email=?", Email)
-
+func (service ContentService) FindContentByContentItemIDAndContentSubTypeID(ContentItemID uint, ContentSubTypeID uint) *model.Content {
+	//service.FindWhere(singleton.Orm(), &content, "ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeID) //SelectOne(user, "select * from User where Email=?", Email)
+	content := dao.GetBy(singleton.Orm(), &model.Content{}, map[string]any{"ContentItemID": ContentItemID, "ContentSubTypeID": ContentSubTypeID}).(*model.Content)
 	return content
 }
 
-//ContentItemID
-//ContentSubTypeID
-//ContentSubTypeChildID
 func (service ContentService) FindContentByTypeID(menusData *extends.MenusData, ContentItemID, ContentSubTypeID, ContentSubTypeChildID types.PrimaryKey) model.Content {
 
 	var content model.Content

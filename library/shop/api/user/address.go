@@ -16,6 +16,7 @@ type Address struct {
 	Post         struct {
 		CityName        string //`form:"CityName"`
 		Company         string //`form:"Company"`
+		CountyCode      string //`form:"CountyName"`
 		CountyName      string //`form:"CountyName"`
 		DefaultBilling  bool   //`form:"DefaultBilling"`
 		DefaultShipping bool   //`form:"DefaultShipping"`
@@ -30,6 +31,7 @@ type Address struct {
 		ID              types.PrimaryKey
 		CityName        string //`form:"CityName"`
 		Company         string //`form:"Company"`
+		CountyCode      string //`form:"CountyName"`
 		CountyName      string //`form:"CountyName"`
 		DefaultBilling  bool   //`form:"DefaultBilling"`
 		DefaultShipping bool   //`form:"DefaultShipping"`
@@ -79,6 +81,7 @@ func (m *Address) HandlePut(context constrain.IContext) (constrain.IResult, erro
 		"ID":              m.Put.ID,
 		"UserID":          context.UID(),
 		"Name":            m.Put.LastName + " " + m.Put.FirstName,
+		"CountyCode":      m.Put.CountyCode,
 		"CountyName":      m.Put.CountyName,
 		"ProvinceName":    m.Put.ProvinceName,
 		"CityName":        m.Put.CityName,
@@ -122,6 +125,7 @@ func (m *Address) HandlePost(context constrain.IContext) (constrain.IResult, err
 	address := &model.Address{
 		UserID:          context.UID(),
 		Name:            m.Post.LastName + " " + m.Post.FirstName,
+		CountyCode:      m.Post.CountyCode,
 		CountyName:      m.Post.CountyName,
 		ProvinceName:    m.Post.ProvinceName,
 		CityName:        m.Post.CityName,

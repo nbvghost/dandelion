@@ -8,8 +8,8 @@ import (
 )
 
 type GoodsTypeChildList struct {
-	GoodsService goods.GoodsService
-	Get          struct {
+	GoodsTypeService goods.GoodsTypeService
+	Get              struct {
 		GoodsTypeID types.PrimaryKey `uri:"GoodsTypeID"`
 	} `method:"get"`
 }
@@ -17,6 +17,6 @@ type GoodsTypeChildList struct {
 func (m *GoodsTypeChildList) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//GoodsTypeID, _ := strconv.ParseUint(context.PathParams["GoodsTypeID"], 10, 64)
 	//GoodsTypeID := object.ParseUint(context.PathParams["GoodsTypeID"])
-	results := m.GoodsService.ListGoodsTypeChild(types.PrimaryKey(m.Get.GoodsTypeID))
+	results := m.GoodsTypeService.ListGoodsTypeChild(types.PrimaryKey(m.Get.GoodsTypeID))
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: results}}, nil
 }

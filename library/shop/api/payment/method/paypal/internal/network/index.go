@@ -2,6 +2,7 @@ package network
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
@@ -23,9 +24,15 @@ type Amount struct {
 type Name struct {
 	GivenName string `json:"given_name,omitempty"` //名
 	Surname   string `json:"surname,omitempty"`    //姓
+	FullName  string `json:"full_name,omitempty"`
 }
+
+func (m *Name) GetFullName() string {
+	return m.GivenName + " " + m.Surname
+}
+
 type Shipping struct {
-	Name    Name     `json:"name,omitempty"`
+	Name    *Name    `json:"name,omitempty"`
 	Type    string   `json:"type,omitempty"` //SHIPPING
 	Address *Address `json:"address,omitempty"`
 }
@@ -73,11 +80,12 @@ func (m *Address) SetAddress(address *model.Address) *Address {
 	}
 	m.AddressLine1 = address.Detail
 	if len(address.Company) > 0 {
-		m.AddressLine2 = address.Company
+		m.AddressLine2 = fmt.Sprintf("(%s)", address.Company)
 	}
 	m.AdminArea1 = address.CountyName + "." + address.ProvinceName
 	m.AdminArea2 = address.CityName
 	m.PostalCode = address.PostalCode
+	m.CountryCode = address.CountyCode
 	return m
 }
 
@@ -166,6 +174,87 @@ func generateAccessToken(ctx constrain.IContext, oid types.PrimaryKey) (*PaypalA
 		return nil, err
 	}
 	return &at.PaypalAccessToken, nil
+}
+
+type OrderDetailsResponse struct {
+	Id     string `json:"id"`
+	Status string `json:"status"`
+	Links  []Link `json:"links"`
+}
+
+func OrderDetails(ctx constrain.IContext, oid types.PrimaryKey, id string) (*OrderDetailsResponse, error) {
+	token, err := generateAccessToken(ctx, oid)
+	if err != nil {
+		return nil, err
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/v2/checkout/orders/%s", key.BaseURL(), id), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+	//req.Header.Set("PayPal-Request-Id", uuid.New().String())
+
+	response, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Println(string(body))
+	responseData := &OrderDetailsResponse{}
+	err = json.Unmarshal(body, responseData)
+	if err != nil {
+		return nil, err
+	}
+	return responseData, nil
+}
+
+type UpdateOrderChange struct {
+	Op    string `json:"op"`
+	Path  string `json:"path"`
+	Value any    `json:"value"`
+}
+type UpdateOrderRequest struct {
+	Id         string
+	ChangeList []UpdateOrderChange
+}
+
+func UpdateOrder(ctx constrain.IContext, oid types.PrimaryKey, request *UpdateOrderRequest) error {
+	token, err := generateAccessToken(ctx, oid)
+	if err != nil {
+		return err
+	}
+
+	body, err := json.Marshal(request.ChangeList)
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("PATCH", fmt.Sprintf("%s/v2/checkout/orders/%s", key.BaseURL(), request.Id), strings.NewReader(string(body)))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+token.AccessToken)
+	req.Header.Set("Content-Type", "application/json")
+	//req.Header.Set("PayPal-Request-Id", uuid.New().String())
+
+	response, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != 204 {
+		return errors.New("order modification failed")
+	}
+	return nil
 }
 
 type CheckoutOrdersRequest struct {

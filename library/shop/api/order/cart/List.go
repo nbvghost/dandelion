@@ -11,9 +11,9 @@ import (
 )
 
 type List struct {
-	User                *model.User `mapping:""`
-	ShoppingCartService order.ShoppingCartService
-	Get                 struct {
+	User          *model.User `mapping:""`
+	OrdersService order.OrdersService
+	Get           struct {
 		AddressID types.PrimaryKey `form:"address-id"`
 	} `method:"get"`
 }
@@ -31,7 +31,7 @@ func (m *List) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	}
 
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
-	list, _, err := m.ShoppingCartService.FindShoppingCartListDetails(m.User.ID, address)
+	list, err := m.OrdersService.FindShoppingCartListDetails(m.User.OID, m.User.ID, address)
 	if err != nil {
 		return nil, err
 	}

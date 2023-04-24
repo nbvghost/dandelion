@@ -220,30 +220,20 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 		return nil, err
 	}
 
-	var _Configuration model.Configuration
+	var config *model.Configuration
 
-	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, model.ConfigurationKeyBrokerageLeve1, shop.ID)
-	if err != nil {
-
-		return nil, err
-	}
-	if _Configuration.ID == 0 {
+	config = dao.GetBy(tx, &model.Configuration{}, map[string]any{"K": model.ConfigurationKeyBrokerageLeve1, "OID": shop.ID}).(*model.Configuration)
+	if config.IsZero() {
 		a := model.Configuration{K: model.ConfigurationKeyBrokerageLeve1, V: "0"}
 		a.OID = shop.ID
 		err = dao.Create(tx, &a)
 		if err != nil {
-
 			return nil, err
 		}
 	}
 
-	_Configuration = model.Configuration{}
-	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, model.ConfigurationKeyBrokerageLeve2, shop.ID)
-	if err != nil {
-
-		return nil, err
-	}
-	if _Configuration.ID == 0 {
+	config = dao.GetBy(tx, &model.Configuration{}, map[string]any{"K": model.ConfigurationKeyBrokerageLeve2, "OID": shop.ID}).(*model.Configuration)
+	if config.IsZero() {
 		a := model.Configuration{K: model.ConfigurationKeyBrokerageLeve2, V: "0"}
 		a.OID = shop.ID
 		err = dao.Create(tx, &a)
@@ -253,13 +243,8 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 		}
 	}
 
-	_Configuration = model.Configuration{}
-	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, model.ConfigurationKeyBrokerageLeve3, shop.ID)
-	if err != nil {
-
-		return nil, err
-	}
-	if _Configuration.ID == 0 {
+	config = dao.GetBy(tx, &model.Configuration{}, map[string]any{"K": model.ConfigurationKeyBrokerageLeve3, "OID": shop.ID}).(*model.Configuration)
+	if config.IsZero() {
 		a := model.Configuration{K: model.ConfigurationKeyBrokerageLeve3, V: "0"}
 		a.OID = shop.ID
 		err = dao.Create(tx, &a)
@@ -269,13 +254,8 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 		}
 	}
 
-	_Configuration = model.Configuration{}
-	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, model.ConfigurationKeyBrokerageLeve4, shop.ID)
-	if err != nil {
-
-		return nil, err
-	}
-	if _Configuration.ID == 0 {
+	config = dao.GetBy(tx, &model.Configuration{}, map[string]any{"K": model.ConfigurationKeyBrokerageLeve4, "OID": shop.ID}).(*model.Configuration)
+	if config.IsZero() {
 		a := model.Configuration{K: model.ConfigurationKeyBrokerageLeve4, V: "0"}
 		a.OID = shop.ID
 		err = dao.Create(tx, &a)
@@ -285,13 +265,8 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 		}
 	}
 
-	_Configuration = model.Configuration{}
-	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, model.ConfigurationKeyBrokerageLeve5, shop.ID)
-	if err != nil {
-
-		return nil, err
-	}
-	if _Configuration.ID == 0 {
+	config = dao.GetBy(tx, &model.Configuration{}, map[string]any{"K": model.ConfigurationKeyBrokerageLeve5, "OID": shop.ID}).(*model.Configuration)
+	if config.IsZero() {
 		a := model.Configuration{K: model.ConfigurationKeyBrokerageLeve5, V: "0"}
 		a.OID = shop.ID
 		err = dao.Create(tx, &a)
@@ -301,13 +276,8 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 		}
 	}
 
-	_Configuration = model.Configuration{}
-	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, model.ConfigurationKeyBrokerageLeve6, shop.ID)
-	if err != nil {
-
-		return nil, err
-	}
-	if _Configuration.ID == 0 {
+	config = dao.GetBy(tx, &model.Configuration{}, map[string]any{"K": model.ConfigurationKeyBrokerageLeve6, "OID": shop.ID}).(*model.Configuration)
+	if config.IsZero() {
 		a := model.Configuration{K: model.ConfigurationKeyBrokerageLeve6, V: "0"}
 		a.OID = shop.ID
 		err = dao.Create(tx, &a)
@@ -316,19 +286,6 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 			return nil, err
 		}
 	}
-	err = service.Organization.FindWhere(tx, &_Configuration, `"K"=? and "OID"=?`, model.ConfigurationKeyBrokerageLeve6, shop.ID)
-	if err != nil {
-		return nil, err
-	}
-	if _Configuration.ID == 0 {
-		a := model.Configuration{K: model.ConfigurationKeyBrokerageLeve6, V: "0"}
-		a.OID = shop.ID
-		err = dao.Create(tx, &a)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	err = service.Content.AddContentConfig(tx, shop)
 	if err != nil {
 		return nil, err

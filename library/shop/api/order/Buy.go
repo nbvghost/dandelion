@@ -41,9 +41,9 @@ func (m *Buy) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 		list = append(list, goods...)
 	}
 
-	results, totalPrice, err := m.OrdersService.AnalyseOrdersGoodsList(m.User.ID, &m.Post.Address, list)
+	results, err := m.OrdersService.AnalyseOrdersGoodsList(m.User.OID, &m.Post.Address, list)
 
-	return result.NewData(map[string]any{"List": results, "TotalPrice": totalPrice}), err
+	return result.NewData(map[string]any{"ConfirmOrdersGoods": results}), err
 
 	/*if !strings.EqualFold(m.Post.GSIDs, "") && m.Post.GoodsID == 0 && m.Post.SpecificationID == 0 && m.Post.Quantity == 0 {
 		GSIDs := strings.Split(m.Post.GSIDs, ",")

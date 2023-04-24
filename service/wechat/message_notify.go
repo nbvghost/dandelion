@@ -3,6 +3,7 @@ package wechat
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/gpa/types"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -70,7 +71,7 @@ func (service MessageNotify) NewUserJoinNotify(NewUser *model.User, notifyUser *
 }
 
 // 发货通知
-func (service MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []model.OrdersGoods, wxConfig *model.WechatConfig) *result.ActionResult {
+func (service MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []types.IEntity, wxConfig *model.WechatConfig) *result.ActionResult {
 
 	if Order.ID == 0 {
 		return &result.ActionResult{Code: result.Fail, Message: "找不到订单", Data: nil}
@@ -91,7 +92,8 @@ func (service MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []mode
 	data_data["keyword2"] = map[string]interface{}{"value": Order.ShipNo, "color": "#173177"}
 
 	var Titles = ""
-	for _, value := range ogs {
+	for i := range ogs {
+		value := ogs[i].(*model.OrdersGoods)
 		var goods model.Goods
 		json.Unmarshal([]byte(value.Goods), &goods)
 		Titles += goods.Title

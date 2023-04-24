@@ -17,11 +17,14 @@ import (
 	"strings"
 )
 
+var nameReg = regexp.MustCompile(`\s+`)
+
 type CheckoutOrders struct {
 	ConfigurationService configuration.ConfigurationService
-	ShoppingCartService  order.ShoppingCartService
+	OrdersService        order.OrdersService
 	User                 *model.User `mapping:""`
 	Post                 struct {
+		OrderNo               string
 		AddressID             types.PrimaryKey
 		AdditionalInformation string
 	} `method:"post"`
@@ -32,13 +35,25 @@ func (m *CheckoutOrders) Handle(ctx constrain.IContext) (constrain.IResult, erro
 	panic("implement me")
 }
 func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
+	orders := m.OrdersService.GetOrdersByOrderNo(m.Post.OrderNo)
+	if orders.ID == 0 {
+		return nil, errors.New("no order found")
+	}
+	var orderDetails *network.OrderDetailsResponse
+	if len(orders.PrepayID) > 0 {
+		var err error
+		orderDetails, err = network.OrderDetails(ctx, m.User.OID, orders.PrepayID)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	address := dao.GetByPrimaryKey(singleton.Orm(), &model.Address{}, m.Post.AddressID).(*model.Address)
 	if address.ID == 0 {
 		return nil, errors.New("地址不能为空")
 	}
 
-	var name network.Name
+	name := &network.Name{}
 	{
 		names := nameReg.Split(address.Name, -1)
 		if len(names) >= 2 {
@@ -50,60 +65,55 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 	shippingAddress := &network.Address{}
 	shippingAddress.SetAddress(address)
 
-	list, _, err := m.ShoppingCartService.FindShoppingCartListDetails(m.User.ID, address)
+	confirmOrdersGoods, err := m.OrdersService.AnalyseOrdersGoodsListByOrders(&orders, address)
 	if err != nil {
 		return nil, err
 	}
-	units := make([]network.CheckoutOrdersUnit, 0)
-	for _, goods := range list {
-		for _, info := range goods.OrdersGoodsInfos {
-			units = append(units, network.CheckoutOrdersUnit{
-				ReferenceId: fmt.Sprintf("%d-%d", info.OrdersGoods.Goods.ID, info.OrdersGoods.Specification.ID),
-				Description: m.Post.AdditionalInformation,
-				Amount: network.Amount{
-					CurrencyCode: "USD",
-					Value:        strconv.FormatFloat(float64(info.OrdersGoods.Specification.MarketPrice)/100.0, 'f', 2, 64),
-				},
-				Shipping: &network.Shipping{
-					Name:    name,
-					Type:    "SHIPPING",
-					Address: shippingAddress,
-				},
-			})
-		}
 
+	unit := network.CheckoutOrdersUnit{
+		ReferenceId: orders.OrderNo, //fmt.Sprintf("%d-%d", info.OrdersGoods.Goods.ID, info.OrdersGoods.Specification.ID),
+		Description: m.Post.AdditionalInformation,
+		Amount: network.Amount{
+			CurrencyCode: "USD",
+			Value:        strconv.FormatFloat(float64(confirmOrdersGoods.TotalAmount)/100.0, 'f', 2, 64),
+		},
+		Shipping: &network.Shipping{
+			Name:    &network.Name{FullName: name.GetFullName()},
+			Type:    "SHIPPING",
+			Address: shippingAddress,
+		},
 	}
 
-	/*paypalBillingAddress := network.PayPalAddress{}
-	{
-		var billingAddress *model.Address
-		if m.Post.BillingAddressID > 0 {
-			billingAddress = dao.GetByPrimaryKey(singleton.Orm(), &model.Address{}, m.Post.BillingAddressID).(*model.Address)
-		} else {
-			billingAddress = dao.GetBy(singleton.Orm(), &model.Address{}, map[string]any{"UserID": m.User.ID, "DefaultBilling": true}).(*model.Address)
-			if billingAddress.IsEmpty() {
-				billingAddress = address
-			}
+	if orderDetails != nil && len(orderDetails.Id) > 0 {
+		err = network.UpdateOrder(ctx, m.User.OID, &network.UpdateOrderRequest{
+			Id: orderDetails.Id,
+			ChangeList: []network.UpdateOrderChange{
+				{
+					Op:    "replace",
+					Path:  fmt.Sprintf("/purchase_units/@reference_id=='%s'/shipping/name", orders.OrderNo),
+					Value: &network.Name{FullName: name.GetFullName()},
+				},
+				{
+					Op:    "replace",
+					Path:  fmt.Sprintf("/purchase_units/@reference_id=='%s'/shipping/address", orders.OrderNo),
+					Value: shippingAddress,
+				},
+			},
+		})
+		if err != nil {
+			return nil, err
 		}
-		paypalBillingAddress.AddressLine1 = billingAddress.Detail
-		if len(billingAddress.Company) > 0 {
-			paypalBillingAddress.AddressLine2 = billingAddress.Company
+		return result.NewData(orderDetails), err
+	} else {
+		checkoutOrders, err := network.CheckoutOrders(ctx, m.User.OID, &network.CheckoutOrdersRequest{
+			Intent:        "CAPTURE",
+			PurchaseUnits: []network.CheckoutOrdersUnit{unit},
+		})
+		if err != nil {
+			return nil, err
 		}
-		paypalBillingAddress.AdminArea1 = billingAddress.CountyName + "." + billingAddress.ProvinceName
-		paypalBillingAddress.AdminArea2 = billingAddress.CityName
-		paypalBillingAddress.PostalCode = billingAddress.PostalCode
-	}*/
-
-	orders, err := network.CheckoutOrders(ctx, m.User.OID, &network.CheckoutOrdersRequest{
-		Intent:        "CAPTURE",
-		PurchaseUnits: units,
-		//Payer:         payer,
-		//PaymentSource: network.CheckoutOrdersPaymentSource{Card: card},
-	})
-	if err != nil {
-		return nil, err
+		err = dao.UpdateByPrimaryKey(singleton.Orm(), &model.Orders{}, orders.ID, map[string]any{"PrepayID": checkoutOrders.Id})
+		return result.NewData(checkoutOrders), err
 	}
-	return result.NewData(orders), nil
+
 }
-
-var nameReg = regexp.MustCompile(`\s+`)

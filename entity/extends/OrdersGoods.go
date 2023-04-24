@@ -5,6 +5,19 @@ import (
 	"github.com/nbvghost/gpa/types"
 )
 
+// 商家订单计算结构，
+type ConfirmOrdersGoods struct {
+	//Organization     *model.Organization //如果涉及多个商家的订单的话，则使用OrdersGoodsInfos[].OrdersGoods.OID来区分
+	OrdersGoodsInfos []OrdersGoodsInfo
+	FavouredPrice    uint //拼团价格
+	FullCutAll       uint
+	GoodsPrice       uint
+	ExpressPrice     uint
+	FullCut          model.FullCut
+	Address          *model.Address
+	TotalAmount      uint
+}
+
 type OrdersGoods struct {
 	OID             types.PrimaryKey                              //
 	OrdersGoodsNo   string                                        //

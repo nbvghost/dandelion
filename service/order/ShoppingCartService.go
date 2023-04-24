@@ -1,7 +1,6 @@
 package order
 
 import (
-	"github.com/nbvghost/dandelion/entity/extends"
 	"log"
 
 	"gorm.io/gorm"
@@ -81,25 +80,4 @@ func (service ShoppingCartService) FindShoppingCartByUserID(UserID types.Primary
 func (service ShoppingCartService) FindShoppingCartListCount(UserID types.PrimaryKey) (uint, error) {
 	list := service.FindShoppingCartByUserID(UserID)
 	return uint(len(list)), nil
-}
-func (service ShoppingCartService) FindShoppingCartListDetails(UserID types.PrimaryKey, address *model.Address) ([]AnalyseOrdersGoods, uint, error) {
-	//Orm := Orm()
-	ordersService := OrdersService{}
-
-	list := service.FindShoppingCartByUserID(UserID)
-	//results := make([]map[string]interface{}, 0)
-	//var error error
-
-	orderGoodsList := make([]*extends.OrdersGoods, 0)
-
-	for i := range list {
-		orderGoods, err := ordersService.createOrdersGoods(list[i].(*model.ShoppingCart))
-		if err != nil {
-			return nil, 0, err
-		}
-		orderGoodsList = append(orderGoodsList, orderGoods)
-		//results[oredersGoods.OID]=append(results[oredersGoods.OID],oredersGoods)
-	}
-	return ordersService.AnalyseOrdersGoodsList(UserID, address, orderGoodsList)
-
 }

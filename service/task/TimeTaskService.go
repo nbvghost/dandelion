@@ -41,11 +41,12 @@ func (m TimeTaskService) QueryTask(wxConfig *model.WechatConfig) {
 }
 
 func (m TimeTaskService) QuerySupplyOrdersTask(wxConfig *model.WechatConfig) {
-	Orm := singleton.Orm()
-	var supplyOrdersList []model.SupplyOrders
-	m.Orders.FindWhere(Orm, &supplyOrdersList, `"IsPay"=?`, 0)
-	for _, value := range supplyOrdersList {
-
+	//Orm := singleton.Orm()
+	//var supplyOrdersList []model.SupplyOrders
+	//m.Orders.FindWhere(Orm, &supplyOrdersList, `"IsPay"=?`, 0)
+	supplyOrdersList := dao.Find(singleton.Orm(), &model.SupplyOrders{}).Where(`"IsPay"=?`, 0).List()
+	for i := range supplyOrdersList {
+		value := supplyOrdersList[i].(*model.SupplyOrders)
 		transaction, err := m.Wx.OrderQuery(context.TODO(), value.OrderNo, wxConfig)
 		if err != nil {
 			log.Println(err)
@@ -67,18 +68,20 @@ func (m TimeTaskService) QuerySupplyOrdersTask(wxConfig *model.WechatConfig) {
 
 }
 
-//查询提现状态
+// 查询提现状态
 func (m TimeTaskService) QueryTransfersTask(wxConfig *model.WechatConfig) {
-	Orm := singleton.Orm()
-	var transfersList []model.Transfers
-	m.Transfers.FindWhere(Orm, &transfersList, `"IsPay"=?`, 0)
-	for _, value := range transfersList {
+	//Orm := singleton.Orm()
+	//var transfersList []model.Transfers
+	//m.Transfers.FindWhere(Orm, &transfersList, `"IsPay"=?`, 0)
+	transfersList := dao.Find(singleton.Orm(), &model.Transfers{}).Where(`"IsPay"=?`, 0).List()
+	for i := range transfersList {
+		value := transfersList[i].(*model.Transfers)
 		su := m.Wx.GetTransfersInfo(value, wxConfig)
 		if su {
-			dao.UpdateByPrimaryKey(Orm, entity.Transfers, value.ID, &model.Transfers{IsPay: 1})
+			dao.UpdateByPrimaryKey(singleton.Orm(), entity.Transfers, value.ID, &model.Transfers{IsPay: 1})
 		} else {
 			if time.Now().Unix() > value.CreatedAt.Add(30*time.Hour*24).Unix() {
-				dao.UpdateByPrimaryKey(Orm, entity.Transfers, value.ID, &model.Transfers{IsPay: 2})
+				dao.UpdateByPrimaryKey(singleton.Orm(), entity.Transfers, value.ID, &model.Transfers{IsPay: 2})
 			}
 		}
 	}

@@ -57,6 +57,28 @@ type OrdersService struct {
 	User            user.UserService
 }
 
+func (service OrdersService) FindShoppingCartListDetails(oid types.PrimaryKey, userID types.PrimaryKey, address *model.Address) (*extends.ConfirmOrdersGoods, error) {
+	//Orm := Orm()
+	//ordersService := OrdersService{}
+
+	list := service.ShoppingCart.FindShoppingCartByUserID(userID)
+	//results := make([]map[string]interface{}, 0)
+	//var error error
+
+	orderGoodsList := make([]*extends.OrdersGoods, 0)
+
+	for i := range list {
+		orderGoods, err := service.createOrdersGoods(list[i].(*model.ShoppingCart))
+		if err != nil {
+			return nil, err
+		}
+		orderGoodsList = append(orderGoodsList, orderGoods)
+		//results[oredersGoods.OID]=append(results[oredersGoods.OID],oredersGoods)
+	}
+	return service.AnalyseOrdersGoodsList(oid, address, orderGoodsList)
+
+}
+
 // 如果订单未完成，或是退款，扣除相应的冻结金额，不用结算，佣金
 func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *model.Orders) error {
 	var err error
@@ -68,7 +90,8 @@ func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *m
 
 	ogs, err := service.FindOrdersGoodsByOrdersID(tx, orders.ID)
 	var Brokerage uint
-	for _, value := range ogs {
+	for i := range ogs {
+		value := ogs[i].(*model.OrdersGoods)
 		//var specification model.Specification
 		//util.JSONToStruct(value.Specification, &specification)
 		Brokerage = Brokerage + value.TotalBrokerage
@@ -125,7 +148,8 @@ func (service OrdersService) FirstSettlementUserBrokerage(tx *gorm.DB, orders mo
 
 	ogs, err := service.FindOrdersGoodsByOrdersID(tx, orders.ID)
 	var Brokerage uint
-	for _, value := range ogs {
+	for i := range ogs {
+		value := ogs[i].(*model.OrdersGoods)
 		//var specification model.Specification
 		//util.JSONToStruct(value.Specification, &specification)
 		Brokerage = Brokerage + value.TotalBrokerage
@@ -183,7 +207,8 @@ func (service OrdersService) MinusSettlementUserBrokerage(tx *gorm.DB, orders *m
 
 	ogs, err := service.FindOrdersGoodsByOrdersID(tx, orders.ID)
 	var Brokerage uint
-	for _, value := range ogs {
+	for i := range ogs {
+		value := ogs[i].(*model.OrdersGoods)
 		//var specification model.Specification
 		//util.JSONToStruct(value.Specification, &specification)
 		Brokerage = Brokerage + value.TotalBrokerage
@@ -247,7 +272,8 @@ func (service OrdersService) OrdersStockManager(db *gorm.DB, orders *model.Order
 	//list []model.OrdersGoods
 
 	list, _ := service.FindOrdersGoodsByOrdersID(db, orders.ID)
-	for _, value := range list {
+	for i := range list {
+		value := list[i].(*model.OrdersGoods)
 		var specification model.Specification
 		//service.Get(Orm, value.SpecificationID, &specification)
 		util.JSONToStruct(value.Specification, &specification)
@@ -377,7 +403,8 @@ func (service OrdersService) RefundComplete(OrdersGoodsID types.PrimaryKey, Refu
 	}
 	haveRefunc := false
 	//totalBrokerage := uint(0)
-	for _, value := range ogs {
+	for i := range ogs {
+		value := ogs[i].(*model.OrdersGoods)
 		//totalBrokerage = totalBrokerage + (value.TotalBrokerage * uint(value.Quantity))
 		if !(value.Status == model.OrdersGoodsStatusOGRefundComplete) && !(value.Status == model.OrdersGoodsStatusOGNone) {
 			haveRefunc = true
@@ -524,7 +551,8 @@ func (service OrdersService) TakeDeliver(OrdersID types.PrimaryKey) error {
 		}
 
 		var Brokerage uint
-		for _, value := range ogs {
+		for i := range ogs {
+			value := ogs[i].(*model.OrdersGoods)
 			//var specification model.Specification
 			//util.JSONToStruct(value.Specification, &specification)
 			Brokerage = Brokerage + value.TotalBrokerage
@@ -546,8 +574,10 @@ func (service OrdersService) TakeDeliver(OrdersID types.PrimaryKey) error {
 		} else {
 
 			tx.Commit()
-			go func(ogs []model.OrdersGoods) {
-				for _, value := range ogs {
+			go func(ogs []types.IEntity) {
+				for i := range ogs {
+					value := ogs[i].(*model.OrdersGoods)
+
 					var _goods model.Goods
 					//service.Goods.Get(singleton.Orm(), value.GoodsID, &_goods)
 					err = util.JSONToStruct(value.Goods, &_goods)
@@ -638,7 +668,7 @@ func (service OrdersService) CancelOk(context context.Context, OrdersID types.Pr
 			var refund *refunddomestic.Refund
 			var err error
 			//邮寄
-			if orders.PostType == sqltype.OrdersPostTypePost {
+			if orders.PostType == model.OrdersPostTypePost {
 				refund, err = service.Wx.Refund(context, orders, nil, "用户取消", wxConfig)
 				if err != nil {
 					return "", err
@@ -658,7 +688,7 @@ func (service OrdersService) CancelOk(context context.Context, OrdersID types.Pr
 						return "", err
 					}
 				}
-			} else if orders.PostType == sqltype.OrdersPostTypeOffline {
+			} else if orders.PostType == model.OrdersPostTypeOffline {
 				refund, err = service.Wx.Refund(context, orders, nil, "用户取消", wxConfig)
 				if err != nil {
 					return "", err
@@ -670,7 +700,7 @@ func (service OrdersService) CancelOk(context context.Context, OrdersID types.Pr
 						tx.Rollback()
 						return "", err
 					}
-					var ogs []model.OrdersGoods
+					var ogs []types.IEntity
 					ogs, err = service.FindOrdersGoodsByOrdersID(tx, orders.ID)
 					if err != nil {
 						tx.Rollback()
@@ -860,7 +890,7 @@ func (service OrdersService) GetOrdersPackageByOrderNo(OrderNo string) model.Ord
 func (service OrdersService) GetOrdersByOrderNo(OrderNo string) model.Orders {
 	Orm := singleton.Orm()
 	var orders model.Orders
-	Orm.Where(&model.Orders{OrderNo: OrderNo}).First(&orders)
+	Orm.Where(map[string]any{"OrderNo": OrderNo}).First(&orders)
 	return orders
 }
 func (service OrdersService) GetOrdersByOrdersPackageNo(OrdersPackageNo string) []model.Orders {
@@ -997,7 +1027,7 @@ func (service OrdersService) ListOrdersDate(UserID, OID types.PrimaryKey, PostTy
 		pack := struct {
 			Orders          model.Orders
 			User            model.User
-			OrdersGoodsList []model.OrdersGoods
+			OrdersGoodsList []types.IEntity //[]model.OrdersGoods
 			CollageUsers    []model.User
 		}{}
 
@@ -1301,6 +1331,56 @@ func (service OrdersService) AddCartOrdersByShoppingCartIDs(ctx constrain.IConte
 	return nil
 
 }
+func (service OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*extends.OrdersGoods, error) {
+	ordersGoods := &extends.OrdersGoods{}
+
+	var goods model.Goods
+	var specification model.Specification
+	var discountList []extends.Discount
+
+	err := util.JSONToStruct(data.Goods, &goods)
+	if err != nil {
+		return nil, err
+	}
+	err = util.JSONToStruct(data.Specification, &specification)
+	if err != nil {
+		return nil, err
+	}
+	err = util.JSONToStruct(data.Discounts, &discountList)
+	if err != nil {
+		return nil, err
+	}
+
+	if specification.GoodsID != goods.ID {
+		return nil, errors.New("产品规格不匹配")
+	}
+	if specification.ID == 0 {
+		return nil, errors.New("找不到规格")
+	}
+	if specification.Stock-data.Quantity < 0 {
+		return nil, errors.New("库存不足")
+	}
+
+	ordersGoods.Specification = &specification
+	ordersGoods.Goods = &goods
+	ordersGoods.OID = goods.OID
+	ordersGoods.Quantity = data.Quantity
+
+	ordersGoods.OrdersGoodsNo = data.OrdersGoodsNo
+	ordersGoods.Discounts = discountList
+	ordersGoods.Status = data.Status
+	ordersGoods.RefundInfo = data.RefundInfo
+	ordersGoods.OrdersID = data.OrdersID
+	ordersGoods.CostPrice = data.CostPrice
+	ordersGoods.SellPrice = data.SellPrice
+	ordersGoods.TotalBrokerage = data.TotalBrokerage
+
+	goodsSkuData := service.goodsSkuData(singleton.Orm(), goods.ID, specification.LabelIndex)
+	ordersGoods.SkuImages = goodsSkuData.SkuImages
+	ordersGoods.SkuLabelMap = goodsSkuData.SkuLabelMap
+	ordersGoods.SkuLabelDataMap = goodsSkuData.SkuLabelDataMap
+	return ordersGoods, nil
+}
 func (service OrdersService) createOrdersGoods(shoppingCart *model.ShoppingCart) (*extends.OrdersGoods, error) {
 	ordersGoods := &extends.OrdersGoods{}
 	var goods model.Goods
@@ -1452,68 +1532,105 @@ func (service OrdersService) ChangeOrdersPayMoney(PayMoney float64, OrdersID typ
 
 }
 
-type AnalyseOrdersGoods struct {
-	Organization model.Organization
-	//Error            error
-	OrdersGoodsInfos []extends.OrdersGoodsInfo
-	FavouredPrice    uint //拼团价格
-	FullCutAll       uint
-	GoodsPrice       uint
-	ExpressPrice     uint
-	FullCut          model.FullCut
+func (service OrdersService) AnalyseOrdersGoodsListByOrders(orders *model.Orders, address *model.Address) (*extends.ConfirmOrdersGoods, error) {
+	orderGoodsList := make([]*extends.OrdersGoods, 0)
+	ordersGoodsList, _ := service.FindOrdersGoodsByOrdersID(singleton.Orm(), orders.ID)
+	for i := 0; i < len(ordersGoodsList); i++ {
+		ordersGoods, err := service.ConvertOrdersGoods(ordersGoodsList[i].(*model.OrdersGoods))
+		if err != nil {
+			return nil, err
+		}
+		orderGoodsList = append(orderGoodsList, ordersGoods)
+	}
+	list, err := service.AnalyseOrdersGoodsList(orders.OID, address, orderGoodsList)
+	return list, err
 }
 
-// 订单分析，
-func (service OrdersService) AnalyseOrdersGoodsList(UserID types.PrimaryKey, addressee *model.Address, orderGoods []*extends.OrdersGoods) ([]AnalyseOrdersGoods, uint, error) {
+// AnalyseOrdersGoodsList 订单分析，
+func (service OrdersService) AnalyseOrdersGoodsList(oid types.PrimaryKey, addressee *model.Address, orderGoods []*extends.OrdersGoods) (*extends.ConfirmOrdersGoods, error) {
 
-	oslist := make(map[types.PrimaryKey][]*extends.OrdersGoods)
+	/*oslist := make(map[types.PrimaryKey][]*extends.OrdersGoods)
 	for index, v := range orderGoods {
 		items := oslist[v.OID]
 		if items == nil {
 			oslist[v.OID] = make([]*extends.OrdersGoods, 0)
 		}
 		oslist[v.OID] = append(oslist[v.OID], orderGoods[index])
+	}*/
+
+	outResult := &extends.ConfirmOrdersGoods{}
+
+	//var org model.Organization
+	//org := dao.GetByPrimaryKey(singleton.Orm(), &model.Organization{}, key).(*model.Organization)
+
+	analyseResult, err := service.analyseOne(oid, addressee, orderGoods)
+	if err != nil {
+		return nil, err
 	}
 
-	outResult := make([]AnalyseOrdersGoods, 0)
+	//result.Error = Error
+	outResult.OrdersGoodsInfos = analyseResult.OrdersGoodsInfo
+	outResult.FavouredPrice = analyseResult.FavouredPrice
+	outResult.FullCutAll = analyseResult.FullCutAll
+	outResult.GoodsPrice = analyseResult.GoodsPrice
+	outResult.ExpressPrice = analyseResult.ExpressPrice
+	outResult.FullCut = analyseResult.FullCut
+	outResult.Address = addressee
 
-	var golErr error
-	var TotalPrice uint = 0
+	outResult.TotalAmount = (analyseResult.GoodsPrice - analyseResult.FullCutAll + analyseResult.ExpressPrice)
 
-	for key := range oslist {
-		result := AnalyseOrdersGoods{}
+	return outResult, nil
+}
 
-		//var org model.Organization
-		org := dao.GetByPrimaryKey(singleton.Orm(), &model.Organization{}, key).(*model.Organization)
+type GoodsSkuData struct {
+	SkuImages       []string
+	SkuLabelMap     map[types.PrimaryKey]*model.GoodsSkuLabel
+	SkuLabelDataMap map[types.PrimaryKey]*model.GoodsSkuLabelData
+}
 
-		analyseResult, err := service.analyseOne(UserID, org.ID, addressee, oslist[key])
-		if err != nil {
-			return nil, 0, err
+func (service OrdersService) goodsSkuData(tx *gorm.DB, goodsID types.PrimaryKey, specificationLabelIndex sqltype.PrimaryKeyArray) *GoodsSkuData {
+
+	goodsSkuLabelMap := make(map[types.PrimaryKey]*model.GoodsSkuLabel)
+	{
+		goodsSkuLabelList := dao.Find(tx, &model.GoodsSkuLabel{}).Where(`"GoodsID"=?`, goodsID).List()
+		for i := range goodsSkuLabelList {
+			goodsSkuLabelMap[goodsSkuLabelList[i].Primary()] = goodsSkuLabelList[i].(*model.GoodsSkuLabel)
 		}
-		//result.Error = Error
-		result.Organization = *org
-		result.OrdersGoodsInfos = analyseResult.OrdersGoodsInfo
-		result.FavouredPrice = analyseResult.FavouredPrice
-		result.FullCutAll = analyseResult.FullCutAll
-		result.GoodsPrice = analyseResult.GoodsPrice
-		result.ExpressPrice = analyseResult.ExpressPrice
-		result.FullCut = analyseResult.FullCut
+	}
+	skuImages := make([]string, 0)
+	goodsSkuLabelDataMap := make(map[types.PrimaryKey]*model.GoodsSkuLabelData)
+	{
+		goodsSkuLabelDataList := dao.Find(tx, &model.GoodsSkuLabelData{}).Where(`"GoodsID"=?`, goodsID).List()
+		for i := range goodsSkuLabelDataList {
+			item := goodsSkuLabelDataList[i].(*model.GoodsSkuLabelData)
 
-		TotalPrice = TotalPrice + (analyseResult.GoodsPrice - analyseResult.FullCutAll + analyseResult.ExpressPrice)
-		outResult = append(outResult, result)
+			for _, labelIndex := range specificationLabelIndex {
+				if item.ID == labelIndex {
+					goodsSkuLabelDataMap[item.ID] = item
+					if len(item.Image) > 0 {
+						skuImages = append(skuImages, item.Image)
+					}
+					break
+				}
+			}
+		}
 	}
 
-	return outResult, TotalPrice, golErr
+	return &GoodsSkuData{
+		SkuImages:       skuImages,
+		SkuLabelMap:     goodsSkuLabelMap,
+		SkuLabelDataMap: goodsSkuLabelDataMap,
+	}
 }
 
 // 订单分析，
-func (service OrdersService) analyseOne(UserID, OID types.PrimaryKey, address *model.Address, list []*extends.OrdersGoods) (*extends.AnalyseResult, error) {
+func (service OrdersService) analyseOne(OID types.PrimaryKey, address *model.Address, list []*extends.OrdersGoods) (*extends.AnalyseResult, error) {
 
 	analyseResult := &extends.AnalyseResult{}
 
 	Orm := singleton.Orm()
 
-	fullcuts := service.FullCut.FindOrderByAmountDesc(Orm, OID)
+	fullCuts := service.FullCut.FindOrderByAmountDesc(Orm, OID)
 
 	//可以使用满减的金额
 	FullCutPrice := uint(0)
@@ -1532,34 +1649,10 @@ func (service OrdersService) analyseOne(UserID, OID types.PrimaryKey, address *m
 		//util.JSONToStruct(value.Goods, &goods)
 		//util.JSONToStruct(value.Specification, &specification)
 
-		goodsSkuLabelMap := make(map[types.PrimaryKey]*model.GoodsSkuLabel)
-		{
-			goodsSkuLabelList := dao.Find(Orm, &model.GoodsSkuLabel{}).Where(`"GoodsID"=?`, value.Goods.ID).List()
-			for i := range goodsSkuLabelList {
-				goodsSkuLabelMap[goodsSkuLabelList[i].Primary()] = goodsSkuLabelList[i].(*model.GoodsSkuLabel)
-			}
-		}
-		skuImages := make([]string, 0)
-		goodsSkuLabelDataMap := make(map[types.PrimaryKey]*model.GoodsSkuLabelData)
-		{
-			goodsSkuLabelDataList := dao.Find(Orm, &model.GoodsSkuLabelData{}).Where(`"GoodsID"=?`, value.Goods.ID).List()
-			for i := range goodsSkuLabelDataList {
-				item := goodsSkuLabelDataList[i].(*model.GoodsSkuLabelData)
-
-				for _, labelIndex := range value.Specification.LabelIndex {
-					if item.ID == labelIndex {
-						goodsSkuLabelDataMap[item.ID] = item
-						if len(item.Image) > 0 {
-							skuImages = append(skuImages, item.Image)
-						}
-						break
-					}
-				}
-			}
-		}
-		value.SkuImages = skuImages
-		value.SkuLabelMap = goodsSkuLabelMap
-		value.SkuLabelDataMap = goodsSkuLabelDataMap
+		goodsSkuData := service.goodsSkuData(Orm, value.Goods.ID, value.Specification.LabelIndex)
+		value.SkuImages = goodsSkuData.SkuImages
+		value.SkuLabelMap = goodsSkuData.SkuLabelMap
+		value.SkuLabelDataMap = goodsSkuData.SkuLabelDataMap
 
 		/*if PostType == 1 {
 			//邮寄时，才判断库存
@@ -1606,41 +1699,6 @@ func (service OrdersService) analyseOne(UserID, OID types.PrimaryKey, address *m
 			FullCutPrice = FullCutPrice + Price
 		}
 
-		/*timesell := service.TimeSell.GetTimeSellByGoodsID(goods.ID)
-		if timesell.IsEnable() {
-
-			Price = uint(util.Rounding45(float64(Price)-(float64(Price)*(float64(timesell.Discount)/float64(100))), 2))
-			GoodsPrice = GoodsPrice + Price
-
-			Favoured := uint(util.Rounding45(float64(value.SellPrice)*(float64(timesell.Discount)/float64(100)), 2))
-			FavouredPrice = FavouredPrice + (Favoured * uint(value.Quantity))
-
-			ogs.Favoured = model.Favoured{Name: "限时抢购", Target: util.StructToJSON(timesell), TypeName: "TimeSell", Discount: uint(timesell.Discount)}
-
-			value.SellPrice = value.SellPrice - Favoured
-
-		} else {
-
-			collage := service.Collage.GetCollageByGoodsID(goods.ID)
-			if collage.ID != 0 && collage.TotalNum > 0 {
-
-				Price = uint(util.Rounding45(float64(Price)-(float64(Price)*(float64(collage.Discount)/float64(100))), 2))
-				GoodsPrice = GoodsPrice + Price
-
-				Favoured := uint(util.Rounding45(float64(value.SellPrice)*(float64(collage.Discount)/float64(100)), 2))
-				FavouredPrice = FavouredPrice + (Favoured * uint(value.Quantity))
-
-				ogs.Favoured = model.Favoured{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint(collage.Discount)}
-
-				value.SellPrice = value.SellPrice - Favoured
-
-				//goodsInfo.Favoureds = append(goodsInfo.Favoureds, model.Favoured{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint(collage.Discount)})
-			} else {
-				GoodsPrice = GoodsPrice + Price
-				FullCutPrice = FullCutPrice + Price
-			}
-
-		}*/
 		ogs.OrdersGoods = value
 		oggs = append(oggs, ogs)
 		//ogss=append(ogss,ogs)
@@ -1672,12 +1730,11 @@ func (service OrdersService) analyseOne(UserID, OID types.PrimaryKey, address *m
 
 	}
 	//计算快满减
-	for index, value := range fullcuts {
-
+	for index, value := range fullCuts {
 		if FullCutPrice >= value.Amount {
 			analyseResult.FullCutAll = value.CutAmount
 			//返回满减的值
-			analyseResult.FullCut = fullcuts[index]
+			analyseResult.FullCut = fullCuts[index]
 			break
 		}
 	}
@@ -1689,10 +1746,10 @@ func (service OrdersService) analyseOne(UserID, OID types.PrimaryKey, address *m
 
 	for ID, value := range expresstemplateMap {
 		//var expresstemplate model.ExpressTemplate
-		expresstemplate := dao.GetByPrimaryKey(Orm, &model.ExpressTemplate{}, ID).(*model.ExpressTemplate)
+		expressTemplate := dao.GetByPrimaryKey(Orm, &model.ExpressTemplate{}, ID).(*model.ExpressTemplate)
 
 		etFree := make([]model.ExpressTemplateFreeItem, 0)
-		json.Unmarshal([]byte(expresstemplate.Free), &etFree)
+		json.Unmarshal([]byte(expressTemplate.Free), &etFree)
 
 		var expressTemplateFreeItem *model.ExpressTemplateFreeItem
 
@@ -1709,7 +1766,7 @@ func (service OrdersService) analyseOne(UserID, OID types.PrimaryKey, address *m
 
 		}
 
-		if expressTemplateFreeItem != nil && expressTemplateFreeItem.IsFree(expresstemplate, value) {
+		if expressTemplateFreeItem != nil && expressTemplateFreeItem.IsFree(expressTemplate, value) {
 			//有包邮项目
 			analyseResult.ExpressPrice = 0
 
@@ -1717,7 +1774,7 @@ func (service OrdersService) analyseOne(UserID, OID types.PrimaryKey, address *m
 			//无包邮项目
 
 			etTemplate := model.ExpressTemplateTemplate{}
-			json.Unmarshal([]byte(expresstemplate.Template), &etTemplate)
+			json.Unmarshal([]byte(expressTemplate.Template), &etTemplate)
 
 			var expressTemplateItem *model.ExpressTemplateItem
 
@@ -1734,9 +1791,9 @@ func (service OrdersService) analyseOne(UserID, OID types.PrimaryKey, address *m
 			}
 
 			if expressTemplateItem != nil {
-				analyseResult.ExpressPrice = analyseResult.ExpressPrice + expressTemplateItem.CalculateExpressPrice(expresstemplate, value)
+				analyseResult.ExpressPrice = analyseResult.ExpressPrice + expressTemplateItem.CalculateExpressPrice(expressTemplate, value)
 			} else {
-				analyseResult.ExpressPrice = analyseResult.ExpressPrice + etTemplate.Default.CalculateExpressPrice(expresstemplate, value)
+				analyseResult.ExpressPrice = analyseResult.ExpressPrice + etTemplate.Default.CalculateExpressPrice(expressTemplate, value)
 			}
 		}
 	}
@@ -1825,10 +1882,11 @@ func (service OrdersService) AddCartOrders(UserID types.PrimaryKey, GoodsID, Spe
 	return nil
 
 }
-func (service OrdersService) FindOrdersGoodsByOrdersID(DB *gorm.DB, OrdersID types.PrimaryKey) ([]model.OrdersGoods, error) {
-	var ogs []model.OrdersGoods
-	err := service.FindWhere(DB, &ogs, &model.OrdersGoods{OrdersID: OrdersID})
-	return ogs, err
+func (service OrdersService) FindOrdersGoodsByOrdersID(DB *gorm.DB, OrdersID types.PrimaryKey) ([]types.IEntity, error) {
+	//var ogs []model.OrdersGoods
+	//err := service.FindWhere(DB, &ogs, &model.OrdersGoods{OrdersID: OrdersID})
+	ogs := dao.Find(DB, &model.OrdersGoods{}).Where(`"OrdersID"=?`, OrdersID).List()
+	return ogs, nil
 }
 func (service OrdersService) FindOrdersGoodsByCollageUser(CollageNo string) []model.User {
 	orm := singleton.Orm()

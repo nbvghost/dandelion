@@ -446,7 +446,7 @@ func (service WxService) MWQRCodeTemp(OID uint, UserID uint, qrtype, params stri
 
 }
 
-//订单查询
+// 订单查询
 func (service WxService) OrderQuery(ctx context.Context, OrderNo string, wxConfig *model.WechatConfig) (*payments.Transaction, error) {
 	client, err := NewClient(wxConfig)
 	if err != nil {
@@ -466,8 +466,8 @@ func (service WxService) OrderQuery(ctx context.Context, OrderNo string, wxConfi
 	return resp, nil
 }
 
-//查询提现接口
-func (service WxService) GetTransfersInfo(transfers model.Transfers, wxConfig *model.WechatConfig) (Success bool) {
+// 查询提现接口
+func (service WxService) GetTransfersInfo(transfers *model.Transfers, wxConfig *model.WechatConfig) (Success bool) {
 
 	//WxConfig := service.MiniProgram()
 
@@ -558,7 +558,7 @@ func (service WxService) GetTransfersInfo(transfers model.Transfers, wxConfig *m
 
 }
 
-//提现
+// 提现
 func (service WxService) Transfers(transfers model.Transfers, wxConfig *model.WechatConfig) (Success bool, Message string) {
 	//WxConfig := service.MiniProgram()
 
@@ -648,7 +648,7 @@ func (service WxService) Transfers(transfers model.Transfers, wxConfig *model.We
 	}
 }
 
-//关闭订单
+// 关闭订单
 func (service WxService) CloseOrder(OrderNo string, OID types.PrimaryKey, wxConfig *model.WechatConfig) (Success bool, Message string) {
 
 	//WxConfig := service.MiniProgram()
@@ -707,7 +707,7 @@ func (service WxService) CloseOrder(OrderNo string, OID types.PrimaryKey, wxConf
 
 }
 
-//退款-订单内的所有的商品/订单内某个商品
+// 退款-订单内的所有的商品/订单内某个商品
 func (service WxService) Refund(ctx context.Context, order *model.Orders, ordersGoods *model.OrdersGoods, reason string, wxConfig *model.WechatConfig) (*refunddomestic.Refund, error) {
 
 	client, err := NewClient(wxConfig)

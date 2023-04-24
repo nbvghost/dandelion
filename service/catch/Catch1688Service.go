@@ -32,11 +32,12 @@ import (
 
 type Catch1688Service struct {
 	model.BaseDao
-	Voucher         activity.VoucherService
-	Goods           goods.GoodsService
-	Organization    company.OrganizationService
-	ExpressTemplate express.ExpressTemplateService
-	Admin           admin.AdminService
+	Voucher          activity.VoucherService
+	Goods            goods.GoodsService
+	GoodsTypeService goods.GoodsTypeService
+	Organization     company.OrganizationService
+	ExpressTemplate  express.ExpressTemplateService
+	Admin            admin.AdminService
 	//URLS         []string
 }
 
@@ -315,7 +316,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 	categoryA := categoryList[0].(map[string]interface{})
 	categoryB := categoryList[1].(map[string]interface{})
 
-	gt, gtc := service.Goods.AddGoodsTypeByNameByChild(categoryA["name"].(string), categoryB["name"].(string))
+	gt, gtc := service.GoodsTypeService.AddGoodsTypeByNameByChild(categoryA["name"].(string), categoryB["name"].(string))
 	goods.GoodsTypeID = gt.ID
 	goods.GoodsTypeChildID = gtc.ID
 

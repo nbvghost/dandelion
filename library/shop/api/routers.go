@@ -4,6 +4,7 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/shop/api/account"
 	"github.com/nbvghost/dandelion/library/shop/api/content"
+	"github.com/nbvghost/dandelion/library/shop/api/goods/wish"
 	"github.com/nbvghost/dandelion/library/shop/api/index"
 	"github.com/nbvghost/dandelion/library/shop/api/journal"
 	"github.com/nbvghost/dandelion/library/shop/api/order"
@@ -71,6 +72,7 @@ func Register(route constrain.IRoute) {
 	}
 	route.RegisterRoute("order/confirm/list", &order.ConfirmList{})
 	route.RegisterRoute("order/create-orders", &order.CreateOrders{})
+	route.RegisterRoute("order/info-orders", &order.InfoOrders{})
 	route.RegisterRoute("order/wxpay/package", &order.WXPayPackage{})
 	route.RegisterRoute("order/wxpay/alone", &order.WXPayAlone{})
 	route.RegisterRoute("order/list", &order.List{})
@@ -102,4 +104,7 @@ func Register(route constrain.IRoute) {
 	//payment
 	route.RegisterRoute("payment/method/paypal/checkout-orders", &paypal.CheckoutOrders{})
 	route.RegisterRoute("payment/method/paypal/capture/{PaypalOrderID}", &paypal.Capture{})
+
+	route.RegisterRoute("goods/wish/add", &wish.Add{})
+	route.RegisterRoute("goods/wish/list", &wish.List{})
 }

@@ -8,13 +8,13 @@ import (
 )
 
 type GoodsTypeList struct {
-	GoodsService goods.GoodsService
-	Organization *model.Organization `mapping:""`
+	GoodsTypeService goods.GoodsTypeService
+	Organization     *model.Organization `mapping:""`
 }
 
 func (m *GoodsTypeList) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*entity.Organization)
-	list := m.GoodsService.ListGoodsType(m.Organization.ID)
+	list := m.GoodsTypeService.ListGoodsType(m.Organization.ID)
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: list}}, nil
 
 }

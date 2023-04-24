@@ -62,11 +62,11 @@ func (b BaseDao) ChangeMap(DB *gorm.DB, ID types.PrimaryKey, model interface{}, 
 
 	return DB.Find(target).Error
 }*/
-func (b BaseDao) FindWhere(DB *gorm.DB, target interface{}, where interface{}, args ...interface{}) error {
+/*func (b BaseDao) FindWhere(DB *gorm.DB, target interface{}, where interface{}, args ...interface{}) error {
 
 	return DB.Model(target).Where(where, args...).Find(target).Error
 
-}
+}*/
 func (b BaseDao) FindWhereByOID(DB *gorm.DB, target interface{}, OID uint, where interface{}, args ...interface{}) error {
 
 	return DB.Model(target).Where(map[string]interface{}{"OID": OID}).Where(where, args...).Find(target).Error
@@ -135,7 +135,8 @@ type Datatables struct {
 	InIDs    []uint
 }
 
-/*`{"draw":1,"columns":[
+/*
+`{"draw":1,"columns":[
 {"data":"ID","name":"","searchable":true,"orderable":true,"search":{"value":"","regex":false}},
 {"data":"Name","name":"","searchable":true,"orderable":true,"search":{"value":"","regex":false}},
 {"data":"Grade","name":"","searchable":true,"orderable":true,"search":{"value":"","regex":false}},
@@ -144,7 +145,8 @@ type Datatables struct {
 {"data":"County","name":"","searchable":true,"orderable":true,"search":{"value":"","regex":false}}
 ],"order":[
 {"column":0,"dir":"asc"}
-],"start":0,"length":10,"search":{"value":"","regex":false}}`*/
+],"start":0,"length":10,"search":{"value":"","regex":false}}`
+*/
 func (b BaseDao) DatatablesListOrder(Orm *gorm.DB, params *Datatables, target interface{}, OID types.PrimaryKey, where string, whereValues ...interface{}) (draw int, recordsTotal int64, recordsFiltered int64, list interface{}) {
 	draw = params.Draw
 	selectFileds := make([]string, 0)

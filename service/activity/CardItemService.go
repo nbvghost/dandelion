@@ -38,9 +38,10 @@ func (service CardItemService) ListNewCount(UserID types.PrimaryKey) (TotalRecor
 	return
 
 }
-func (service CardItemService) CancelOrdersGoodsCardItem(DB *gorm.DB, UserID types.PrimaryKey, ogs []model.OrdersGoods) error {
+func (service CardItemService) CancelOrdersGoodsCardItem(DB *gorm.DB, UserID types.PrimaryKey, ogs []types.IEntity) error {
 
-	for _, value := range ogs {
+	for i := range ogs {
+		value := ogs[i].(*model.OrdersGoods)
 		err := dao.DeleteBy(DB, &model.CardItem{}, map[string]interface{}{
 			"UserID":        UserID,
 			"Type":          CardItem_Type_OrdersGoods,
@@ -59,7 +60,7 @@ func (service CardItemService) FindByUserID(UserID types.PrimaryKey) []model.Car
 	return cards
 }
 
-//添加Voucher
+// 添加Voucher
 func (service CardItemService) AddVoucherCardItem(DB *gorm.DB, OrderNo string, UserID, VoucherID types.PrimaryKey) error {
 
 	voucher := dao.GetByPrimaryKey(DB, &model.Voucher{}, VoucherID).(*model.Voucher)
@@ -80,7 +81,7 @@ func (service CardItemService) AddVoucherCardItem(DB *gorm.DB, OrderNo string, U
 	return nil
 }
 
-//添加Voucher
+// 添加Voucher
 func (service CardItemService) AddScoreGoodsItem(DB *gorm.DB, UserID, ScoreGoodsID types.PrimaryKey) error {
 
 	//scoreGoodsService := ScoreGoodsService{}

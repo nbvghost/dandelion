@@ -51,7 +51,7 @@ func (m *ConfirmList) HandlePost(ctx constrain.IContext) (constrain.IResult, err
 	//address := model.Address{}
 	//util.JSONToStruct(m.Post.Address, &address)
 
-	results, _, err := m.OrdersService.AnalyseOrdersGoodsList(m.User.ID, &m.Post.Address, ogs)
+	results, err := m.OrdersService.AnalyseOrdersGoodsList(m.User.OID, &m.Post.Address, ogs)
 
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", results)}, err
 }

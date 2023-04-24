@@ -38,7 +38,7 @@ type VerificationService struct {
 	Goods      goods.GoodsService
 }
 
-//核销卡卷
+// 核销卡卷
 func (service VerificationService) VerificationCardItem(DB *gorm.DB, VerificationNo string, Quantity uint, user *model.User, store *model.Store) error {
 
 	verification := service.GetVerificationByVerificationNo(VerificationNo)
@@ -148,7 +148,8 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 				}
 
 				var Brokerage uint
-				for _, value := range ogs {
+				for i := range ogs {
+					value := ogs[i].(*model.OrdersGoods)
 					//var specification model.Specification
 					//util.JSONToStruct(value.Specification, &specification)
 					Brokerage = Brokerage + value.TotalBrokerage
