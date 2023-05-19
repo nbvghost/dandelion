@@ -20,6 +20,9 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 		return err
 	}
 	if false {
+		go func() {
+			rebuildFullTextSearch()
+		}()
 		return nil
 	}
 
