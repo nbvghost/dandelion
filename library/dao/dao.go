@@ -51,6 +51,10 @@ func (m *FindQuery) PrimaryKey(ID types.PrimaryKey) *FindQuery {
 	m.db.Where(ID)
 	return m
 }
+func (m *FindQuery) Select(query interface{}, args ...interface{}) *FindQuery {
+	m.db.Select(query, args...)
+	return m
+}
 func (m *FindQuery) Where(query interface{}, args ...interface{}) *FindQuery {
 	m.db.Where(query, args...)
 	return m
@@ -71,6 +75,10 @@ func (m *FindQuery) Limit(index, pageSize int) int64 {
 	var total int64
 	m.db.Count(&total).Limit(pageSize).Offset(pageSize * index)
 	return total
+}
+
+func (m *FindQuery) Pluck(column string, dest interface{}) {
+	m.db.Pluck(column, dest)
 }
 func (m *FindQuery) List() []types.IEntity {
 	var list = reflect.New(reflect.SliceOf(reflect.TypeOf(m.model)))

@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 
 	"go.uber.org/zap"
@@ -15,14 +16,15 @@ import (
 )
 
 type handlerContext struct {
-	uid     types.PrimaryKey
-	parent  context.Context
-	redis   constrain.IRedis
-	mode    key.Mode
-	logger  *zap.Logger
-	appName string
-	route   string
-	token   string
+	uid       types.PrimaryKey
+	parent    context.Context
+	redis     constrain.IRedis
+	mode      key.Mode
+	logger    *zap.Logger
+	appName   string
+	route     string
+	token     string
+	syncCache *sync.Map
 }
 
 type ContextKey struct {
@@ -57,7 +59,9 @@ func (m *handlerContext) Deadline() (deadline time.Time, ok bool) {
 func (m *handlerContext) Done() <-chan struct{} {
 	return m.parent.Done()
 }
-
+func (m *handlerContext) SyncCache() *sync.Map {
+	return m.syncCache
+}
 func (m *handlerContext) Err() error {
 	return m.parent.Err()
 }
@@ -96,6 +100,12 @@ func (m *handlerContext) Token() string {
 func (m *handlerContext) Mode() key.Mode {
 	return m.mode
 }
+func (m *handlerContext) Destroy() {
+	m.syncCache.Range(func(key, value any) bool {
+		m.syncCache.Delete(key)
+		return true
+	})
+}
 func New(parent context.Context, appName, uid string, route string, redis constrain.IRedis, token string, logger *zap.Logger, mode key.Mode) constrain.IContext {
-	return &handlerContext{parent: parent, uid: types.NewFromString(uid), route: route, redis: redis, appName: appName, token: token, logger: logger, mode: mode}
+	return &handlerContext{parent: parent, uid: types.NewFromString(uid), route: route, redis: redis, appName: appName, token: token, logger: logger, mode: mode, syncCache: &sync.Map{}}
 }

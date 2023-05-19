@@ -158,7 +158,7 @@ type templateFuncMap struct {
 	funcMap template.FuncMap
 }
 
-func (m *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
+func (fo *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 	createFunc := func(funcName string) {
 		function := regMap[funcName]
 
@@ -243,12 +243,12 @@ func (m *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 
 			return []reflect.Value{reflect.ValueOf(result)}
 		})
-		m.funcMap[funcName] = backCallFunc.Interface()
+		fo.funcMap[funcName] = backCallFunc.Interface()
 	}
 	for funcName := range regMap {
 		createFunc(funcName)
 	}
-	return m.funcMap
+	return fo.funcMap
 }
 
 func NewFuncMap() ITemplateFunc {
@@ -271,13 +271,68 @@ func NewFuncMap() ITemplateFunc {
 	fm.funcMap["MakeArray"] = fm.makeArray
 	fm.funcMap["DigitMod"] = fm.digitMod
 	fm.funcMap["Map"] = fm.mapFunc
-	fm.funcMap["Test"] = fm.test
+	fm.funcMap["Index"] = fm.Index
 	return fm
 }
+func indirectInterface(v reflect.Value) reflect.Value {
+	if v.Kind() != reflect.Interface {
+		return v
+	}
+	if v.IsNil() {
+		return reflect.Value{}
+	}
+	return v.Elem()
+}
+func indirect(v reflect.Value) (rv reflect.Value, isNil bool) {
+	for ; v.Kind() == reflect.Pointer || v.Kind() == reflect.Interface; v = v.Elem() {
+		if v.IsNil() {
+			return v, true
+		}
+	}
+	return v, false
+}
+func indexArg(index reflect.Value, cap int) (int, error) {
+	var x int64
+	switch index.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		x = index.Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		x = int64(index.Uint())
+	case reflect.Invalid:
+		return 0, fmt.Errorf("cannot index slice/array with nil")
+	default:
+		return 0, fmt.Errorf("cannot index slice/array with type %s", index.Type())
+	}
+	if x < 0 || int(x) < 0 || int(x) > cap {
+		return 0, fmt.Errorf("index out of range: %d", x)
+	}
+	return int(x), nil
+}
+func (fo *templateFuncMap) Index(item reflect.Value, index reflect.Value) (reflect.Value, error) {
+	index = indirectInterface(index)
+	if index.Int() < 0 {
+		index = reflect.ValueOf(item.Len() + int(index.Int()))
+	}
 
-func (fo *templateFuncMap) test() map[string]interface{} {
+	if index.Int() < 0 {
+		return reflect.Value{}, nil
+	}
 
-	return map[string]interface{}{"fdsfds": 4545}
+	var isNil bool
+	if item, isNil = indirect(item); isNil {
+		return reflect.Value{}, fmt.Errorf("index of nil pointer")
+	}
+	switch item.Kind() {
+	case reflect.Array, reflect.Slice, reflect.String:
+		x, err := indexArg(index, item.Len())
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		item = item.Index(x)
+	default:
+		return reflect.Value{}, fmt.Errorf("can't index item of type %s", item.Type())
+	}
+	return item, nil
 }
 func (fo *templateFuncMap) digitAdd(a, b interface{}, prec int) float64 {
 	_a := reflect.ValueOf(a).Convert(reflect.TypeOf(float64(0))).Float()
@@ -357,15 +412,18 @@ func (fo *templateFuncMap) parseFloat(source interface{}) float64 {
 	return object.ParseFloat(source)
 }
 
-/*func cipherDecrypter(source string) string {
+/*
+func cipherDecrypter(source string) string {
 
-	str := encryption.CipherDecrypter(encryption.public_PassWord, source)
-	return str
-}
-func cipherEncrypter(source string) string {
-	str := encryption.CipherEncrypter(encryption.public_PassWord, source)
-	return str
-}*/
+		str := encryption.CipherDecrypter(encryption.public_PassWord, source)
+		return str
+	}
+
+	func cipherEncrypter(source string) string {
+		str := encryption.CipherEncrypter(encryption.public_PassWord, source)
+		return str
+	}
+*/
 func (fo *templateFuncMap) fromJSONToMap(source string) map[string]interface{} {
 	d := make(map[string]interface{})
 	err := json.Unmarshal([]byte(source), &d)

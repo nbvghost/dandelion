@@ -58,9 +58,11 @@ func (m *httpServer) Use(middleware constrain.IMiddleware) {
 			if ctxValue != nil {
 				ctx = r.Context().(constrain.IContext)
 			} else {
-				ctx = middleware.CreateContent(m.redisClient, m.route, w, r)
+				ctx = middleware.CreateContext(m.redisClient, m.route, w, r)
 				r = r.WithContext(ctx)
 			}
+
+			defer ctx.Destroy()
 
 			defer func() {
 				if rerr := recover(); rerr != nil {
@@ -212,49 +214,33 @@ func WithCustomizeViewRenderOption(customizeViewRender constrain.IViewRender) Op
 	})
 }
 
-func NewHttpServer(engine *mux.Router, router *mux.Router, route constrain.IRoute, ops ...Option) *httpServer {
-	s := &httpServer{router: router, route: route, engine: engine}
+func NewHttpServer(engine *mux.Router, router *mux.Router, mRoute constrain.IRoute, ops ...Option) *httpServer {
+	s := &httpServer{router: router, route: mRoute, engine: engine}
 	for i := range ops {
 		ops[i].apply(s)
 	}
 
-	if router != nil && route != nil {
-		router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var isNext bool
-			var err error
+	if router != nil && mRoute != nil {
+		router.NotFoundHandler = http.RedirectHandler("/404", http.StatusPermanentRedirect)
+		//router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-			ctx := DefaultHttpMiddleware.CreateContent(s.redisClient, route, w, r)
-
-			defer func() {
-
-				if rerr := recover(); rerr != nil {
-					switch rerr.(type) {
-					case error:
-						err = rerr.(error)
-					default:
-						err = fmt.Errorf("%v", rerr)
-					}
-					ctx.Logger().Error("http-server", zap.Error(err))
-					s.handleError(ctx, s.customizeViewRender, w, r, err)
-				}
-
-			}()
-
-			/*var pathTemplate string
-			pathTemplate, err = getPathTemplate(r)
-			if err != nil {
-				return
+		/*ctx := DefaultHttpMiddleware.CreateContext(s.redisClient, mRoute, w, r)
+		w.WriteHeader(http.StatusNotFound)
+		viewResult := route.NewViewResult("404", map[string]any{})
+		viewBaseValue := reflect.ValueOf(viewResult).Elem().FieldByName("ViewBase")
+		viewBase := viewBaseValue.Interface().(extends.ViewBase)
+		viewBaseValue.Set(reflect.ValueOf(viewBase))
+		if s.customizeViewRender != nil {
+			if err := s.customizeViewRender.Render(ctx, r, w, viewResult); err != nil {
+				ctx.Logger().Error("render", zap.Error(err))
 			}
-			ctxValue := contexext.FromContext(ctx)*/
-
-			if isNext, err = DefaultHttpMiddleware.Handle(ctx, route, s.customizeViewRender, w, r); err != nil {
-				ctx.Logger().Error("http-server", zap.Error(err))
-				return
-			}
-			if !isNext {
-				return
-			}
-		})
+			return
+		}
+		vr := &viewRender{}
+		if err := vr.Render(ctx, r, w, viewResult); err != nil {
+			ctx.Logger().Error("render", zap.Error(err))
+		}*/
+		//})
 	}
 	return s
 }

@@ -1,16 +1,17 @@
-package model
+package extends
 
 import (
+	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/gpa/types"
 )
 
 type GoodsTypeGoodsTypeChild struct {
-	GoodsType      `gorm:"column:GoodsType"`
-	GoodsTypeChild `gorm:"column:GoodsTypeChild"`
+	model.GoodsType      `gorm:"column:GoodsType"`
+	model.GoodsTypeChild `gorm:"column:GoodsTypeChild"`
 }
 
 type GoodsTypeItemSub struct {
-	Item    *GoodsTypeChild
+	Item    *model.GoodsTypeChild
 	SubType []*GoodsTypeItemSub
 }
 
@@ -20,11 +21,11 @@ func (m *GoodsTypeItemSub) Get(ID types.PrimaryKey) *GoodsTypeItemSub {
 			return m.SubType[index]
 		}
 	}
-	return &GoodsTypeItemSub{Item: &GoodsTypeChild{}, SubType: []*GoodsTypeItemSub{}}
+	return &GoodsTypeItemSub{Item: &model.GoodsTypeChild{}, SubType: []*GoodsTypeItemSub{}}
 }
 
 type GoodsTypeItem struct {
-	Item    *GoodsType
+	Item    *model.GoodsType
 	SubType []*GoodsTypeItemSub
 }
 
@@ -34,7 +35,7 @@ func (m GoodsTypeItem) Get(ID types.PrimaryKey) *GoodsTypeItemSub {
 			return m.SubType[index]
 		}
 	}
-	return &GoodsTypeItemSub{Item: &GoodsTypeChild{}, SubType: []*GoodsTypeItemSub{}}
+	return &GoodsTypeItemSub{Item: &model.GoodsTypeChild{}, SubType: []*GoodsTypeItemSub{}}
 }
 
 type GoodsTypeData struct {
@@ -58,8 +59,8 @@ func (m *GoodsTypeData) SetCurrentMenus(ID, SubID types.PrimaryKey) {
 		}
 	}
 
-	m.Top = &GoodsTypeItem{Item: &GoodsType{}, SubType: []*GoodsTypeItemSub{}}
-	m.Sub = &GoodsTypeItemSub{Item: &GoodsTypeChild{}, SubType: []*GoodsTypeItemSub{}}
+	m.Top = &GoodsTypeItem{Item: &model.GoodsType{}, SubType: []*GoodsTypeItemSub{}}
+	m.Sub = &GoodsTypeItemSub{Item: &model.GoodsTypeChild{}, SubType: []*GoodsTypeItemSub{}}
 }
 func (m *GoodsTypeData) Get(ID types.PrimaryKey) *GoodsTypeItem {
 	for index := range m.List {
@@ -67,5 +68,5 @@ func (m *GoodsTypeData) Get(ID types.PrimaryKey) *GoodsTypeItem {
 			return m.List[index]
 		}
 	}
-	return &GoodsTypeItem{Item: &GoodsType{}, SubType: []*GoodsTypeItemSub{}}
+	return &GoodsTypeItem{Item: &model.GoodsType{}, SubType: []*GoodsTypeItemSub{}}
 }

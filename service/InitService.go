@@ -19,6 +19,9 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 	if err != nil {
 		return err
 	}
+	if false {
+		return nil
+	}
 
 	_database := singleton.Orm()
 
@@ -103,15 +106,14 @@ BEGIN
             "Title"=NEW."Title",
             "Content"=NEW."Content",
             "Picture"=NEW."Picture",
+			"Uri"=NEW."Uri",
+            "ContentItemID"=NEW."ContentItemID",
             "Index"=setweight(to_tsvector('english', coalesce(NEW."Title", '')),'A') || setweight(to_tsvector('english', coalesce(NEW."Content", '')),'B')
         where "TID" = NEW."ID"
           and "Type" = 'content';
     ELSIF (TG_OP = 'INSERT') THEN
-        INSERT INTO "FullTextSearch" ("ID", "CreatedAt", "UpdatedAt", "OID", "TID", "Title", "Content", "Picture",
-                                      "Type", "Index")
-        values (DEFAULT, NEW."CreatedAt", NEW."UpdatedAt", NEW."OID", NEW."ID", NEW."Title", NEW."Content",
-                NEW."Picture", 'content',
-                setweight(to_tsvector('english', coalesce(NEW."Title", '')),'A') || setweight(to_tsvector('english', coalesce(NEW."Content", '')),'B'));
+        INSERT INTO "FullTextSearch" ("ID", "CreatedAt", "UpdatedAt", "OID", "TID","Uri", "Title", "Content", "Picture","Type","ContentItemID","Index")
+        values (DEFAULT, NEW."CreatedAt", NEW."UpdatedAt", NEW."OID", NEW."ID",NEW."Uri", NEW."Title", NEW."Content",NEW."Picture", 'content',NEW."ContentItemID",setweight(to_tsvector('english', coalesce(NEW."Title", '')),'A') || setweight(to_tsvector('english', coalesce(NEW."Content", '')),'B'));
     END IF;
     RETURN NULL;
 END;
@@ -126,14 +128,15 @@ BEGIN
         set "UpdatedAt"=NEW."UpdatedAt",
             "Title"=NEW."Title",
             "Content"=NEW."Introduce",
+			"Uri"=NEW."Uri",
             "Picture"=json_array_element(NEW."Images",0),
             "Index"=setweight(to_tsvector('english', coalesce(NEW."Title", '')),'A') || setweight(to_tsvector('english', coalesce(NEW."Introduce", '')),'B')
         where "TID" = NEW."ID"
           and "Type" = 'product';
     ELSIF (TG_OP = 'INSERT') THEN
-        INSERT INTO "FullTextSearch" ("ID", "CreatedAt", "UpdatedAt", "OID", "TID", "Title", "Content", "Picture",
+        INSERT INTO "FullTextSearch" ("ID", "CreatedAt", "UpdatedAt", "OID", "TID","Uri", "Title", "Content", "Picture",
                                       "Type", "Index")
-        values (DEFAULT, NEW."CreatedAt", NEW."UpdatedAt", NEW."OID", NEW."ID", NEW."Title", NEW."Introduce",
+        values (DEFAULT, NEW."CreatedAt", NEW."UpdatedAt", NEW."OID", NEW."ID",NEW."Uri", NEW."Title", NEW."Introduce",
                 json_array_element(NEW."Images",0), 'product',
                 setweight(to_tsvector('english', coalesce(NEW."Title", '')),'A') || setweight(to_tsvector('english', coalesce(NEW."Introduce", '')),'B'));
     END IF;
@@ -174,14 +177,15 @@ $Goods$ LANGUAGE plpgsql;`
 			if err := _database.AutoMigrate(models[index]); err != nil {
 				panic(err)
 			}
-			if err = _database.Exec(dbContentFunc).Error; err != nil {
-				panic(err)
-			}
-			if err = _database.Exec(dbGoodsFunc).Error; err != nil {
-				panic(err)
-			}
 		}
-
+	}
+	if !environments.Release() {
+		if err = _database.Exec(dbContentFunc).Error; err != nil {
+			panic(err)
+		}
+		if err = _database.Exec(dbGoodsFunc).Error; err != nil {
+			panic(err)
+		}
 	}
 
 	var _manager model.Manager
@@ -214,7 +218,7 @@ $Goods$ LANGUAGE plpgsql;`
 
 	if !environments.Release() {
 		go func() {
-			//rebuildFullTextSearch()
+			rebuildFullTextSearch()
 		}()
 	}
 	cache.Init()
@@ -238,6 +242,7 @@ func rebuildFullTextSearch() {
 		fts.OID = v.OID
 		fts.TID = v.ID
 		fts.Title = v.Title
+		fts.Uri = v.Uri
 		fts.Content = util.TrimHtml(v.Introduce)
 		fts.Picture = picture
 		fts.Type = model.FullTextSearchTypeProducts
@@ -262,9 +267,11 @@ func rebuildFullTextSearch() {
 		fts.OID = v.OID
 		fts.TID = v.ID
 		fts.Title = v.Title
+		fts.Uri = v.Uri
 		fts.Content = util.TrimHtml(v.Content)
 		fts.Picture = v.Picture
 		fts.Type = model.FullTextSearchTypeContent
+		fts.ContentItemID = v.ContentItemID
 
 		if err = singleton.Orm().Model(&fts).Save(&fts).Error; err != nil {
 			panic(err)

@@ -55,25 +55,6 @@ func (service GoodsTypeService) ListGoodsByOID(OID types.PrimaryKey) []model.Goo
 	Orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID}).Find(&menus)
 	return menus
 }
-func (service GoodsTypeService) GetGoodsTypeByUri(OID types.PrimaryKey, GoodsTypeUri, GoodsTypeChildUri string) (model.GoodsType, model.GoodsTypeChild) {
-	Orm := singleton.Orm()
-	var item model.GoodsType
-	var itemSub model.GoodsTypeChild
-
-	itemMap := map[string]interface{}{"OID": OID, "Uri": GoodsTypeUri}
-	Orm.Model(model.GoodsType{}).Where(itemMap).First(&item)
-
-	itemSubMap := map[string]interface{}{
-		"OID":         OID,
-		"GoodsTypeID": item.ID,
-		"Uri":         GoodsTypeChildUri,
-	}
-	Orm.Model(model.GoodsTypeChild{}).Where(itemSubMap).First(&itemSub)
-	if itemSub.IsZero() {
-		itemSub.Uri = "all"
-	}
-	return item, itemSub
-}
 
 func (service GoodsTypeService) DeleteGoodsType(ID types.PrimaryKey) *result.ActionResult {
 	Orm := singleton.Orm()
@@ -316,11 +297,11 @@ func (service GoodsTypeService) ListGoodsByType(OID, GoodsTypeID, GoodsTypeChild
 	}
 
 }
-func (service GoodsTypeService) GetGoodsTypeData(OID types.PrimaryKey) *model.GoodsTypeData {
+func (service GoodsTypeService) GetGoodsTypeData(OID types.PrimaryKey) *extends.GoodsTypeData {
 
-	goodsTypeData := &model.GoodsTypeData{}
+	goodsTypeData := &extends.GoodsTypeData{}
 
-	rows, err := singleton.Orm().Raw(`SELECT gt.*,gtc.* FROM "GoodsTypeChild" AS gtc LEFT JOIN "GoodsType" as gt ON (gt."ID"=gtc."GoodsTypeID") WHERE "OID"=?`, OID).Rows()
+	rows, err := singleton.Orm().Raw(`SELECT gt.*,gtc.* FROM "GoodsTypeChild" AS gtc LEFT JOIN "GoodsType" as gt ON (gt."ID"=gtc."GoodsTypeID") WHERE gtc."OID"=?`, OID).Rows()
 	if err != nil {
 		return goodsTypeData
 	}
@@ -328,18 +309,20 @@ func (service GoodsTypeService) GetGoodsTypeData(OID types.PrimaryKey) *model.Go
 	defer rows.Close()
 
 	for rows.Next() {
-		var item model.GoodsTypeGoodsTypeChild
+		var item extends.GoodsTypeGoodsTypeChild
 		err := singleton.Orm().ScanRows(rows, &item)
-		log.Println(err)
+		if err != nil {
+			log.Println(err)
+		}
 
 		goodsTypeItem := goodsTypeData.Get(item.GoodsType.ID)
 		if goodsTypeItem.Item.ID == 0 {
 
-			goodsTypeData.List = append(goodsTypeData.List, &model.GoodsTypeItem{Item: &item.GoodsType, SubType: []*model.GoodsTypeItemSub{{Item: &item.GoodsTypeChild, SubType: []*model.GoodsTypeItemSub{}}}})
+			goodsTypeData.List = append(goodsTypeData.List, &extends.GoodsTypeItem{Item: &item.GoodsType, SubType: []*extends.GoodsTypeItemSub{{Item: &item.GoodsTypeChild, SubType: []*extends.GoodsTypeItemSub{}}}})
 
 		} else {
 
-			goodsTypeItem.SubType = append(goodsTypeItem.SubType, &model.GoodsTypeItemSub{Item: &item.GoodsTypeChild, SubType: []*model.GoodsTypeItemSub{}})
+			goodsTypeItem.SubType = append(goodsTypeItem.SubType, &extends.GoodsTypeItemSub{Item: &item.GoodsTypeChild, SubType: []*extends.GoodsTypeItemSub{}})
 
 		}
 

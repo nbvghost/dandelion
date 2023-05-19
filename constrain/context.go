@@ -3,6 +3,7 @@ package constrain
 import (
 	"context"
 	"go.uber.org/zap"
+	"sync"
 
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/gpa/types"
@@ -27,6 +28,8 @@ type IContext interface {
 	Token() string
 	Logger() *zap.Logger
 	Mode() key.Mode
+	SyncCache() *sync.Map
+	Destroy()
 	//DomainName() string
 	//SelectFileServer() string
 }

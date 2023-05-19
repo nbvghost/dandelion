@@ -18,27 +18,52 @@ import (
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/dandelion/service/pinyin"
-	"github.com/nbvghost/gpa/params"
 	"github.com/nbvghost/gpa/types"
 	"github.com/pkg/errors"
 )
 
 type GoodsService struct {
 	model.BaseDao
-	TimeSell         activity.TimeSellService
-	Collage          activity.CollageService
-	PinyinService    pinyin.Service
-	GoodsTypeService GoodsTypeService
+	TimeSell             activity.TimeSellService
+	Collage              activity.CollageService
+	PinyinService        pinyin.Service
+	GoodsTypeService     GoodsTypeService
+	AttributesService    AttributesService
+	SpecificationService SpecificationService
 }
 
-func (service GoodsService) PaginationGoods(OID, GoodsTypeID, GoodsTypeChildID types.PrimaryKey, pageIndex int) (int, int, int, []*model.Goods, error) {
+func (service GoodsService) PaginationGoods(OID, GoodsTypeID, GoodsTypeChildID types.PrimaryKey, pageIndex int) (int, int, int, []*model.Goods) {
+	//pageIndex, pageSize, total, list, err :
 	if GoodsTypeID == 0 {
-		return repository.Goods.FindByOIDLimit(OID, params.NewLimit(pageIndex, 18))
+		db := dao.Find(singleton.Orm(), &model.Goods{}).Where(`"OID"=?`, OID)
+		total := db.Limit(pageIndex, 18)
+		goodsList := db.List()
+		list := make([]*model.Goods, 0)
+		for i := range goodsList {
+			list = append(list, goodsList[i].(*model.Goods))
+		}
+		return pageIndex, 18, int(total), list //repository.Goods.FindByOIDLimit(OID, params.NewLimit(pageIndex, 18))
 	}
 	if GoodsTypeChildID == 0 {
-		return repository.Goods.FindByOIDAndGoodsTypeIDLimit(OID, GoodsTypeID, params.NewLimit(pageIndex, 18))
+		db := dao.Find(singleton.Orm(), &model.Goods{}).Where(`"OID"=? and "GoodsTypeID"=?`, OID, GoodsTypeID)
+		total := db.Limit(pageIndex, 20)
+		goodsList := db.List()
+		list := make([]*model.Goods, 0)
+		for i := range goodsList {
+			list = append(list, goodsList[i].(*model.Goods))
+		}
+		return pageIndex, 20, int(total), list
+		//return repository.Goods.FindByOIDAndGoodsTypeIDLimit(OID, GoodsTypeID, params.NewLimit(pageIndex, 18))
 	}
-	return repository.Goods.FindByOIDAndGoodsTypeIDAndGoodsTypeChildIDLimit(OID, GoodsTypeID, GoodsTypeChildID, params.NewLimit(pageIndex, 20))
+	db := dao.Find(singleton.Orm(), &model.Goods{}).Where(`"OID"=? and "GoodsTypeID"=? and "GoodsTypeChildID"=?`, OID, GoodsTypeID, GoodsTypeChildID)
+	total := db.Limit(pageIndex, 20)
+	goodsList := db.List()
+	list := make([]*model.Goods, 0)
+	for i := range goodsList {
+		list = append(list, goodsList[i].(*model.Goods))
+	}
+	return pageIndex, 20, int(total), list
+	//return repository.Goods.FindByOIDAndGoodsTypeIDAndGoodsTypeChildIDLimit(OID, GoodsTypeID, GoodsTypeChildID, params.NewLimit(pageIndex, 20))
 }
 
 /*
@@ -303,25 +328,29 @@ func (service GoodsService) FindGoodsByTimeSellID(TimeSellID types.PrimaryKey) [
 func (service GoodsService) FindGoodsByTimeSellHash(Hash string) []types.IEntity {
 	Orm := singleton.Orm()
 
-	var GoodsIDs []uint
+	var GoodsIDs []types.PrimaryKey
 	Orm.Model(&model.TimeSell{}).Where(`"Hash"=?`, Hash).Pluck("GoodsID", &GoodsIDs)
 
 	//var list []model.Goods
 	//err := service.FindWhere(Orm, &list, `"ID" in (?)`, GoodsIDs)
-	list := dao.Find(singleton.Orm(), &model.Goods{}).Where(`"ID" in (?)`, GoodsIDs).List()
-	return list
+	//list := dao.Find(singleton.Orm(), &model.Goods{}).Where(`"ID" in (?)`, GoodsIDs).List()
+	return service.ListGoodsByIDs(GoodsIDs)
 }
 func (service GoodsService) FindGoodsByCollageHash(Hash string) []types.IEntity {
 	Orm := singleton.Orm()
 
-	var GoodsIDs []uint
+	var GoodsIDs []types.PrimaryKey
 	Orm.Model(&model.Collage{}).Where(`"Hash"=?`, Hash).Pluck("GoodsID", &GoodsIDs)
 
 	//var list []model.Goods
 	//err := service.FindWhere(Orm, &list, `"ID" in (?)`, GoodsIDs)
 	//log.Println(err)
 	//return list
-	list := dao.Find(singleton.Orm(), &model.Goods{}).Where(`"ID" in (?)`, GoodsIDs).List()
+	//list := dao.Find(singleton.Orm(), &model.Goods{}).Where(`"ID" in (?)`, GoodsIDs).List()
+	return service.ListGoodsByIDs(GoodsIDs)
+}
+func (service GoodsService) ListGoodsByIDs(goodsIDs []types.PrimaryKey) []types.IEntity {
+	list := dao.Find(singleton.Orm(), &model.Goods{}).Where(`"ID" in (?)`, goodsIDs).List()
 	return list
 }
 func (service GoodsService) FindGoodsByOrganizationIDAndGoodsID(OrganizationID types.PrimaryKey, GoodsID types.PrimaryKey) model.Goods {

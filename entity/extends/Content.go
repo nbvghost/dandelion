@@ -15,6 +15,32 @@ type Menus struct {
 	Image        string //主类图片
 	List         []Menus
 }
+
+func NewMenusByContentSubType(contentItem *model.ContentItem, contentSubType *model.ContentSubType) Menus {
+	return Menus{
+		ID:           contentSubType.ID,
+		Uri:          contentSubType.Uri,
+		Name:         contentSubType.Name,
+		TemplateName: contentItem.TemplateName,
+		Type:         contentItem.Type,
+		Introduction: contentItem.Introduction,
+		Image:        contentItem.Image,
+		List:         nil,
+	}
+}
+func NewMenusByContentItem(contentItem *model.ContentItem) Menus {
+	return Menus{
+		ID:           contentItem.ID,
+		Uri:          contentItem.Uri,
+		Name:         contentItem.Name,
+		TemplateName: contentItem.TemplateName,
+		Type:         contentItem.Type,
+		Introduction: contentItem.Introduction,
+		Image:        contentItem.Image,
+		List:         nil,
+	}
+}
+
 type MenusData struct {
 	List []Menus
 }

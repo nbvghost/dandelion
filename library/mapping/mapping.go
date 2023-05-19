@@ -1,12 +1,12 @@
 package mapping
 
 import (
-	"log"
-	"reflect"
-
+	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/pkg/errors"
+	"log"
+	"reflect"
 )
 
 type mapping struct {
@@ -25,6 +25,7 @@ func (m *mapping) register(mapping constrain.IMapping) error {
 	m.poolList[path][mapping.Name()] = mapping
 	return nil
 }
+
 func (m *mapping) Before(context constrain.IContext, handler interface{}) {
 	t := reflect.TypeOf(handler)
 	if t.Kind() == reflect.Ptr {
@@ -41,12 +42,20 @@ func (m *mapping) Before(context constrain.IContext, handler interface{}) {
 			fieldV := v.Field(i)
 			name := util.GetPkgPath(fieldV.Interface())
 			if mp, has := m.poolList[name][tag]; has {
-				instance := mp.Call(context)
-				if instance == nil {
-					//return errors.New("mapping的Call不能返回空的实例")
-					log.Printf("%v的Call返回空的数据", mp)
-					instance = mp.Instance()
+				cacheKey := fmt.Sprintf("mapping:%s.%s", name, tag)
+
+				instance, exist := context.SyncCache().Load(cacheKey)
+				if !exist {
+					instance = mp.Call(context)
+					if instance == nil {
+						//return errors.New("mapping的Call不能返回空的实例")
+						log.Printf("%v的Call返回空的数据", mp)
+						instance = mp.Instance()
+					} else {
+						context.SyncCache().Store(cacheKey, instance)
+					}
 				}
+
 				mappingValue := reflect.ValueOf(instance)
 				if fieldV.Kind() == reflect.Ptr {
 					if mappingValue.Kind() == reflect.Ptr {

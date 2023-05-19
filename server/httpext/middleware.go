@@ -162,7 +162,7 @@ func (m *httpMiddleware) getToken(w http.ResponseWriter, r *http.Request) string
 	return token
 }
 
-func (m *httpMiddleware) CreateContent(redisClient constrain.IRedis, router constrain.IRoute, w http.ResponseWriter, r *http.Request) constrain.IContext {
+func (m *httpMiddleware) CreateContext(redisClient constrain.IRedis, router constrain.IRoute, w http.ResponseWriter, r *http.Request) constrain.IContext {
 	var lang string
 	domainPrefix, domainName := util.ParseDomain(r.Host)
 	if len(domainPrefix) >= 1 {
