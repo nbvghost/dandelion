@@ -230,8 +230,6 @@ github.com/nbvghost/gpa v0.0.0-20221021055612-4803aa7753df h1:LMD9K9FtAsShfr8Woh
 github.com/nbvghost/gpa v0.0.0-20221021055612-4803aa7753df/go.mod h1:PdnpoK80xlFRN5EiBrlGru7ImeQAwVt05DO4OfBuxO0=
 github.com/nbvghost/gweb v0.0.0-20220325183229-6c8eee4ff8a5 h1:s4KuZi/bSj2P0IBVE9nCsRaz526tXjOlFqmrGoHFzyw=
 github.com/nbvghost/gweb v0.0.0-20220325183229-6c8eee4ff8a5/go.mod h1:+KA7+YhSddE8ZjhHPDCBGccCsIFvDCJGBZnb352V03Q=
-github.com/nbvghost/miniapp v0.0.0-20230307032941-cc9f65667623 h1:DFTyykR4m6gIFGPFE18LgfuSilhsM1uWxj6xa/7BMG8=
-github.com/nbvghost/miniapp v0.0.0-20230307032941-cc9f65667623/go.mod h1:Qjz5FWjJxeEX7RhrYFSFWI2Pw33VBYoArEyr+Br4eEA=
 github.com/nbvghost/tool v0.0.0-20220325180651-f5c6376d74d4 h1:BTxI+LJxGoEytd8D5ofZn3UByakDCrHAg9DsE4VXNT8=
 github.com/nbvghost/tool v0.0.0-20220325180651-f5c6376d74d4/go.mod h1:xf0DSLb3ID0DX9Auq2aa80tO3J6ukPYM9w5YAIi2Y34=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
