@@ -20,9 +20,6 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 		return err
 	}
 	if false {
-		go func() {
-			rebuildFullTextSearch()
-		}()
 		return nil
 	}
 
@@ -221,13 +218,13 @@ $Goods$ LANGUAGE plpgsql;`
 
 	if !environments.Release() {
 		go func() {
-			rebuildFullTextSearch()
+			RebuildFullTextSearch()
 		}()
 	}
 	cache.Init()
 	return nil
 }
-func rebuildFullTextSearch() {
+func RebuildFullTextSearch() {
 	var err error
 	var goodsList []model.Goods
 	singleton.Orm().Model(model.Goods{}).Find(&goodsList)
