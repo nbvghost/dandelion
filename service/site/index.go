@@ -197,6 +197,8 @@ func (service Service) GetGoodsTypeByUri(context constrain.IContext, OID types.P
 		itemSub.Uri = "all"
 	}
 
+	contentItemMap := service.ContentService.ListContentItemByOIDMap(OID)
+
 	allMenusData := service.FindAllMenus(OID)
 
 	menusData := service.FindShowMenus(OID)
@@ -253,6 +255,7 @@ func (service Service) GetGoodsTypeByUri(context constrain.IContext, OID types.P
 		ContentConfig:   contentConfig,
 		SiteAuthor:      "",
 		LeftRight:       [2]*model.Goods{},
+		ContentItemMap:  contentItemMap,
 	}
 
 	companyName := contentConfig.Name
@@ -280,6 +283,8 @@ func (service Service) GetContentTypeByUri(context constrain.IContext, OID types
 	if itemSub.IsZero() {
 		itemSub.Uri = "all"
 	}
+
+	contentItemMap := service.ContentService.ListContentItemByOIDMap(OID)
 
 	currentMenuData := module.NewMenusData(item, itemSub)
 
@@ -350,6 +355,7 @@ func (service Service) GetContentTypeByUri(context constrain.IContext, OID types
 		Organization:    *organization,
 		ContentConfig:   contentConfig,
 		TypeNameMap:     typeNameMap,
+		ContentItemMap:  contentItemMap,
 	}
 
 	companyName := contentConfig.Name
@@ -382,6 +388,8 @@ func GetSiteData[T module.ListType](context constrain.IContext, OID types.Primar
 			break
 		}
 	}
+
+	contentItemMap := service.ContentService.ListContentItemByOIDMap(OID)
 
 	allMenusData := service.FindAllMenus(OID)
 
@@ -432,6 +440,7 @@ func GetSiteData[T module.ListType](context constrain.IContext, OID types.Primar
 		Organization:    *organization,
 		ContentConfig:   contentConfig,
 		TypeNameMap:     typeNameMap,
+		ContentItemMap:  contentItemMap,
 	}
 
 	companyName := contentConfig.Name

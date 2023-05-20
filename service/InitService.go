@@ -19,7 +19,10 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 	if err != nil {
 		return err
 	}
-	if false {
+
+	cache.Init()
+
+	if true {
 		return nil
 	}
 
@@ -221,7 +224,7 @@ $Goods$ LANGUAGE plpgsql;`
 			RebuildFullTextSearch()
 		}()
 	}
-	cache.Init()
+
 	return nil
 }
 func RebuildFullTextSearch() {

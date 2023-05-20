@@ -8,6 +8,16 @@ import (
 	"github.com/nbvghost/gpa/types"
 )
 
+func (service ContentService) ListContentItemByOIDMap(OID types.PrimaryKey) map[types.PrimaryKey]model.ContentItem {
+	Orm := singleton.Orm()
+	var menus []model.ContentItem
+	Orm.Model(model.ContentItem{}).Where(map[string]interface{}{"OID": OID}).Order(`"Sort"`).Order(`"UpdatedAt" desc`).Find(&menus)
+	m := make(map[types.PrimaryKey]model.ContentItem)
+	for i, v := range menus {
+		m[v.ID] = menus[i]
+	}
+	return m
+}
 func (service ContentService) ListContentItemByOID(OID types.PrimaryKey) []model.ContentItem {
 	Orm := singleton.Orm()
 	var menus []model.ContentItem

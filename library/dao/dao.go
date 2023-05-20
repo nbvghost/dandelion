@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"github.com/pkg/errors"
 	"reflect"
 	"strings"
 
@@ -76,7 +77,15 @@ func (m *FindQuery) Limit(index, pageSize int) int64 {
 	m.db.Count(&total).Limit(pageSize).Offset(pageSize * index)
 	return total
 }
-
+func (m *FindQuery) Group(column string) (any, error) {
+	s, ok := reflect.TypeOf(m.model).Elem().FieldByName(column)
+	if !ok {
+		return nil, errors.Errorf("没有找到字段%s", column)
+	}
+	var list = reflect.New(reflect.SliceOf(s.Type))
+	m.db.Select(column).Group(column).Find(list.Interface())
+	return list.Elem().Interface(), nil
+}
 func (m *FindQuery) Pluck(column string, dest interface{}) {
 	m.db.Pluck(column, dest)
 }

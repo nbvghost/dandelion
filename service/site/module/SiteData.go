@@ -13,6 +13,7 @@ type SiteData[T ListType] struct {
 	PageMenus       []extends.Menus
 	CurrentMenuData CurrentMenuData
 	ContentItem     model.ContentItem
+	ContentItemMap  map[types.PrimaryKey]model.ContentItem
 	ContentSubType  model.ContentSubType
 	Pagination      Pagination[T]
 	Tags            []extends.Tag
