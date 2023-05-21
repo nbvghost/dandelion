@@ -20,7 +20,7 @@ type List struct {
 
 func (m *List) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
-	var address *model.Address
+	var address *model.Address = &model.Address{}
 	if m.Get.AddressID > 0 {
 		address = dao.GetByPrimaryKey(singleton.Orm(), &model.Address{}, m.Get.AddressID).(*model.Address)
 	} else {

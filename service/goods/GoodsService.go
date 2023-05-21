@@ -158,6 +158,7 @@ func (service GoodsService) SaveGoods(OID types.PrimaryKey, goods *model.Goods, 
 	err = tx.Save(goods).Error
 	return err
 }
+
 func (service GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsInfo, error) {
 	Orm := singleton.Orm()
 
@@ -175,6 +176,10 @@ func (service GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsInfo
 	goodsInfo.GoodsType = service.GoodsTypeService.GetGoodsType(goods.GoodsTypeID)
 	goodsInfo.GoodsTypeChild = service.GoodsTypeService.GetGoodsTypeChild(goods.GoodsTypeChildID)
 	goodsInfo.Discounts = make([]extends.Discount, 0)
+
+	var goodsRating extends.GoodsRating
+	singleton.Orm().Model(&model.GoodsReview{}).Where(`"GoodsID"=?`, goods.ID).Select(`SUM("Rating") as "Rating",COUNT("ID") as "RatingCount"`).Scan(&goodsRating)
+	goodsInfo.Rating = goodsRating
 
 	if timeSell.IsEnable() {
 		//Favoured:=uint(util.Rounding45(float64(goods.Price)*(float64(timeSell.Discount)/float64(100)), 2))

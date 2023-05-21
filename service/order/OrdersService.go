@@ -1740,7 +1740,7 @@ func (service OrdersService) analyseOne(OID types.PrimaryKey, address *model.Add
 	}
 
 	if address.IsEmpty() {
-		return nil, errors.New("地址不能为空")
+		//return nil, errors.New("地址不能为空")
 	}
 	//计算快递费
 

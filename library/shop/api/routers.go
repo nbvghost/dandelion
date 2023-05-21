@@ -4,6 +4,7 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/shop/api/account"
 	"github.com/nbvghost/dandelion/library/shop/api/content"
+	"github.com/nbvghost/dandelion/library/shop/api/goods/review"
 	"github.com/nbvghost/dandelion/library/shop/api/goods/wish"
 	"github.com/nbvghost/dandelion/library/shop/api/index"
 	"github.com/nbvghost/dandelion/library/shop/api/journal"
@@ -39,6 +40,9 @@ func Register(route constrain.IRoute) {
 	route.RegisterRoute("user/upload-avatar", &user.UploadAvatar{}, true)
 	route.RegisterRoute("user/user", &user.User{})
 	route.RegisterRoute("user/address", &user.Address{})
+
+	route.RegisterRoute("goods/wish/goods", &wish.Goods{})
+	route.RegisterRoute("goods/review/goods-info", &review.GoodsInfo{}) //来自产品页的评论
 
 	route.RegisterRoute("store/location/list", &store.LocationList{})
 	route.RegisterRoute("store/get", &store.Get{})
@@ -105,6 +109,4 @@ func Register(route constrain.IRoute) {
 	route.RegisterRoute("payment/method/paypal/checkout-orders", &paypal.CheckoutOrders{})
 	route.RegisterRoute("payment/method/paypal/capture/{PaypalOrderID}", &paypal.Capture{})
 
-	route.RegisterRoute("goods/wish/add", &wish.Add{})
-	route.RegisterRoute("goods/wish/list", &wish.List{})
 }

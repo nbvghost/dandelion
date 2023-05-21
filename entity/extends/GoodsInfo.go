@@ -12,9 +12,22 @@ type GoodsInfo struct {
 	GoodsType      model.GoodsType
 	GoodsTypeChild model.GoodsTypeChild
 	SkuLabels      []SkuLabel
+	Rating         GoodsRating
 }
 
 type SkuLabel struct {
 	Label *model.GoodsSkuLabel
 	Data  []*model.GoodsSkuLabelData
+}
+type GoodsRating struct {
+	Rating      uint `gorm:"column:Rating"`
+	RatingCount uint `gorm:"column:RatingCount"`
+}
+
+func (m *GoodsRating) Value() uint {
+	v := m.Rating / m.RatingCount
+	if v > 5 {
+		v = 5
+	}
+	return v
 }
