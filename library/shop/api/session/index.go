@@ -12,9 +12,14 @@ type Index struct {
 }
 
 func (m *Index) Handle(context constrain.IContext) (constrain.IResult, error) {
-	cartCount, err := m.ShoppingCartService.FindShoppingCartListCount(context.UID())
-	if err != nil {
-		return nil, err
+	var err error
+
+	var cartCount uint
+	if context.UID() > 0 {
+		cartCount, err = m.ShoppingCartService.FindShoppingCartListCount(context.UID())
+		if err != nil {
+			return nil, err
+		}
 	}
 	return result.NewData(map[string]any{
 		"CartCount": cartCount,

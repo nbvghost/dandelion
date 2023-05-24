@@ -251,7 +251,7 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 	w.Header().Set("Code", "0")
 
 	var apiHandler any
-	var broken, withoutAuth bool
+	var broken bool
 	var routeInfo constrain.IRouteInfo
 	contextValue := contexext.FromContext(ctx)
 
@@ -295,7 +295,7 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 		return false, err
 	}
 
-	withoutAuth = routeInfo.GetWithoutAuth()
+	///=withoutAuth = routeInfo.GetWithoutAuth()
 
 	//创建新的handler处理器
 	apiHandler = reflect.New(routeInfo.GetHandlerType()).Interface()
@@ -304,7 +304,7 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 		return false, err
 	}
 
-	broken, err = router.Handle(ctx, withoutAuth, apiHandler)
+	broken, err = router.Handle(ctx, apiHandler)
 	if err != nil {
 		return false, err
 	}

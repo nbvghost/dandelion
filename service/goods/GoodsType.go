@@ -425,10 +425,8 @@ func (service GoodsTypeService) ChangeGoodsTypeChild(OID, ID types.PrimaryKey, n
 	}
 
 	gt, _ := service.getGoodsTypeChildByName(orm, OID, gtc.GoodsTypeID, name)
-	if gt.ID == ID {
-		return nil
-	}
-	if !gt.IsZero() {
+	if gt.ID != ID && !gt.IsZero() {
+		//说明，修改的是同一条记录，如果不相等的话，说明有存在相同name的记录。
 		return errors.Errorf("重复的名字:%s", name)
 	}
 

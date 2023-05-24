@@ -25,6 +25,9 @@ type GoodsRating struct {
 }
 
 func (m *GoodsRating) Value() uint {
+	if m.Rating == 0 || m.RatingCount == 0 {
+		return 0
+	}
 	v := m.Rating / m.RatingCount
 	if v > 5 {
 		v = 5

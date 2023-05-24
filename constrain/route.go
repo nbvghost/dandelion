@@ -7,13 +7,13 @@ import (
 
 type IRouteInfo interface {
 	GetHandlerType() reflect.Type
-	GetWithoutAuth() bool
+	//GetWithoutAuth() bool
 }
 type IRoute interface {
-	RegisterRoute(path string, handler IHandler, withoutAuth ...bool)
-	RegisterView(path string, handler IViewHandler, result IViewResult, withoutAuth ...bool)
+	RegisterRoute(path string, handler IHandler)
+	RegisterView(path string, handler IViewHandler)
 	GetMappingCallback() IMappingCallback
 	CreateHandle(isApi bool, r *http.Request) (IRouteInfo, error)
-	Handle(context IContext, withoutAuth bool, routeHandler any) (bool, error)
+	Handle(context IContext, routeHandler any) (bool, error)
 	RegisterInterceptors(prefixPath string, excludedPath []string, interceptors ...IInterceptor)
 }

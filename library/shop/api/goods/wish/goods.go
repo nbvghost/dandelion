@@ -24,6 +24,9 @@ type Goods struct {
 		Quantity        uint
 		Comment         string
 	} `method:"Post"`
+	Delete struct {
+		ID types.PrimaryKey `form:"id"`
+	} `method:"Delete"`
 }
 
 type GoodsWish struct {
@@ -31,11 +34,18 @@ type GoodsWish struct {
 	model.Goods     `json:"Goods"`
 }
 
+func (m *Goods) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) {
+	err := dao.DeleteBy(singleton.Orm(), &model.GoodsWish{}, map[string]any{"UserID": ctx.UID(), "ID": m.Delete.ID})
+	if err != nil {
+		return nil, err
+	}
+	return result.NewData(nil), nil
+}
 func (m *Goods) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	var total int64
 	var list []GoodsWish
 	singleton.Orm().Table("GoodsWish").Select(`"GoodsWish".*,"Goods".*`).Joins(`JOIN "Goods" on "Goods"."ID" = "GoodsWish"."GoodsID"`).
-		Order(`"GoodsWish"."CreatedAt" DESC`).
+		Order(`"GoodsWish"."CreatedAt" DESC`).Where(`"GoodsWish"."UserID"=?`, ctx.UID()).
 		Count(&total).Offset(m.Get.Index * m.Get.PageSize).
 		Limit(m.Get.PageSize).Find(&list)
 

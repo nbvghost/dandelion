@@ -13,22 +13,20 @@ import (
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/pkg/errors"
-
-	"github.com/nbvghost/dandelion/library/gobext"
 )
 
 type RouteInfo struct {
 	HandlerType reflect.Type
-	WithoutAuth bool
+	//WithoutAuth bool
 }
 
 func (m *RouteInfo) GetHandlerType() reflect.Type {
 	return m.HandlerType
 }
 
-func (m *RouteInfo) GetWithoutAuth() bool {
+/*func (m *RouteInfo) GetWithoutAuth() bool {
 	return m.WithoutAuth
-}
+}*/
 
 type emptyViewBase struct {
 	extends.ViewBase
@@ -130,7 +128,7 @@ func (m *service) CreateHandle(isApi bool, r *http.Request) (constrain.IRouteInf
 	//return apiHandler, routeInfo.GetWithoutAuth(), nil
 	return routeInfo, nil
 }
-func (m *service) Handle(context constrain.IContext, withoutAuth bool, routeHandler any) (bool, error) {
+func (m *service) Handle(context constrain.IContext, routeHandler any) (bool, error) {
 	if m.mappingCallback != nil {
 		m.mappingCallback.Before(context, routeHandler)
 	}
@@ -193,7 +191,7 @@ func (m *service) Handle(context constrain.IContext, withoutAuth bool, routeHand
 
 }
 
-func (m *service) RegisterRoute(pathTemplate string, handler constrain.IHandler, withoutAuth ...bool) {
+func (m *service) RegisterRoute(pathTemplate string, handler constrain.IHandler) {
 	if strings.EqualFold(pathTemplate, "*") {
 		pathTemplate = "/api/"
 	} else {
@@ -202,21 +200,21 @@ func (m *service) RegisterRoute(pathTemplate string, handler constrain.IHandler,
 	if _, ok := m.Routes[pathTemplate]; ok {
 		panic(errors.New(fmt.Sprintf("存在相同的路由:%s", pathTemplate)))
 	}
-	var _withoutAuth bool
+	/*var _withoutAuth bool
 	if len(withoutAuth) > 0 {
 		_withoutAuth = withoutAuth[0]
-	}
+	}*/
 	m.router.HandleFunc(pathTemplate, func(writer http.ResponseWriter, request *http.Request) {
 
 	})
 	m.Routes[pathTemplate] = &RouteInfo{
 		HandlerType: reflect.TypeOf(handler).Elem(),
-		WithoutAuth: _withoutAuth,
+		//WithoutAuth: _withoutAuth,
 	}
 }
 
 // RegisterView path 为 * 号时，匹配所有没有定义的路由
-func (m *service) RegisterView(pathTemplate string, handler constrain.IViewHandler, result constrain.IViewResult, withoutAuth ...bool) {
+func (m *service) RegisterView(pathTemplate string, handler constrain.IViewHandler) {
 	if strings.EqualFold(pathTemplate, "*") {
 		pathTemplate = ""
 	} else {
@@ -225,18 +223,18 @@ func (m *service) RegisterView(pathTemplate string, handler constrain.IViewHandl
 	if _, ok := m.ViewRoutes[pathTemplate]; ok {
 		panic(errors.New(fmt.Sprintf("存在相同的路由:%s", pathTemplate)))
 	}
-	var _withoutAuth bool
+	/*var _withoutAuth bool
 	if len(withoutAuth) > 0 {
 		_withoutAuth = withoutAuth[0]
-	}
+	}*/
 	m.router.HandleFunc(pathTemplate, func(writer http.ResponseWriter, request *http.Request) {
 
 	})
 	m.ViewRoutes[pathTemplate] = &RouteInfo{
 		HandlerType: reflect.TypeOf(handler).Elem(),
-		WithoutAuth: _withoutAuth,
+		//WithoutAuth: _withoutAuth,
 	}
-	gobext.Register(result)
+	//gobext.Register(result)
 }
 
 func New(router *mux.Router, mappingCallback constrain.IMappingCallback) constrain.IRoute {

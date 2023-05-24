@@ -18,14 +18,14 @@ import (
 )
 
 func Register(route constrain.IRoute) {
-	route.RegisterRoute("account/mini_program_login", &account.MiniProgramLogin{}, true)
-	route.RegisterRoute("account/qrcode", &account.MiniprogramQRcode{}, true)
+	route.RegisterRoute("account/mini_program_login", &account.MiniProgramLogin{})
+	route.RegisterRoute("account/qrcode", &account.MiniprogramQRcode{})
 
 	route.RegisterRoute("account/get_login_user", &account.GetLoginUser{})
 	route.RegisterRoute("account/get_login_user_phone", &account.GetLoginUserPhone{})
 
 	route.RegisterRoute("wx/callback", &wx.Callback{})
-	route.RegisterRoute("wx/notify/{OID}", &wx.Notify{}, true)
+	route.RegisterRoute("wx/notify/{OID}", &wx.Notify{})
 	route.RegisterRoute("wx/token", &wx.Token{})
 
 	route.RegisterRoute("user/level/{UserID}", &user.Level{})
@@ -37,7 +37,7 @@ func Register(route constrain.IRoute) {
 	route.RegisterRoute("user/transfers", &user.Transfers{})
 	route.RegisterRoute("user/update", &user.Update{})
 	route.RegisterRoute("user/config", &user.Config{})
-	route.RegisterRoute("user/upload-avatar", &user.UploadAvatar{}, true)
+	route.RegisterRoute("user/upload-avatar", &user.UploadAvatar{})
 	route.RegisterRoute("user/user", &user.User{})
 	route.RegisterRoute("user/address", &user.Address{})
 
@@ -61,7 +61,7 @@ func Register(route constrain.IRoute) {
 	route.RegisterRoute("content/article/{ArticleID}", &content.Article{})
 	route.RegisterRoute("content/{ContentItemID}/list/subtype", &content.ListContentSubType{})
 	route.RegisterRoute("content/{ContentItemID}/related/{ContentSubTypeID}", &content.Related{})
-	route.RegisterRoute("content/like", &content.Like{}, true)
+	route.RegisterRoute("content/like", &content.Like{})
 
 	route.RegisterRoute("journal/list/leve", &journal.ListLeve{})
 	route.RegisterRoute("journal/list/journal", &journal.ListJournal{})

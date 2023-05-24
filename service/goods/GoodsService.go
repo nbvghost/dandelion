@@ -2,6 +2,7 @@ package goods
 
 import (
 	"fmt"
+	"github.com/lib/pq"
 	"log"
 	"strconv"
 	"time"
@@ -94,6 +95,10 @@ func (service GoodsService) getGoodsByUri(OID types.PrimaryKey, uri string) mode
 	return goods
 }
 func (service GoodsService) SaveGoods(OID types.PrimaryKey, goods *model.Goods, specifications []model.Specification) error {
+	if goods.Tags == nil {
+		goods.Tags = make(pq.StringArray, 0)
+	}
+
 	Orm := singleton.Orm()
 	var err error
 	tx := Orm.Begin()
