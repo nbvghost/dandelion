@@ -11,7 +11,6 @@ import (
 	"github.com/nbvghost/dandelion/service/configuration"
 	"github.com/nbvghost/dandelion/service/order"
 	"github.com/nbvghost/tool/object"
-	"log"
 	"time"
 )
 
@@ -33,7 +32,6 @@ func (m *Capture) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 	if err != nil {
 		return nil, err
 	}
-	log.Println(capture)
 	if len(capture.PurchaseUnits) == 0 {
 		return nil, errors.New("payment failed,invalid order")
 	}

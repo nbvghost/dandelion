@@ -400,7 +400,9 @@ func (fo *templateFuncMap) dateTimeFormat(source time.Time, format string) strin
 }
 func (fo *templateFuncMap) toJSON(source interface{}) template.JS {
 	b, err := json.Marshal(source)
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 	return template.JS(b)
 }
 func (fo *templateFuncMap) parseInt(source interface{}) int {
@@ -427,13 +429,17 @@ func cipherDecrypter(source string) string {
 func (fo *templateFuncMap) fromJSONToMap(source string) map[string]interface{} {
 	d := make(map[string]interface{})
 	err := json.Unmarshal([]byte(source), &d)
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 	return d
 }
 func (fo *templateFuncMap) fromJSONToArray(source string) []interface{} {
 	d := make([]interface{}, 0)
 	err := json.Unmarshal([]byte(source), &d)
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 	return d
 }
 func (fo *templateFuncMap) splitFunc(source string, sep string) []string {

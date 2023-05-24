@@ -296,8 +296,9 @@ func (service AdminService) GetAdmin(ID types.PrimaryKey) *model.Admin {
 	Orm := singleton.Orm()
 	admin := &model.Admin{}
 	err := Orm.Where(`"ID"=?`, ID).First(admin).Error //SelectOne(user, "select * from User where Email=?", Email)
-	log.Println(err)
-
+	if err != nil {
+		log.Println(err)
+	}
 	return admin
 }
 func (service AdminService) FindAdminByID(Orm *gorm.DB, ID types.PrimaryKey) model.Admin {

@@ -25,7 +25,9 @@ func (m *ShareScore) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 		ctx.UID(),
 		"转发与分享送积分", "转发与分享",
 		play.ScoreJournal_Type_Share, int64(Share), extends.KV{})
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: nil}}, nil
 }

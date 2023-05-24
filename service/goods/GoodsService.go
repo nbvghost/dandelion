@@ -296,7 +296,9 @@ func (service GoodsService) DeleteTimeSellGoods(DB *gorm.DB, GoodsID types.Prima
 		"TimeSellHash": timesell.Hash,
 		"GoodsID":      GoodsID,
 	}) //Delete(DB, &model.TimeSellGoods{}, timesell.ID)
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 	return err
 }
 func (service GoodsService) DeleteCollageGoods(DB *gorm.DB, GoodsID types.PrimaryKey, OID types.PrimaryKey) error {
@@ -306,7 +308,9 @@ func (service GoodsService) DeleteCollageGoods(DB *gorm.DB, GoodsID types.Primar
 		"CollageHash": timesell.Hash,
 		"GoodsID":     GoodsID,
 	}) //Delete(DB, &model.TimeSellGoods{}, timesell.ID)
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 	return err
 
 	//err := service.Delete(DB, &model.Collage{}, timesell.ID)

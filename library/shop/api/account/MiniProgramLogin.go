@@ -81,13 +81,17 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 								superiorUser.ID,
 								"邀请新朋友获取积分", "邀请新朋友获取积分",
 								play.ScoreJournal_Type_InviteUser, int64(InviteUser), extends.KV{Key: "SuperiorID", Value: SuperiorID})
-							log.Println(err)
+							if err != nil {
+								log.Println(err)
+							}
 
 							err = g.JournalService.AddUserJournal(tx,
 								superiorUser.ID,
 								"邀请新朋友获得现金", "邀请新朋友获得现金",
 								play.UserJournal_Type_USER_LEVE, int64(30), extends.KV{Key: "UserID", Value: newUser.ID}, newUser.ID)
-							log.Println(err)
+							if err != nil {
+								log.Println(err)
+							}
 
 							go func(superiorUser *model.User, newUser *model.User) {
 								g.MessageNotify.NewUserJoinNotify(newUser, superiorUser)

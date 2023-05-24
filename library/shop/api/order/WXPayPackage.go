@@ -58,7 +58,9 @@ func (m *WXPayPackage) Handle(ctx constrain.IContext) (constrain.IResult, error)
 	}
 
 	err = dao.UpdateByPrimaryKey(singleton.Orm(), entity.OrdersPackage, orders.ID, map[string]interface{}{"PrepayID": *Result.PrepayId})
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 	//outData["OrdersID"] = strconv.Itoa(int(orders.ID))
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "OK", Data: outData}}, nil
 

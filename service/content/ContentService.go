@@ -433,7 +433,9 @@ func (service ContentService) ChangeContent(article *model.Content) error {
 func (service ContentService) GetContentByTitle(Orm *gorm.DB, OID types.PrimaryKey, Title string) *model.Content {
 	article := &model.Content{}
 	err := Orm.Where(`"OID"=?`, OID).Where(`"Title"=?`, Title).First(article).Error //SelectOne(user, "select * from User where Email=?", Email)
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 	return article
 }
 func (service ContentService) DelContent(ID types.PrimaryKey) error {
@@ -605,9 +607,13 @@ func (service ContentService) FindContentListForLeftRight(ContentItemID, Content
 	var left model.Content
 	var right model.Content
 	err := singleton.Orm().Raw(`SELECT * FROM "Content" WHERE `+whereSql+` and "ID"<>? and "CreatedAt">=? ORDER BY "CreatedAt","ID" limit 1`, ContentID, ContentCreatedAt).Scan(&left).Error
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 	err = singleton.Orm().Raw(`SELECT * FROM "Content" WHERE `+whereSql+` and "ID"<>? and "CreatedAt"<=? ORDER BY "CreatedAt" desc,"ID" desc limit 1`, ContentID, ContentCreatedAt).Scan(&right).Error
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 
 	return [2]*model.Content{&left, &right}
 }
@@ -675,7 +681,9 @@ func (service ContentService) GetContentAndAddLook(ctx constrain.IContext, Artic
 			ctx.UID(),
 			"看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)),
 			play.ScoreJournal_Type_Look_Article, int64(LookArticle), extends.KV{Key: "ArticleID", Value: article.ID})
-		log.Println(err)
+		if err != nil {
+			log.Println(err)
+		}
 		//}
 
 	}
