@@ -3,6 +3,7 @@ package content
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 	"strconv"
 	"strings"
@@ -18,7 +19,6 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/server/redis"
 	"github.com/pkg/errors"
 
@@ -27,14 +27,14 @@ import (
 )
 
 func (service ContentService) HotViewList(OID, ContentItemID types.PrimaryKey, count uint) []model.Content {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var result []model.Content
 	db := Orm.Model(&model.Content{}).Where(map[string]interface{}{"OID": OID}).Where(`"ContentItemID"=?`, ContentItemID).Order(`"CountView" desc`).Limit(int(count))
 	db.Find(&result)
 	return result
 }
 func (service ContentService) HotLikeList(OID, ContentItemID types.PrimaryKey, count uint) []model.Content {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var result []model.Content
 	db := Orm.Model(&model.Content{}).Where(map[string]interface{}{"OID": OID}).Where(`"ContentItemID"=?`, ContentItemID).Order(`"CountLike" desc`).Limit(int(count))
 	db.Find(&result)
@@ -43,7 +43,7 @@ func (service ContentService) HotLikeList(OID, ContentItemID types.PrimaryKey, c
 
 func (service ContentService) FindContentByTag(OID types.PrimaryKey, tag extends.Tag, _pageIndex int, orders ...extends.Order) (pageIndex, pageSize int, total int64, list []*model.Content, err error) {
 	//select * from "Content" where array_length("Tags",1) is null;
-	db := singleton.Orm().Model(model.Content{}).Where(`"OID"=?`, OID).
+	db := db.Orm().Model(model.Content{}).Where(`"OID"=?`, OID).
 		Where(`array_length("Tags",1) is not null`).
 		Where(`"Tags" @> array[?]`, tag.Name)
 
@@ -63,7 +63,7 @@ func (service ContentService) FindContentByTag(OID types.PrimaryKey, tag extends
 func (service ContentService) FindContentTags(OID types.PrimaryKey) ([]extends.Tag, error) {
 	//SELECT unnest("Tags") as Tag,count("Tags") as Count FROM "Content" where  group by unnest("Tags");
 	var tags []extends.Tag
-	err := singleton.Orm().Model(model.Content{}).Select(`unnest("Tags") as "Name",count("Tags") as "Count"`).Where(map[string]interface{}{
+	err := db.Orm().Model(model.Content{}).Select(`unnest("Tags") as "Name",count("Tags") as "Count"`).Where(map[string]interface{}{
 		"OID": OID,
 	}).Where(`array_length("Tags",1)>0`).Group(`unnest("Tags")`).Find(&tags).Error
 	tags = tag.CreateUri(tags)
@@ -72,7 +72,7 @@ func (service ContentService) FindContentTags(OID types.PrimaryKey) ([]extends.T
 func (service ContentService) FindContentTagsByContentItemID(OID, ContentItemID types.PrimaryKey) []extends.Tag {
 	//SELECT unnest("Tags") as Tag,count("Tags") as Count FROM "Content" where  group by unnest("Tags");
 	var tags []extends.Tag
-	singleton.Orm().Model(model.Content{}).Select(`unnest("Tags") as "Name",count("Tags") as "Count"`).Where(map[string]interface{}{
+	db.Orm().Model(model.Content{}).Select(`unnest("Tags") as "Name",count("Tags") as "Count"`).Where(map[string]interface{}{
 		"OID":           OID,
 		"ContentItemID": ContentItemID,
 	}).Where(`array_length("Tags",1)>0`).Group(`unnest("Tags")`).Find(&tags)
@@ -81,7 +81,7 @@ func (service ContentService) FindContentTagsByContentItemID(OID, ContentItemID 
 }
 func (service ContentService) PaginationContent(OID, ContentItemID, ContentSubTypeID types.PrimaryKey, pageIndex int) (int, int, int, []*model.Content) {
 	if ContentItemID == 0 {
-		db := dao.Find(singleton.Orm(), &model.Content{}).Where(`"OID"=?`, OID)
+		db := dao.Find(db.Orm(), &model.Content{}).Where(`"OID"=?`, OID)
 		total := db.Limit(pageIndex, 20)
 		mlist := db.List()
 		list := make([]*model.Content, 0)
@@ -91,7 +91,7 @@ func (service ContentService) PaginationContent(OID, ContentItemID, ContentSubTy
 		return pageIndex, 20, int(total), list
 	}
 	if ContentSubTypeID == 0 {
-		db := dao.Find(singleton.Orm(), &model.Content{}).Where(`"OID"=? and "ContentItemID"=?`, OID, ContentItemID)
+		db := dao.Find(db.Orm(), &model.Content{}).Where(`"OID"=? and "ContentItemID"=?`, OID, ContentItemID)
 		total := db.Limit(pageIndex, 20)
 		mlist := db.List()
 		list := make([]*model.Content, 0)
@@ -104,7 +104,7 @@ func (service ContentService) PaginationContent(OID, ContentItemID, ContentSubTy
 	contentSubTypeIDs := service.GetContentSubTypeAllIDByID(ContentItemID, ContentSubTypeID)
 
 	var total int64
-	db := singleton.Orm().Model(model.Content{}).Where(map[string]interface{}{
+	db := db.Orm().Model(model.Content{}).Where(map[string]interface{}{
 		"OID":           OID,
 		"ContentItemID": ContentItemID,
 	}).Where(`"ContentSubTypeID" in (?)`, contentSubTypeIDs)
@@ -116,7 +116,7 @@ func (service ContentService) PaginationContent(OID, ContentItemID, ContentSubTy
 	return pageIndex, 20, int(total), list
 }
 func (service ContentService) GetContentTypeByID(OID types.PrimaryKey, ContentItemID, ContentSubTypeID types.PrimaryKey) (model.ContentItem, model.ContentSubType) {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var item model.ContentItem
 	var itemSub model.ContentSubType
 
@@ -134,7 +134,7 @@ func (service ContentService) GetContentTypeByID(OID types.PrimaryKey, ContentIt
 
 // uri 和 name 在 ContentItemID 下面唯一
 func (service ContentService) GetContentSubTypeByUri(OID, ContentItemID, ID types.PrimaryKey, uri string) model.ContentSubType {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var item model.ContentSubType
 	Orm.Model(model.ContentSubType{}).Where(map[string]interface{}{
 		"OID":           OID,
@@ -144,7 +144,7 @@ func (service ContentService) GetContentSubTypeByUri(OID, ContentItemID, ID type
 	return item
 }
 func (service ContentService) SaveContentSubType(OID types.PrimaryKey, item *model.ContentSubType) error {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	mm := service.GetContentSubTypeByName(OID, item.ContentItemID, item.ID, item.Name)
 	if !mm.IsZero() {
 		return errors.Errorf("名字重复")
@@ -184,7 +184,7 @@ func (service ContentService) SaveContentSubType(OID types.PrimaryKey, item *mod
 	return nil
 }
 func (service ContentService) SaveContentItem(OID types.PrimaryKey, item *model.ContentItem) error {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 
 	if len(item.Name) == 0 {
 		return errors.Errorf("请指定名称")
@@ -292,7 +292,7 @@ func (service ContentService) ChangeContentConfig(OID types.PrimaryKey, fieldNam
 		changeMap["FocusPicture"] = focusPicture
 
 	}
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	err := Orm.Model(&model.ContentConfig{}).Where(map[string]interface{}{"OID": OID}).Updates(changeMap).Error
 	return err
 }
@@ -316,7 +316,7 @@ func (service ContentService) GetContentConfig(orm *gorm.DB, OID types.PrimaryKe
 //-----------------------------------------Content----------------------------------------------------------
 
 func (service ContentService) GetContentItemByIDAndOID(ID, OID uint) model.ContentItem {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var menus model.ContentItem
 
 	Orm.Where(`"ID"=? and "OID"=?`, ID, OID).First(&menus)
@@ -324,27 +324,27 @@ func (service ContentService) GetContentItemByIDAndOID(ID, OID uint) model.Conte
 	return menus
 }
 func (service ContentService) GetContentItemByID(ID types.PrimaryKey) model.ContentItem {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var menus model.ContentItem
 	Orm.Where(`"ID"=?`, ID).First(&menus)
 	return menus
 }
 func (service ContentService) GetContentSubTypeByID(ID types.PrimaryKey) model.ContentSubType {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var menus model.ContentSubType
 	Orm.Where(`"ID"=?`, ID).First(&menus)
 	return menus
 }
 
 func (service ContentService) ExistContentItemByNameAndOID(OID, ID types.PrimaryKey, Name string) model.ContentItem {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var menus model.ContentItem
 	Orm.Where(`"OID"=?`, OID).Where(map[string]interface{}{"Name": Name}).Where(`"ID"<>?`, ID).First(&menus)
 	return menus
 }
 
 func (service ContentService) FindContentItemByType(Type model.ContentTypeType, OID types.PrimaryKey) []model.ContentItem {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	menus := make([]model.ContentItem, 0)
 	Orm.Where(map[string]interface{}{
 		"Type": Type,
@@ -354,18 +354,18 @@ func (service ContentService) FindContentItemByType(Type model.ContentTypeType, 
 }
 
 func (service ContentService) ListContentType() []types.IEntity {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	return dao.Find(Orm, &model.ContentType{}).List()
 }
 func (service ContentService) ListContentTypeByType(Type string) *model.ContentType {
 	//Orm := singleton.Orm()
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	//var list model.ContentType
-	item := dao.GetBy(singleton.Orm(), &model.ContentType{}, map[string]any{"Type": Type}).(*model.ContentType) //service.FindWhere(Orm, &list, "Type=?", Type)
+	item := dao.GetBy(db.Orm(), &model.ContentType{}, map[string]any{"Type": Type}).(*model.ContentType) //service.FindWhere(Orm, &list, "Type=?", Type)
 	return item
 }
 func (service ContentService) FindContentSubTypesByNameAndContentItemID(Name string, ContentItemID types.PrimaryKey) model.ContentSubType {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var cst model.ContentSubType
 	Orm.Where("ContentItemID=? and Name=?", ContentItemID, Name).First(&cst)
 	return cst
@@ -398,7 +398,7 @@ func (service ContentService) AddSpiderContent(OID types.PrimaryKey, ContentName
 		content.Type = contentType.Type
 		content.Name = ContentName
 		content.ContentTypeID = contentType.ID
-		err := dao.Save(singleton.Orm(), &content)
+		err := dao.Save(db.Orm(), &content)
 		if err != nil {
 			return err
 		}
@@ -410,7 +410,7 @@ func (service ContentService) AddSpiderContent(OID types.PrimaryKey, ContentName
 	if contentSubType.ID == 0 {
 		contentSubType.Name = ContentSubTypeName
 		contentSubType.ContentItemID = content.ID
-		err := dao.Save(singleton.Orm(), &contentSubType)
+		err := dao.Save(db.Orm(), &contentSubType)
 		if err != nil {
 			return err
 		}
@@ -427,7 +427,7 @@ func (service ContentService) AddSpiderContent(OID types.PrimaryKey, ContentName
 
 func (service ContentService) ChangeContent(article *model.Content) error {
 
-	return dao.Save(singleton.Orm(), article)
+	return dao.Save(db.Orm(), article)
 }
 
 func (service ContentService) GetContentByTitle(Orm *gorm.DB, OID types.PrimaryKey, Title string) *model.Content {
@@ -439,7 +439,7 @@ func (service ContentService) GetContentByTitle(Orm *gorm.DB, OID types.PrimaryK
 	return article
 }
 func (service ContentService) DelContent(ID types.PrimaryKey) error {
-	err := dao.DeleteByPrimaryKey(singleton.Orm(), &model.Content{}, ID)
+	err := dao.DeleteByPrimaryKey(db.Orm(), &model.Content{}, ID)
 	return err
 }
 
@@ -447,13 +447,13 @@ func (service ContentService) FindContentByContentSubTypeID(ContentSubTypeID typ
 	//var contentList []model.Content
 	//err := service.FindWhere(singleton.Orm(), &contentList, "ContentSubTypeID=?", ContentSubTypeID) //SelectOne(user, "select * from User where Email=?", Email)
 
-	contentList := dao.Find(singleton.Orm(), &model.Content{}).Where(`"ContentSubTypeID"=?`, ContentSubTypeID).List()
+	contentList := dao.Find(db.Orm(), &model.Content{}).Where(`"ContentSubTypeID"=?`, ContentSubTypeID).List()
 
 	return contentList
 }
 func (service ContentService) FindContentByContentItemIDAndContentSubTypeID(ContentItemID uint, ContentSubTypeID uint) *model.Content {
 	//service.FindWhere(singleton.Orm(), &content, "ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeID) //SelectOne(user, "select * from User where Email=?", Email)
-	content := dao.GetBy(singleton.Orm(), &model.Content{}, map[string]any{"ContentItemID": ContentItemID, "ContentSubTypeID": ContentSubTypeID}).(*model.Content)
+	content := dao.GetBy(db.Orm(), &model.Content{}, map[string]any{"ContentItemID": ContentItemID, "ContentSubTypeID": ContentSubTypeID}).(*model.Content)
 	return content
 }
 
@@ -557,20 +557,20 @@ func (service ContentService) FindContentListByTypeID(menusData *extends.MenusDa
 		if len(menusData.List) > 0 {
 
 		}
-		db := singleton.Orm().Model(&model.Content{}).Where(`"ContentItemID"=?`, ContentItemID).
+		db := db.Orm().Model(&model.Content{}).Where(`"ContentItemID"=?`, ContentItemID).
 			Order(`"CreatedAt" desc`).Order(`"ID" desc`)
 		return model.Paging(db, _Page, _Limit, model.Content{})
 	} else {
 
 		if ContentSubTypeChildID > 0 {
-			db := singleton.Orm().Model(&model.Content{}).Where(`"ContentItemID"=? and "ContentSubTypeID"=?`, ContentItemID, ContentSubTypeChildID).
+			db := db.Orm().Model(&model.Content{}).Where(`"ContentItemID"=? and "ContentSubTypeID"=?`, ContentItemID, ContentSubTypeChildID).
 				Order(`"CreatedAt" desc`).Order(`"ID" desc`)
 			return model.Paging(db, _Page, _Limit, model.Content{})
 		} else {
 
 			ContentSubTypeIDList := service.GetContentSubTypeAllIDByID(ContentItemID, ContentSubTypeID)
 
-			db := singleton.Orm().Model(&model.Content{}).
+			db := db.Orm().Model(&model.Content{}).
 				Where(`"ContentItemID"=? and "ContentSubTypeID" in (?)`, ContentItemID, ContentSubTypeIDList).
 				Order(`"CreatedAt" desc`).Order(`"ID" desc`)
 			return model.Paging(db, _Page, _Limit, model.Content{})
@@ -606,11 +606,11 @@ func (service ContentService) FindContentListForLeftRight(ContentItemID, Content
 
 	var left model.Content
 	var right model.Content
-	err := singleton.Orm().Raw(`SELECT * FROM "Content" WHERE `+whereSql+` and "ID"<>? and "CreatedAt">=? ORDER BY "CreatedAt","ID" limit 1`, ContentID, ContentCreatedAt).Scan(&left).Error
+	err := db.Orm().Raw(`SELECT * FROM "Content" WHERE `+whereSql+` and "ID"<>? and "CreatedAt">=? ORDER BY "CreatedAt","ID" limit 1`, ContentID, ContentCreatedAt).Scan(&left).Error
 	if err != nil {
 		log.Println(err)
 	}
-	err = singleton.Orm().Raw(`SELECT * FROM "Content" WHERE `+whereSql+` and "ID"<>? and "CreatedAt"<=? ORDER BY "CreatedAt" desc,"ID" desc limit 1`, ContentID, ContentCreatedAt).Scan(&right).Error
+	err = db.Orm().Raw(`SELECT * FROM "Content" WHERE `+whereSql+` and "ID"<>? and "CreatedAt"<=? ORDER BY "CreatedAt" desc,"ID" desc limit 1`, ContentID, ContentCreatedAt).Scan(&right).Error
 	if err != nil {
 		log.Println(err)
 	}
@@ -620,7 +620,7 @@ func (service ContentService) FindContentListForLeftRight(ContentItemID, Content
 
 func (service ContentService) GetContentByContentItemID(ContentItemID uint) *model.Content {
 	article := &model.Content{}
-	singleton.Orm().Where(map[string]interface{}{
+	db.Orm().Where(map[string]interface{}{
 		"ContentItemID":    ContentItemID,
 		"ContentSubTypeID": 0,
 	}).First(article)
@@ -629,7 +629,7 @@ func (service ContentService) GetContentByContentItemID(ContentItemID uint) *mod
 }
 func (service ContentService) GetContentByContentItemIDAndTitle(ContentItemID uint, Title string) *model.Content {
 	article := &model.Content{}
-	singleton.Orm().Where(map[string]interface{}{
+	db.Orm().Where(map[string]interface{}{
 		"ContentItemID": ContentItemID,
 		"Title":         Title,
 	}).First(article)
@@ -638,7 +638,7 @@ func (service ContentService) GetContentByContentItemIDAndTitle(ContentItemID ui
 }
 func (service ContentService) GetContentByContentItemIDAndContentSubTypeID(ContentItemID, ContentSubTypeID types.PrimaryKey) model.Content {
 	article := model.Content{}
-	singleton.Orm().Where(map[string]interface{}{
+	db.Orm().Where(map[string]interface{}{
 		"ContentItemID":    ContentItemID,
 		"ContentSubTypeID": ContentSubTypeID,
 	}).First(&article)
@@ -648,20 +648,20 @@ func (service ContentService) GetContentByContentItemIDAndContentSubTypeID(Conte
 func (service ContentService) GetContentByUri(OID types.PrimaryKey, Uri string) *model.Content {
 	article := &model.Content{}
 	//err := service.Get(singleton.Orm(), ID, article) //SelectOne(user, "select * from User where Email=?", Email)
-	singleton.Orm().Model(model.Content{}).Where(`"OID"=?`, OID).Where(`"Uri"=?`, Uri).First(article)
+	db.Orm().Model(model.Content{}).Where(`"OID"=?`, OID).Where(`"Uri"=?`, Uri).First(article)
 	//service.ChangeMap(singleton.Orm(), ID, &model.Article{}, map[string]interface{}{"Look": article.Look + 1})
 	return article
 }
 func (service ContentService) GetContentByID(ID types.PrimaryKey) *model.Content {
 
-	article := dao.GetByPrimaryKey(singleton.Orm(), &model.Content{}, ID).(*model.Content) //SelectOne(user, "select * from User where Email=?", Email)
+	article := dao.GetByPrimaryKey(db.Orm(), &model.Content{}, ID).(*model.Content) //SelectOne(user, "select * from User where Email=?", Email)
 
 	//service.ChangeMap(singleton.Orm(), ID, &model.Article{}, map[string]interface{}{"Look": article.Look + 1})
 	return article
 }
 func (service ContentService) GetContentAndAddLook(ctx constrain.IContext, ArticleID types.PrimaryKey) *model.Content {
 
-	article := dao.GetByPrimaryKey(singleton.Orm(), &model.Content{}, ArticleID).(*model.Content) //SelectOne(user, "select * from User where Email=?", Email)
+	article := dao.GetByPrimaryKey(db.Orm(), &model.Content{}, ArticleID).(*model.Content) //SelectOne(user, "select * from User where Email=?", Email)
 
 	lc, _ := ctx.Redis().Get(ctx, redis.NewArticleLookCount(ctx.UID(), ArticleID))
 
@@ -671,13 +671,13 @@ func (service ContentService) GetContentAndAddLook(ctx constrain.IContext, Artic
 		endDayTime := time.Date(tomorrowTime.Year(), tomorrowTime.Month(), tomorrowTime.Day(), 0, 0, 0, 0, tomorrowTime.Location())
 		//context.Session.Attributes.Put(gweb.AttributesKey(strconv.Itoa(int(ArticleID))), "CountView")
 		ctx.Redis().Set(ctx, redis.NewArticleLookCount(ctx.UID(), ArticleID), "true", endDayTime.Sub(now))
-		dao.UpdateByPrimaryKey(singleton.Orm(), &model.Content{}, ArticleID, map[string]interface{}{"CountView": article.CountView + 1})
+		dao.UpdateByPrimaryKey(db.Orm(), &model.Content{}, ArticleID, map[string]interface{}{"CountView": article.CountView + 1})
 
 		LookArticle := 0 //todo config.Config.LookArticle
 
 		//if context.Session.Attributes.Get(play.SessionUser) != nil {
 		//user := context.Session.Attributes.Get(play.SessionUser).(*model.User)
-		err := service.Journal.AddScoreJournal(singleton.Orm(),
+		err := service.Journal.AddScoreJournal(db.Orm(),
 			ctx.UID(),
 			"看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)),
 			play.ScoreJournal_Type_Look_Article, int64(LookArticle), extends.KV{Key: "ArticleID", Value: article.ID})
@@ -691,7 +691,7 @@ func (service ContentService) GetContentAndAddLook(ctx constrain.IContext, Artic
 }
 
 func (service ContentService) HaveContentByTitle(ContentItemID, ContentSubTypeID uint, Title string) bool {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	_article := &model.Content{}
 	Orm.Where("ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeID).Where("Title=?", Title).First(_article)
 	if _article.ID == 0 {
@@ -702,19 +702,19 @@ func (service ContentService) HaveContentByTitle(ContentItemID, ContentSubTypeID
 
 }
 func (service ContentService) FindContentByIDAndNum(contentItemIDList []types.PrimaryKey, num int) []model.Content {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	_articleList := make([]model.Content, 0)
 	Orm.Where(`"ContentItemID" in ?`, contentItemIDList).Order(`"CreatedAt" desc`).Limit(num).Find(&_articleList)
 	return _articleList
 }
 func (service ContentService) getContentByUri(OID types.PrimaryKey, uri string) model.Content {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var item model.Content
 	Orm.Model(model.Content{}).Where(map[string]interface{}{"OID": OID, "Uri": uri}).First(&item)
 	return item
 }
 func (service ContentService) getContentItemByUri(OID, ID types.PrimaryKey, uri string) model.ContentItem {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var item model.ContentItem
 	item.OID = OID
 	item.Uri = uri
@@ -722,7 +722,7 @@ func (service ContentService) getContentItemByUri(OID, ID types.PrimaryKey, uri 
 	return item
 }
 func (service ContentService) SaveContent(OID types.PrimaryKey, article *model.Content) error {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	if article.ContentItemID == 0 {
 		return errors.Errorf("必须指定ContentItemID")
 	}

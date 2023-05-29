@@ -4,8 +4,8 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/dandelion/service/order"
@@ -105,7 +105,7 @@ func (m *Info) HandlePut(context constrain.IContext) (r constrain.IResult, err e
 	}
 
 	if len(changeMap) > 0 {
-		tx := singleton.Orm().Begin()
+		tx := db.Orm().Begin()
 		err = dao.UpdateBy(tx, &model.UserInfo{}, changeMap, `"UserID"=?`, context.UID())
 		if err != nil {
 			tx.Rollback()

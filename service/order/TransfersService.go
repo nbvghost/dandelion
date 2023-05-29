@@ -2,6 +2,7 @@ package order
 
 import (
 	"errors"
+	"github.com/nbvghost/dandelion/library/db"
 
 	"gorm.io/gorm"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/journal"
 	"github.com/nbvghost/dandelion/service/wechat"
 
@@ -25,7 +25,7 @@ type TransfersService struct {
 }
 
 func (service TransfersService) UserTransfers(UserID types.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
-	Orm := singleton.Orm().Begin()
+	Orm := db.Orm().Begin()
 
 	//var user model.User
 	user := dao.GetByPrimaryKey(Orm, entity.User, UserID).(*model.User)
@@ -76,7 +76,7 @@ func (service TransfersService) UserTransfers(UserID types.PrimaryKey, ReUserNam
 
 }
 func (service TransfersService) StoreTransfers(StoreID types.PrimaryKey, UserID types.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
-	Orm := singleton.Orm().Begin()
+	Orm := db.Orm().Begin()
 
 	//var store model.Store
 	store := dao.GetByPrimaryKey(Orm, entity.Store, StoreID).(*model.Store)

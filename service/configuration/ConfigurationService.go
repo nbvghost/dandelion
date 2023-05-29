@@ -1,11 +1,10 @@
 package configuration
 
 import (
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/singleton"
-
 	"github.com/nbvghost/gpa/types"
 )
 
@@ -14,7 +13,7 @@ type ConfigurationService struct {
 }
 
 func (b ConfigurationService) GetConfiguration(OID types.PrimaryKey, Key model.ConfigurationKey) model.Configuration {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var item model.Configuration
 	err := Orm.Where(`"K"=? and "OID"=?`, Key, OID).First(&item).Error
 	//db.Where([]int64{20, 21, 22}).Find(&users
@@ -22,7 +21,7 @@ func (b ConfigurationService) GetConfiguration(OID types.PrimaryKey, Key model.C
 	return item
 }
 func (b ConfigurationService) GetConfigurations(OID types.PrimaryKey, Keys ...model.ConfigurationKey) map[model.ConfigurationKey]string {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var items []model.Configuration
 	err := Orm.Where(`"K" in (?) and "OID"=?`, Keys, OID).Find(&items).Error
 	//db.Where([]int64{20, 21, 22}).Find(&users
@@ -44,7 +43,7 @@ func (b ConfigurationService) GetConfigurations(OID types.PrimaryKey, Keys ...mo
 
 }
 func (b ConfigurationService) ChangeConfiguration(OID types.PrimaryKey, Key model.ConfigurationKey, Value string) error {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	item := b.GetConfiguration(OID, Key)
 	item.V = Value
 	if item.ID == 0 {

@@ -5,8 +5,8 @@ import (
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/dandelion/service/order"
 	"github.com/nbvghost/gpa/types"
@@ -35,7 +35,7 @@ func (g *Verification) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 		//核销卡卷
 
 		//verification := controller.Verification.GetVerificationByVerificationNo(VerificationNo)
-		tx := singleton.Orm().Begin()
+		tx := db.Orm().Begin()
 		err := g.VerificationService.VerificationCardItem(tx, g.Post.VerificationNo, g.Post.Quantity, g.User, g.Store)
 		if err != nil {
 			tx.Rollback()
@@ -62,7 +62,7 @@ func (g *Verification) Handle(ctx constrain.IContext) (constrain.IResult, error)
 	verification := g.VerificationService.GetVerificationByVerificationNo(g.Get.VerificationNo)
 
 	//var cardItem model.CardItem
-	cardItem := dao.GetByPrimaryKey(singleton.Orm(), entity.CardItem, verification.CardItemID)
+	cardItem := dao.GetByPrimaryKey(db.Orm(), entity.CardItem, verification.CardItemID)
 
 	if verification.ID == 0 {
 		return &result.JsonResult{Data: &result.ActionResult{Code: result.Fail, Message: "", Data: nil}}, nil

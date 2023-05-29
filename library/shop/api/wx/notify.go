@@ -1,6 +1,7 @@
 package wx
 
 import (
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 	"net/http"
 	"time"
@@ -8,7 +9,6 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/order"
 	"github.com/nbvghost/dandelion/service/wechat"
 	"github.com/nbvghost/gpa/types"
@@ -37,7 +37,7 @@ func (m *Notify) HandlePost(context constrain.IContext) (r constrain.IResult, er
 }
 
 func (m *Notify) handle(context constrain.IContext, OID types.PrimaryKey) (r constrain.IResult, err error) {
-	wxConfig := m.WxService.MiniProgramByOID(singleton.Orm(), OID)
+	wxConfig := m.WxService.MiniProgramByOID(db.Orm(), OID)
 
 	certificateVisitor := downloader.MgrInstance().GetCertificateVisitor(wxConfig.MchID)
 

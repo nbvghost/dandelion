@@ -5,8 +5,8 @@ import (
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/library/viewmodel"
 	"github.com/nbvghost/dandelion/service/activity"
@@ -46,7 +46,7 @@ func (m *CreateOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 		return nil, err
 	}*/
 
-	address := dao.GetByPrimaryKey(singleton.Orm(), &model.Address{}, m.Post.AddressID).(*model.Address)
+	address := dao.GetByPrimaryKey(db.Orm(), &model.Address{}, m.Post.AddressID).(*model.Address)
 	if address.ID == 0 {
 		return nil, errors.New("the address cannot be empty")
 	}
@@ -68,7 +68,7 @@ func (m *CreateOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 		//OrdersGoodsLen := float64(0)
 		//OrdersGoodsNo := ""
 
-		tx := singleton.Orm().Begin()
+		tx := db.Orm().Begin()
 
 		/*op, err := m.OrdersService.AddOrdersPackage(tx, TotalPrice, m.User.ID)
 		if err != nil {

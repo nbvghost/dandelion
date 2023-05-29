@@ -5,9 +5,9 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal/network"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/configuration"
 	"github.com/nbvghost/dandelion/service/order"
 	"github.com/nbvghost/tool/object"
@@ -56,7 +56,7 @@ func (m *Capture) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 		//todo paypal如果改了收货地址，这里要改一下， Address:   capture.PurchaseUnits[0].Shipping.,
 		PayTime: time.Now(),
 	}
-	err = dao.UpdateByPrimaryKey(singleton.Orm(), &model.Orders{}, mOrder.ID, changeOrder)
+	err = dao.UpdateByPrimaryKey(db.Orm(), &model.Orders{}, mOrder.ID, changeOrder)
 	if err != nil {
 		return nil, err
 	}

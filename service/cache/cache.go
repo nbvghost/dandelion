@@ -2,7 +2,7 @@ package cache
 
 import (
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/singleton"
+	"github.com/nbvghost/dandelion/library/db"
 )
 
 var Cache = &cacheService{
@@ -28,13 +28,13 @@ func (m *cacheService) ShowLang() []model.Language {
 }
 func Init() {
 	var cacheList []model.Pinyin
-	singleton.Orm().Model(model.Pinyin{}).Find(&cacheList)
+	db.Orm().Model(model.Pinyin{}).Find(&cacheList)
 	for _, v := range cacheList {
 		Cache.pinyin[v.Word] = v.Pinyin
 	}
 
 	var languageList []model.Language
-	singleton.Orm().Model(model.Language{}).Where(`"CodeBiadu"<>''`).Find(&languageList)
+	db.Orm().Model(model.Language{}).Where(`"CodeBiadu"<>''`).Find(&languageList)
 	for index, v := range languageList {
 		Cache.showLanguage = append(Cache.showLanguage, languageList[index])
 		Cache.langBaiduCode[v.Code6391] = v.CodeBiadu

@@ -5,8 +5,8 @@ import (
 	"github.com/nbvghost/dandelion/domain/oss"
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/user"
 	"github.com/nbvghost/gpa/types"
 	"github.com/pkg/errors"
@@ -49,11 +49,11 @@ func (m *UploadAvatar) HandlePost(context constrain.IContext) (r constrain.IResu
 	changeMap["Portrait"], err = oss.ReadUrl(context, avatar.Data.Path)
 
 	if len(changeMap) > 0 {
-		err := dao.UpdateByPrimaryKey(singleton.Orm(), entity.User, m.Post.UserID, changeMap)
+		err := dao.UpdateByPrimaryKey(db.Orm(), entity.User, m.Post.UserID, changeMap)
 		if err != nil {
 			return &result.JsonResult{Data: &result.ActionResult{Code: result.Fail, Message: err.Error(), Data: nil}}, err
 		}
 	}
-	user := dao.GetByPrimaryKey(singleton.Orm(), entity.User, m.Post.UserID)
+	user := dao.GetByPrimaryKey(db.Orm(), entity.User, m.Post.UserID)
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "OK", Data: map[string]any{"User": user}}}, nil
 }

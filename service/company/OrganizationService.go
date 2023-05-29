@@ -2,12 +2,12 @@ package company
 
 import (
 	"errors"
+	"github.com/nbvghost/dandelion/library/db"
 
 	"gorm.io/gorm"
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/gpa/types"
 )
 
@@ -27,7 +27,7 @@ func (service OrganizationService) AddOrganizationBlockAmount(Orm *gorm.DB, OID 
 		return errors.New("冻结金额不足，无法扣款")
 	}
 
-	err := dao.UpdateByPrimaryKey(singleton.Orm(), &model.Organization{}, OID, map[string]interface{}{"BlockAmount": tm})
+	err := dao.UpdateByPrimaryKey(db.Orm(), &model.Organization{}, OID, map[string]interface{}{"BlockAmount": tm})
 	return err
 }
 func (service OrganizationService) FindByName(Orm *gorm.DB, Name string) *model.Organization {
@@ -48,18 +48,18 @@ func (service OrganizationService) FindByDomain(Orm *gorm.DB, Domain string) *mo
 	return manager
 }
 func (service OrganizationService) GetOrganization(ID types.PrimaryKey) types.IEntity {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	//target := model.Organization{}
 	//service.Get(Orm, ID, &target)
 	return dao.GetByPrimaryKey(Orm, &model.Organization{}, ID)
 }
 
 func (service OrganizationService) DelCompany(ID types.PrimaryKey) error {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	return dao.DeleteByPrimaryKey(Orm, &model.Organization{}, ID)
 }
 func (service OrganizationService) ChangeOrganization(ID types.PrimaryKey, shop *model.Organization) error {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	//return Orm.Save(article).Error
 	//err := db.Orm.Save(shop).Error
 	org := service.GetOrganization(ID).(*model.Organization)

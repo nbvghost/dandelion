@@ -1,10 +1,10 @@
 package activity
 
 import (
+	"github.com/nbvghost/dandelion/library/db"
 	"time"
 
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/singleton"
 )
 
 type VoucherService struct {
@@ -18,7 +18,7 @@ func (service VoucherService) Situation(StartTime, EndTime int64) interface{} {
 	et := time.Unix(EndTime/1000, 0).Add(24 * time.Hour)
 	et = time.Date(et.Year(), et.Month(), et.Day(), 0, 0, 0, 0, et.Location())
 
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 
 	type Result struct {
 		TotalMoney uint `gorm:"column:TotalMoney"`

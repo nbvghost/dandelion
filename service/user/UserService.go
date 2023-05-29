@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 	"strconv"
 	"strings"
@@ -12,7 +13,6 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/dandelion/service/configuration"
@@ -74,7 +74,7 @@ func (service UserService) Situation(StartTime, EndTime int64) interface{} {
 	et := time.Unix(EndTime/1000, 0).Add(24 * time.Hour)
 	et = time.Date(et.Year(), et.Month(), et.Day(), 0, 0, 0, 0, et.Location())
 
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 
 	type Result struct {
 		TotalCount  uint `gorm:"column:TotalCount"`
@@ -110,7 +110,7 @@ func (service UserService) FindUserByIDs(IDs []uint) []model.User {
 	if len(IDs) == 0 {
 		return users
 	}
-	err := singleton.Orm().Where(IDs).Find(&users).Error //SelectOne(user, "select * from User where Tel=?", Tel)
+	err := db.Orm().Where(IDs).Find(&users).Error //SelectOne(user, "select * from User where Tel=?", Tel)
 	log.Println(err)
 	return users
 }
@@ -145,7 +145,7 @@ func (service UserService) LeveAll6(Orm *gorm.DB, OneSuperiorID types.PrimaryKey
 	return strings.Join(leveIDs, ",")
 }
 func (service UserService) Leve1(UserID types.PrimaryKey) []uint {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var levea []uint
 	if UserID <= 0 {
 		return levea
@@ -154,7 +154,7 @@ func (service UserService) Leve1(UserID types.PrimaryKey) []uint {
 	return levea
 }
 func (service UserService) Leve2(Leve1IDs []uint) []uint {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var levea []uint
 	if len(Leve1IDs) <= 0 {
 		return levea
@@ -163,7 +163,7 @@ func (service UserService) Leve2(Leve1IDs []uint) []uint {
 	return levea
 }
 func (service UserService) Leve3(Leve2IDs []uint) []uint {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var levea []uint
 	if len(Leve2IDs) <= 0 {
 		return levea
@@ -172,7 +172,7 @@ func (service UserService) Leve3(Leve2IDs []uint) []uint {
 	return levea
 }
 func (service UserService) Leve4(Leve3IDs []uint) []uint {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var levea []uint
 	if len(Leve3IDs) <= 0 {
 		return levea
@@ -181,7 +181,7 @@ func (service UserService) Leve4(Leve3IDs []uint) []uint {
 	return levea
 }
 func (service UserService) Leve5(Leve4IDs []uint) []uint {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var levea []uint
 	if len(Leve4IDs) <= 0 {
 		return levea
@@ -190,7 +190,7 @@ func (service UserService) Leve5(Leve4IDs []uint) []uint {
 	return levea
 }
 func (service UserService) Leve6(Leve5IDs []uint) []uint {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var levea []uint
 	if len(Leve5IDs) <= 0 {
 		return levea
@@ -199,7 +199,7 @@ func (service UserService) Leve6(Leve5IDs []uint) []uint {
 	return levea
 }
 func (service UserService) GetUserInfo(UserID types.PrimaryKey) model.UserInfo {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	//.First(&user, 10)
 	var userInfo model.UserInfo
 	Orm.Where(&model.UserInfo{UserID: UserID}).First(&userInfo)
@@ -212,7 +212,7 @@ func (service UserService) GetUserInfo(UserID types.PrimaryKey) model.UserInfo {
 
 func (service UserService) UserAction(context *gweb.Context) (r gweb.Result, err error) {
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	action := context.Request.URL.Query().Get("action")
 	switch action {
 	case "list":

@@ -2,12 +2,12 @@ package job
 
 import (
 	"context"
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/wechat"
 )
 
@@ -16,9 +16,9 @@ type QueryExpressCompanyTask struct {
 }
 
 func (m *QueryExpressCompanyTask) Run() error {
-	wxConfigList := m.WxService.MiniProgram(singleton.Orm())
+	wxConfigList := m.WxService.MiniProgram(db.Orm())
 	for _, config := range wxConfigList {
-		Orm := singleton.Orm()
+		Orm := db.Orm()
 		deliverys, err := m.WxService.GetDeliveryList(m.WxService.GetAccessToken(config.(*model.WechatConfig)))
 		if err != nil {
 			log.Println(err)

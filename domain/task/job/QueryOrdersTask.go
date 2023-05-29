@@ -2,12 +2,12 @@ package job
 
 import (
 	"context"
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/order"
 	"github.com/nbvghost/dandelion/service/wechat"
 )
@@ -18,9 +18,9 @@ type QueryOrdersTask struct {
 }
 
 func (m *QueryOrdersTask) Run() error {
-	wxConfigList := m.WxService.MiniProgram(singleton.Orm())
+	wxConfigList := m.WxService.MiniProgram(db.Orm())
 	for _, config := range wxConfigList {
-		Orm := singleton.Orm()
+		Orm := db.Orm()
 		//var ordersList []model.Orders
 		ordersList := dao.Find(Orm, entity.Orders).Where(`"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed).List()
 		//service.FindWhere(Orm, &ordersList, `"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed)

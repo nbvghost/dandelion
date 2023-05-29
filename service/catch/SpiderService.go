@@ -2,6 +2,7 @@ package catch
 
 import (
 	"bytes"
+	"github.com/nbvghost/dandelion/library/db"
 	"io"
 	"log"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 	"time"
 
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/admin"
 	"github.com/nbvghost/dandelion/service/content"
 	"github.com/nbvghost/dandelion/service/file"
@@ -38,7 +38,7 @@ func init() {
 }
 func (spider SpiderService) StartSpider() {
 
-	admin := spider.Admin.FindAdminByAccount(singleton.Orm(), "admin")
+	admin := spider.Admin.FindAdminByAccount(db.Orm(), "admin")
 	spider.OID = uint(admin.OID)
 	//美女
 	urlList := [][]string{
@@ -294,7 +294,7 @@ func (spider SpiderService) GetArticleDataAndAdd(body io.ReadCloser, ContentSubT
 
 }
 
-//http://weixin.sogou.com/
+// http://weixin.sogou.com/
 func (spider SpiderService) WeixinSogou(urls []string, ContentSubTypeName string) {
 
 	/*for _,value:=range urls{

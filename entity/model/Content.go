@@ -54,7 +54,7 @@ const (
 	ContentTypePage     ContentTypeType = "page"
 )
 
-//MenuType
+// MenuType
 type ContentType struct {
 	types.Entity
 	Label string          `gorm:"column:Label"`
@@ -79,6 +79,7 @@ type Content struct {
 	Author           string           `gorm:"column:Author"`                        //
 	CountView        int              `gorm:"column:CountView"`                     //
 	CountLike        int              `gorm:"column:CountLike"`                     //
+	CountShare       int              `gorm:"column:CountShare"`                    //
 	Tags             pq.StringArray   `gorm:"column:Tags;type:text[];default:'{}'"` //
 }
 

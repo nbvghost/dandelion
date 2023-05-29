@@ -5,8 +5,8 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/contexext"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/gpa/types"
 	"gorm.io/gorm"
@@ -37,7 +37,7 @@ func (m *Like) HandlePost(context constrain.IContext) (constrain.IResult, error)
 	if err != nil {
 		return nil, err
 	}
-	err = singleton.Orm().Model(model.Content{}).Where(map[string]any{"ID": m.Post.ID}).Updates(map[string]any{"CountLike": gorm.Expr(`"CountLike"+1`)}).Error
+	err = db.Orm().Model(model.Content{}).Where(map[string]any{"ID": m.Post.ID}).Updates(map[string]any{"CountLike": gorm.Expr(`"CountLike"+1`)}).Error
 	if err != nil {
 		return nil, err
 	}

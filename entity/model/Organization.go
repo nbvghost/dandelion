@@ -19,8 +19,10 @@ type Organization struct {
 	//AdminID      types.PrimaryKey    `gorm:"column:AdminID"`
 	//Domain       string              `gorm:"column:Domain;not null;unique"`         //三级域名
 	Name         string              `gorm:"column:Name;not null"`                  //店名
+	ShortName    string              `gorm:"column:ShortName"`                      //店名
 	Amount       uint                `gorm:"column:Amount;default:0"`               //现金
 	BlockAmount  uint                `gorm:"column:BlockAmount;default:0"`          //冻结现金
+	Logo         string              `gorm:"column:Logo"`                           //Logo
 	Address      string              `gorm:"column:Address"`                        //街道地址
 	Telephone    string              `gorm:"column:Telephone"`                      //手机
 	Email        string              `gorm:"column:Email"`                          //联系邮箱

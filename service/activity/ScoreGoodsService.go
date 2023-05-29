@@ -2,13 +2,13 @@ package activity
 
 import (
 	"errors"
+	"github.com/nbvghost/dandelion/library/db"
 	"time"
 
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/journal"
 
 	"github.com/nbvghost/gpa/types"
@@ -23,7 +23,7 @@ type ScoreGoodsService struct {
 
 func (service ScoreGoodsService) Exchange(user *model.User, ScoreGoodsID types.PrimaryKey) error {
 
-	tx := singleton.Orm().Begin()
+	tx := db.Orm().Begin()
 	//var scoreGoods model.ScoreGoods
 	scoreGoods := dao.GetByPrimaryKey(tx, &model.ScoreGoods{}, ScoreGoodsID).(*model.ScoreGoods)
 	if scoreGoods.ID == 0 {
@@ -64,7 +64,7 @@ func (service ScoreGoodsService) Situation(StartTime, EndTime int64) interface{}
 	et := time.Unix(EndTime/1000, 0).Add(24 * time.Hour)
 	et = time.Date(et.Year(), et.Month(), et.Day(), 0, 0, 0, 0, et.Location())
 
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 
 	type Result struct {
 		TotalScore uint `gorm:"column:TotalScore"`
@@ -81,7 +81,7 @@ func (service ScoreGoodsService) Situation(StartTime, EndTime int64) interface{}
 }
 
 func (service ScoreGoodsService) ListScoreGoods() []types.IEntity {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	//var list []model.ScoreGoods
 	//dao.Find(Orm, &model.ScoreGoods{})
 	return dao.Find(Orm, &model.ScoreGoods{}).List()

@@ -2,31 +2,31 @@ package service
 
 import (
 	"fmt"
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/environments"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/cache"
 	"github.com/nbvghost/tool/encryption"
 )
 
 func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
-	err := singleton.Init(etcd, dbName)
+	err := db.Connect(etcd, dbName)
 	if err != nil {
 		return err
 	}
 
 	cache.Init()
 
-	if true {
+	if false {
 		return nil
 	}
 
-	_database := singleton.Orm()
+	_database := db.Orm()
 
 	models := make([]model.IDataBaseFace, 0)
 
@@ -231,7 +231,7 @@ $Goods$ LANGUAGE plpgsql;`
 func RebuildFullTextSearch() {
 	var err error
 	var goodsList []model.Goods
-	singleton.Orm().Model(model.Goods{}).Find(&goodsList)
+	db.Orm().Model(model.Goods{}).Find(&goodsList)
 	for _, v := range goodsList {
 		var picture string
 		if len(v.Images) > 0 {
@@ -239,7 +239,7 @@ func RebuildFullTextSearch() {
 		}
 
 		fts := model.FullTextSearch{}
-		singleton.Orm().Model(model.FullTextSearch{}).Where(`"TID"=? and "Type"=?`, v.ID, model.FullTextSearchTypeProducts).First(&fts)
+		db.Orm().Model(model.FullTextSearch{}).Where(`"TID"=? and "Type"=?`, v.ID, model.FullTextSearchTypeProducts).First(&fts)
 
 		fts.CreatedAt = v.CreatedAt
 		fts.UpdatedAt = v.UpdatedAt
@@ -251,20 +251,20 @@ func RebuildFullTextSearch() {
 		fts.Picture = picture
 		fts.Type = model.FullTextSearchTypeProducts
 
-		if err = singleton.Orm().Model(&fts).Save(&fts).Error; err != nil {
+		if err = db.Orm().Model(&fts).Save(&fts).Error; err != nil {
 			panic(err)
 		}
-		if err = singleton.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
+		if err = db.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
 			panic(err)
 		}
 	}
 
 	var contentList []model.Content
-	singleton.Orm().Model(model.Content{}).Find(&contentList)
+	db.Orm().Model(model.Content{}).Find(&contentList)
 	for _, v := range contentList {
 
 		fts := model.FullTextSearch{}
-		singleton.Orm().Model(model.FullTextSearch{}).Where(`"TID"=? and "Type"=?`, v.ID, model.FullTextSearchTypeContent).First(&fts)
+		db.Orm().Model(model.FullTextSearch{}).Where(`"TID"=? and "Type"=?`, v.ID, model.FullTextSearchTypeContent).First(&fts)
 
 		fts.CreatedAt = v.CreatedAt
 		fts.UpdatedAt = v.UpdatedAt
@@ -277,10 +277,10 @@ func RebuildFullTextSearch() {
 		fts.Type = model.FullTextSearchTypeContent
 		fts.ContentItemID = v.ContentItemID
 
-		if err = singleton.Orm().Model(&fts).Save(&fts).Error; err != nil {
+		if err = db.Orm().Model(&fts).Save(&fts).Error; err != nil {
 			panic(err)
 		}
-		if err = singleton.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
+		if err = db.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
 			panic(err)
 		}
 	}

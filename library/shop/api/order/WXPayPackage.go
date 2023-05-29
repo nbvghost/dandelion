@@ -1,6 +1,7 @@
 package order
 
 import (
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 	"strings"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/order"
 	"github.com/nbvghost/dandelion/service/wechat"
@@ -57,7 +57,7 @@ func (m *WXPayPackage) Handle(ctx constrain.IContext) (constrain.IResult, error)
 		return nil, err
 	}
 
-	err = dao.UpdateByPrimaryKey(singleton.Orm(), entity.OrdersPackage, orders.ID, map[string]interface{}{"PrepayID": *Result.PrepayId})
+	err = dao.UpdateByPrimaryKey(db.Orm(), entity.OrdersPackage, orders.ID, map[string]interface{}{"PrepayID": *Result.PrepayId})
 	if err != nil {
 		log.Println(err)
 	}

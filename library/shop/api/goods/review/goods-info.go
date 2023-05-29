@@ -4,8 +4,8 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/gpa/types"
 )
@@ -28,7 +28,7 @@ type GoodsInfo struct {
 }
 
 func (m *GoodsInfo) Handle(ctx constrain.IContext) (constrain.IResult, error) {
-	db := dao.Find(singleton.Orm(), &model.GoodsReview{}).Where(`"GoodsID"=?`, m.Get.GoodsID).Order(`"CreatedAt" desc`)
+	db := dao.Find(db.Orm(), &model.GoodsReview{}).Where(`"GoodsID"=?`, m.Get.GoodsID).Order(`"CreatedAt" desc`)
 	total := db.Limit(m.Get.Index, m.Get.PageSize)
 	list := db.List()
 	return result.NewData(result.NewPagination(m.Get.Index, m.Get.PageSize, int(total), list)), nil
@@ -48,7 +48,7 @@ func (m *GoodsInfo) HandlePost(ctx constrain.IContext) (constrain.IResult, error
 
 		return nil, errors.New("same title")
 	}*/
-	err := dao.Create(singleton.Orm(), review)
+	err := dao.Create(db.Orm(), review)
 	if err != nil {
 		return nil, err
 	}

@@ -5,8 +5,8 @@ import (
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/gpa/types"
 )
@@ -28,14 +28,14 @@ func (g *AddStar) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 	//Num := object.ParseUint(context.Request.FormValue("Num"))
 
 	//var store model.Store
-	store := dao.GetByPrimaryKey(singleton.Orm(), entity.Store, g.Post.StoreID).(*model.Store)
+	store := dao.GetByPrimaryKey(db.Orm(), entity.Store, g.Post.StoreID).(*model.Store)
 	if g.Post.Num > 5 {
 		g.Post.Num = 5
 	}
 	store.Stars = store.Stars + g.Post.Num
 
 	store.StarsCount = store.StarsCount + 1
-	err := dao.UpdateByPrimaryKey(singleton.Orm(), entity.Store, store.ID, &model.Store{Stars: store.Stars, StarsCount: store.StarsCount})
+	err := dao.UpdateByPrimaryKey(db.Orm(), entity.Store, store.ID, &model.Store{Stars: store.Stars, StarsCount: store.StarsCount})
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "评价成功", nil)}, nil
 }
 

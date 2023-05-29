@@ -4,8 +4,8 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/order"
 	"github.com/nbvghost/gpa/types"
 )
@@ -22,9 +22,9 @@ func (m *List) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
 	var address *model.Address = &model.Address{}
 	if m.Get.AddressID > 0 {
-		address = dao.GetByPrimaryKey(singleton.Orm(), &model.Address{}, m.Get.AddressID).(*model.Address)
+		address = dao.GetByPrimaryKey(db.Orm(), &model.Address{}, m.Get.AddressID).(*model.Address)
 	} else {
-		addressList := dao.Find(singleton.Orm(), &model.Address{}).Where(`"UserID"=? and "DefaultShipping"=true`, ctx.UID()).List()
+		addressList := dao.Find(db.Orm(), &model.Address{}).Where(`"UserID"=? and "DefaultShipping"=true`, ctx.UID()).List()
 		if len(addressList) > 0 {
 			address = addressList[0].(*model.Address)
 		}

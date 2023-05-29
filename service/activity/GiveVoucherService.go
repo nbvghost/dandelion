@@ -2,10 +2,10 @@ package activity
 
 import (
 	"errors"
+	"github.com/nbvghost/dandelion/library/db"
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/singleton"
 )
 
 type GiveVoucherService struct {
@@ -13,19 +13,19 @@ type GiveVoucherService struct {
 }
 
 func (service GiveVoucherService) FindDESC() []model.GiveVoucher {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var ranks []model.GiveVoucher
 	Orm.Model(&model.GiveVoucher{}).Order("ScoreMaxValue desc").Find(&ranks)
 	return ranks
 }
 func (service GiveVoucherService) FindASC() []model.GiveVoucher {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var ranks []model.GiveVoucher
 	Orm.Model(&model.GiveVoucher{}).Order("ScoreMaxValue asc").Find(&ranks)
 	return ranks
 }
 func (service GiveVoucherService) AddItem(item model.GiveVoucher) error {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var hasRank model.GiveVoucher
 	Orm.Model(&model.GiveVoucher{}).Where(&model.GiveVoucher{ScoreMaxValue: item.ScoreMaxValue}).First(&hasRank)
 	if hasRank.ID != 0 {
@@ -36,7 +36,7 @@ func (service GiveVoucherService) AddItem(item model.GiveVoucher) error {
 
 }
 func (service GiveVoucherService) SaveItem(item model.GiveVoucher) error {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var hasRank model.GiveVoucher
 	Orm.Model(&model.GiveVoucher{}).Where(&model.GiveVoucher{ScoreMaxValue: item.ScoreMaxValue}).First(&hasRank)
 	if hasRank.ID != 0 && hasRank.ID != item.ID {

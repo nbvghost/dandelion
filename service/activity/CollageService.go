@@ -1,12 +1,12 @@
 package activity
 
 import (
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 	"strings"
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/gpa/types"
 
 	"github.com/nbvghost/tool"
@@ -19,16 +19,16 @@ type CollageService struct {
 
 func (service CollageService) GetCollageGoodsByGoodsID(GoodsID types.PrimaryKey, OID types.PrimaryKey) model.CollageGoods {
 	var timesellGoods model.CollageGoods
-	singleton.Orm().Model(&model.CollageGoods{}).Where("GoodsID=? and OID=?", GoodsID, OID).First(&timesellGoods)
+	db.Orm().Model(&model.CollageGoods{}).Where("GoodsID=? and OID=?", GoodsID, OID).First(&timesellGoods)
 	return timesellGoods
 }
 
 func (service CollageService) DeleteCollage(TimeSellID types.PrimaryKey) error {
 	//timesell := TimeSellService{}.GetTimeSellByGoodsID(GoodsID)
 	//var ts model.Collage
-	ts := dao.GetByPrimaryKey(singleton.Orm(), &model.Collage{}, TimeSellID).(*model.Collage)
+	ts := dao.GetByPrimaryKey(db.Orm(), &model.Collage{}, TimeSellID).(*model.Collage)
 	//err := service.Delete(singleton.Orm(), &model.TimeSell{}, ts.ID)
-	err := dao.DeleteBy(singleton.Orm(), &model.Collage{}, map[string]interface{}{
+	err := dao.DeleteBy(db.Orm(), &model.Collage{}, map[string]interface{}{
 		"Hash": ts.Hash,
 	})
 	log.Println(err)
@@ -38,7 +38,7 @@ func (service CollageService) DeleteCollage(TimeSellID types.PrimaryKey) error {
 
 func (service CollageService) GetItemByHash(Hash string) model.Collage {
 	var timesell model.Collage
-	err := singleton.Orm().Model(&model.Collage{}).Where("Hash=?", Hash).First(&timesell).Error
+	err := db.Orm().Model(&model.Collage{}).Where("Hash=?", Hash).First(&timesell).Error
 	log.Println(err)
 	return timesell
 }
@@ -46,10 +46,10 @@ func (service CollageService) GetItemByHash(Hash string) model.Collage {
 func (service CollageService) GetCollageByGoodsID(GoodsID types.PrimaryKey, OID types.PrimaryKey) model.Collage {
 	//timesellGoods := service.GetTimeSellGoodsByGoodsID(GoodsID, OID)
 	var timesellGoods model.CollageGoods
-	singleton.Orm().Model(&model.CollageGoods{}).Where(`"GoodsID"=? and "OID"=?`, GoodsID, OID).First(&timesellGoods)
+	db.Orm().Model(&model.CollageGoods{}).Where(`"GoodsID"=? and "OID"=?`, GoodsID, OID).First(&timesellGoods)
 
 	var timesell model.Collage
-	singleton.Orm().Model(&model.Collage{}).Where(`"Hash"=? and "OID"=?`, timesellGoods.CollageHash, timesellGoods.OID).First(&timesell)
+	db.Orm().Model(&model.Collage{}).Where(`"Hash"=? and "OID"=?`, timesellGoods.CollageHash, timesellGoods.OID).First(&timesell)
 	return timesell
 
 	/*var timesell model.Collage
@@ -59,7 +59,7 @@ func (service CollageService) GetCollageByGoodsID(GoodsID types.PrimaryKey, OID 
 }
 func (service CollageService) GetCollageByHash(Hash string, OID types.PrimaryKey) *model.Collage {
 	var timesell model.Collage
-	err := singleton.Orm().Model(&model.Collage{}).Where("Hash=? and OID=?", Hash, OID).First(&timesell).Error
+	err := db.Orm().Model(&model.Collage{}).Where("Hash=? and OID=?", Hash, OID).First(&timesell).Error
 	log.Println(err)
 	return &timesell
 }
@@ -80,10 +80,10 @@ func (service CollageService) AddCollageRecord(OrderNo, OrdersGoodsNo, No string
 			return errors.New("您已经参加了这个活动，看看其它活动吧！")
 		}
 	}
-	return dao.Create(singleton.Orm(), cr)
+	return dao.Create(db.Orm(), cr)
 }
 func (service CollageService) FindCollageRecordByUserIDAndNo(UserID types.PrimaryKey, No string) model.CollageRecord {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var cr model.CollageRecord
 	Orm.Model(&model.CollageRecord{}).Where("UserID=? and No=?").First(&cr)
 	return cr

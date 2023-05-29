@@ -1,12 +1,12 @@
 package user
 
 import (
+	"github.com/nbvghost/dandelion/library/db"
 	"strings"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/user"
 )
 
@@ -28,7 +28,7 @@ func (m *GrowthList) Handle(context constrain.IContext) (constrain.IResult, erro
 		Order = `"Growth" asc`
 	}
 	var users []model.User
-	err := m.UserService.FindOrderWhereLength(singleton.Orm(), Order, &users, 20)
+	err := m.UserService.FindOrderWhereLength(db.Orm(), Order, &users, 20)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", users)}, err
 
 }

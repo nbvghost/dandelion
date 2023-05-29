@@ -3,6 +3,7 @@ package wechat
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/gpa/types"
 	"io/ioutil"
 	"log"
@@ -13,7 +14,6 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/company"
 )
 
@@ -77,7 +77,7 @@ func (service MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []type
 		return &result.ActionResult{Code: result.Fail, Message: "找不到订单", Data: nil}
 	}
 
-	notifyUser := dao.GetByPrimaryKey(singleton.Orm(), &model.User{}, Order.UserID).(*model.User)
+	notifyUser := dao.GetByPrimaryKey(db.Orm(), &model.User{}, Order.UserID).(*model.User)
 
 	var as *result.ActionResult
 
@@ -171,7 +171,7 @@ func (service MessageNotify) NewOrderNotify(Order model.Orders, ogs []model.Orde
 		return &result.ActionResult{Code: result.Fail, Message: "找不到订单", Data: nil}
 	}
 
-	notifyUser := dao.GetByPrimaryKey(singleton.Orm(), &model.User{}, Order.UserID).(*model.User)
+	notifyUser := dao.GetByPrimaryKey(db.Orm(), &model.User{}, Order.UserID).(*model.User)
 
 	var as *result.ActionResult
 
@@ -195,7 +195,7 @@ func (service MessageNotify) NewOrderNotify(Order model.Orders, ogs []model.Orde
 
 	//var org model.Organization
 	//service.OrganizationService.Get(singleton.Orm(), Order.OID, &org)
-	org := dao.GetByPrimaryKey(singleton.Orm(), &model.Organization{}, Order.OID).(*model.Organization)
+	org := dao.GetByPrimaryKey(db.Orm(), &model.Organization{}, Order.OID).(*model.Organization)
 
 	data_data["keyword5"] = map[string]interface{}{"value": org.Name, "color": "#173177"}
 

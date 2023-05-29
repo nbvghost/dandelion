@@ -5,8 +5,8 @@ import (
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/wechat"
 	"github.com/nbvghost/gpa/types"
@@ -35,8 +35,8 @@ func (g *MiniprogramQRcode) HandlePost(ctx constrain.IContext) (constrain.IResul
 
 func (g *MiniprogramQRcode) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
-	user := dao.GetByPrimaryKey(singleton.Orm(), entity.User, g.Get.UserID).(*model.User)
-	wechatConfig := g.WxService.MiniProgramByOID(singleton.Orm(), user.OID)
+	user := dao.GetByPrimaryKey(db.Orm(), entity.User, g.Get.UserID).(*model.User)
+	wechatConfig := g.WxService.MiniProgramByOID(db.Orm(), user.OID)
 
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*entity.Organization)

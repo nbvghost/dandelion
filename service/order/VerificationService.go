@@ -3,6 +3,7 @@ package order
 import (
 	"errors"
 	"fmt"
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 	"strings"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/dandelion/service/company"
@@ -100,9 +100,9 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 
 		go func() {
 			//var _goods model.Goods
-			_goods := dao.GetByPrimaryKey(singleton.Orm(), entity.Goods, goods.ID).(*model.Goods)
+			_goods := dao.GetByPrimaryKey(db.Orm(), entity.Goods, goods.ID).(*model.Goods)
 			if _goods.ID != 0 {
-				dao.UpdateByPrimaryKey(singleton.Orm(), entity.Goods, _goods.ID, &model.Goods{CountSale: _goods.CountSale + uint(Quantity)})
+				dao.UpdateByPrimaryKey(db.Orm(), entity.Goods, _goods.ID, &model.Goods{CountSale: _goods.CountSale + uint(Quantity)})
 			}
 		}()
 
@@ -200,7 +200,7 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 	return nil
 }
 func (service VerificationService) GetVerificationByVerificationNo(VerificationNo string) model.Verification {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	item := model.Verification{}
 	err := Orm.Where("VerificationNo=?", VerificationNo).First(&item).Error //SelectOne(user, "select * from User where Tel=?", Tel)
 	log.Println(err)
@@ -208,7 +208,7 @@ func (service VerificationService) GetVerificationByVerificationNo(VerificationN
 }
 
 func (service VerificationService) VerificationSelf(StoreID, StoreStockID types.PrimaryKey, Quantity uint) *result.ActionResult {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	//var ss model.StoreStock
 	ss := dao.GetByPrimaryKey(Orm, entity.StoreStock, StoreStockID).(*model.StoreStock)
 	if ss.IsZero() {

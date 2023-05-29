@@ -1,15 +1,15 @@
 package content
 
 import (
+	"github.com/nbvghost/dandelion/library/db"
 	"gorm.io/gorm"
 
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/gpa/types"
 )
 
 func (service ContentService) ListContentItemByOIDMap(OID types.PrimaryKey) map[types.PrimaryKey]model.ContentItem {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var menus []model.ContentItem
 	Orm.Model(model.ContentItem{}).Where(map[string]interface{}{"OID": OID}).Order(`"Sort"`).Order(`"UpdatedAt" desc`).Find(&menus)
 	m := make(map[types.PrimaryKey]model.ContentItem)
@@ -19,7 +19,7 @@ func (service ContentService) ListContentItemByOIDMap(OID types.PrimaryKey) map[
 	return m
 }
 func (service ContentService) ListContentItemByOID(OID types.PrimaryKey) []model.ContentItem {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var menus []model.ContentItem
 	Orm.Model(model.ContentItem{}).Where(map[string]interface{}{"OID": OID}).Order(`"Sort"`).Order(`"UpdatedAt" desc`).Find(&menus)
 	return menus
@@ -47,7 +47,7 @@ func (service ContentService) GetContentItemOfProducts(db *gorm.DB, OID types.Pr
 }
 
 func (service ContentService) GetContentItemIDs(OID types.PrimaryKey) []uint {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var levea []uint
 	if OID <= 0 {
 		return levea

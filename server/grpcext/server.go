@@ -132,10 +132,6 @@ func valid(authorization []string) bool {
 }
 
 func (m *service) Register(serviceDesc grpc.ServiceDesc, handlers []constrain.IGrpcHandler, withoutAuth ...bool) {
-	var _withoutAuth bool
-	if len(withoutAuth) > 0 {
-		_withoutAuth = withoutAuth[0]
-	}
 
 	messageType := reflect.TypeOf(new(proto.Message)).Elem()
 	t := reflect.TypeOf(serviceDesc.HandlerType).Elem()
@@ -159,7 +155,6 @@ func (m *service) Register(serviceDesc grpc.ServiceDesc, handlers []constrain.IG
 							}
 							m.routes[fullServiceName] = &route.RouteInfo{
 								HandlerType: hT,
-								WithoutAuth: _withoutAuth,
 							}
 							isFound = true
 						}

@@ -1,12 +1,12 @@
 package activity
 
 import (
+	"github.com/nbvghost/dandelion/library/db"
 	"time"
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 
 	"gorm.io/gorm"
@@ -23,7 +23,7 @@ type CardItemService struct {
 
 func (service CardItemService) ListNewCount(UserID types.PrimaryKey) (TotalRecords int64) {
 
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var orders []model.CardItem
 	db := Orm.Model(model.CardItem{})
 
@@ -56,7 +56,7 @@ func (service CardItemService) CancelOrdersGoodsCardItem(DB *gorm.DB, UserID typ
 func (service CardItemService) FindByUserID(UserID types.PrimaryKey) []model.CardItem {
 	var cards []model.CardItem
 	//service.FindWhere(singleton.Orm(), &cards, model.CardItem{UserID: UserID})
-	service.FindOrderWhere(singleton.Orm(), `"UseQuantity" asc,"CreatedAt" desc`, &cards, model.CardItem{UserID: UserID})
+	service.FindOrderWhere(db.Orm(), `"UseQuantity" asc,"CreatedAt" desc`, &cards, model.CardItem{UserID: UserID})
 	return cards
 }
 

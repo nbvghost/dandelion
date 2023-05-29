@@ -2,13 +2,13 @@ package index
 
 import (
 	"encoding/base64"
+	"github.com/nbvghost/dandelion/library/db"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/dandelion/service/order"
 	"github.com/nbvghost/gpa/types"
@@ -30,9 +30,9 @@ func (m *CardGet) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//CardItemID, _ := strconv.ParseUint(context.PathParams["CardItemID"], 10, 64)
 	//CardItemID := object.ParseUint(context.PathParams["CardItemID"])
 	//var cardItem model.CardItem
-	cardItem := dao.GetByPrimaryKey(singleton.Orm(), entity.CardItem, types.PrimaryKey(m.Get.CardItemID)).(*model.CardItem)
+	cardItem := dao.GetByPrimaryKey(db.Orm(), entity.CardItem, types.PrimaryKey(m.Get.CardItemID)).(*model.CardItem)
 
-	dao.DeleteBy(singleton.Orm(), &model.Verification{}, map[string]interface{}{
+	dao.DeleteBy(db.Orm(), &model.Verification{}, map[string]interface{}{
 		"UserID":     m.User.ID,
 		"CardItemID": cardItem.Primary(),
 		"StoreID":    0,
@@ -43,9 +43,9 @@ func (m *CardGet) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	verification.CardItemID = cardItem.Primary()
 	verification.UserID = m.User.ID
 	verification.VerificationNo = tool.UUID()
-	verification.Name, verification.Label = cardItem.GetNameLabel(singleton.Orm())
+	verification.Name, verification.Label = cardItem.GetNameLabel(db.Orm())
 
-	dao.Create(singleton.Orm(), &verification)
+	dao.Create(db.Orm(), &verification)
 
 	results := make(map[string]interface{})
 

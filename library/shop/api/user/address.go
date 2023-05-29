@@ -5,8 +5,8 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/gpa/types"
 	"log"
 )
@@ -54,12 +54,12 @@ func (m *Address) HandleDelete(context constrain.IContext) (constrain.IResult, e
 	where := dao.NewWhere()
 	where.Eq(`"UserID"`, context.UID())
 
-	err := dao.DeleteBy(singleton.Orm(), &model.Address{}, map[string]any{"UserID": context.UID(), "ID": m.Delete.ID})
+	err := dao.DeleteBy(db.Orm(), &model.Address{}, map[string]any{"UserID": context.UID(), "ID": m.Delete.ID})
 	if err != nil {
 		return nil, err
 	}
 
-	addressList := dao.Find(singleton.Orm(), &model.Address{}).Where(where.String()).List()
+	addressList := dao.Find(db.Orm(), &model.Address{}).Where(where.String()).List()
 	return result.NewData(map[string]any{"AddressList": addressList}), nil
 }
 
@@ -69,7 +69,7 @@ func (m *Address) Handle(context constrain.IContext) (r constrain.IResult, err e
 	if m.Get.ID > 0 {
 		where.Eq(`"ID"`, m.Get.ID)
 	}
-	addressList := dao.Find(singleton.Orm(), &model.Address{}).Where(where.String()).List()
+	addressList := dao.Find(db.Orm(), &model.Address{}).Where(where.String()).List()
 	return result.NewData(map[string]any{"AddressList": addressList}), nil
 }
 
@@ -93,7 +93,7 @@ func (m *Address) HandlePut(context constrain.IContext) (constrain.IResult, erro
 		"DefaultShipping": m.Put.DefaultShipping,
 	}
 
-	tx := singleton.Orm().Begin()
+	tx := db.Orm().Begin()
 	if m.Put.DefaultBilling || m.Put.DefaultShipping {
 		changeValue := map[string]any{}
 		if m.Put.DefaultBilling {
@@ -137,7 +137,7 @@ func (m *Address) HandlePost(context constrain.IContext) (constrain.IResult, err
 		DefaultShipping: m.Post.DefaultShipping,
 	}
 
-	tx := singleton.Orm().Begin()
+	tx := db.Orm().Begin()
 	if m.Post.DefaultBilling || m.Post.DefaultShipping {
 		changeValue := map[string]any{}
 		if m.Post.DefaultBilling {

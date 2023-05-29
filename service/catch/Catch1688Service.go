@@ -3,6 +3,7 @@ package catch
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/nbvghost/dandelion/library/db"
 	"html"
 	"io/ioutil"
 	"log"
@@ -16,7 +17,6 @@ import (
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/dandelion/service/admin"
@@ -171,7 +171,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 	brokerageRotia := 0.1
 	expresstePrice := 500
 
-	haveAdmin := service.Admin.FindAdminByAccount(singleton.Orm(), "admin")
+	haveAdmin := service.Admin.FindAdminByAccount(db.Orm(), "admin")
 	//邮件模板
 	express := service.ExpressTemplate.GetExpressTemplateByOID(haveAdmin.OID)
 	if express.ID == 0 {
@@ -457,10 +457,10 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 
 	//goods.Videos = "[]"
 
-	dao.Create(singleton.Orm(), goods)
+	dao.Create(db.Orm(), goods)
 	for s := 0; s < len(specifications); s++ {
 		specifications[s].GoodsID = goods.ID
-		dao.Create(singleton.Orm(), &(specifications[s]))
+		dao.Create(db.Orm(), &(specifications[s]))
 	}
 }
 func (service *Catch1688Service) URLCatch(URL string) {

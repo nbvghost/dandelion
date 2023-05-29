@@ -3,8 +3,8 @@ package cart
 import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/viewmodel"
 	"github.com/nbvghost/dandelion/service/order"
 )
@@ -25,7 +25,7 @@ func (m *Delete) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	//_ShoppingCartIDs := context.Request.FormValue("GSIDs")
 	//ShoppingCartIDs := strings.Split(m.Post.GSIDs, ",")
 
-	tx := singleton.Orm().Begin()
+	tx := db.Orm().Begin()
 	for _, goodsSpecification := range m.Post.List {
 		err := m.ShoppingCartService.DeleteListByIDs(tx, m.User.ID, goodsSpecification.GoodsID, goodsSpecification.SpecificationID)
 		if err != nil {

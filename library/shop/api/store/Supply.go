@@ -5,9 +5,9 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/dandelion/service/order"
@@ -51,7 +51,7 @@ func (m *Supply) HandlePost(context constrain.IContext) (constrain.IResult, erro
 		return &result.JsonResult{Data: &result.ActionResult{Code: Success, Message: Message, Data: Result}}, nil
 	}
 
-	err := dao.Create(singleton.Orm(), &supply)
+	err := dao.Create(db.Orm(), &supply)
 	if err != nil {
 		return nil, err
 	}

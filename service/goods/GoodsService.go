@@ -3,6 +3,7 @@ package goods
 import (
 	"fmt"
 	"github.com/lib/pq"
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 	"strconv"
 	"time"
@@ -15,7 +16,6 @@ import (
 	"github.com/nbvghost/dandelion/internal/repository"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/dandelion/service/pinyin"
@@ -36,7 +36,7 @@ type GoodsService struct {
 func (service GoodsService) PaginationGoods(OID, GoodsTypeID, GoodsTypeChildID types.PrimaryKey, pageIndex int) (int, int, int, []*model.Goods) {
 	//pageIndex, pageSize, total, list, err :
 	if GoodsTypeID == 0 {
-		db := dao.Find(singleton.Orm(), &model.Goods{}).Where(`"OID"=?`, OID)
+		db := dao.Find(db.Orm(), &model.Goods{}).Where(`"OID"=?`, OID)
 		total := db.Limit(pageIndex, 18)
 		goodsList := db.List()
 		list := make([]*model.Goods, 0)
@@ -46,7 +46,7 @@ func (service GoodsService) PaginationGoods(OID, GoodsTypeID, GoodsTypeChildID t
 		return pageIndex, 18, int(total), list //repository.Goods.FindByOIDLimit(OID, params.NewLimit(pageIndex, 18))
 	}
 	if GoodsTypeChildID == 0 {
-		db := dao.Find(singleton.Orm(), &model.Goods{}).Where(`"OID"=? and "GoodsTypeID"=?`, OID, GoodsTypeID)
+		db := dao.Find(db.Orm(), &model.Goods{}).Where(`"OID"=? and "GoodsTypeID"=?`, OID, GoodsTypeID)
 		total := db.Limit(pageIndex, 20)
 		goodsList := db.List()
 		list := make([]*model.Goods, 0)
@@ -56,7 +56,7 @@ func (service GoodsService) PaginationGoods(OID, GoodsTypeID, GoodsTypeChildID t
 		return pageIndex, 20, int(total), list
 		//return repository.Goods.FindByOIDAndGoodsTypeIDLimit(OID, GoodsTypeID, params.NewLimit(pageIndex, 18))
 	}
-	db := dao.Find(singleton.Orm(), &model.Goods{}).Where(`"OID"=? and "GoodsTypeID"=? and "GoodsTypeChildID"=?`, OID, GoodsTypeID, GoodsTypeChildID)
+	db := dao.Find(db.Orm(), &model.Goods{}).Where(`"OID"=? and "GoodsTypeID"=? and "GoodsTypeChildID"=?`, OID, GoodsTypeID, GoodsTypeChildID)
 	total := db.Limit(pageIndex, 20)
 	goodsList := db.List()
 	list := make([]*model.Goods, 0)
@@ -87,7 +87,7 @@ func (service GoodsService) PaginationGoods(OID, GoodsTypeID, GoodsTypeChildID t
 */
 
 func (service GoodsService) getGoodsByUri(OID types.PrimaryKey, uri string) model.Goods {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var goods model.Goods
 	goods.OID = OID
 	goods.Uri = uri
@@ -99,7 +99,7 @@ func (service GoodsService) SaveGoods(OID types.PrimaryKey, goods *model.Goods, 
 		goods.Tags = make(pq.StringArray, 0)
 	}
 
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var err error
 	tx := Orm.Begin()
 
@@ -165,7 +165,7 @@ func (service GoodsService) SaveGoods(OID types.PrimaryKey, goods *model.Goods, 
 }
 
 func (service GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsInfo, error) {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 
 	//Orm := singleton.Orm()
 
@@ -183,7 +183,7 @@ func (service GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsInfo
 	goodsInfo.Discounts = make([]extends.Discount, 0)
 
 	var goodsRating extends.GoodsRating
-	singleton.Orm().Model(&model.GoodsReview{}).Where(`"GoodsID"=?`, goods.ID).Select(`SUM("Rating") as "Rating",COUNT("ID") as "RatingCount"`).Scan(&goodsRating)
+	db.Orm().Model(&model.GoodsReview{}).Where(`"GoodsID"=?`, goods.ID).Select(`SUM("Rating") as "Rating",COUNT("ID") as "RatingCount"`).Scan(&goodsRating)
 	goodsInfo.Rating = goodsRating
 
 	if timeSell.IsEnable() {
@@ -267,7 +267,7 @@ func (service GoodsService) GetGoodsInfoList(goodsList []model.Goods) []extends.
 	return results
 }
 func (service GoodsService) GetGoods(DB *gorm.DB, context constrain.IContext, ID types.PrimaryKey) (*extends.GoodsInfo, error) {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	//var goods model.Goods
 	goods := dao.GetByPrimaryKey(Orm, &model.Goods{}, ID).(*model.Goods)
 
@@ -275,7 +275,7 @@ func (service GoodsService) GetGoods(DB *gorm.DB, context constrain.IContext, ID
 }
 
 func (service GoodsService) DeleteGoods(ID types.PrimaryKey) *result.ActionResult {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	tx := Orm.Begin()
 	err := dao.DeleteByPrimaryKey(tx, &model.Goods{}, ID)
 	if err != nil {
@@ -323,7 +323,7 @@ func (service GoodsService) DeleteCollageGoods(DB *gorm.DB, GoodsID types.Primar
 	//return err
 }
 func (service GoodsService) FindGoodsByTimeSellID(TimeSellID types.PrimaryKey) []model.Goods {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 
 	//var timesell model.TimeSell
 	timesell := dao.GetByPrimaryKey(Orm, &model.TimeSell{}, TimeSellID).(*model.TimeSell)
@@ -340,7 +340,7 @@ func (service GoodsService) FindGoodsByTimeSellID(TimeSellID types.PrimaryKey) [
 	return list
 }
 func (service GoodsService) FindGoodsByTimeSellHash(Hash string) []types.IEntity {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 
 	var GoodsIDs []types.PrimaryKey
 	Orm.Model(&model.TimeSell{}).Where(`"Hash"=?`, Hash).Pluck("GoodsID", &GoodsIDs)
@@ -351,7 +351,7 @@ func (service GoodsService) FindGoodsByTimeSellHash(Hash string) []types.IEntity
 	return service.ListGoodsByIDs(GoodsIDs)
 }
 func (service GoodsService) FindGoodsByCollageHash(Hash string) []types.IEntity {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 
 	var GoodsIDs []types.PrimaryKey
 	Orm.Model(&model.Collage{}).Where(`"Hash"=?`, Hash).Pluck("GoodsID", &GoodsIDs)
@@ -364,27 +364,27 @@ func (service GoodsService) FindGoodsByCollageHash(Hash string) []types.IEntity 
 	return service.ListGoodsByIDs(GoodsIDs)
 }
 func (service GoodsService) ListGoodsByIDs(goodsIDs []types.PrimaryKey) []types.IEntity {
-	list := dao.Find(singleton.Orm(), &model.Goods{}).Where(`"ID" in (?)`, goodsIDs).List()
+	list := dao.Find(db.Orm(), &model.Goods{}).Where(`"ID" in (?)`, goodsIDs).List()
 	return list
 }
 func (service GoodsService) FindGoodsByOrganizationIDAndGoodsID(OrganizationID types.PrimaryKey, GoodsID types.PrimaryKey) model.Goods {
 	var Goods model.Goods
-	singleton.Orm().Model(&model.Goods{}).Where(`"ID"=? and "OID"=?`, GoodsID, OrganizationID).First(&Goods)
+	db.Orm().Model(&model.Goods{}).Where(`"ID"=? and "OID"=?`, GoodsID, OrganizationID).First(&Goods)
 	return Goods
 }
 func (service GoodsService) FindGoodsByTitle(Title string) model.Goods {
 	var Goods model.Goods
-	singleton.Orm().Model(&model.Goods{}).Where(`"Title"=?`, Title).First(&Goods)
+	db.Orm().Model(&model.Goods{}).Where(`"Title"=?`, Title).First(&Goods)
 	return Goods
 }
 func (service GoodsService) FindGoodsLikeMark(Mark string) model.Goods {
 	var Goods model.Goods
-	singleton.Orm().Model(&model.Goods{}).Where(`"Mark" like ?`, "%"+Mark+"%").First(&Goods)
+	db.Orm().Model(&model.Goods{}).Where(`"Mark" like ?`, "%"+Mark+"%").First(&Goods)
 	return Goods
 }
 func (service GoodsService) AllList() []model.Goods {
 
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 
 	var result []model.Goods
 
@@ -411,7 +411,7 @@ func (service GoodsService) GetDiscounts(GoodsID, OID types.PrimaryKey) []extend
 }
 
 func (service GoodsService) GoodsList(SqlOrder string, Index, Size int, where interface{}, args ...interface{}) extends.GoodsInfoPagination {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	//var goodsList []model.Goods
 	//db := Orm.Model(&model.Goods{}).Order("CountSale desc").Limit(10)
 	//db.Find(&result)

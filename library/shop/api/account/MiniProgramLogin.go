@@ -2,6 +2,7 @@ package account
 
 import (
 	"fmt"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/shop/api/account/redisKey"
 	"log"
 	"strconv"
@@ -15,7 +16,6 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/server/httpext"
 	"github.com/nbvghost/dandelion/server/redis"
 	"github.com/nbvghost/dandelion/service/journal"
@@ -51,7 +51,7 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 	fmt.Println(err, OpenID, SessionKey)
 
 	if err == nil {
-		tx := singleton.Orm().Begin()
+		tx := db.Orm().Begin()
 		newUser := g.UserService.AddUserByOpenID(tx, g.Organization.ID, OpenID)
 		newUser.OpenID = OpenID
 		//newUser.Name = userInfo["nickName"].(string)

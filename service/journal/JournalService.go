@@ -2,12 +2,12 @@ package journal
 
 import (
 	"errors"
+	"github.com/nbvghost/dandelion/library/db"
 	"time"
 
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 
 	"gorm.io/gorm"
@@ -21,7 +21,7 @@ type JournalService struct {
 }
 
 func (service JournalService) StoreListJournal(StoreID types.PrimaryKey, startDate string, endDate string) []model.StoreJournal {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	//startDate
 	//endDate
 
@@ -64,7 +64,7 @@ func (service JournalService) AddStoreJournal(DB *gorm.DB, StoreID types.Primary
 
 func (service JournalService) ListUserJournalLeveBrokerage(UserID types.PrimaryKey, IDs []uint) interface{} {
 
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	type Result struct {
 		TotalAmount int64 `gorm:"column:TotalAmount"`
 		*model.User `json:"User"`
@@ -98,7 +98,7 @@ func (service JournalService) ListUserJournalLeveBrokerage(UserID types.PrimaryK
 	return result
 }
 
-//OrganizationJournal
+// OrganizationJournal
 func (service JournalService) AddOrganizationJournal(DB *gorm.DB, OID types.PrimaryKey, Name, Detail string, Type int, Amount int64, KV extends.KV) error {
 
 	logger := &model.OrganizationJournal{}

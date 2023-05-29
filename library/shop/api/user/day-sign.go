@@ -2,6 +2,7 @@ package user
 
 import (
 	"fmt"
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 	"strconv"
 	"time"
@@ -13,7 +14,6 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/journal"
 	"github.com/nbvghost/dandelion/service/user"
 	"github.com/pkg/errors"
@@ -78,7 +78,7 @@ func (m *DaySign) Handle(context constrain.IContext) (r constrain.IResult, err e
 			}
 
 		}
-		err := m.JournalService.AddScoreJournal(singleton.Orm(),
+		err := m.JournalService.AddScoreJournal(db.Orm(),
 			m.User.ID,
 			"签到送积分",
 			userInfo.DaySignTime.String()+"/"+strconv.Itoa(int(score))+"/"+strconv.Itoa(userInfo.DaySignCount),
@@ -87,7 +87,7 @@ func (m *DaySign) Handle(context constrain.IContext) (r constrain.IResult, err e
 			as.Code = result.Fail
 			as.Message = err.Error()
 		} else {
-			dao.UpdateByPrimaryKey(singleton.Orm(), entity.UserInfo, userInfo.ID, map[string]interface{}{"DaySignTime": userInfo.DaySignTime, "DaySignCount": userInfo.DaySignCount})
+			dao.UpdateByPrimaryKey(db.Orm(), entity.UserInfo, userInfo.ID, map[string]interface{}{"DaySignTime": userInfo.DaySignTime, "DaySignCount": userInfo.DaySignCount})
 		}
 		return &result.JsonResult{Data: &as}, nil
 

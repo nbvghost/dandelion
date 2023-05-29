@@ -5,7 +5,7 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/singleton"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/dandelion/service/content"
 	"github.com/nbvghost/dandelion/service/goods"
@@ -32,7 +32,7 @@ func newRedisGoodsDataKey(OID types.PrimaryKey, ContentItemUri, ContentSubTypeUr
 	return fmt.Sprintf("goods:%d:%s:%s:%d", OID, ContentItemUri, ContentSubTypeUri, pageIndex)
 }
 func (service Service) menus(OID types.PrimaryKey, hide uint) extends.MenusData {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 
 	var contentItemList []model.ContentItem
 
@@ -180,7 +180,7 @@ func (service Service) menus(OID types.PrimaryKey, hide uint) extends.MenusData 
 func (service Service) GetGoodsTypeByUri(context constrain.IContext, OID types.PrimaryKey, GoodsTypeUri, GoodsTypeChildUri string, pageIndex int) module.SiteData[*model.Goods] {
 	var moduleContentData module.SiteData[*model.Goods]
 
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var item model.GoodsType
 	var itemSub model.GoodsTypeChild
 
@@ -239,7 +239,7 @@ func (service Service) GetGoodsTypeByUri(context constrain.IContext, OID types.P
 	}
 
 	organization := service.OrganizationService.GetOrganization(OID).(*model.Organization)
-	contentConfig := service.ContentService.GetContentConfig(singleton.Orm(), OID)
+	contentConfig := service.ContentService.GetContentConfig(db.Orm(), OID)
 
 	moduleContentData = module.SiteData[*model.Goods]{
 		AllMenusData:    allMenusData,
@@ -267,7 +267,7 @@ func (service Service) GetGoodsTypeByUri(context constrain.IContext, OID types.P
 }
 func (service Service) GetContentTypeByUri(context constrain.IContext, OID types.PrimaryKey, ContentItemUri, ContentSubTypeUri string, pageIndex int) module.SiteData[*model.Content] {
 	var moduleContentData module.SiteData[*model.Content]
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var item model.ContentItem
 	var itemSub model.ContentSubType
 
@@ -339,7 +339,7 @@ func (service Service) GetContentTypeByUri(context constrain.IContext, OID types
 	}
 
 	organization := service.OrganizationService.GetOrganization(OID).(*model.Organization)
-	contentConfig := service.ContentService.GetContentConfig(singleton.Orm(), OID)
+	contentConfig := service.ContentService.GetContentConfig(db.Orm(), OID)
 
 	menusPage := allMenusData.ListMenusByType(model.ContentTypePage)
 	moduleContentData = module.SiteData[*model.Content]{
@@ -424,7 +424,7 @@ func GetSiteData[T module.ListType](context constrain.IContext, OID types.Primar
 	}
 
 	organization := service.OrganizationService.GetOrganization(OID).(*model.Organization)
-	contentConfig := service.ContentService.GetContentConfig(singleton.Orm(), OID)
+	contentConfig := service.ContentService.GetContentConfig(db.Orm(), OID)
 
 	menusPage := allMenusData.ListMenusByType(model.ContentTypePage)
 	moduleContentData = module.SiteData[T]{

@@ -12,6 +12,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"github.com/nbvghost/dandelion/library/db"
 	"io"
 	"io/ioutil"
 	"log"
@@ -27,7 +28,6 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/dandelion/service/user"
@@ -936,7 +936,7 @@ func (service WxService) MwGetTicket(WxConfig *model.WechatConfig) string {
 }
 func (service WxService) MwGetWXJSConfig(url string, OID types.PrimaryKey) map[string]interface{} {
 
-	wxConfig := service.MiniProgramByOID(singleton.Orm(), OID)
+	wxConfig := service.MiniProgramByOID(db.Orm(), OID)
 
 	appId := wxConfig.AppID
 	timestamp := time.Now().Unix()

@@ -2,10 +2,10 @@ package activity
 
 import (
 	"errors"
+	"github.com/nbvghost/dandelion/library/db"
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/singleton"
 )
 
 type RankService struct {
@@ -13,13 +13,13 @@ type RankService struct {
 }
 
 func (service RankService) FindDESC() []model.Rank {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var ranks []model.Rank
 	Orm.Model(&model.Rank{}).Order(`"GrowMaxValue" desc`).Find(&ranks)
 	return ranks
 }
 func (service RankService) AddRank(rank model.Rank) error {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var hasRank model.Rank
 	Orm.Model(&model.Rank{}).Where(&model.Rank{GrowMaxValue: rank.GrowMaxValue}).First(&hasRank)
 	if hasRank.ID != 0 {

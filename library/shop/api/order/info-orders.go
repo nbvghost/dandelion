@@ -6,8 +6,8 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/dandelion/service/order"
@@ -37,7 +37,7 @@ func (m *InfoOrders) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	return result.NewData(confirmOrdersGoods), err
 }
 func (m *InfoOrders) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
-	address := dao.GetByPrimaryKey(singleton.Orm(), &model.Address{}, m.Put.AddressID).(*model.Address)
+	address := dao.GetByPrimaryKey(db.Orm(), &model.Address{}, m.Put.AddressID).(*model.Address)
 	if address.ID == 0 {
 		return nil, errors.New("地址不能为空")
 	}
@@ -57,6 +57,6 @@ func (m *InfoOrders) HandlePut(ctx constrain.IContext) (constrain.IResult, error
 	changeData := make(map[string]any)
 	changeData["Address"] = util.StructToJSON(address)
 	changeData["ExpressMoney"] = confirmOrdersGoods.ExpressPrice
-	err = dao.UpdateByPrimaryKey(singleton.Orm(), &model.Orders{}, orders.ID, changeData)
+	err = dao.UpdateByPrimaryKey(db.Orm(), &model.Orders{}, orders.ID, changeData)
 	return result.NewData(confirmOrdersGoods), err
 }

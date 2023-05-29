@@ -3,16 +3,16 @@ package logger
 import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/singleton"
+	"github.com/nbvghost/dandelion/library/db"
 )
 
-//LoggerService
+// LoggerService
 type LoggerService struct {
 	model.BaseDao
 }
 
 func (s LoggerService) Error(Title, Data string) {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	logger := &model.Logger{}
 	logger.Title = Title
 	logger.Data = Data
@@ -20,7 +20,7 @@ func (s LoggerService) Error(Title, Data string) {
 	dao.Create(Orm, logger)
 }
 func (s LoggerService) Warning(Title, Data string) {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	logger := &model.Logger{}
 	logger.Title = Title
 	logger.Data = Data

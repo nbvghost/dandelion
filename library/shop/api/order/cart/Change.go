@@ -3,8 +3,8 @@ package cart
 import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/viewmodel"
 	"github.com/nbvghost/dandelion/service/order"
 )
@@ -26,7 +26,7 @@ func (m *Change) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	//GSID := object.ParseUint(context.Request.FormValue("GSID"))
 	//Quantity := object.ParseUint(context.Request.FormValue("Quantity"))
 
-	tx := singleton.Orm().Begin()
+	tx := db.Orm().Begin()
 	for _, goodsSpecification := range m.Post.List {
 		err := m.ShoppingCartService.UpdateByUserIDAndID(tx, m.User.ID, goodsSpecification.GoodsID, goodsSpecification.SpecificationID, uint(goodsSpecification.Quantity))
 		if err != nil {

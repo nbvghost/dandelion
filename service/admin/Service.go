@@ -3,6 +3,7 @@ package admin
 import (
 	"errors"
 	"fmt"
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 	"strings"
 	"time"
@@ -19,7 +20,6 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 
 	"github.com/nbvghost/gpa/types"
@@ -45,7 +45,7 @@ func (service AdminService) AddItem(OID types.PrimaryKey, item *model.Admin) (er
 	if strings.EqualFold(item.Account, "admin") || strings.EqualFold(item.Account, "manager") || strings.EqualFold(item.Account, "administrator") {
 		return errors.New("此账号不允许注册")
 	}
-	return dao.Create(singleton.Orm(), item)
+	return dao.Create(db.Orm(), item)
 }
 
 func (service AdminService) GetItem(context *gweb.Context) (r constrain.IResult, err error) {
@@ -53,7 +53,7 @@ func (service AdminService) GetItem(context *gweb.Context) (r constrain.IResult,
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	ID := object.ParseUint(context.PathParams["ID"])
 
-	item := dao.GetByPrimaryKey(singleton.Orm(), &model.Admin{}, types.PrimaryKey(ID))
+	item := dao.GetByPrimaryKey(db.Orm(), &model.Admin{}, types.PrimaryKey(ID))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", item)}, err
 }
 func (service AdminService) ListItem(context *gweb.Context) (r constrain.IResult, err error) {
@@ -63,14 +63,14 @@ func (service AdminService) ListItem(context *gweb.Context) (r constrain.IResult
 	if err != nil {
 		return nil, err
 	}
-	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(singleton.Orm(), dts, &[]model.Admin{}, admin.OID, "")
+	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(db.Orm(), dts, &[]model.Admin{}, admin.OID, "")
 	return &result.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}, nil
 }
 
 func (service AdminService) DeleteItem(context *gweb.Context) (r constrain.IResult, err error) {
 	ID := object.ParseUint(context.PathParams["ID"])
 
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	item := dao.GetByPrimaryKey(Orm, &model.Admin{}, types.PrimaryKey(ID)).(*model.Admin)
 	if item.IsZero() {
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, gorm.ErrRecordNotFound
@@ -83,7 +83,7 @@ func (service AdminService) DeleteItem(context *gweb.Context) (r constrain.IResu
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}, err
 }
 func (service AdminService) ChangeAuthority(context *gweb.Context) (r constrain.IResult, err error) {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	ID := object.ParseUint(context.PathParams["ID"])
 	item := &model.Admin{}
@@ -140,12 +140,12 @@ func (service AdminService) ChangeAuthority(context *gweb.Context) (r constrain.
 }*/
 
 func (service AdminService) DelAdmin(ID uint) error {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	err := Orm.Delete(model.Admin{}, "ID=?", ID).Error
 	return err
 }
 func (service AdminService) FindAdmin() []model.Admin {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var list []model.Admin
 
 	Orm.Find(&list)
@@ -167,7 +167,7 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 		return nil, errors.Errorf("不是一个有效的域名:%s", domain)
 	}*/
 
-	tx := singleton.Orm().Begin()
+	tx := db.Orm().Begin()
 	defer func() {
 		if err == nil {
 			tx.Commit()
@@ -293,7 +293,7 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	return admin, err
 }
 func (service AdminService) GetAdmin(ID types.PrimaryKey) *model.Admin {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	admin := &model.Admin{}
 	err := Orm.Where(`"ID"=?`, ID).First(admin).Error //SelectOne(user, "select * from User where Email=?", Email)
 	if err != nil {

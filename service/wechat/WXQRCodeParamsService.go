@@ -4,11 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/nbvghost/dandelion/library/db"
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/singleton"
-
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/encryption"
 	"github.com/nbvghost/tool/object"
@@ -23,7 +22,7 @@ func (service WXQRCodeParamsService) addParams(key string, params map[string]int
 	wxParams := &model.WXQRCodeParams{}
 	wxParams.CodeKey = key
 	wxParams.Params = string(b)
-	err := dao.Create(singleton.Orm(), wxParams)
+	err := dao.Create(db.Orm(), wxParams)
 	if err != nil {
 		return wxParams, err
 	}
@@ -31,7 +30,7 @@ func (service WXQRCodeParamsService) addParams(key string, params map[string]int
 }
 func (service WXQRCodeParamsService) getParams(CodeKey string) (*model.WXQRCodeParams, error) {
 	wxParams := &model.WXQRCodeParams{}
-	singleton.Orm().Model(&model.WXQRCodeParams{}).Where(`"CodeKey"=?`, CodeKey).First(wxParams)
+	db.Orm().Model(&model.WXQRCodeParams{}).Where(`"CodeKey"=?`, CodeKey).First(wxParams)
 	if wxParams.ID == 0 {
 		return wxParams, errors.New("NOT FOUND")
 	}

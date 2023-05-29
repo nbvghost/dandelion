@@ -3,13 +3,13 @@ package user
 import (
 	"encoding/base64"
 	"github.com/nbvghost/dandelion/domain/oss"
+	"github.com/nbvghost/dandelion/library/db"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/user"
 	"github.com/pkg/errors"
 )
@@ -55,13 +55,13 @@ func (m *Update) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	}
 
 	if len(changeMap) > 0 {
-		err := dao.UpdateByPrimaryKey(singleton.Orm(), entity.User, m.User.ID, changeMap)
+		err := dao.UpdateByPrimaryKey(db.Orm(), entity.User, m.User.ID, changeMap)
 		if err != nil {
 			return &result.JsonResult{Data: &result.ActionResult{Code: result.Fail, Message: err.Error(), Data: nil}}, err
 		}
 	}
 
-	user := dao.GetByPrimaryKey(singleton.Orm(), entity.User, m.User.ID)
+	user := dao.GetByPrimaryKey(db.Orm(), entity.User, m.User.ID)
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "OK", Data: user}}, nil
 
 }

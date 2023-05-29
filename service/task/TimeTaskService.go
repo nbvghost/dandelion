@@ -2,6 +2,7 @@ package task
 
 import (
 	"context"
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 	"strings"
 	"time"
@@ -9,7 +10,6 @@ import (
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/order"
 	"github.com/nbvghost/dandelion/service/wechat"
 )
@@ -44,7 +44,7 @@ func (m TimeTaskService) QuerySupplyOrdersTask(wxConfig *model.WechatConfig) {
 	//Orm := singleton.Orm()
 	//var supplyOrdersList []model.SupplyOrders
 	//m.Orders.FindWhere(Orm, &supplyOrdersList, `"IsPay"=?`, 0)
-	supplyOrdersList := dao.Find(singleton.Orm(), &model.SupplyOrders{}).Where(`"IsPay"=?`, 0).List()
+	supplyOrdersList := dao.Find(db.Orm(), &model.SupplyOrders{}).Where(`"IsPay"=?`, 0).List()
 	for i := range supplyOrdersList {
 		value := supplyOrdersList[i].(*model.SupplyOrders)
 		transaction, err := m.Wx.OrderQuery(context.TODO(), value.OrderNo, wxConfig)
@@ -73,15 +73,15 @@ func (m TimeTaskService) QueryTransfersTask(wxConfig *model.WechatConfig) {
 	//Orm := singleton.Orm()
 	//var transfersList []model.Transfers
 	//m.Transfers.FindWhere(Orm, &transfersList, `"IsPay"=?`, 0)
-	transfersList := dao.Find(singleton.Orm(), &model.Transfers{}).Where(`"IsPay"=?`, 0).List()
+	transfersList := dao.Find(db.Orm(), &model.Transfers{}).Where(`"IsPay"=?`, 0).List()
 	for i := range transfersList {
 		value := transfersList[i].(*model.Transfers)
 		su := m.Wx.GetTransfersInfo(value, wxConfig)
 		if su {
-			dao.UpdateByPrimaryKey(singleton.Orm(), entity.Transfers, value.ID, &model.Transfers{IsPay: 1})
+			dao.UpdateByPrimaryKey(db.Orm(), entity.Transfers, value.ID, &model.Transfers{IsPay: 1})
 		} else {
 			if time.Now().Unix() > value.CreatedAt.Add(30*time.Hour*24).Unix() {
-				dao.UpdateByPrimaryKey(singleton.Orm(), entity.Transfers, value.ID, &model.Transfers{IsPay: 2})
+				dao.UpdateByPrimaryKey(db.Orm(), entity.Transfers, value.ID, &model.Transfers{IsPay: 2})
 			}
 		}
 	}

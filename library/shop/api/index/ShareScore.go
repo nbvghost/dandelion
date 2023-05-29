@@ -1,13 +1,13 @@
 package index
 
 import (
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/journal"
 )
 
@@ -21,7 +21,7 @@ func (m *ShareScore) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
 	Share := 50 //config.Config.Share
 
-	err := m.JournalService.AddScoreJournal(singleton.Orm(),
+	err := m.JournalService.AddScoreJournal(db.Orm(),
 		ctx.UID(),
 		"转发与分享送积分", "转发与分享",
 		play.ScoreJournal_Type_Share, int64(Share), extends.KV{})

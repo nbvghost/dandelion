@@ -6,9 +6,9 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal/network"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/configuration"
 	"github.com/nbvghost/dandelion/service/order"
 	"github.com/nbvghost/gpa/types"
@@ -48,7 +48,7 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 		}
 	}
 
-	address := dao.GetByPrimaryKey(singleton.Orm(), &model.Address{}, m.Post.AddressID).(*model.Address)
+	address := dao.GetByPrimaryKey(db.Orm(), &model.Address{}, m.Post.AddressID).(*model.Address)
 	if address.ID == 0 {
 		return nil, errors.New("地址不能为空")
 	}
@@ -112,7 +112,7 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 		if err != nil {
 			return nil, err
 		}
-		err = dao.UpdateByPrimaryKey(singleton.Orm(), &model.Orders{}, orders.ID, map[string]any{"PrepayID": checkoutOrders.Id})
+		err = dao.UpdateByPrimaryKey(db.Orm(), &model.Orders{}, orders.ID, map[string]any{"PrepayID": checkoutOrders.Id})
 		return result.NewData(checkoutOrders), err
 	}
 

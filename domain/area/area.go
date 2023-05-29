@@ -2,6 +2,7 @@ package area
 
 import (
 	"bufio"
+	"github.com/nbvghost/dandelion/library/db"
 	"io"
 	"os"
 	"strings"
@@ -11,7 +12,6 @@ import (
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/tool/object"
 )
 
@@ -23,7 +23,7 @@ func LoadArea() error {
 	}
 	read := bufio.NewReader(f)
 
-	err = dao.DeleteBy(singleton.Orm().Session(&gorm.Session{AllowGlobalUpdate: true}), entity.Area, nil)
+	err = dao.DeleteBy(db.Orm().Session(&gorm.Session{AllowGlobalUpdate: true}), entity.Area, nil)
 	if err != nil {
 		return err
 	}
@@ -46,7 +46,7 @@ func LoadArea() error {
 			Level: object.ParseUint(fields[2]),
 			PCode: object.ParseUint(fields[3]),
 		}
-		err = dao.Create(singleton.Orm(), &area)
+		err = dao.Create(db.Orm(), &area)
 		if err != nil {
 			return err
 		}

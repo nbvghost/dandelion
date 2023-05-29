@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
+	"github.com/nbvghost/dandelion/library/db"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,7 +14,6 @@ import (
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/encryption"
 )
@@ -75,19 +75,19 @@ func (b ExpressTemplateService) GetExpressInfo(OrdersID types.PrimaryKey, Logist
 	return result
 }
 func (b ExpressTemplateService) GetExpressTemplateByName(Name string) model.ExpressTemplate {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var list model.ExpressTemplate
 	Orm.Model(&model.ExpressTemplate{}).Where("Name=?", Name).Find(&list)
 	return list
 }
 func (b ExpressTemplateService) GetExpressTemplateByOID(OID types.PrimaryKey) model.ExpressTemplate {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var list model.ExpressTemplate
 	Orm.Model(&model.ExpressTemplate{}).Where("OID=?", OID).Find(&list)
 	return list
 }
 func (b ExpressTemplateService) SaveExpressTemplate(target *model.ExpressTemplate) error {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	have := b.GetExpressTemplateByName(target.Name)
 	if have.ID == 0 {
 		return dao.Save(Orm, target)

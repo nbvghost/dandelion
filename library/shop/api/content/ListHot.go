@@ -3,8 +3,8 @@ package content
 import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/content"
 	"github.com/nbvghost/gpa/types"
 )
@@ -29,7 +29,7 @@ func (g *ListHot) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//var articles []entity.Content
 	//controller.Content.FindOrderWhereLength(entity.Orm(),"Look desc",&articles,)
 
-	pager := g.ContentService.FindSelectWherePaging(singleton.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "Look desc", model.Content{}, g.Get.Offset, "ContentItemID=?", g.Get.ContentItemID)
+	pager := g.ContentService.FindSelectWherePaging(db.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "Look desc", model.Content{}, g.Get.Offset, "ContentItemID=?", g.Get.ContentItemID)
 
 	return result.NewData(&pager), nil
 

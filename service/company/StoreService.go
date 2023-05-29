@@ -1,11 +1,10 @@
 package company
 
 import (
+	"github.com/nbvghost/dandelion/library/db"
 	"log"
 
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/singleton"
-
 	"github.com/nbvghost/gpa/types"
 )
 
@@ -14,13 +13,13 @@ type StoreService struct {
 }
 
 func (service StoreService) GetByPhone(Phone string) model.Store {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var store model.Store
 	Orm.Model(&model.Store{}).Where(&model.Store{Phone: Phone}).First(&store)
 	return store
 }
 func (service StoreService) LocationList(Latitude, Longitude float64) []map[string]interface{} {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 
 	rows, err := Orm.Model(&model.Store{}).Select("ID,Images,Name,Address,ServicePhone,Stars,StarsCount,ROUND(6378.138*2*ASIN(SQRT(POW(SIN((?*PI()/180-Latitude*PI()/180)/2),2)+COS(?*PI()/180)*COS(Latitude*PI()/180)*POW(SIN((?*PI()/180-Longitude*PI()/180)/2),2)))*1000) AS Distance", Latitude, Latitude, Longitude).Order("Distance asc").Rows()
 	log.Println(err)
@@ -47,7 +46,7 @@ func (service StoreService) LocationList(Latitude, Longitude float64) []map[stri
 }
 
 func (service StoreService) GetByGoodsIDAndSpecificationIDAndStoreID(GoodsID, SpecificationID, StoreID types.PrimaryKey) *model.StoreStock {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	var ss model.StoreStock
 	Orm.Where(&model.StoreStock{GoodsID: GoodsID, SpecificationID: SpecificationID, StoreID: StoreID}).First(&ss)
 	return &ss
@@ -55,7 +54,7 @@ func (service StoreService) GetByGoodsIDAndSpecificationIDAndStoreID(GoodsID, Sp
 
 func (service StoreService) ListStoreSpecifications(StoreID, GoodsID types.PrimaryKey) interface{} {
 
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	//SELECT g.ID as ID,g.Title as Title,COUNT(ss.ID) as Total,SUM(ss.Stock) as Stock FROM Goods as g,StoreStock as ss where ss.StoreID=2009 and g.ID=ss.GoodsID  group by ss.GoodsID;
 	type Result struct {
 		*model.StoreStock    `json:"StoreStock"`
@@ -74,7 +73,7 @@ func (service StoreService) ListStoreSpecifications(StoreID, GoodsID types.Prima
 }
 func (service StoreService) ListStoreStock(StoreID types.PrimaryKey) interface{} {
 
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	//SELECT g.ID as ID,g.Title as Title,COUNT(ss.ID) as Total,SUM(ss.Stock) as Stock FROM Goods as g,StoreStock as ss where ss.StoreID=2009 and g.ID=ss.GoodsID  group by ss.GoodsID;
 	type Result struct {
 		*model.StoreStock `json:"StoreStock"`

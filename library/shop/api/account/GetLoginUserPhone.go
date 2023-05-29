@@ -3,6 +3,7 @@ package account
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"io/ioutil"
 	"net/http"
@@ -10,7 +11,6 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/user"
 	"github.com/nbvghost/dandelion/service/wechat"
 	"github.com/pkg/errors"
@@ -59,11 +59,11 @@ func (g *GetLoginUserPhone) HandlePost(ctx constrain.IContext) (constrain.IResul
 	}
 
 	//CountryCode: object.ParseInt(rb.PhoneInfo.CountryCode)
-	err = dao.UpdateByPrimaryKey(singleton.Orm(), &model.User{}, ctx.UID(), &model.User{Phone: rb.PhoneInfo.PurePhoneNumber})
+	err = dao.UpdateByPrimaryKey(db.Orm(), &model.User{}, ctx.UID(), &model.User{Phone: rb.PhoneInfo.PurePhoneNumber})
 	if err != nil {
 		return nil, err
 	}
-	return result.NewData(map[string]any{"User": dao.GetByPrimaryKey(singleton.Orm(), &model.User{}, ctx.UID())}), nil
+	return result.NewData(map[string]any{"User": dao.GetByPrimaryKey(db.Orm(), &model.User{}, ctx.UID())}), nil
 }
 
 type ResultBody struct {

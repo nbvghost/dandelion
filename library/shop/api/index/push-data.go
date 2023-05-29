@@ -3,13 +3,13 @@ package index
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/nbvghost/dandelion/library/db"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/service/goods"
 )
 
@@ -28,7 +28,7 @@ func (m *PushData) HandlePost(ctx constrain.IContext) (constrain.IResult, error)
 		return nil, err
 	}
 
-	singleton.Orm().Model(model.PushData{}).Create(&model.PushData{
+	db.Orm().Model(model.PushData{}).Create(&model.PushData{
 		Content: string(body),
 	})
 	post, err := http.Post("https://admin.7846.com/api/weiXin1Callback", "application/json", bytes.NewBuffer(body))

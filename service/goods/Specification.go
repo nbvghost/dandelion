@@ -3,8 +3,8 @@ package goods
 import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/singleton"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/gweb"
@@ -15,16 +15,16 @@ type SpecificationService struct {
 }
 
 func (service SpecificationService) GetSpecification(ID types.PrimaryKey) *model.Specification {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	return dao.GetByPrimaryKey(Orm, &model.Specification{}, ID).(*model.Specification)
 }
 func (service SpecificationService) DeleteSpecification(ID types.PrimaryKey) error {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	err := dao.DeleteByPrimaryKey(Orm, &model.Specification{}, ID)
 	return err
 }
 func (service SpecificationService) ChangeSpecification(context *gweb.Context) (r gweb.Result, err error) {
-	Orm := singleton.Orm()
+	Orm := db.Orm()
 	//GoodsID, _ := strconv.ParseUint(context.PathParams["GoodsID"], 10, 64)
 	GoodsID := object.ParseUint(context.PathParams["GoodsID"])
 	item := &model.Specification{}
