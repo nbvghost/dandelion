@@ -46,6 +46,8 @@ func init() {
 	for _, v := range etcdEndpointList {
 		env.etcdEndpoints = append(env.etcdEndpoints, strings.TrimSpace(v))
 	}
+}
+func Print() {
 	log.Println("FLAG release", env.release)
 	log.Println("ENV ETCD_ENDPOINTS", env.etcdEndpoints)
 	log.Println("ENV ETCD_USERNAME", env.etcdUsername)
