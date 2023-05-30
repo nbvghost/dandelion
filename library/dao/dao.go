@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
 	"reflect"
 	"strings"
@@ -15,12 +16,12 @@ func UpdateBy(tx *gorm.DB, model types.IEntity, value interface{}, query interfa
 }
 
 func UpdateByPrimaryKey(tx *gorm.DB, model types.IEntity, id types.PrimaryKey, value any) error {
-	return tx.Model(model).Where(`"ID"=?`, id).Updates(value).Error
+	return tx.Model(model).Where(fmt.Sprintf(`"%s"=?`, model.PrimaryName()), id).Updates(value).Error
 }
 
 func GetByPrimaryKey(tx *gorm.DB, model types.IEntity, id types.PrimaryKey) types.IEntity {
 	var item = reflect.New(reflect.TypeOf(model).Elem())
-	tx.Model(model).Where(`"ID"=?`, id).Take(item.Interface())
+	tx.Model(model).Where(fmt.Sprintf(`"%s"=?`, model.PrimaryName()), id).Take(item.Interface())
 	return item.Interface().(types.IEntity)
 }
 func GetBy(tx *gorm.DB, model types.IEntity, where map[string]any) types.IEntity {
@@ -92,7 +93,7 @@ func (m *FindQuery) Pluck(column string, dest interface{}) {
 func (m *FindQuery) List() []types.IEntity {
 	var list = reflect.New(reflect.SliceOf(reflect.TypeOf(m.model)))
 	if len(m.order) == 0 {
-		m.db.Order(`"ID" asc`)
+		m.db.Order(fmt.Sprintf(`"%s" asc`, m.model.PrimaryName()))
 	}
 	m.db.Find(list.Interface())
 	arr := list.Elem()
