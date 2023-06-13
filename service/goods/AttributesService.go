@@ -4,26 +4,98 @@ import (
 	"fmt"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/internal/repository"
+	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/gpa"
 	"github.com/nbvghost/gpa/types"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
+	"reflect"
 	"strings"
 )
 
 type AttributesService struct {
 }
 
+////FindByGoodsID       func(goodsID types.PrimaryKey) ([]*model.GoodsAttributes, error)            `gpa:"AutoCrate"`
+//FindByGroupID       func(groupID types.PrimaryKey) ([]*model.GoodsAttributes, error)            `gpa:"AutoCrate"`
+//GetByGoodsIDAndName func(goodsID types.PrimaryKey, name string) (*model.GoodsAttributes, error) `gpa:"AutoCrate"`
+
+//FindByGoodsID       func(goodsID types.PrimaryKey) ([]*model.GoodsAttributesGroup, error)            `gpa:"AutoCrate"`
+//GetByGoodsIDAndName func(goodsID types.PrimaryKey, name string) (*model.GoodsAttributesGroup, error) `gpa:"AutoCrate"`
+//GetByName           func(name string) (*model.GoodsAttributesGroup, error)                           `gpa:"AutoCrate"`
+
+func (service AttributesService) FindGroupByGoodsID(Orm *gorm.DB, goodsID types.PrimaryKey) []*model.GoodsAttributesGroup {
+	list := make([]*model.GoodsAttributesGroup, 0)
+	Orm.Where(`"GoodsID"=?`, goodsID).Find(&list) //SelectOne(user, "select * from User where Tel=?", Tel)
+	return list
+}
+func (service AttributesService) GetGroupByName(Orm *gorm.DB, name string) *model.GoodsAttributesGroup {
+	item := &model.GoodsAttributesGroup{}
+	Orm.Where(`"Name"=?`, name).First(item) //SelectOne(user, "select * from User where Tel=?", Tel)
+	return item
+}
+func (service AttributesService) GetGroupByGoodsIDAndName(Orm *gorm.DB, goodsID types.PrimaryKey, name string) *model.GoodsAttributesGroup {
+	item := &model.GoodsAttributesGroup{}
+	Orm.Where(`"GoodsID"=? and "Name"=?`, goodsID, name).First(item) //SelectOne(user, "select * from User where Tel=?", Tel)
+	return item
+}
+
+func (service AttributesService) FindByGoodsID(Orm *gorm.DB, goodsID types.PrimaryKey) []*model.GoodsAttributes {
+	list := make([]*model.GoodsAttributes, 0)
+	Orm.Where(`"GoodsID"=?`, goodsID).Find(&list) //SelectOne(user, "select * from User where Tel=?", Tel)
+	return list
+}
+func (service AttributesService) FindByGroupID(Orm *gorm.DB, groupID types.PrimaryKey) []*model.GoodsAttributes {
+	list := make([]*model.GoodsAttributes, 0)
+	Orm.Where(`"GroupID"=?`, groupID).Find(&list) //SelectOne(user, "select * from User where Tel=?", Tel)
+	return list
+}
+func (service AttributesService) GetByGoodsIDAndName(Orm *gorm.DB, goodsID types.PrimaryKey, name string) *model.GoodsAttributes {
+	item := &model.GoodsAttributes{}
+	Orm.Where(`"GoodsID"=? and "Name"=?`, goodsID, name).First(item) //SelectOne(user, "select * from User where Tel=?", Tel)
+	return item
+}
+
+func (service AttributesService) QueryGoodsAttributesNameInfo() ([]*extends.GoodsAttributesNameInfo, error) {
+	rows, err := db.Orm().Raw(`select * from (select "Name",count("Name") as "Num" from "GoodsAttributes" group by "Name") as m order by m."Num" desc`, nil).Rows()
+	if err != nil {
+		return nil, err
+	}
+	d, err := gpa.ScanRows(rows, reflect.TypeOf(new(extends.GoodsAttributesNameInfo)), true)
+	if err != nil {
+		return nil, err
+	}
+	//list := gpa.Rows("select * from (select Value,count(Value) as Num from GoodsAttributes where Name=? group by Value) as m order by m.Num desc", []interface{}{name}, &extends.GoodsAttributesValueInfo{})
+	return d.([]*extends.GoodsAttributesNameInfo), err
+
+	//list := gpa.Rows("select * from (select Name,count(Name) as Num from GoodsAttributes group by Name) as m order by m.Num desc", nil, &extends.GoodsAttributesNameInfo{})
+	//return list.([]*extends.GoodsAttributesNameInfo)
+}
+func (service AttributesService) QueryGoodsAttributesValueInfoByName(name string) ([]*extends.GoodsAttributesValueInfo, error) {
+	rows, err := db.Orm().Raw(`select * from (select "Value",count("Value") as "Num" from "GoodsAttributes" where "Name"=? group by "Value") as m order by m."Num" desc`, name).Rows()
+	if err != nil {
+		return nil, err
+	}
+	d, err := gpa.ScanRows(rows, reflect.TypeOf(new(extends.GoodsAttributesValueInfo)), true)
+	if err != nil {
+		return nil, err
+	}
+	//list := gpa.Rows("select * from (select Value,count(Value) as Num from GoodsAttributes where Name=? group by Value) as m order by m.Num desc", []interface{}{name}, &extends.GoodsAttributesValueInfo{})
+	return d.([]*extends.GoodsAttributesValueInfo), err
+}
+
 func (service AttributesService) AllAttributesName() ([]*extends.GoodsAttributesNameInfo, error) {
 
-	return repository.GoodsAttributes.QueryGoodsAttributesNameInfo()
+	return service.QueryGoodsAttributesNameInfo()
 }
 func (service AttributesService) AllAttributesByName(name string) ([]*extends.GoodsAttributesValueInfo, error) {
 
-	return repository.GoodsAttributes.QueryGoodsAttributesValueInfoByName(name)
+	return service.QueryGoodsAttributesValueInfoByName(name)
 }
 func (service AttributesService) DeleteGoodsAttributes(ID types.PrimaryKey) error {
 
-	return repository.GoodsAttributes.DeleteByID(ID).Err
+	return dao.DeleteByPrimaryKey(db.Orm(), &model.GoodsAttributes{}, ID) //repository.GoodsAttributes.DeleteByID(ID).Err
 }
 
 func (service AttributesService) AddGoodsAttributes(goodsID, groupID types.PrimaryKey, name, value string) error {
@@ -33,11 +105,11 @@ func (service AttributesService) AddGoodsAttributes(goodsID, groupID types.Prima
 	if strings.EqualFold(name, "") || strings.EqualFold(value, "") {
 		return nil
 	}
-	hasAttr, err := repository.GoodsAttributes.GetByGoodsIDAndName(goodsID, name)
+	hasAttr := service.GetByGoodsIDAndName(db.Orm(), goodsID, name) //repository.GoodsAttributes.GetByGoodsIDAndName(goodsID, name)
 	if hasAttr.IsZero() == false {
 		return errors.New(fmt.Sprintf("属性名：%v已经存在", name))
 	}
-	err = repository.GoodsAttributes.Save(&model.GoodsAttributes{
+	err := dao.Create(db.Orm(), &model.GoodsAttributes{
 		GoodsID: goodsID,
 		GroupID: groupID,
 		Name:    name,
@@ -48,26 +120,24 @@ func (service AttributesService) AddGoodsAttributes(goodsID, groupID types.Prima
 	}
 	return nil
 }
-func (service AttributesService) ListGoodsAttributesGroupByGoodsID(goodsID types.PrimaryKey) ([]*model.GoodsAttributesGroup, error) {
+func (service AttributesService) ListGoodsAttributesGroupByGoodsID(goodsID types.PrimaryKey) []*model.GoodsAttributesGroup {
 
-	return repository.GoodsAttributesGroup.FindByGoodsID(goodsID)
+	return service.FindGroupByGoodsID(db.Orm(), goodsID) //repository.GoodsAttributesGroup.FindByGoodsID(goodsID)
 }
 func (service AttributesService) GetGoodsAttributesGroup(ID types.PrimaryKey) types.IEntity {
-	return repository.GoodsAttributesGroup.GetByID(ID)
+	return dao.GetByPrimaryKey(db.Orm(), &model.GoodsAttributesGroup{}, ID) //repository.GoodsAttributesGroup.GetByID(ID)
 }
 func (service AttributesService) DeleteGoodsAttributesGroup(ID types.PrimaryKey) error {
-	attrs, err := service.ListGoodsAttributesByGroupID(ID)
-	if err != nil {
-		return err
-	}
+	attrs := service.ListGoodsAttributesByGroupID(ID)
+
 	if len(attrs) > 0 {
 		return errors.New(fmt.Sprintf("属性组包含子属性，无法删除"))
 	}
-	del := repository.GoodsAttributesGroup.DeleteByID(ID)
-	return del.Err
+	del := dao.DeleteByPrimaryKey(db.Orm(), &model.GoodsAttributesGroup{}, ID) //repository.GoodsAttributesGroup.DeleteByID(ID)
+	return del
 }
-func (service AttributesService) ListGoodsAttributesByGroupID(attributesGroupID types.PrimaryKey) ([]*model.GoodsAttributes, error) {
-	return repository.GoodsAttributes.FindByGroupID(attributesGroupID)
+func (service AttributesService) ListGoodsAttributesByGroupID(attributesGroupID types.PrimaryKey) []*model.GoodsAttributes {
+	return service.FindByGroupID(db.Orm(), attributesGroupID) //repository.GoodsAttributes.FindByGroupID(attributesGroupID)
 }
 func (service AttributesService) ChangeGoodsAttributesGroup(id types.PrimaryKey, groupName string) error {
 	if id == 0 {
@@ -76,19 +146,14 @@ func (service AttributesService) ChangeGoodsAttributesGroup(id types.PrimaryKey,
 	if strings.EqualFold(groupName, "") {
 		return nil
 	}
-	hasAttr, err := repository.GoodsAttributesGroup.GetByName(groupName)
-	if err != nil {
-		return err
-	}
+	hasAttr := service.GetGroupByName(db.Orm(), groupName) //repository.GoodsAttributesGroup.GetByName(groupName)
 	if hasAttr.IsZero() == false {
 		return errors.New(fmt.Sprintf("属性名：%v已经存在", groupName))
 	}
 
-	update := repository.GoodsAttributesGroup.UpdateByID(id, map[string]interface{}{"Name": groupName})
-	if update.Err != nil {
-		return err
-	}
-	return nil
+	err := dao.UpdateByPrimaryKey(db.Orm(), &model.GoodsAttributesGroup{}, id, map[string]interface{}{"Name": groupName}) //repository.GoodsAttributesGroup.UpdateByID(id, map[string]interface{}{"Name": groupName})
+
+	return err
 }
 func (service AttributesService) AddGoodsAttributesGroup(goodsID types.PrimaryKey, groupName string) error {
 	if goodsID == 0 {
@@ -97,19 +162,14 @@ func (service AttributesService) AddGoodsAttributesGroup(goodsID types.PrimaryKe
 	if strings.EqualFold(groupName, "") {
 		return nil
 	}
-	hasAttr, err := repository.GoodsAttributesGroup.GetByGoodsIDAndName(goodsID, groupName)
-	if err != nil {
-		return err
-	}
+	hasAttr := service.GetGroupByGoodsIDAndName(db.Orm(), goodsID, groupName) //repository.GoodsAttributesGroup.GetByGoodsIDAndName(goodsID, groupName)
+
 	if hasAttr.IsZero() == false {
 		return errors.New(fmt.Sprintf("属性名：%v已经存在", groupName))
 	}
-	err = repository.GoodsAttributesGroup.Save(&model.GoodsAttributesGroup{
+	err := dao.Create(db.Orm(), &model.GoodsAttributesGroup{
 		GoodsID: goodsID,
 		Name:    groupName,
 	})
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }

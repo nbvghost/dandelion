@@ -1,12 +1,6 @@
 package repository
 
-import (
-	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/gpa"
-	"github.com/nbvghost/gpa/types"
-)
-
-var GoodsAttributesGroup = gpa.Bind(&GoodsAttributesGroupRepository{}, &model.GoodsAttributesGroup{}).(*GoodsAttributesGroupRepository)
+/*var GoodsAttributesGroup = gpa.Bind(&GoodsAttributesGroupRepository{}, &model.GoodsAttributesGroup{}).(*GoodsAttributesGroupRepository)
 
 type GoodsAttributesGroupRepository struct {
 	gpa.IRepository
@@ -18,4 +12,4 @@ type GoodsAttributesGroupRepository struct {
 func (u *GoodsAttributesGroupRepository) Repository() gpa.IRepository {
 
 	return u.IRepository
-}
+}*/

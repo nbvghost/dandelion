@@ -1,15 +1,6 @@
 package repository
 
-import (
-	"reflect"
-
-	"github.com/nbvghost/dandelion/entity/extends"
-	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/gpa"
-	"github.com/nbvghost/gpa/types"
-)
-
-var GoodsAttributes = gpa.Bind(&GoodsAttributesRepository{}, &model.GoodsAttributes{}).(*GoodsAttributesRepository)
+/*var GoodsAttributes = gpa.Bind(&GoodsAttributesRepository{}, &model.GoodsAttributes{}).(*GoodsAttributesRepository)
 
 type GoodsAttributesRepository struct {
 	gpa.IRepository
@@ -23,30 +14,4 @@ type GoodsAttributesRepository struct {
 func (u *GoodsAttributesRepository) Repository() gpa.IRepository {
 	return u.IRepository
 }
-func (u *GoodsAttributesRepository) QueryGoodsAttributesNameInfo() ([]*extends.GoodsAttributesNameInfo, error) {
-	rows, err := u.GetDataBase().Query("select * from (select Name,count(Name) as Num from GoodsAttributes group by Name) as m order by m.Num desc", nil)
-	if err != nil {
-		return nil, err
-	}
-	d, err := gpa.ScanRows(rows, reflect.TypeOf(new(extends.GoodsAttributesNameInfo)), true)
-	if err != nil {
-		return nil, err
-	}
-	//list := gpa.Rows("select * from (select Value,count(Value) as Num from GoodsAttributes where Name=? group by Value) as m order by m.Num desc", []interface{}{name}, &extends.GoodsAttributesValueInfo{})
-	return d.([]*extends.GoodsAttributesNameInfo), err
-
-	//list := gpa.Rows("select * from (select Name,count(Name) as Num from GoodsAttributes group by Name) as m order by m.Num desc", nil, &extends.GoodsAttributesNameInfo{})
-	//return list.([]*extends.GoodsAttributesNameInfo)
-}
-func (u *GoodsAttributesRepository) QueryGoodsAttributesValueInfoByName(name string) ([]*extends.GoodsAttributesValueInfo, error) {
-	rows, err := u.GetDataBase().Query("select * from (select Value,count(Value) as Num from GoodsAttributes where Name=? group by Value) as m order by m.Num desc", name)
-	if err != nil {
-		return nil, err
-	}
-	d, err := gpa.ScanRows(rows, reflect.TypeOf(new(extends.GoodsAttributesValueInfo)), true)
-	if err != nil {
-		return nil, err
-	}
-	//list := gpa.Rows("select * from (select Value,count(Value) as Num from GoodsAttributes where Name=? group by Value) as m order by m.Num desc", []interface{}{name}, &extends.GoodsAttributesValueInfo{})
-	return d.([]*extends.GoodsAttributesValueInfo), err
-}
+*/

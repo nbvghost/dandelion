@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/internal/repository"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
@@ -39,31 +38,25 @@ type UserService struct {
 }
 
 func (service UserService) Login(account string) (user *model.User) {
-	var err error
-	if user, err = repository.User.GetByPhone(account); user.IsZero() {
-
-		user, err = repository.User.GetByEmail(account)
-		if err != nil {
-			log.Println(err)
-		}
+	if user = service.GetByPhone(db.Orm(), account); user.IsZero() {
+		user = service.GetByEmail(db.Orm(), account)
 	}
 	return user
-
 }
 func (service UserService) UpdateLoginStatus(userID types.PrimaryKey) error {
 
-	return repository.User.UpdateByID(userID, map[string]interface{}{"LastLoginAt": time.Now()}).Err
+	return dao.UpdateByPrimaryKey(db.Orm(), &model.User{}, userID, map[string]interface{}{"LastLoginAt": time.Now()}) //repository.User.UpdateByID(userID, map[string]interface{}{"LastLoginAt": time.Now()}).Err
 
 }
 func (service UserService) AddUser(name, email, password string) error {
 
-	hasUser, err := repository.User.GetByEmail(email)
+	hasUser := service.GetByEmail(db.Orm(), email)
 	if hasUser.IsZero() == false {
 		return errors.New("record is exist")
 	}
 	user := &model.User{Name: name, Email: email, Password: encryption.Md5ByString(password)}
 
-	err = repository.User.Create(user)
+	err := dao.Create(db.Orm(), user) //repository.User.Create(user)
 	return err
 
 }
@@ -224,10 +217,15 @@ func (service UserService) UserAction(context *gweb.Context) (r gweb.Result, err
 
 	return &gweb.JsonResult{Data: result.ActionResult{Code: result.Fail, Message: "", Data: nil}}, nil
 }
-func (service UserService) FindUserByTel(Orm *gorm.DB, Tel string) *model.User {
+func (service UserService) GetByPhone(Orm *gorm.DB, Tel string) *model.User {
 	user := &model.User{}
-	err := Orm.Where(`"Phone"=?`, Tel).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
-	log.Println(err)
+	Orm.Where(`"Phone"=?`, Tel).First(user) //SelectOne(user, "select * from User where Tel=?", Tel)
+	return user
+}
+
+func (service UserService) GetByEmail(Orm *gorm.DB, email string) *model.User {
+	user := &model.User{}
+	Orm.Where(`"Email"=?`, email).First(user) //SelectOne(user, "select * from User where Tel=?", Tel)
 	return user
 }
 

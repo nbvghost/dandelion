@@ -298,7 +298,7 @@ func (service Service) GetContentTypeByUri(context constrain.IContext, OID types
 
 	allMenusData := service.FindAllMenus(OID)
 
-	pageIndex, pageSize, total, list := service.ContentService.PaginationContent(OID, currentMenuData.TypeID, currentMenuData.SubTypeID, pageIndex)
+	pageIndex, pageSize, total, list := service.ContentService.PaginationContent(OID, currentMenuData.TypeID, currentMenuData.SubTypeID, pageIndex, 20)
 
 	pagination := module.NewPagination(pageIndex, pageSize, total, list)
 

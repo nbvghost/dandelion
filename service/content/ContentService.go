@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/nbvghost/dandelion/library/db"
+	"go.uber.org/zap"
 	"log"
 	"strconv"
 	"strings"
@@ -79,26 +80,26 @@ func (service ContentService) FindContentTagsByContentItemID(OID, ContentItemID 
 	tags = tag.CreateUri(tags)
 	return tags
 }
-func (service ContentService) PaginationContent(OID, ContentItemID, ContentSubTypeID types.PrimaryKey, pageIndex int) (int, int, int, []*model.Content) {
+func (service ContentService) PaginationContent(OID, ContentItemID, ContentSubTypeID types.PrimaryKey, pageIndex int, pageSize int) (int, int, int, []*model.Content) {
 	if ContentItemID == 0 {
 		db := dao.Find(db.Orm(), &model.Content{}).Where(`"OID"=?`, OID)
-		total := db.Limit(pageIndex, 20)
+		total := db.Limit(pageIndex, pageSize)
 		mlist := db.List()
 		list := make([]*model.Content, 0)
 		for i := range mlist {
 			list = append(list, mlist[i].(*model.Content))
 		}
-		return pageIndex, 20, int(total), list
+		return pageIndex, pageSize, int(total), list
 	}
 	if ContentSubTypeID == 0 {
 		db := dao.Find(db.Orm(), &model.Content{}).Where(`"OID"=? and "ContentItemID"=?`, OID, ContentItemID)
-		total := db.Limit(pageIndex, 20)
+		total := db.Limit(pageIndex, pageSize)
 		mlist := db.List()
 		list := make([]*model.Content, 0)
 		for i := range mlist {
 			list = append(list, mlist[i].(*model.Content))
 		}
-		return pageIndex, 20, int(total), list
+		return pageIndex, pageSize, int(total), list
 		//return repository.Content.FindByOIDAndContentItemIDLimit(OID, ContentItemID, params.NewLimit(pageIndex, 20))
 	}
 	contentSubTypeIDs := service.GetContentSubTypeAllIDByID(ContentItemID, ContentSubTypeID)
@@ -111,9 +112,9 @@ func (service ContentService) PaginationContent(OID, ContentItemID, ContentSubTy
 	db.Count(&total)
 
 	var list []*model.Content
-	db.Limit(20).Offset(pageIndex * 20).Find(&list)
+	db.Limit(pageSize).Offset(pageIndex * pageSize).Find(&list)
 
-	return pageIndex, 20, int(total), list
+	return pageIndex, pageSize, int(total), list
 }
 func (service ContentService) GetContentTypeByID(OID types.PrimaryKey, ContentItemID, ContentSubTypeID types.PrimaryKey) (model.ContentItem, model.ContentSubType) {
 	Orm := db.Orm()
@@ -277,18 +278,27 @@ func (service ContentService) ChangeContentConfig(OID types.PrimaryKey, fieldNam
 		changeMap["FaviconIco"] = fieldValue
 	case "SocialAccount":
 		var socialAccount sqltype.SocialAccountList
-		json.Unmarshal([]byte(fieldValue), &socialAccount)
+		err := json.Unmarshal([]byte(fieldValue), &socialAccount)
+		if err != nil {
+			return err
+		}
 		changeMap["SocialAccount"] = socialAccount
 	case "CustomerService":
 		var customerService sqltype.CustomerServiceList
-		json.Unmarshal([]byte(fieldValue), &customerService)
+		err := json.Unmarshal([]byte(fieldValue), &customerService)
+		if err != nil {
+			return err
+		}
 		changeMap["CustomerService"] = customerService
 	case "EnableHTMLCache":
 		EnableHTMLCache, _ := strconv.ParseBool(fieldValue)
 		changeMap["EnableHTMLCache"] = EnableHTMLCache
 	case "FocusPicture":
 		var focusPicture sqltype.FocusPictureList
-		json.Unmarshal([]byte(fieldValue), &focusPicture)
+		err := json.Unmarshal([]byte(fieldValue), &focusPicture)
+		if err != nil {
+			return err
+		}
 		changeMap["FocusPicture"] = focusPicture
 
 	}
@@ -671,18 +681,21 @@ func (service ContentService) GetContentAndAddLook(ctx constrain.IContext, Artic
 		endDayTime := time.Date(tomorrowTime.Year(), tomorrowTime.Month(), tomorrowTime.Day(), 0, 0, 0, 0, tomorrowTime.Location())
 		//context.Session.Attributes.Put(gweb.AttributesKey(strconv.Itoa(int(ArticleID))), "CountView")
 		ctx.Redis().Set(ctx, redis.NewArticleLookCount(ctx.UID(), ArticleID), "true", endDayTime.Sub(now))
-		dao.UpdateByPrimaryKey(db.Orm(), &model.Content{}, ArticleID, map[string]interface{}{"CountView": article.CountView + 1})
+		err := dao.UpdateByPrimaryKey(db.Orm(), &model.Content{}, ArticleID, map[string]interface{}{"CountView": article.CountView + 1})
+		if err != nil {
+			ctx.Logger().Error("GetContentAndAddLook", zap.Error(err))
+		}
 
 		LookArticle := 0 //todo config.Config.LookArticle
 
 		//if context.Session.Attributes.Get(play.SessionUser) != nil {
 		//user := context.Session.Attributes.Get(play.SessionUser).(*model.User)
-		err := service.Journal.AddScoreJournal(db.Orm(),
+		err = service.Journal.AddScoreJournal(db.Orm(),
 			ctx.UID(),
 			"看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)),
 			play.ScoreJournal_Type_Look_Article, int64(LookArticle), extends.KV{Key: "ArticleID", Value: article.ID})
 		if err != nil {
-			log.Println(err)
+			ctx.Logger().Error("GetContentAndAddLook", zap.Error(err))
 		}
 		//}
 
@@ -788,7 +801,6 @@ func (service ContentService) SaveContent(OID types.PrimaryKey, article *model.C
 
 func (service ContentService) GalleryBlock(OID types.PrimaryKey, num int) ([]model.ContentItem, []model.Content) {
 	contentItemList := service.FindContentItemByType(model.ContentTypeGallery, OID)
-
 	contentItemIDList := make([]types.PrimaryKey, 0)
 	for _, item := range contentItemList {
 		contentItemIDList = append(contentItemIDList, item.ID)
@@ -796,3 +808,13 @@ func (service ContentService) GalleryBlock(OID types.PrimaryKey, num int) ([]mod
 	contentList := service.FindContentByIDAndNum(contentItemIDList, num)
 	return contentItemList, contentList
 }
+
+/*func (service ContentService) FindByOIDLimit(oid types.PrimaryKey, pageIndex int, pageSize int) (int, int, int, []*model.Content) {
+	return service.PaginationContent(oid, 0, 0, pageIndex, pageSize)
+}
+func (service ContentService) FindByOIDAndContentItemIDLimit(oid, contentItemID types.PrimaryKey, pageIndex int, pageSize int) (int, int, int, []*model.Content) {
+	return service.PaginationContent(oid, contentItemID, 0, pageIndex, pageSize)
+}*/
+
+//FindByOIDLimit                 func(OID types.PrimaryKey, pagination *params.Limit) (pageIndex int, pageSize int, total int, list []*model.Content, err error)                `gpa:"AutoCreate"`
+//FindByOIDAndContentItemIDLimit func(OID, ContentItemID types.PrimaryKey, pagination *params.Limit) (pageIndex int, pageSize int, total int, list []*model.Content, err error) `gpa:"AutoCreate"`

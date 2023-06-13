@@ -13,7 +13,6 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/internal/repository"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
@@ -225,14 +224,9 @@ func (service GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsInfo
 
 	goodsInfo.SkuLabels = skuLabelList
 
-	attributesGroup, err := repository.GoodsAttributesGroup.FindByGoodsID(goods.ID)
-	if err != nil {
-		return nil, err
-	}
-	attributes, err := repository.GoodsAttributes.FindByGoodsID(goods.ID)
-	if err != nil {
-		return nil, err
-	}
+	attributesGroup := service.AttributesService.FindGroupByGoodsID(Orm, goods.ID) //repository.GoodsAttributesGroup.FindByGoodsID(goods.ID)
+	attributes := service.AttributesService.FindByGoodsID(Orm, goods.ID)           //repository.GoodsAttributes.FindByGoodsID(goods.ID)
+
 	for _, v := range attributesGroup {
 		goodsAttributes := extends.GoodsAttributes{}
 		goodsAttributes.GroupID = v.ID
