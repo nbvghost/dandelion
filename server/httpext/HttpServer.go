@@ -3,6 +3,7 @@ package httpext
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"reflect"
@@ -221,7 +222,18 @@ func NewHttpServer(engine *mux.Router, router *mux.Router, mRoute constrain.IRou
 	}
 
 	if router != nil && mRoute != nil {
-		router.NotFoundHandler = http.RedirectHandler("/404", http.StatusPermanentRedirect)
+		router.NotFoundHandler = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			if request.URL.Path == "/404" {
+				writer.WriteHeader(http.StatusNotFound)
+				t, _ := template.New("404").Parse("404")
+				err := t.Execute(writer, nil)
+				if err != nil {
+					log.Println(err)
+				}
+			} else {
+				http.Redirect(writer, request, "/404", http.StatusPermanentRedirect)
+			}
+		})
 		//router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		/*ctx := DefaultHttpMiddleware.CreateContext(s.redisClient, mRoute, w, r)
