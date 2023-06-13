@@ -106,8 +106,9 @@ func (m *FindQuery) List() []types.IEntity {
 
 }
 func Find(tx *gorm.DB, model types.IEntity) *FindQuery {
+	t := reflect.TypeOf(model).Elem()
 	return &FindQuery{
-		model: model,
+		model: reflect.New(t).Interface().(types.IEntity),
 		db:    tx.Model(model),
 	}
 }
