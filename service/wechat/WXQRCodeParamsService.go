@@ -8,7 +8,6 @@ import (
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/encryption"
 	"github.com/nbvghost/tool/object"
 )
@@ -36,7 +35,7 @@ func (service WXQRCodeParamsService) getParams(CodeKey string) (*model.WXQRCodeP
 	}
 	return wxParams, nil
 }
-func (service WXQRCodeParamsService) EncodeShareKey(UserID types.PrimaryKey, ProductID uint) string {
+func (service WXQRCodeParamsService) EncodeShareKey(UserID dao.PrimaryKey, ProductID uint) string {
 
 	key := encryption.Md5ByString(fmt.Sprintf("%v%v", UserID, ProductID))
 	wxParams, err := service.getParams(key)
@@ -50,14 +49,14 @@ func (service WXQRCodeParamsService) EncodeShareKey(UserID types.PrimaryKey, Pro
 		return wxParams.CodeKey
 	}
 }
-func (service WXQRCodeParamsService) DecodeShareKey(ShareKey string) (UserID types.PrimaryKey, ProductID uint) {
+func (service WXQRCodeParamsService) DecodeShareKey(ShareKey string) (UserID dao.PrimaryKey, ProductID uint) {
 	wxParams, _ := service.getParams(ShareKey)
 
 	paramsMap := make(map[string]interface{})
 
 	json.Unmarshal([]byte(wxParams.Params), &paramsMap)
 
-	UserID = types.PrimaryKey(object.ParseInt(paramsMap["UserID"]))
+	UserID = dao.PrimaryKey(object.ParseInt(paramsMap["UserID"]))
 	ProductID = uint(object.ParseInt(paramsMap["ProductID"]))
 	return
 }

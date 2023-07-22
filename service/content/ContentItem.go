@@ -5,38 +5,38 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
-func (service ContentService) ListContentItemByOIDMap(OID types.PrimaryKey) map[types.PrimaryKey]model.ContentItem {
+func (service ContentService) ListContentItemByOIDMap(OID dao.PrimaryKey) map[dao.PrimaryKey]model.ContentItem {
 	Orm := db.Orm()
 	var menus []model.ContentItem
 	Orm.Model(model.ContentItem{}).Where(map[string]interface{}{"OID": OID}).Order(`"Sort"`).Order(`"UpdatedAt" desc`).Find(&menus)
-	m := make(map[types.PrimaryKey]model.ContentItem)
+	m := make(map[dao.PrimaryKey]model.ContentItem)
 	for i, v := range menus {
 		m[v.ID] = menus[i]
 	}
 	return m
 }
-func (service ContentService) ListContentItemByOID(OID types.PrimaryKey) []model.ContentItem {
+func (service ContentService) ListContentItemByOID(OID dao.PrimaryKey) []model.ContentItem {
 	Orm := db.Orm()
 	var menus []model.ContentItem
 	Orm.Model(model.ContentItem{}).Where(map[string]interface{}{"OID": OID}).Order(`"Sort"`).Order(`"UpdatedAt" desc`).Find(&menus)
 	return menus
 }
-func (service ContentService) GetContentItemByTypeTemplateName(db *gorm.DB, OID types.PrimaryKey, typ model.ContentTypeType, templateName string) *model.ContentItem {
+func (service ContentService) GetContentItemByTypeTemplateName(db *gorm.DB, OID dao.PrimaryKey, typ model.ContentTypeType, templateName string) *model.ContentItem {
 	Orm := db
 	var contentItem model.ContentItem
 	Orm.Model(&model.ContentItem{}).Where(`"OID"=? And "Type"=? And "TemplateName"=?`, OID, typ, templateName).First(&contentItem)
 	return &contentItem
 }
-func (service ContentService) GetContentItemOfIndex(db *gorm.DB, OID types.PrimaryKey) *model.ContentItem {
+func (service ContentService) GetContentItemOfIndex(db *gorm.DB, OID dao.PrimaryKey) *model.ContentItem {
 	Orm := db
 	var contentItem model.ContentItem
 	Orm.Model(&model.ContentItem{}).Where(`"OID"=? And "Type"=?`, OID, model.ContentTypeIndex).First(&contentItem)
 	return &contentItem
 }
-func (service ContentService) GetContentItemOfProducts(db *gorm.DB, OID types.PrimaryKey) *model.ContentItem {
+func (service ContentService) GetContentItemOfProducts(db *gorm.DB, OID dao.PrimaryKey) *model.ContentItem {
 	Orm := db
 	var contentItem model.ContentItem
 	Orm.Model(&model.ContentItem{}).Where(`"OID"=? And "Type"=?`, OID, model.ContentTypeProducts).First(&contentItem)
@@ -46,7 +46,7 @@ func (service ContentService) GetContentItemOfProducts(db *gorm.DB, OID types.Pr
 	return &contentItem
 }
 
-func (service ContentService) GetContentItemIDs(OID types.PrimaryKey) []uint {
+func (service ContentService) GetContentItemIDs(OID dao.PrimaryKey) []uint {
 	Orm := db.Orm()
 	var levea []uint
 	if OID <= 0 {

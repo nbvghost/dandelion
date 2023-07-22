@@ -2,6 +2,7 @@ package contexext
 
 import (
 	"context"
+	"github.com/nbvghost/dandelion/library/dao"
 	"net/http"
 	"net/url"
 	"sync"
@@ -11,12 +12,10 @@ import (
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
-
-	"github.com/nbvghost/gpa/types"
 )
 
 type handlerContext struct {
-	uid       types.PrimaryKey
+	uid       dao.PrimaryKey
 	parent    context.Context
 	redis     constrain.IRedis
 	mode      key.Mode
@@ -76,7 +75,7 @@ func (m *handlerContext) Route() string {
 func (m *handlerContext) AppName() string {
 	return m.appName
 }
-func (m *handlerContext) UID() types.PrimaryKey {
+func (m *handlerContext) UID() dao.PrimaryKey {
 	return m.uid
 }
 func (m *handlerContext) Context() context.Context {
@@ -107,5 +106,5 @@ func (m *handlerContext) Destroy() {
 	})
 }
 func New(parent context.Context, appName, uid string, route string, redis constrain.IRedis, token string, logger *zap.Logger, mode key.Mode) constrain.IContext {
-	return &handlerContext{parent: parent, uid: types.NewFromString(uid), route: route, redis: redis, appName: appName, token: token, logger: logger, mode: mode, syncCache: &sync.Map{}}
+	return &handlerContext{parent: parent, uid: dao.NewFromString(uid), route: route, redis: redis, appName: appName, token: token, logger: logger, mode: mode, syncCache: &sync.Map{}}
 }

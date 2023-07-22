@@ -9,7 +9,6 @@ import (
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/dandelion/service/order"
-	"github.com/nbvghost/gpa/types"
 )
 
 type Verification struct {
@@ -21,10 +20,10 @@ type Verification struct {
 		VerificationNo string `uri:"VerificationNo"`
 	} `method:"Get"`
 	Post struct {
-		Action         string           `form:"Action"`
-		Quantity       uint             `form:"Quantity"`
-		VerificationNo string           `form:"VerificationNo"`
-		StoreStockID   types.PrimaryKey `form:"StoreStockID"`
+		Action         string         `form:"Action"`
+		Quantity       uint           `form:"Quantity"`
+		VerificationNo string         `form:"VerificationNo"`
+		StoreStockID   dao.PrimaryKey `form:"StoreStockID"`
 	} `method:"Post"`
 }
 

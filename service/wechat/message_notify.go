@@ -3,8 +3,8 @@ package wechat
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
-	"github.com/nbvghost/gpa/types"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -12,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/company"
 )
@@ -71,7 +70,7 @@ func (service MessageNotify) NewUserJoinNotify(NewUser *model.User, notifyUser *
 }
 
 // 发货通知
-func (service MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []types.IEntity, wxConfig *model.WechatConfig) *result.ActionResult {
+func (service MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []dao.IEntity, wxConfig *model.WechatConfig) *result.ActionResult {
 
 	if Order.ID == 0 {
 		return &result.ActionResult{Code: result.Fail, Message: "找不到订单", Data: nil}

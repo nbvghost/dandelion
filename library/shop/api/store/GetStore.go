@@ -8,14 +8,13 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/company"
-	"github.com/nbvghost/gpa/types"
 )
 
 type GetStore struct {
 	StoreService company.StoreService
 	Store        *model.Store `mapping:""`
 	Get          struct {
-		StoreID types.PrimaryKey `uri:"StoreID"`
+		StoreID dao.PrimaryKey `uri:"StoreID"`
 	} `method:"Get"`
 }
 

@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/nbvghost/dandelion/constrain/key"
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 // 用于注入的回调方法
@@ -20,7 +20,7 @@ type IMappingCallback interface {
 type IContext interface {
 	context.Context
 	Redis() IRedis
-	UID() types.PrimaryKey
+	UID() dao.PrimaryKey
 	AppName() string
 	SelectInsideServer(appName key.MicroServer) (string, error)
 	GetDNSName(localName key.MicroServer) (string, error)

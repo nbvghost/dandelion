@@ -1,11 +1,11 @@
 package model
 
 import (
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type WXQRCodeParams struct {
-	types.Entity
+	dao.Entity
 	CodeKey string `gorm:"column:CodeKey;not null;unique"`
 	Params  string `gorm:"column:Params;not null"`
 }

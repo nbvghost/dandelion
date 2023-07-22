@@ -1,9 +1,9 @@
 package viewmodel
 
-import "github.com/nbvghost/gpa/types"
+import "github.com/nbvghost/dandelion/library/dao"
 
 type GoodsSpecification struct {
-	GoodsID         types.PrimaryKey
-	SpecificationID types.PrimaryKey
+	GoodsID         dao.PrimaryKey
+	SpecificationID dao.PrimaryKey
 	Quantity        uint
 }

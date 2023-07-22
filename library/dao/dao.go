@@ -7,49 +7,48 @@ import (
 	"strings"
 
 	"gorm.io/gorm"
-
-	"github.com/nbvghost/gpa/types"
 )
 
-func UpdateBy(tx *gorm.DB, model types.IEntity, value interface{}, query interface{}, args ...interface{}) error {
+func UpdateBy(tx *gorm.DB, model IEntity, value interface{}, query interface{}, args ...interface{}) error {
 	return tx.Model(model).Where(query, args...).Updates(value).Error
 }
 
-func UpdateByPrimaryKey(tx *gorm.DB, model types.IEntity, id types.PrimaryKey, value any) error {
-	return tx.Model(model).Where(fmt.Sprintf(`"%s"=?`, model.PrimaryName()), id).Updates(value).Error
+func UpdateByPrimaryKey(tx *gorm.DB, model IEntity, id PrimaryKey, value any) error {
+	var item = reflect.New(reflect.TypeOf(model).Elem()).Interface().(IEntity)
+	return tx.Model(model).Where(fmt.Sprintf(`"%s"=?`, item.PrimaryName()), id).Updates(value).Error
 }
 
-func GetByPrimaryKey(tx *gorm.DB, model types.IEntity, id types.PrimaryKey) types.IEntity {
+func GetByPrimaryKey(tx *gorm.DB, model IEntity, id PrimaryKey) IEntity {
 	var item = reflect.New(reflect.TypeOf(model).Elem())
-	tx.Model(model).Where(fmt.Sprintf(`"%s"=?`, model.PrimaryName()), id).Take(item.Interface())
-	return item.Interface().(types.IEntity)
+	tx.Model(model).Where(fmt.Sprintf(`"%s"=?`, item.Interface().(IEntity).PrimaryName()), id).Take(item.Interface())
+	return item.Interface().(IEntity)
 }
-func GetBy(tx *gorm.DB, model types.IEntity, where map[string]any) types.IEntity {
+func GetBy(tx *gorm.DB, model IEntity, where map[string]any) IEntity {
 	var item = reflect.New(reflect.TypeOf(model).Elem())
 	tx.Model(model).Where(where).Take(item.Interface())
-	return item.Interface().(types.IEntity)
+	return item.Interface().(IEntity)
 }
-func Create(tx *gorm.DB, value types.IEntity) error {
+func Create(tx *gorm.DB, value IEntity) error {
 	return tx.Model(value).Create(value).Error
 }
-func Save(tx *gorm.DB, value types.IEntity) error {
+func Save(tx *gorm.DB, value IEntity) error {
 	return tx.Save(value).Error
 }
 
-func DeleteByPrimaryKey(tx *gorm.DB, model types.IEntity, id types.PrimaryKey) error {
+func DeleteByPrimaryKey(tx *gorm.DB, model IEntity, id PrimaryKey) error {
 	return tx.Delete(reflect.New(reflect.TypeOf(model).Elem()).Interface(), id).Error
 }
-func DeleteBy(tx *gorm.DB, model types.IEntity, where map[string]any) error {
+func DeleteBy(tx *gorm.DB, model IEntity, where map[string]any) error {
 	return tx.Where(where).Delete(reflect.New(reflect.TypeOf(model).Elem()).Interface()).Error
 }
 
 type FindQuery struct {
-	model types.IEntity
+	model IEntity
 	order []string
 	db    *gorm.DB
 }
 
-func (m *FindQuery) PrimaryKey(ID types.PrimaryKey) *FindQuery {
+func (m *FindQuery) PrimaryKey(ID PrimaryKey) *FindQuery {
 	m.db.Where(ID)
 	return m
 }
@@ -78,6 +77,10 @@ func (m *FindQuery) Limit(index, pageSize int) int64 {
 	m.db.Count(&total).Limit(pageSize).Offset(pageSize * index)
 	return total
 }
+func (m *FindQuery) LimitOnly(pageSize int) *FindQuery {
+	m.db.Limit(pageSize)
+	return m
+}
 func (m *FindQuery) Group(column string) (any, error) {
 	s, ok := reflect.TypeOf(m.model).Elem().FieldByName(column)
 	if !ok {
@@ -90,7 +93,7 @@ func (m *FindQuery) Group(column string) (any, error) {
 func (m *FindQuery) Pluck(column string, dest interface{}) {
 	m.db.Pluck(column, dest)
 }
-func (m *FindQuery) List() []types.IEntity {
+func (m *FindQuery) List() []IEntity {
 	var list = reflect.New(reflect.SliceOf(reflect.TypeOf(m.model)))
 	if len(m.order) == 0 {
 		m.db.Order(fmt.Sprintf(`"%s" asc`, m.model.PrimaryName()))
@@ -98,17 +101,17 @@ func (m *FindQuery) List() []types.IEntity {
 	m.db.Find(list.Interface())
 	arr := list.Elem()
 	l := arr.Len()
-	resultList := make([]types.IEntity, l)
+	resultList := make([]IEntity, l)
 	for i := 0; i < l; i++ {
-		resultList[i] = arr.Index(i).Interface().(types.IEntity)
+		resultList[i] = arr.Index(i).Interface().(IEntity)
 	}
 	return resultList
 
 }
-func Find(tx *gorm.DB, model types.IEntity) *FindQuery {
+func Find(tx *gorm.DB, model IEntity) *FindQuery {
 	t := reflect.TypeOf(model).Elem()
 	return &FindQuery{
-		model: reflect.New(t).Interface().(types.IEntity),
+		model: reflect.New(t).Interface().(IEntity),
 		db:    tx.Model(model),
 	}
 }

@@ -3,14 +3,14 @@ package module
 import (
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type CurrentMenuData struct {
 	Menus      extends.Menus
-	TypeID     types.PrimaryKey
+	TypeID     dao.PrimaryKey
 	TypeUri    string
-	SubTypeID  types.PrimaryKey
+	SubTypeID  dao.PrimaryKey
 	SubTypeUri string
 }
 

@@ -38,7 +38,6 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/services/refunddomestic"
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
 
-	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/gweb"
 
 	"github.com/nbvghost/tool/encryption"
@@ -110,12 +109,12 @@ func (service WxService) MiniProgramByAppId(db *gorm.DB, appId string) *model.We
 	db.Model(model.WechatConfig{}).Where(`"AppID"=?`, appId).Take(&wc)
 	return &wc
 }
-func (service WxService) MiniProgramByOID(db *gorm.DB, OID types.PrimaryKey) *model.WechatConfig {
+func (service WxService) MiniProgramByOID(db *gorm.DB, OID dao.PrimaryKey) *model.WechatConfig {
 	var wc model.WechatConfig
 	db.Model(model.WechatConfig{}).Where(`"OID"=?`, OID).Take(&wc)
 	return &wc
 }
-func (service WxService) MiniProgram(db *gorm.DB) []types.IEntity {
+func (service WxService) MiniProgram(db *gorm.DB) []dao.IEntity {
 	//var wc []model.WechatConfig
 	//db.Model(model.WechatConfig{}).Where(`"OID"=?`, OID).Take(&wc)
 	return dao.Find(db, entity.WechatConfig).List()
@@ -649,7 +648,7 @@ func (service WxService) Transfers(transfers model.Transfers, wxConfig *model.We
 }
 
 // 关闭订单
-func (service WxService) CloseOrder(OrderNo string, OID types.PrimaryKey, wxConfig *model.WechatConfig) (Success bool, Message string) {
+func (service WxService) CloseOrder(OrderNo string, OID dao.PrimaryKey, wxConfig *model.WechatConfig) (Success bool, Message string) {
 
 	//WxConfig := service.MiniProgram()
 
@@ -934,7 +933,7 @@ func (service WxService) MwGetTicket(WxConfig *model.WechatConfig) string {
 	}
 
 }
-func (service WxService) MwGetWXJSConfig(url string, OID types.PrimaryKey) map[string]interface{} {
+func (service WxService) MwGetWXJSConfig(url string, OID dao.PrimaryKey) map[string]interface{} {
 
 	wxConfig := service.MiniProgramByOID(db.Orm(), OID)
 

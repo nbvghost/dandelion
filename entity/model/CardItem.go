@@ -8,24 +8,24 @@ import (
 
 	"github.com/nbvghost/dandelion/library/util"
 
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/tool/object"
 )
 
 // 卡
 type CardItem struct {
-	types.Entity
-	OrderNo       string           `gorm:"column:OrderNo;unique"` //订单号
-	UserID        types.PrimaryKey `gorm:"column:UserID"`         //
-	Type          string           `gorm:"column:Type"`           //OrdersGoods,Voucher,ScoreGoods
-	OrdersGoodsID types.PrimaryKey `gorm:"column:OrdersGoodsID"`  //
-	VoucherID     types.PrimaryKey `gorm:"column:VoucherID"`      //
-	ScoreGoodsID  types.PrimaryKey `gorm:"column:ScoreGoodsID"`   //
-	Data          string           `gorm:"column:Data;type:text"` //json数据
-	Quantity      uint             `gorm:"column:Quantity"`       //数量
-	UseQuantity   uint             `gorm:"column:UseQuantity"`    //已经使用数量
-	ExpireTime    time.Time        `gorm:"column:ExpireTime"`     //过期时间
-	PostType      OrdersPostType   `gorm:"column:PostType"`       //1=邮寄，2=线下使用
+	dao.Entity
+	OrderNo       string         `gorm:"column:OrderNo;unique"` //订单号
+	UserID        dao.PrimaryKey `gorm:"column:UserID"`         //
+	Type          string         `gorm:"column:Type"`           //OrdersGoods,Voucher,ScoreGoods
+	OrdersGoodsID dao.PrimaryKey `gorm:"column:OrdersGoodsID"`  //
+	VoucherID     dao.PrimaryKey `gorm:"column:VoucherID"`      //
+	ScoreGoodsID  dao.PrimaryKey `gorm:"column:ScoreGoodsID"`   //
+	Data          string         `gorm:"column:Data;type:text"` //json数据
+	Quantity      uint           `gorm:"column:Quantity"`       //数量
+	UseQuantity   uint           `gorm:"column:UseQuantity"`    //已经使用数量
+	ExpireTime    time.Time      `gorm:"column:ExpireTime"`     //过期时间
+	PostType      OrdersPostType `gorm:"column:PostType"`       //1=邮寄，2=线下使用
 }
 
 func (cardItem CardItem) GetNameLabel(DB *gorm.DB) (Name, Label string) {

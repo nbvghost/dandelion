@@ -11,7 +11,6 @@ import (
 	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal/network"
 	"github.com/nbvghost/dandelion/service/configuration"
 	"github.com/nbvghost/dandelion/service/order"
-	"github.com/nbvghost/gpa/types"
 	"regexp"
 	"strconv"
 	"strings"
@@ -25,7 +24,7 @@ type CheckoutOrders struct {
 	User                 *model.User `mapping:""`
 	Post                 struct {
 		OrderNo               string
-		AddressID             types.PrimaryKey
+		AddressID             dao.PrimaryKey
 		AdditionalInformation string
 	} `method:"post"`
 }

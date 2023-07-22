@@ -19,7 +19,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/encryption"
 
 	"github.com/nbvghost/gweb"
@@ -43,7 +42,7 @@ func (service UserService) Login(account string) (user *model.User) {
 	}
 	return user
 }
-func (service UserService) UpdateLoginStatus(userID types.PrimaryKey) error {
+func (service UserService) UpdateLoginStatus(userID dao.PrimaryKey) error {
 
 	return dao.UpdateByPrimaryKey(db.Orm(), &model.User{}, userID, map[string]interface{}{"LastLoginAt": time.Now()}) //repository.User.UpdateByID(userID, map[string]interface{}{"LastLoginAt": time.Now()}).Err
 
@@ -82,7 +81,7 @@ func (service UserService) Situation(StartTime, EndTime int64) interface{} {
 	//result.OnlineCount = len(gweb.Sessions.Data)
 	return result
 }
-func (service UserService) AddUserBlockAmount(Orm *gorm.DB, UserID types.PrimaryKey, Menoy int64) error {
+func (service UserService) AddUserBlockAmount(Orm *gorm.DB, UserID dao.PrimaryKey, Menoy int64) error {
 
 	user := dao.GetByPrimaryKey(Orm, &model.User{}, UserID).(*model.User)
 	if user.IsZero() {
@@ -107,7 +106,7 @@ func (service UserService) FindUserByIDs(IDs []uint) []model.User {
 	log.Println(err)
 	return users
 }
-func (service UserService) LeveAll6(Orm *gorm.DB, OneSuperiorID types.PrimaryKey) string {
+func (service UserService) LeveAll6(Orm *gorm.DB, OneSuperiorID dao.PrimaryKey) string {
 	//Orm := singleton.Orm()
 	var leveIDs []string
 
@@ -137,7 +136,7 @@ func (service UserService) LeveAll6(Orm *gorm.DB, OneSuperiorID types.PrimaryKey
 
 	return strings.Join(leveIDs, ",")
 }
-func (service UserService) Leve1(UserID types.PrimaryKey) []uint {
+func (service UserService) Leve1(UserID dao.PrimaryKey) []uint {
 	Orm := db.Orm()
 	var levea []uint
 	if UserID <= 0 {
@@ -191,7 +190,7 @@ func (service UserService) Leve6(Leve5IDs []uint) []uint {
 	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve5IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
-func (service UserService) GetUserInfo(UserID types.PrimaryKey) model.UserInfo {
+func (service UserService) GetUserInfo(UserID dao.PrimaryKey) model.UserInfo {
 	Orm := db.Orm()
 	//.First(&user, 10)
 	var userInfo model.UserInfo
@@ -229,14 +228,14 @@ func (service UserService) GetByEmail(Orm *gorm.DB, email string) *model.User {
 	return user
 }
 
-func (service UserService) FindUserByOpenID(Orm *gorm.DB, OID types.PrimaryKey, OpenID string) *model.User {
+func (service UserService) FindUserByOpenID(Orm *gorm.DB, OID dao.PrimaryKey, OpenID string) *model.User {
 	user := &model.User{}
 	//CompanyOpenID := user.GetCompanyOpenID(CompanyID, OpenID)
 	err := Orm.Where(`"OpenID"=? and "OID"=?`, OpenID, OID).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
 	log.Println(err)
 	return user
 }
-func (service UserService) AddUserByOpenID(Orm *gorm.DB, OID types.PrimaryKey, OpenID string) *model.User {
+func (service UserService) AddUserByOpenID(Orm *gorm.DB, OID dao.PrimaryKey, OpenID string) *model.User {
 	//Orm := singleton.Orm()
 
 	user := service.FindUserByOpenID(Orm, OID, OpenID)

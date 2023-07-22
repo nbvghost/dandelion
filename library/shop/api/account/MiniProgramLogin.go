@@ -21,7 +21,6 @@ import (
 	"github.com/nbvghost/dandelion/service/journal"
 	"github.com/nbvghost/dandelion/service/user"
 	"github.com/nbvghost/dandelion/service/wechat"
-	"github.com/nbvghost/gpa/types"
 )
 
 type MiniProgramLogin struct {
@@ -66,14 +65,14 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 			if !strings.EqualFold(g.Post.ShareKey, "") {
 				SuperiorID, _ := g.WXQRCodeParamsService.DecodeShareKey(g.Post.ShareKey)
 
-				if newUser.ID != types.PrimaryKey(SuperiorID) {
+				if newUser.ID != dao.PrimaryKey(SuperiorID) {
 
 					//如果往上6级有包含新用户的ID，则不能绑定级别关系
 					if !strings.Contains(g.UserService.LeveAll6(tx, SuperiorID), strconv.Itoa(int(newUser.ID))) {
 						//var superiorUser model.User
 						superiorUser := dao.GetByPrimaryKey(tx, entity.User, SuperiorID).(*model.User)
 						if superiorUser.ID != 0 {
-							newUser.SuperiorID = types.PrimaryKey(SuperiorID)
+							newUser.SuperiorID = dao.PrimaryKey(SuperiorID)
 
 							//todo
 							InviteUser := 50

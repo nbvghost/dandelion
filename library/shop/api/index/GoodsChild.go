@@ -3,17 +3,17 @@ package index
 import (
 	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/goods"
-	"github.com/nbvghost/gpa/types"
 )
 
 type GoodsChild struct {
 	GoodsService goods.GoodsService
 	Get          struct {
-		GoodsTypeID      types.PrimaryKey `uri:"GoodsTypeID"`
-		GoodsTypeChildID types.PrimaryKey `uri:"GoodsTypeChildID"`
-		Index            int              `form:"Index"`
+		GoodsTypeID      dao.PrimaryKey `uri:"GoodsTypeID"`
+		GoodsTypeChildID dao.PrimaryKey `uri:"GoodsTypeChildID"`
+		Index            int            `form:"Index"`
 	} `method:"get"`
 }
 

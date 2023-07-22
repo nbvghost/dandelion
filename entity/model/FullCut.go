@@ -6,15 +6,15 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
-//满减
+// 满减
 type FullCut struct {
-	types.Entity
-	OID       types.PrimaryKey `gorm:"column:OID"`
-	Amount    uint             `gorm:"column:Amount"`
-	CutAmount uint             `gorm:"column:CutAmount"`
+	dao.Entity
+	OID       dao.PrimaryKey `gorm:"column:OID"`
+	Amount    uint           `gorm:"column:Amount"`
+	CutAmount uint           `gorm:"column:CutAmount"`
 }
 
 func (u *FullCut) BeforeCreate(scope *gorm.DB) (err error) {

@@ -8,7 +8,6 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/activity"
-	"github.com/nbvghost/gpa/types"
 )
 
 type Goods struct {
@@ -19,13 +18,13 @@ type Goods struct {
 		PageSize int `form:"page-size"`
 	} `method:"get"`
 	Post struct {
-		GoodsID         types.PrimaryKey
-		SpecificationID types.PrimaryKey
+		GoodsID         dao.PrimaryKey
+		SpecificationID dao.PrimaryKey
 		Quantity        uint
 		Comment         string
 	} `method:"Post"`
 	Delete struct {
-		ID types.PrimaryKey `form:"id"`
+		ID dao.PrimaryKey `form:"id"`
 	} `method:"Delete"`
 }
 

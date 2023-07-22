@@ -5,24 +5,24 @@ import (
 	"strings"
 
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type DNSService struct {
 }
 
-func (service DNSService) ListDNS(OID types.PrimaryKey) []model.DNS {
+func (service DNSService) ListDNS(OID dao.PrimaryKey) []model.DNS {
 	var list []model.DNS
 	db.Orm().Model(model.DNS{}).Where(`"OID"=? and "Type"=?`, OID, model.DNSTypeA).Find(&list)
 	return list
 }
-func (service DNSService) GetOID(domainName string) types.PrimaryKey {
+func (service DNSService) GetOID(domainName string) dao.PrimaryKey {
 	Orm := db.Orm()
 	var d model.DNS
 	Orm.Model(model.DNS{}).Where(`"Type"=? and "Domain"=?`, model.DNSTypeA, domainName).First(&d)
 	return d.OID
 }
-func (service DNSService) GetDefaultDNS(OID types.PrimaryKey) *model.DNS {
+func (service DNSService) GetDefaultDNS(OID dao.PrimaryKey) *model.DNS {
 	Orm := db.Orm()
 	var list []model.DNS
 	Orm.Model(model.DNS{}).Where(`"OID"=? and "Type"=?`, OID, model.DNSTypeA).Find(&list)

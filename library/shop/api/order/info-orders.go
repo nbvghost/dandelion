@@ -11,7 +11,6 @@ import (
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/dandelion/service/order"
-	"github.com/nbvghost/gpa/types"
 )
 
 type InfoOrders struct {
@@ -23,7 +22,7 @@ type InfoOrders struct {
 	} `method:"get"`
 	Put struct {
 		OrderNo   string
-		AddressID types.PrimaryKey
+		AddressID dao.PrimaryKey
 	} `method:"Put"`
 }
 

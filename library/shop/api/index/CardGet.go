@@ -11,7 +11,6 @@ import (
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/dandelion/service/order"
-	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool"
 	"github.com/skip2/go-qrcode"
 )
@@ -21,7 +20,7 @@ type CardGet struct {
 	VerificationService order.VerificationService
 	User                *model.User `mapping:""`
 	Get                 struct {
-		CardItemID types.PrimaryKey `uri:"CardItemID"`
+		CardItemID dao.PrimaryKey `uri:"CardItemID"`
 	} `method:"get"`
 }
 
@@ -30,7 +29,7 @@ func (m *CardGet) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//CardItemID, _ := strconv.ParseUint(context.PathParams["CardItemID"], 10, 64)
 	//CardItemID := object.ParseUint(context.PathParams["CardItemID"])
 	//var cardItem model.CardItem
-	cardItem := dao.GetByPrimaryKey(db.Orm(), entity.CardItem, types.PrimaryKey(m.Get.CardItemID)).(*model.CardItem)
+	cardItem := dao.GetByPrimaryKey(db.Orm(), entity.CardItem, dao.PrimaryKey(m.Get.CardItemID)).(*model.CardItem)
 
 	dao.DeleteBy(db.Orm(), &model.Verification{}, map[string]interface{}{
 		"UserID":     m.User.ID,

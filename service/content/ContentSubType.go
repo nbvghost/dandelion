@@ -2,11 +2,11 @@ package content
 
 import (
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
-	"github.com/nbvghost/gpa/types"
 )
 
-func (service ContentService) FindAllContentSubType(OID types.PrimaryKey) []model.ContentSubType {
+func (service ContentService) FindAllContentSubType(OID dao.PrimaryKey) []model.ContentSubType {
 	Orm := db.Orm()
 	var list []model.ContentSubType
 	Orm.Model(&model.ContentSubType{}).Where(map[string]interface{}{"OID": OID}).Find(&list)
@@ -27,13 +27,13 @@ func (service ContentService) FindContentSubTypesByContentItemID(ContentItemID u
 	}).Order(`"Sort" asc`).Find(&menus)
 	return menus
 }
-func (service ContentService) FindContentSubTypesByParentContentSubTypeID(ParentContentSubTypeID types.PrimaryKey) []model.ContentSubType {
+func (service ContentService) FindContentSubTypesByParentContentSubTypeID(ParentContentSubTypeID dao.PrimaryKey) []model.ContentSubType {
 	Orm := db.Orm()
 	var menus []model.ContentSubType
 	Orm.Model(model.ContentSubType{}).Where("ParentContentSubTypeID=?", ParentContentSubTypeID).Order("Sort asc").Find(&menus)
 	return menus
 }
-func (service ContentService) FindContentSubTypesByContentItemIDAndParentContentSubTypeID(ContentItemID, ParentContentSubTypeID types.PrimaryKey) []model.ContentSubType {
+func (service ContentService) FindContentSubTypesByContentItemIDAndParentContentSubTypeID(ContentItemID, ParentContentSubTypeID dao.PrimaryKey) []model.ContentSubType {
 	Orm := db.Orm()
 	var menus []model.ContentSubType
 	Orm.Model(model.ContentSubType{}).Where(map[string]interface{}{
@@ -44,12 +44,12 @@ func (service ContentService) FindContentSubTypesByContentItemIDAndParentContent
 }
 
 // 获取ID，返回子类ID,包括本身
-func (service ContentService) GetContentSubTypeAllIDByID(ContentItemID, ContentSubTypeID types.PrimaryKey) []types.PrimaryKey {
-	var IDList []types.PrimaryKey
+func (service ContentService) GetContentSubTypeAllIDByID(ContentItemID, ContentSubTypeID dao.PrimaryKey) []dao.PrimaryKey {
+	var IDList []dao.PrimaryKey
 	db.Orm().Model(&model.ContentSubType{}).Where(`"ContentItemID"=? and ("ID"=? or "ParentContentSubTypeID"=?)`, ContentItemID, ContentSubTypeID, ContentSubTypeID).Pluck(`"ID"`, &IDList)
 	return IDList
 }
-func (service ContentService) GetContentSubTypeByName(OID, ContentItemID, ID types.PrimaryKey, Name string) model.ContentSubType {
+func (service ContentService) GetContentSubTypeByName(OID, ContentItemID, ID dao.PrimaryKey, Name string) model.ContentSubType {
 	Orm := db.Orm()
 	var menus model.ContentSubType
 	Orm.Where(map[string]interface{}{

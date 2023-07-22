@@ -5,12 +5,12 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/dandelion/service/content"
 	"github.com/nbvghost/dandelion/service/goods"
 	"github.com/nbvghost/dandelion/service/site/module"
-	"github.com/nbvghost/gpa/types"
 )
 
 type Service struct {
@@ -19,19 +19,19 @@ type Service struct {
 	ContentService      content.ContentService
 }
 
-func (service Service) FindShowMenus(OID types.PrimaryKey) extends.MenusData {
+func (service Service) FindShowMenus(OID dao.PrimaryKey) extends.MenusData {
 	return service.menus(OID, 2)
 }
-func (service Service) FindAllMenus(OID types.PrimaryKey) extends.MenusData {
+func (service Service) FindAllMenus(OID dao.PrimaryKey) extends.MenusData {
 	return service.menus(OID, 0)
 }
-func newRedisContentDataKey(OID types.PrimaryKey, ContentItemUri, ContentSubTypeUri string, pageIndex int) string {
+func newRedisContentDataKey(OID dao.PrimaryKey, ContentItemUri, ContentSubTypeUri string, pageIndex int) string {
 	return fmt.Sprintf("content:%d:%s:%s:%d", OID, ContentItemUri, ContentSubTypeUri, pageIndex)
 }
-func newRedisGoodsDataKey(OID types.PrimaryKey, ContentItemUri, ContentSubTypeUri string, pageIndex int) string {
+func newRedisGoodsDataKey(OID dao.PrimaryKey, ContentItemUri, ContentSubTypeUri string, pageIndex int) string {
 	return fmt.Sprintf("goods:%d:%s:%s:%d", OID, ContentItemUri, ContentSubTypeUri, pageIndex)
 }
-func (service Service) menus(OID types.PrimaryKey, hide uint) extends.MenusData {
+func (service Service) menus(OID dao.PrimaryKey, hide uint) extends.MenusData {
 	Orm := db.Orm()
 
 	var contentItemList []model.ContentItem
@@ -58,7 +58,7 @@ func (service Service) menus(OID types.PrimaryKey, hide uint) extends.MenusData 
 
 	}
 
-	var contentItemIDs []types.PrimaryKey
+	var contentItemIDs []dao.PrimaryKey
 	for i := 0; i < len(contentItemList); i++ {
 		contentItem := contentItemList[i]
 		var have bool
@@ -177,7 +177,7 @@ func (service Service) menus(OID types.PrimaryKey, hide uint) extends.MenusData 
 	return menusData
 
 }
-func (service Service) GetGoodsTypeByUri(context constrain.IContext, OID types.PrimaryKey, GoodsTypeUri, GoodsTypeChildUri string, pageIndex int) module.SiteData[*model.Goods] {
+func (service Service) GetGoodsTypeByUri(context constrain.IContext, OID dao.PrimaryKey, GoodsTypeUri, GoodsTypeChildUri string, pageIndex int) module.SiteData[*model.Goods] {
 	var moduleContentData module.SiteData[*model.Goods]
 
 	Orm := db.Orm()
@@ -265,7 +265,7 @@ func (service Service) GetGoodsTypeByUri(context constrain.IContext, OID types.P
 	moduleContentData.SiteAuthor = companyName
 	return moduleContentData
 }
-func (service Service) GetContentTypeByUri(context constrain.IContext, OID types.PrimaryKey, ContentItemUri, ContentSubTypeUri string, pageIndex int) module.SiteData[*model.Content] {
+func (service Service) GetContentTypeByUri(context constrain.IContext, OID dao.PrimaryKey, ContentItemUri, ContentSubTypeUri string, pageIndex int) module.SiteData[*model.Content] {
 	var moduleContentData module.SiteData[*model.Content]
 	Orm := db.Orm()
 	var item model.ContentItem
@@ -306,7 +306,7 @@ func (service Service) GetContentTypeByUri(context constrain.IContext, OID types
 
 	var navigations []extends.Menus
 
-	var typeNameMap = make(map[types.PrimaryKey]extends.Menus)
+	var typeNameMap = make(map[dao.PrimaryKey]extends.Menus)
 
 	for index, v := range menusData.List {
 		for sv := range v.List {
@@ -371,7 +371,7 @@ func (service Service) GetContentTypeByUri(context constrain.IContext, OID types
 	return moduleContentData
 }
 
-func GetSiteData[T module.ListType](context constrain.IContext, OID types.PrimaryKey) module.SiteData[T] {
+func GetSiteData[T module.ListType](context constrain.IContext, OID dao.PrimaryKey) module.SiteData[T] {
 	var service = Service{}
 
 	var moduleContentData module.SiteData[T]
@@ -397,7 +397,7 @@ func GetSiteData[T module.ListType](context constrain.IContext, OID types.Primar
 
 	var navigations []extends.Menus
 
-	var typeNameMap = make(map[types.PrimaryKey]extends.Menus)
+	var typeNameMap = make(map[dao.PrimaryKey]extends.Menus)
 
 	for index, v := range menusData.List {
 		if v.ID == currentMenuData.TypeID {

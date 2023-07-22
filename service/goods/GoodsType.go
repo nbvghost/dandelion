@@ -8,7 +8,6 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/pinyin"
-	"github.com/nbvghost/gpa/types"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"log"
@@ -49,14 +48,14 @@ FROM "Goods" AS g LEFT JOIN "GoodsTypeChild" AS gtc ON (gtc."GoodsTypeID"=g."Goo
 	return list
 }
 
-func (service GoodsTypeService) ListGoodsByOID(OID types.PrimaryKey) []model.GoodsType {
+func (service GoodsTypeService) ListGoodsByOID(OID dao.PrimaryKey) []model.GoodsType {
 	Orm := db.Orm()
 	var menus []model.GoodsType
 	Orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID}).Find(&menus)
 	return menus
 }
 
-func (service GoodsTypeService) DeleteGoodsType(ID types.PrimaryKey) *result.ActionResult {
+func (service GoodsTypeService) DeleteGoodsType(ID dao.PrimaryKey) *result.ActionResult {
 	Orm := db.Orm()
 	tx := Orm.Begin()
 	var gtcs []model.GoodsTypeChild
@@ -79,7 +78,7 @@ func (service GoodsTypeService) DeleteGoodsType(ID types.PrimaryKey) *result.Act
 	}()
 	return (&result.ActionResult{}).SmartError(err, "删除成功", nil)
 }
-func (service GoodsTypeService) DeleteGoodsTypeChild(GoodsTypeChildID types.PrimaryKey) *result.ActionResult {
+func (service GoodsTypeService) DeleteGoodsTypeChild(GoodsTypeChildID dao.PrimaryKey) *result.ActionResult {
 	Orm := db.Orm()
 	tx := Orm.Begin()
 	tx.Model(&model.Goods{GoodsTypeChildID: GoodsTypeChildID}).Updates(map[string]interface{}{"GoodsTypeChildID": 0})
@@ -96,13 +95,13 @@ func (service GoodsTypeService) DeleteGoodsTypeChild(GoodsTypeChildID types.Prim
 	return (&result.ActionResult{}).SmartError(err, "删除成功", nil)
 }
 
-func (service GoodsTypeService) GetGoodsType(ID types.PrimaryKey) model.GoodsType {
+func (service GoodsTypeService) GetGoodsType(ID dao.PrimaryKey) model.GoodsType {
 	Orm := db.Orm()
 	var goodsType model.GoodsType
 	Orm.Model(&model.GoodsType{}).Where(map[string]interface{}{"ID": ID}).First(&goodsType)
 	return goodsType
 }
-func (service GoodsTypeService) GetGoodsTypeChild(ID types.PrimaryKey) model.GoodsTypeChild {
+func (service GoodsTypeService) GetGoodsTypeChild(ID dao.PrimaryKey) model.GoodsTypeChild {
 	Orm := db.Orm()
 	var typeChild model.GoodsTypeChild
 	Orm.Model(&model.GoodsTypeChild{}).Where(map[string]interface{}{"ID": ID}).First(&typeChild)
@@ -152,7 +151,7 @@ func (service GoodsTypeService) ListAllGoodsType() []model.GoodsType {
 	Orm.Model(&model.GoodsType{}).Where(`"ID" in (?)`, gtsIDs).Find(&gts)
 	return gts
 }
-func (service GoodsTypeService) ListGoodsType(OID types.PrimaryKey) []model.GoodsType {
+func (service GoodsTypeService) ListGoodsType(OID dao.PrimaryKey) []model.GoodsType {
 	/*Orm := singleton.Orm()
 	var gts []model.GoodsType
 	service.FindAllByOID(Orm,&gts,OID)
@@ -165,7 +164,7 @@ func (service GoodsTypeService) ListGoodsType(OID types.PrimaryKey) []model.Good
 	Orm.Model(&model.GoodsType{}).Where(`"ID" in (?)`, gtsIDs).Find(&gts)
 	return gts
 }
-func (service GoodsTypeService) ListGoodsTypeByOIDForAdmin(OID types.PrimaryKey) []model.GoodsType {
+func (service GoodsTypeService) ListGoodsTypeByOIDForAdmin(OID dao.PrimaryKey) []model.GoodsType {
 	Orm := db.Orm()
 	var gts []model.GoodsType
 	Orm.Model(&model.GoodsType{}).Where(`"OID"=?`, OID).Find(&gts)
@@ -178,7 +177,7 @@ func (service GoodsTypeService) ListGoodsTypeForAdmin() []model.GoodsType {
 	return gts
 }
 
-func (service GoodsTypeService) ListGoodsTypeChildAll(OID types.PrimaryKey) []model.GoodsTypeChild {
+func (service GoodsTypeService) ListGoodsTypeChildAll(OID dao.PrimaryKey) []model.GoodsTypeChild {
 	Orm := db.Orm()
 	var gts []model.GoodsTypeChild
 	var gtsIDs []uint
@@ -187,7 +186,7 @@ func (service GoodsTypeService) ListGoodsTypeChildAll(OID types.PrimaryKey) []mo
 	Orm.Model(&model.GoodsTypeChild{}).Where(`"ID" in (?)`, gtsIDs).Find(&gts)
 	return gts
 }
-func (service GoodsTypeService) ListAllGoodsTypeChild(GoodsTypeID types.PrimaryKey) []model.GoodsTypeChild {
+func (service GoodsTypeService) ListAllGoodsTypeChild(GoodsTypeID dao.PrimaryKey) []model.GoodsTypeChild {
 	/*Orm := singleton.Orm()
 	var gts []model.GoodsTypeChild
 	service.FindWhere(Orm, &gts, model.GoodsTypeChild{GoodsTypeID: GoodsTypeID})
@@ -200,7 +199,7 @@ func (service GoodsTypeService) ListAllGoodsTypeChild(GoodsTypeID types.PrimaryK
 	return gts
 }
 
-func (service GoodsTypeService) ListGoodsTypeChild(GoodsTypeID types.PrimaryKey) []model.GoodsTypeChild {
+func (service GoodsTypeService) ListGoodsTypeChild(GoodsTypeID dao.PrimaryKey) []model.GoodsTypeChild {
 	/*Orm := singleton.Orm()
 	var gts []model.GoodsTypeChild
 	service.FindWhere(Orm, &gts, model.GoodsTypeChild{GoodsTypeID: GoodsTypeID})
@@ -214,14 +213,14 @@ func (service GoodsTypeService) ListGoodsTypeChild(GoodsTypeID types.PrimaryKey)
 	return gts
 }
 
-func (service GoodsTypeService) ListGoodsChildByGoodsTypeID(GoodsTypeID, GoodsTypeChildID types.PrimaryKey) []types.IEntity {
+func (service GoodsTypeService) ListGoodsChildByGoodsTypeID(GoodsTypeID, GoodsTypeChildID dao.PrimaryKey) []dao.IEntity {
 	//Orm := singleton.Orm()
 	//var gts []model.Goods
 	//service.FindWhere(Orm, &gts, model.Goods{GoodsTypeID: GoodsTypeID, GoodsTypeChildID: GoodsTypeChildID})
 	gts := dao.Find(db.Orm(), &model.Goods{}).Where(`"GoodsTypeID"=? and "GoodsTypeChildID"=?`, GoodsTypeID, GoodsTypeChildID).List()
 	return gts
 }
-func (service GoodsTypeService) ListGoodsByGoodsTypeID(GoodsTypeID types.PrimaryKey) []types.IEntity {
+func (service GoodsTypeService) ListGoodsByGoodsTypeID(GoodsTypeID dao.PrimaryKey) []dao.IEntity {
 	//Orm := singleton.Orm()
 	//var gts []model.Goods
 	//service.FindWhere(Orm, &gts, model.Goods{GoodsTypeID: GoodsTypeID})
@@ -276,7 +275,7 @@ func (service GoodsTypeService) NewListByGoodsTypeIDAndGoodsTypeChildID(GoodsTyp
 
 }
 
-func (service GoodsTypeService) ListGoodsByType(OID, GoodsTypeID, GoodsTypeChildID types.PrimaryKey) []model.Goods {
+func (service GoodsTypeService) ListGoodsByType(OID, GoodsTypeID, GoodsTypeChildID dao.PrimaryKey) []model.Goods {
 
 	var contentList []model.Goods
 
@@ -297,7 +296,7 @@ func (service GoodsTypeService) ListGoodsByType(OID, GoodsTypeID, GoodsTypeChild
 	}
 
 }
-func (service GoodsTypeService) GetGoodsTypeData(OID types.PrimaryKey) *extends.GoodsTypeData {
+func (service GoodsTypeService) GetGoodsTypeData(OID dao.PrimaryKey) *extends.GoodsTypeData {
 
 	goodsTypeData := &extends.GoodsTypeData{}
 
@@ -331,17 +330,17 @@ func (service GoodsTypeService) GetGoodsTypeData(OID types.PrimaryKey) *extends.
 	return goodsTypeData
 
 }
-func (service GoodsTypeService) getGoodsTypeByName(orm *gorm.DB, OID types.PrimaryKey, name string) (model.GoodsType, error) {
+func (service GoodsTypeService) getGoodsTypeByName(orm *gorm.DB, OID dao.PrimaryKey, name string) (model.GoodsType, error) {
 	var gt model.GoodsType
 	err := orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "Name": name}).First(&gt).Error
 	return gt, err
 }
-func (service GoodsTypeService) getGoodsTypeByUri(orm *gorm.DB, OID types.PrimaryKey, uri string) (model.GoodsType, error) {
+func (service GoodsTypeService) getGoodsTypeByUri(orm *gorm.DB, OID dao.PrimaryKey, uri string) (model.GoodsType, error) {
 	var gt model.GoodsType
 	err := orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "Uri": uri}).First(&gt).Error
 	return gt, err
 }
-func (service GoodsTypeService) AddGoodsType(OID types.PrimaryKey, name string) error {
+func (service GoodsTypeService) AddGoodsType(OID dao.PrimaryKey, name string) error {
 	orm := db.Orm()
 	gt, _ := service.getGoodsTypeByName(orm, OID, name)
 	if !gt.IsZero() {
@@ -358,7 +357,7 @@ func (service GoodsTypeService) AddGoodsType(OID types.PrimaryKey, name string) 
 	gt.Uri = uri
 	return orm.Model(model.GoodsType{}).Create(&gt).Error
 }
-func (service GoodsTypeService) ChangeGoodsType(OID, ID types.PrimaryKey, name string) error {
+func (service GoodsTypeService) ChangeGoodsType(OID, ID dao.PrimaryKey, name string) error {
 	orm := db.Orm()
 	gt, _ := service.getGoodsTypeByName(orm, OID, name)
 	if gt.ID == ID {
@@ -380,17 +379,17 @@ func (service GoodsTypeService) ChangeGoodsType(OID, ID types.PrimaryKey, name s
 		"Uri":  gt.Uri,
 	}).Error
 }
-func (service GoodsTypeService) getGoodsTypeChildByName(orm *gorm.DB, OID, GoodsTypeID types.PrimaryKey, name string) (model.GoodsTypeChild, error) {
+func (service GoodsTypeService) getGoodsTypeChildByName(orm *gorm.DB, OID, GoodsTypeID dao.PrimaryKey, name string) (model.GoodsTypeChild, error) {
 	var gt model.GoodsTypeChild
 	err := orm.Model(model.GoodsTypeChild{}).Where(map[string]interface{}{"OID": OID, "GoodsTypeID": GoodsTypeID, "Name": name}).First(&gt).Error
 	return gt, err
 }
-func (service GoodsTypeService) getGoodsTypeChildByUri(orm *gorm.DB, OID, GoodsTypeID types.PrimaryKey, uri string) (model.GoodsTypeChild, error) {
+func (service GoodsTypeService) getGoodsTypeChildByUri(orm *gorm.DB, OID, GoodsTypeID dao.PrimaryKey, uri string) (model.GoodsTypeChild, error) {
 	var gt model.GoodsTypeChild
 	err := orm.Model(model.GoodsTypeChild{}).Where(map[string]interface{}{"OID": OID, "GoodsTypeID": GoodsTypeID, "Uri": uri}).First(&gt).Error
 	return gt, err
 }
-func (service GoodsTypeService) AddGoodsTypeChild(OID, GoodsTypeID types.PrimaryKey, name, image string) error {
+func (service GoodsTypeService) AddGoodsTypeChild(OID, GoodsTypeID dao.PrimaryKey, name, image string) error {
 	if GoodsTypeID == 0 {
 		return errors.Errorf("没有指定父类ID")
 	}
@@ -417,7 +416,7 @@ func (service GoodsTypeService) AddGoodsTypeChild(OID, GoodsTypeID types.Primary
 	gt.GoodsTypeID = GoodsTypeID
 	return orm.Model(model.GoodsTypeChild{}).Create(&gt).Error
 }
-func (service GoodsTypeService) ChangeGoodsTypeChild(OID, ID types.PrimaryKey, name, image string) error {
+func (service GoodsTypeService) ChangeGoodsTypeChild(OID, ID dao.PrimaryKey, name, image string) error {
 	orm := db.Orm()
 	gtc := service.GetGoodsTypeChild(ID)
 	if gtc.IsZero() {

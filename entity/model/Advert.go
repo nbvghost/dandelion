@@ -2,7 +2,7 @@ package model
 
 import (
 	"github.com/lib/pq"
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type AdvertType string
@@ -14,7 +14,7 @@ const (
 )
 
 type Advert struct {
-	types.Entity
+	dao.Entity
 	Matching pq.StringArray `gorm:"column:Matching;type:text[]"` //匹配页面，在哪里页面显示
 	Img      string         `gorm:"column:Img"`
 	Url      string         `gorm:"column:Url"`

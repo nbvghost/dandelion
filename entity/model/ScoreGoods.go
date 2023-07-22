@@ -6,18 +6,18 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
-//积分兑换产品
+// 积分兑换产品
 type ScoreGoods struct {
-	types.Entity
-	OID       types.PrimaryKey `gorm:"column:OID"`
-	Name      string           `gorm:"column:Name"`
-	Score     int              `gorm:"column:Score"`
-	Price     uint             `gorm:"column:Price"`
-	Image     string           `gorm:"column:Image"`
-	Introduce string           `gorm:"column:Introduce"`
+	dao.Entity
+	OID       dao.PrimaryKey `gorm:"column:OID"`
+	Name      string         `gorm:"column:Name"`
+	Score     int            `gorm:"column:Score"`
+	Price     uint           `gorm:"column:Price"`
+	Image     string         `gorm:"column:Image"`
+	Introduce string         `gorm:"column:Introduce"`
 }
 
 func (u *ScoreGoods) BeforeCreate(scope *gorm.DB) (err error) {

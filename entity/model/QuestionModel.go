@@ -3,11 +3,11 @@ package model
 import (
 	"time"
 
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type QuestionTag struct {
-	types.Entity
+	dao.Entity
 	Name      string
 	Introduce string
 }
@@ -17,7 +17,7 @@ func (QuestionTag) TableName() string {
 }
 
 type Question struct {
-	types.Entity
+	dao.Entity
 	UserID        uint      `gorm:"column:UserID"`               //
 	Title         string    `gorm:"column:Title"`                //
 	Describe      string    `gorm:"column:Describe;type:text"`   //描述
@@ -41,7 +41,7 @@ func (Question) TableName() string {
 }
 
 type AnswerQuestion struct {
-	types.Entity
+	dao.Entity
 	UserID     uint
 	QuestionID uint
 	Content    string

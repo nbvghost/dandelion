@@ -2,14 +2,14 @@ package model
 
 import (
 	"github.com/nbvghost/dandelion/entity/sqltype"
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 // GoodsReview helpful
 type GoodsReview struct {
-	types.Entity
-	GoodsID       types.PrimaryKey    `gorm:"column:GoodsID;index:idxGoodsIDUserID"`
-	UserID        types.PrimaryKey    `gorm:"column:UserID;index:idxGoodsIDUserID"`
+	dao.Entity
+	GoodsID       dao.PrimaryKey      `gorm:"column:GoodsID;index:idxGoodsIDUserID"`
+	UserID        dao.PrimaryKey      `gorm:"column:UserID;index:idxGoodsIDUserID"`
 	Title         string              `gorm:"column:Title"`
 	Content       string              `gorm:"column:Content"`
 	Image         sqltype.StringArray `gorm:"column:Image"`

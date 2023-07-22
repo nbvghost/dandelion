@@ -2,15 +2,15 @@ package user
 
 import (
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/user"
-	"github.com/nbvghost/gpa/types"
 )
 
 type Level struct {
 	UserService user.UserService
 	Get         struct {
-		UserID types.PrimaryKey `uri:"UserID"`
+		UserID dao.PrimaryKey `uri:"UserID"`
 	} `method:"Get"`
 }
 

@@ -22,7 +22,6 @@ import (
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
 
-	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/object"
 )
 
@@ -33,7 +32,7 @@ type AdminService struct {
 	Content       content.ContentService
 }
 
-func (service AdminService) AddItem(OID types.PrimaryKey, item *model.Admin) (err error) {
+func (service AdminService) AddItem(OID dao.PrimaryKey, item *model.Admin) (err error) {
 	item.OID = OID
 	if strings.EqualFold(item.Account, "") {
 		return errors.New("账号不允许为空")
@@ -53,7 +52,7 @@ func (service AdminService) GetItem(context *gweb.Context) (r constrain.IResult,
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	ID := object.ParseUint(context.PathParams["ID"])
 
-	item := dao.GetByPrimaryKey(db.Orm(), &model.Admin{}, types.PrimaryKey(ID))
+	item := dao.GetByPrimaryKey(db.Orm(), &model.Admin{}, dao.PrimaryKey(ID))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", item)}, err
 }
 func (service AdminService) ListItem(context *gweb.Context) (r constrain.IResult, err error) {
@@ -71,7 +70,7 @@ func (service AdminService) DeleteItem(context *gweb.Context) (r constrain.IResu
 	ID := object.ParseUint(context.PathParams["ID"])
 
 	Orm := db.Orm()
-	item := dao.GetByPrimaryKey(Orm, &model.Admin{}, types.PrimaryKey(ID)).(*model.Admin)
+	item := dao.GetByPrimaryKey(Orm, &model.Admin{}, dao.PrimaryKey(ID)).(*model.Admin)
 	if item.IsZero() {
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, gorm.ErrRecordNotFound
 	}
@@ -79,7 +78,7 @@ func (service AdminService) DeleteItem(context *gweb.Context) (r constrain.IResu
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("admin不能删除"), "", nil)}, nil
 	}
 
-	err = dao.DeleteByPrimaryKey(Orm, item, types.PrimaryKey(ID))
+	err = dao.DeleteByPrimaryKey(Orm, item, dao.PrimaryKey(ID))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}, err
 }
 func (service AdminService) ChangeAuthority(context *gweb.Context) (r constrain.IResult, err error) {
@@ -92,7 +91,7 @@ func (service AdminService) ChangeAuthority(context *gweb.Context) (r constrain.
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, err
 	}
 
-	_admin := dao.GetByPrimaryKey(Orm, &model.Admin{}, types.PrimaryKey(ID)).(*model.Admin)
+	_admin := dao.GetByPrimaryKey(Orm, &model.Admin{}, dao.PrimaryKey(ID)).(*model.Admin)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +104,7 @@ func (service AdminService) ChangeAuthority(context *gweb.Context) (r constrain.
 		}
 	}
 
-	err = dao.UpdateByPrimaryKey(Orm, &model.Admin{}, types.PrimaryKey(ID), &model.Admin{Authority: item.Authority})
+	err = dao.UpdateByPrimaryKey(Orm, &model.Admin{}, dao.PrimaryKey(ID), &model.Admin{Authority: item.Authority})
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
 }
 
@@ -120,7 +119,7 @@ func (service AdminService) ChangeAuthority(context *gweb.Context) (r constrain.
 	}
 
 	var _admin model.Admin
-	err = service.Get(Orm, types.PrimaryKey(ID), &_admin)
+	err = service.Get(Orm, dao.PrimaryKey(ID), &_admin)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +134,7 @@ func (service AdminService) ChangeAuthority(context *gweb.Context) (r constrain.
 
 	item.PassWord = encryption.Md5ByString(item.PassWord)
 
-	err = service.ChangeModel(Orm, types.PrimaryKey(ID), item)
+	err = service.ChangeModel(Orm, dao.PrimaryKey(ID), item)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
 }*/
 
@@ -292,7 +291,7 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 	}
 	return admin, err
 }
-func (service AdminService) GetAdmin(ID types.PrimaryKey) *model.Admin {
+func (service AdminService) GetAdmin(ID dao.PrimaryKey) *model.Admin {
 	Orm := db.Orm()
 	admin := &model.Admin{}
 	err := Orm.Where(`"ID"=?`, ID).First(admin).Error //SelectOne(user, "select * from User where Email=?", Email)
@@ -301,7 +300,7 @@ func (service AdminService) GetAdmin(ID types.PrimaryKey) *model.Admin {
 	}
 	return admin
 }
-func (service AdminService) FindAdminByID(Orm *gorm.DB, ID types.PrimaryKey) model.Admin {
+func (service AdminService) FindAdminByID(Orm *gorm.DB, ID dao.PrimaryKey) model.Admin {
 	manager := model.Admin{}
 	Orm.Where(map[string]interface{}{"ID": ID}).First(&manager) //SelectOne(user, "select * from User where Email=?", Email)
 	return manager
@@ -369,7 +368,7 @@ func (service AdminService) FindAdminByAccount(Orm *gorm.DB, Account string) *mo
 
 	return &result.JsonResult{Data: result.ActionResult{Code: result.Fail, Message: "", Data: nil}}, nil
 }*/
-/*func (service AdminService) ChangeAdmin(Account, Password string, ID types.PrimaryKey) error {
+/*func (service AdminService) ChangeAdmin(Account, Password string, ID dao.PrimaryKey) error {
 	Orm := singleton.Orm()
 	return service.ChangeModel(Orm, ID, model.Admin{Account: Account, PassWord: encryption.Md5ByString(Password)})
 }

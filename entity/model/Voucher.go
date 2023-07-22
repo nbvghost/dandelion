@@ -6,18 +6,18 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
-//优惠券
+// 优惠券
 type Voucher struct {
-	types.Entity
-	OID       types.PrimaryKey `gorm:"column:OID"`
-	Name      string           `gorm:"column:Name"`
-	Amount    uint             `gorm:"column:Amount"`
-	Image     string           `gorm:"column:Image"`
-	UseDay    int              `gorm:"column:UseDay"`
-	Introduce string           `gorm:"column:Introduce"`
+	dao.Entity
+	OID       dao.PrimaryKey `gorm:"column:OID"`
+	Name      string         `gorm:"column:Name"`
+	Amount    uint           `gorm:"column:Amount"`
+	Image     string         `gorm:"column:Image"`
+	UseDay    int            `gorm:"column:UseDay"`
+	Introduce string         `gorm:"column:Introduce"`
 }
 
 func (u *Voucher) BeforeCreate(scope *gorm.DB) (err error) {

@@ -11,8 +11,8 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/library/contexext"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/util"
-	"github.com/nbvghost/gpa/types"
 )
 
 type Upload struct {
@@ -112,7 +112,7 @@ func UploadFile(context constrain.IContext, file []byte, path string, fileType s
 	}
 	return &upload, nil
 }
-func UploadAvatar(context constrain.IContext, userID types.PrimaryKey, file []byte) (*Upload, error) {
+func UploadAvatar(context constrain.IContext, userID dao.PrimaryKey, file []byte) (*Upload, error) {
 
 	return UploadFile(context, file, "miniapp/avatar", "", true, fmt.Sprintf("%d", userID))
 

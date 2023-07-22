@@ -8,14 +8,13 @@ import (
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/gpa/types"
 )
 
 type OrganizationService struct {
 	model.BaseDao
 }
 
-func (service OrganizationService) AddOrganizationBlockAmount(Orm *gorm.DB, OID types.PrimaryKey, Menoy int64) error {
+func (service OrganizationService) AddOrganizationBlockAmount(Orm *gorm.DB, OID dao.PrimaryKey, Menoy int64) error {
 
 	org := dao.GetByPrimaryKey(Orm, &model.Organization{}, OID).(*model.Organization)
 	if org.IsZero() {
@@ -47,18 +46,18 @@ func (service OrganizationService) FindByDomain(Orm *gorm.DB, Domain string) *mo
 	Orm.Where(map[string]interface{}{"ID": dns.OID}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)
 	return manager
 }
-func (service OrganizationService) GetOrganization(ID types.PrimaryKey) types.IEntity {
+func (service OrganizationService) GetOrganization(ID dao.PrimaryKey) dao.IEntity {
 	Orm := db.Orm()
 	//target := model.Organization{}
 	//service.Get(Orm, ID, &target)
 	return dao.GetByPrimaryKey(Orm, &model.Organization{}, ID)
 }
 
-func (service OrganizationService) DelCompany(ID types.PrimaryKey) error {
+func (service OrganizationService) DelCompany(ID dao.PrimaryKey) error {
 	Orm := db.Orm()
 	return dao.DeleteByPrimaryKey(Orm, &model.Organization{}, ID)
 }
-func (service OrganizationService) ChangeOrganization(ID types.PrimaryKey, shop *model.Organization) error {
+func (service OrganizationService) ChangeOrganization(ID dao.PrimaryKey, shop *model.Organization) error {
 	Orm := db.Orm()
 	//return Orm.Save(article).Error
 	//err := db.Orm.Save(shop).Error
@@ -80,7 +79,7 @@ func (service OrganizationService) ChangeOrganization(ID types.PrimaryKey, shop 
 
 }
 
-/*func (service OrganizationService) FindByAdminID(Orm *gorm.DB, adminID types.PrimaryKey) *model.Organization {
+/*func (service OrganizationService) FindByAdminID(Orm *gorm.DB, adminID dao.PrimaryKey) *model.Organization {
 	manager := &model.Organization{}
 	//err := Orm.Where("Domain=?", Domain).First(manager).Error //SelectOne(user, "select * from User where Email=?", Email)
 	Orm.Where(map[string]interface{}{"AdminID": adminID}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)

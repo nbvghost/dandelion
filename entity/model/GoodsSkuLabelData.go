@@ -1,15 +1,16 @@
 package model
 
 import (
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type GoodsSkuLabelData struct {
-	types.Entity
-	GoodsSkuLabelID types.PrimaryKey `gorm:"column:GoodsSkuLabelID;uniqueIndex:UIGoodsSkuLabelIDLabel"`
-	GoodsID         types.PrimaryKey `gorm:"column:GoodsID"`
-	Label           string           `gorm:"column:Label;uniqueIndex:UIGoodsSkuLabelIDLabel"`
-	Image           string           `gorm:"column:Image"`
+	dao.Entity
+	OID             dao.PrimaryKey `gorm:"column:OID;index"`
+	GoodsSkuLabelID dao.PrimaryKey `gorm:"column:GoodsSkuLabelID;uniqueIndex:UIGoodsSkuLabelIDLabel"`
+	GoodsID         dao.PrimaryKey `gorm:"column:GoodsID"`
+	Label           string         `gorm:"column:Label;uniqueIndex:UIGoodsSkuLabelIDLabel"`
+	Image           string         `gorm:"column:Image"`
 }
 
 func (GoodsSkuLabelData) TableName() string {

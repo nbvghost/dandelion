@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/nbvghost/dandelion/entity/sqltype"
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type OrganizationStatus int
@@ -15,8 +15,8 @@ const (
 )
 
 type Organization struct {
-	types.Entity
-	//AdminID      types.PrimaryKey    `gorm:"column:AdminID"`
+	dao.Entity
+	//AdminID      dao.PrimaryKey    `gorm:"column:AdminID"`
 	//Domain       string              `gorm:"column:Domain;not null;unique"`         //三级域名
 	Name         string              `gorm:"column:Name;not null"`                  //店名
 	ShortName    string              `gorm:"column:ShortName"`                      //店名

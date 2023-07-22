@@ -7,24 +7,24 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
-//限时抢购
+// 限时抢购
 type TimeSell struct {
-	types.Entity
-	OID       types.PrimaryKey `gorm:"column:OID"`
-	Hash      string           `gorm:"column:Hash;unique"` //同一个Hash表示同一个活动
-	BuyNum    int              `gorm:"column:BuyNum"`
-	Enable    bool             `gorm:"column:Enable"`
-	DayNum    int              `gorm:"column:DayNum"`
-	Discount  int              `gorm:"column:Discount"`
-	TotalNum  int              `gorm:"column:TotalNum"`
-	StartTime time.Time        `gorm:"column:StartTime"`
-	StartH    int              `gorm:"column:StartH"`
-	StartM    int              `gorm:"column:StartM"`
-	EndH      int              `gorm:"column:EndH"`
-	EndM      int              `gorm:"column:EndM"`
+	dao.Entity
+	OID       dao.PrimaryKey `gorm:"column:OID"`
+	Hash      string         `gorm:"column:Hash;unique"` //同一个Hash表示同一个活动
+	BuyNum    int            `gorm:"column:BuyNum"`
+	Enable    bool           `gorm:"column:Enable"`
+	DayNum    int            `gorm:"column:DayNum"`
+	Discount  int            `gorm:"column:Discount"`
+	TotalNum  int            `gorm:"column:TotalNum"`
+	StartTime time.Time      `gorm:"column:StartTime"`
+	StartH    int            `gorm:"column:StartH"`
+	StartM    int            `gorm:"column:StartM"`
+	EndH      int            `gorm:"column:EndH"`
+	EndM      int            `gorm:"column:EndM"`
 	//GoodsID   uint    `gorm:"column:GoodsID"`
 }
 
@@ -41,7 +41,7 @@ func (ts *TimeSell) BeforeCreate(scope *gorm.DB) (err error) {
 	return nil
 }
 
-//是满足所有的限时抢购的条件
+// 是满足所有的限时抢购的条件
 func (ts *TimeSell) IsEnable() bool {
 	if ts.ID == 0 {
 		return false

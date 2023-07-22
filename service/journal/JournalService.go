@@ -11,8 +11,6 @@ import (
 	"github.com/nbvghost/dandelion/library/util"
 
 	"gorm.io/gorm"
-
-	"github.com/nbvghost/gpa/types"
 )
 
 type JournalService struct {
@@ -20,7 +18,7 @@ type JournalService struct {
 	//User user.UserService
 }
 
-func (service JournalService) StoreListJournal(StoreID types.PrimaryKey, startDate string, endDate string) []model.StoreJournal {
+func (service JournalService) StoreListJournal(StoreID dao.PrimaryKey, startDate string, endDate string) []model.StoreJournal {
 	Orm := db.Orm()
 	//startDate
 	//endDate
@@ -36,7 +34,7 @@ func (service JournalService) StoreListJournal(StoreID types.PrimaryKey, startDa
 	return StoreJournals
 
 }
-func (service JournalService) AddStoreJournal(DB *gorm.DB, StoreID types.PrimaryKey, Name, Detail string, Type int, Amount int64, TargetID types.PrimaryKey) error {
+func (service JournalService) AddStoreJournal(DB *gorm.DB, StoreID dao.PrimaryKey, Name, Detail string, Type int, Amount int64, TargetID dao.PrimaryKey) error {
 
 	logger := &model.StoreJournal{}
 	logger.Name = Name
@@ -62,7 +60,7 @@ func (service JournalService) AddStoreJournal(DB *gorm.DB, StoreID types.Primary
 	return dao.Create(DB, logger)
 }
 
-func (service JournalService) ListUserJournalLeveBrokerage(UserID types.PrimaryKey, IDs []uint) interface{} {
+func (service JournalService) ListUserJournalLeveBrokerage(UserID dao.PrimaryKey, IDs []uint) interface{} {
 
 	Orm := db.Orm()
 	type Result struct {
@@ -99,7 +97,7 @@ func (service JournalService) ListUserJournalLeveBrokerage(UserID types.PrimaryK
 }
 
 // OrganizationJournal
-func (service JournalService) AddOrganizationJournal(DB *gorm.DB, OID types.PrimaryKey, Name, Detail string, Type int, Amount int64, KV extends.KV) error {
+func (service JournalService) AddOrganizationJournal(DB *gorm.DB, OID dao.PrimaryKey, Name, Detail string, Type int, Amount int64, KV extends.KV) error {
 
 	logger := &model.OrganizationJournal{}
 	logger.Name = Name
@@ -127,7 +125,7 @@ func (service JournalService) AddOrganizationJournal(DB *gorm.DB, OID types.Prim
 	return err
 }
 
-func (service JournalService) AddUserJournal(DB *gorm.DB, UserID types.PrimaryKey, Name, Detail string, Type int, Amount int64, KV extends.KV, FromUserID types.PrimaryKey) error {
+func (service JournalService) AddUserJournal(DB *gorm.DB, UserID dao.PrimaryKey, Name, Detail string, Type int, Amount int64, KV extends.KV, FromUserID dao.PrimaryKey) error {
 
 	logger := &model.UserJournal{}
 	logger.Name = Name
@@ -155,7 +153,7 @@ func (service JournalService) AddUserJournal(DB *gorm.DB, UserID types.PrimaryKe
 
 	return err
 }
-func (service JournalService) AddScoreJournal(DB *gorm.DB, UserID types.PrimaryKey, Name, Detail string, Type int, Score int64, KV extends.KV) error {
+func (service JournalService) AddScoreJournal(DB *gorm.DB, UserID dao.PrimaryKey, Name, Detail string, Type int, Score int64, KV extends.KV) error {
 
 	logger := &model.ScoreJournal{}
 	logger.Name = Name

@@ -1,12 +1,12 @@
 package model
 
 import (
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type LeaveMessage struct {
-	types.Entity
-	OID      types.PrimaryKey       `gorm:"column:OID"`
+	dao.Entity
+	OID      dao.PrimaryKey         `gorm:"column:OID"`
 	Name     string                 `gorm:"column:Name"`
 	Email    string                 `gorm:"column:Email"`
 	Content  string                 `gorm:"column:Content"`

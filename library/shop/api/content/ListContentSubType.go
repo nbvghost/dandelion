@@ -2,16 +2,16 @@ package content
 
 import (
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/content"
-	"github.com/nbvghost/gpa/types"
 )
 
 type ListContentSubType struct {
 	ContentService content.ContentService
 	Get            struct {
-		ContentItemID types.PrimaryKey `form:"ContentItemID"`
-		PID           types.PrimaryKey `form:"PID"`
+		ContentItemID dao.PrimaryKey `form:"ContentItemID"`
+		PID           dao.PrimaryKey `form:"PID"`
 	} `method:"Get"`
 }
 
@@ -29,9 +29,9 @@ func (g *ListContentSubType) Handle(ctx constrain.IContext) (constrain.IResult, 
 	//PID, _ := strconv.ParseUint(context.Request.URL.Query().Get("PID"), 10, 64)
 	//PID := object.ParseUint(context.Request.URL.Query().Get("PID"))
 
-	content := g.ContentService.GetContentItemByID(types.PrimaryKey(g.Get.ContentItemID))
+	content := g.ContentService.GetContentItemByID(dao.PrimaryKey(g.Get.ContentItemID))
 
-	csts := g.ContentService.FindContentSubTypesByContentItemIDAndParentContentSubTypeID(content.ID, types.PrimaryKey(g.Get.PID))
+	csts := g.ContentService.FindContentSubTypesByContentItemIDAndParentContentSubTypeID(content.ID, dao.PrimaryKey(g.Get.PID))
 
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "OK", Data: csts}}, nil
 

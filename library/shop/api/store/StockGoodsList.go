@@ -3,9 +3,9 @@ package store
 import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/company"
-	"github.com/nbvghost/gpa/types"
 )
 
 type StockGoodsList struct {
@@ -13,7 +13,7 @@ type StockGoodsList struct {
 	User         *model.User  `mapping:""`
 	Store        *model.Store `mapping:""`
 	Get          struct {
-		GoodsID types.PrimaryKey `uri:"GoodsID"`
+		GoodsID dao.PrimaryKey `uri:"GoodsID"`
 	} `method:"Get"`
 }
 

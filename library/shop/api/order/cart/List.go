@@ -7,14 +7,13 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/order"
-	"github.com/nbvghost/gpa/types"
 )
 
 type List struct {
 	User          *model.User `mapping:""`
 	OrdersService order.OrdersService
 	Get           struct {
-		AddressID types.PrimaryKey `form:"address-id"`
+		AddressID dao.PrimaryKey `form:"address-id"`
 	} `method:"get"`
 }
 

@@ -11,7 +11,6 @@ import (
 	"github.com/nbvghost/dandelion/library/viewmodel"
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/dandelion/service/order"
-	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool"
 	"github.com/pkg/errors"
 )
@@ -23,7 +22,7 @@ type CreateOrders struct {
 	Post           struct {
 		TotalAmount uint //总金额,跟订单进行匹对
 		//PostType   int
-		AddressID types.PrimaryKey
+		AddressID dao.PrimaryKey
 		List      []viewmodel.GoodsSpecification
 		//Type      string //拼团参数
 		//No        string //拼团参数

@@ -14,7 +14,6 @@ import (
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool/encryption"
 )
 
@@ -22,7 +21,7 @@ type ExpressTemplateService struct {
 	model.BaseDao
 }
 
-func (b ExpressTemplateService) GetExpressInfo(OrdersID types.PrimaryKey, LogisticCode, ShipperName string) map[string]interface{} {
+func (b ExpressTemplateService) GetExpressInfo(OrdersID dao.PrimaryKey, LogisticCode, ShipperName string) map[string]interface{} {
 
 	shipperMap := make(map[string]string)
 	shipperMap["中国邮政"] = "YZPY"
@@ -80,7 +79,7 @@ func (b ExpressTemplateService) GetExpressTemplateByName(Name string) model.Expr
 	Orm.Model(&model.ExpressTemplate{}).Where("Name=?", Name).Find(&list)
 	return list
 }
-func (b ExpressTemplateService) GetExpressTemplateByOID(OID types.PrimaryKey) model.ExpressTemplate {
+func (b ExpressTemplateService) GetExpressTemplateByOID(OID dao.PrimaryKey) model.ExpressTemplate {
 	Orm := db.Orm()
 	var list model.ExpressTemplate
 	Orm.Model(&model.ExpressTemplate{}).Where("OID=?", OID).Find(&list)

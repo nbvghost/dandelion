@@ -1,14 +1,16 @@
 package extends
 
-import "github.com/nbvghost/gpa/types"
+import (
+	"github.com/nbvghost/dandelion/library/dao"
+)
 
 type GoodsAttribute struct {
-	ID    types.PrimaryKey
+	ID    dao.PrimaryKey
 	Name  string
 	Value string
 }
 type GoodsAttributes struct {
-	GroupID   types.PrimaryKey
+	GroupID   dao.PrimaryKey
 	GroupName string
 	Attrs     []GoodsAttribute
 }

@@ -7,23 +7,22 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/activity"
-	"github.com/nbvghost/gpa/types"
 )
 
 type GoodsInfo struct {
 	CardItemService activity.CardItemService
 	User            *model.User `mapping:""`
 	Get             struct {
-		GoodsID  types.PrimaryKey `form:"goods-id"`
-		Index    int              `form:"index"`
-		PageSize int              `form:"page-size"`
+		GoodsID  dao.PrimaryKey `form:"goods-id"`
+		Index    int            `form:"index"`
+		PageSize int            `form:"page-size"`
 	} `method:"get"`
 	Post struct {
 		Rating   uint
 		NickName string
 		Title    string
 		Content  string
-		GoodsID  types.PrimaryKey
+		GoodsID  dao.PrimaryKey
 	} `method:"Post"`
 }
 

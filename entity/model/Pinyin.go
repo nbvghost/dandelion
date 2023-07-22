@@ -1,11 +1,11 @@
 package model
 
 import (
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type Pinyin struct {
-	types.Entity
+	dao.Entity
 	Word   string `gorm:"column:Word;not null;uniqueIndex:Pinyin_Idx_Unique_Word"`
 	Pinyin string `gorm:"column:Pinyin"`
 	Tone   int    `gorm:"column:Tone;not null"`

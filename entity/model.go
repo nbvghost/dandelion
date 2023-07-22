@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 var (
@@ -72,20 +72,20 @@ var (
 	Area                 = Register((*model.Area)(nil))
 )
 
-func GetModel(name string) (types.IEntity, error) {
+func GetModel(name string) (dao.IEntity, error) {
 	return defaultModel.GetModel(name)
 }
-func Register(e types.IEntity) types.IEntity {
+func Register(e dao.IEntity) dao.IEntity {
 	return defaultModel.Register(e)
 }
 
 var defaultModel = New()
 
 type r struct {
-	models map[string]types.IEntity
+	models map[string]dao.IEntity
 }
 
-func (m *r) Register(e types.IEntity) types.IEntity {
+func (m *r) Register(e dao.IEntity) dao.IEntity {
 	name := reflect.TypeOf(e).Elem().Name()
 	if _, ok := m.models[name]; ok {
 		panic(fmt.Errorf("model %s 已经注册", e.TableName()))
@@ -94,13 +94,13 @@ func (m *r) Register(e types.IEntity) types.IEntity {
 		return e
 	}
 }
-func (m *r) GetModel(name string) (types.IEntity, error) {
+func (m *r) GetModel(name string) (dao.IEntity, error) {
 	if k, ok := m.models[name]; ok {
-		return reflect.New(reflect.ValueOf(k).Elem().Type()).Interface().(types.IEntity), nil
+		return reflect.New(reflect.ValueOf(k).Elem().Type()).Interface().(dao.IEntity), nil
 	} else {
 		return nil, fmt.Errorf("model %s 不存在", name)
 	}
 }
 func New() *r {
-	return &r{models: map[string]types.IEntity{}}
+	return &r{models: map[string]dao.IEntity{}}
 }

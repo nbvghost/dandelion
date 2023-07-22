@@ -21,8 +21,6 @@ import (
 	"github.com/nbvghost/dandelion/service/user"
 
 	"gorm.io/gorm"
-
-	"github.com/nbvghost/gpa/types"
 )
 
 type VerificationService struct {
@@ -207,7 +205,7 @@ func (service VerificationService) GetVerificationByVerificationNo(VerificationN
 	return item
 }
 
-func (service VerificationService) VerificationSelf(StoreID, StoreStockID types.PrimaryKey, Quantity uint) *result.ActionResult {
+func (service VerificationService) VerificationSelf(StoreID, StoreStockID dao.PrimaryKey, Quantity uint) *result.ActionResult {
 	Orm := db.Orm()
 	//var ss model.StoreStock
 	ss := dao.GetByPrimaryKey(Orm, entity.StoreStock, StoreStockID).(*model.StoreStock)

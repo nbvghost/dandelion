@@ -3,10 +3,10 @@ package cart
 import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/viewmodel"
 	"github.com/nbvghost/dandelion/service/order"
-	"github.com/nbvghost/gpa/types"
 )
 
 type Add struct {
@@ -27,7 +27,7 @@ func (m *Add) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	//SpecificationID := object.ParseUint(context.Request.FormValue("SpecificationID"))
 	//Quantity := object.ParseUint(context.Request.FormValue("Quantity"))
 
-	err := m.OrdersService.AddCartOrders(m.User.ID, types.PrimaryKey(m.Post.GoodsID), types.PrimaryKey(m.Post.SpecificationID), uint(m.Post.Quantity))
+	err := m.OrdersService.AddCartOrders(m.User.ID, dao.PrimaryKey(m.Post.GoodsID), dao.PrimaryKey(m.Post.SpecificationID), uint(m.Post.Quantity))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "已添加到购物车", nil)}, nil
 }
 

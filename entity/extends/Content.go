@@ -2,11 +2,11 @@ package extends
 
 import (
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type Menus struct {
-	ID           types.PrimaryKey
+	ID           dao.PrimaryKey
 	Uri          string
 	Name         string
 	TemplateName string

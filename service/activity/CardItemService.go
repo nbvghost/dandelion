@@ -10,8 +10,6 @@ import (
 	"github.com/nbvghost/dandelion/library/util"
 
 	"gorm.io/gorm"
-
-	"github.com/nbvghost/gpa/types"
 )
 
 type CardItemService struct {
@@ -21,7 +19,7 @@ type CardItemService struct {
 	//Orders  order.OrdersService
 }
 
-func (service CardItemService) ListNewCount(UserID types.PrimaryKey) (TotalRecords int64) {
+func (service CardItemService) ListNewCount(UserID dao.PrimaryKey) (TotalRecords int64) {
 
 	Orm := db.Orm()
 	var orders []model.CardItem
@@ -38,7 +36,7 @@ func (service CardItemService) ListNewCount(UserID types.PrimaryKey) (TotalRecor
 	return
 
 }
-func (service CardItemService) CancelOrdersGoodsCardItem(DB *gorm.DB, UserID types.PrimaryKey, ogs []types.IEntity) error {
+func (service CardItemService) CancelOrdersGoodsCardItem(DB *gorm.DB, UserID dao.PrimaryKey, ogs []dao.IEntity) error {
 
 	for i := range ogs {
 		value := ogs[i].(*model.OrdersGoods)
@@ -53,7 +51,7 @@ func (service CardItemService) CancelOrdersGoodsCardItem(DB *gorm.DB, UserID typ
 	}
 	return nil
 }
-func (service CardItemService) FindByUserID(UserID types.PrimaryKey) []model.CardItem {
+func (service CardItemService) FindByUserID(UserID dao.PrimaryKey) []model.CardItem {
 	var cards []model.CardItem
 	//service.FindWhere(singleton.Orm(), &cards, model.CardItem{UserID: UserID})
 	service.FindOrderWhere(db.Orm(), `"UseQuantity" asc,"CreatedAt" desc`, &cards, model.CardItem{UserID: UserID})
@@ -61,7 +59,7 @@ func (service CardItemService) FindByUserID(UserID types.PrimaryKey) []model.Car
 }
 
 // 添加Voucher
-func (service CardItemService) AddVoucherCardItem(DB *gorm.DB, OrderNo string, UserID, VoucherID types.PrimaryKey) error {
+func (service CardItemService) AddVoucherCardItem(DB *gorm.DB, OrderNo string, UserID, VoucherID dao.PrimaryKey) error {
 
 	voucher := dao.GetByPrimaryKey(DB, &model.Voucher{}, VoucherID).(*model.Voucher)
 
@@ -82,7 +80,7 @@ func (service CardItemService) AddVoucherCardItem(DB *gorm.DB, OrderNo string, U
 }
 
 // 添加Voucher
-func (service CardItemService) AddScoreGoodsItem(DB *gorm.DB, UserID, ScoreGoodsID types.PrimaryKey) error {
+func (service CardItemService) AddScoreGoodsItem(DB *gorm.DB, UserID, ScoreGoodsID dao.PrimaryKey) error {
 
 	//scoreGoodsService := ScoreGoodsService{}
 

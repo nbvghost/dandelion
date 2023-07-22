@@ -5,10 +5,10 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/contexext"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
-	"github.com/nbvghost/gpa/types"
 	"gorm.io/gorm"
 	"time"
 )
@@ -16,7 +16,7 @@ import (
 type Like struct {
 	Organization *model.Organization `mapping:""`
 	Post         struct {
-		ID types.PrimaryKey `form:"ID"`
+		ID dao.PrimaryKey `form:"ID"`
 	} `method:"Post"`
 }
 

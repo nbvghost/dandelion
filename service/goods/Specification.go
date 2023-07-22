@@ -6,7 +6,6 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
-	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/gweb"
 	"github.com/nbvghost/tool/object"
 )
@@ -14,11 +13,11 @@ import (
 type SpecificationService struct {
 }
 
-func (service SpecificationService) GetSpecification(ID types.PrimaryKey) *model.Specification {
+func (service SpecificationService) GetSpecification(ID dao.PrimaryKey) *model.Specification {
 	Orm := db.Orm()
 	return dao.GetByPrimaryKey(Orm, &model.Specification{}, ID).(*model.Specification)
 }
-func (service SpecificationService) DeleteSpecification(ID types.PrimaryKey) error {
+func (service SpecificationService) DeleteSpecification(ID dao.PrimaryKey) error {
 	Orm := db.Orm()
 	err := dao.DeleteByPrimaryKey(Orm, &model.Specification{}, ID)
 	return err
@@ -32,6 +31,6 @@ func (service SpecificationService) ChangeSpecification(context *gweb.Context) (
 	if err != nil {
 		return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, err
 	}
-	err = dao.UpdateByPrimaryKey(Orm, &model.Specification{}, types.PrimaryKey(GoodsID), item)
+	err = dao.UpdateByPrimaryKey(Orm, &model.Specification{}, dao.PrimaryKey(GoodsID), item)
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
 }

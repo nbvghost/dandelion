@@ -13,8 +13,6 @@ import (
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/dandelion/service/goods"
-
-	"github.com/nbvghost/gpa/types"
 )
 
 type ShoppingCartService struct {
@@ -24,7 +22,7 @@ type ShoppingCartService struct {
 	Organization company.OrganizationService
 }
 
-func (service ShoppingCartService) GetGSIDs(UserID types.PrimaryKey, GSIDs []string) []model.ShoppingCart {
+func (service ShoppingCartService) GetGSIDs(UserID dao.PrimaryKey, GSIDs []string) []model.ShoppingCart {
 	Orm := db.Orm()
 	var scs []model.ShoppingCart
 	//Orm := Orm()
@@ -33,13 +31,13 @@ func (service ShoppingCartService) GetGSIDs(UserID types.PrimaryKey, GSIDs []str
 	log.Println(err)
 	return scs
 }
-func (service ShoppingCartService) GetByGoodsIDAndSpecificationID(db *gorm.DB, UserID types.PrimaryKey, GoodsID, SpecificationID types.PrimaryKey) model.ShoppingCart {
+func (service ShoppingCartService) GetByGoodsIDAndSpecificationID(db *gorm.DB, UserID dao.PrimaryKey, GoodsID, SpecificationID dao.PrimaryKey) model.ShoppingCart {
 	var sc model.ShoppingCart
 	err := db.Where(`"UserID"=? and "GoodsID"=? and "SpecificationID"=?`, UserID, GoodsID, SpecificationID).First(&sc).Error
 	log.Println(err)
 	return sc
 }
-func (service ShoppingCartService) UpdateByUserIDAndID(db *gorm.DB, UserID types.PrimaryKey, GoodsID, SpecificationID types.PrimaryKey, Quantity uint) error {
+func (service ShoppingCartService) UpdateByUserIDAndID(db *gorm.DB, UserID dao.PrimaryKey, GoodsID, SpecificationID dao.PrimaryKey, Quantity uint) error {
 
 	_sc := service.GetByGoodsIDAndSpecificationID(db, UserID, GoodsID, SpecificationID)
 	//err := service.Get(Orm, ID, &_sc)
@@ -65,19 +63,19 @@ func (service ShoppingCartService) UpdateByUserIDAndID(db *gorm.DB, UserID types
 	return db.Model(&model.ShoppingCart{}).Where(`"GoodsID"=?`, GoodsID).Where(`"SpecificationID"=?`, SpecificationID).Where(`"UserID"=?`, UserID).Updates(_sc).Error
 }
 
-func (service ShoppingCartService) DeleteByUserIDAndGoodsIDAndSpecificationID(db *gorm.DB, UserID, GoodsID, SpecificationID types.PrimaryKey) error {
+func (service ShoppingCartService) DeleteByUserIDAndGoodsIDAndSpecificationID(db *gorm.DB, UserID, GoodsID, SpecificationID dao.PrimaryKey) error {
 	return db.Where(&model.ShoppingCart{UserID: UserID, GoodsID: GoodsID, SpecificationID: SpecificationID}).Delete(&model.ShoppingCart{}).Error
 }
-func (service ShoppingCartService) DeleteListByIDs(db *gorm.DB, UserID types.PrimaryKey, GoodsID, SpecificationID types.PrimaryKey) error {
+func (service ShoppingCartService) DeleteListByIDs(db *gorm.DB, UserID dao.PrimaryKey, GoodsID, SpecificationID dao.PrimaryKey) error {
 	return db.Where(&model.ShoppingCart{UserID: UserID, GoodsID: GoodsID, SpecificationID: SpecificationID}).Delete(&model.ShoppingCart{}).Error
 }
-func (service ShoppingCartService) FindShoppingCartByUserID(UserID types.PrimaryKey) []types.IEntity {
+func (service ShoppingCartService) FindShoppingCartByUserID(UserID dao.PrimaryKey) []dao.IEntity {
 	Orm := db.Orm()
 	//var list []model.ShoppingCart
 	list := dao.Find(Orm, entity.ShoppingCart).Where(model.ShoppingCart{UserID: UserID}).List() //service.FindWhere(Orm, &list, model.ShoppingCart{UserID: UserID})
 	return list
 }
-func (service ShoppingCartService) FindShoppingCartListCount(UserID types.PrimaryKey) (uint, error) {
+func (service ShoppingCartService) FindShoppingCartListCount(UserID dao.PrimaryKey) (uint, error) {
 	list := service.FindShoppingCartByUserID(UserID)
 	return uint(len(list)), nil
 }

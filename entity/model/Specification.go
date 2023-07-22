@@ -2,13 +2,14 @@ package model
 
 import (
 	"github.com/nbvghost/dandelion/entity/sqltype"
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 // Specification 商品规格
 type Specification struct {
-	types.Entity
-	GoodsID     types.PrimaryKey        `gorm:"column:GoodsID"`              //
+	dao.Entity
+	OID         dao.PrimaryKey          `gorm:"column:OID;index"`
+	GoodsID     dao.PrimaryKey          `gorm:"column:GoodsID"`              //
 	Label       string                  `gorm:"column:Label"`                //
 	LabelIndex  sqltype.PrimaryKeyArray `gorm:"column:LabelIndex;type:JSON"` //
 	Num         uint                    `gorm:"column:Num"`                  //件

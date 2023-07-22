@@ -8,10 +8,10 @@ import (
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/contexext"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/order"
 	"github.com/nbvghost/dandelion/service/wechat"
-	"github.com/nbvghost/gpa/types"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/downloader"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/notify"
@@ -22,10 +22,10 @@ type Notify struct {
 	WxService     wechat.WxService
 	OrdersService order.OrdersService
 	Get           struct {
-		OID types.PrimaryKey `uri:"OID"`
+		OID dao.PrimaryKey `uri:"OID"`
 	} `method:"Get"`
 	Post struct {
-		OID types.PrimaryKey `uri:"OID"`
+		OID dao.PrimaryKey `uri:"OID"`
 	} `method:"Post"`
 }
 
@@ -36,7 +36,7 @@ func (m *Notify) HandlePost(context constrain.IContext) (r constrain.IResult, er
 	return m.handle(context, m.Post.OID)
 }
 
-func (m *Notify) handle(context constrain.IContext, OID types.PrimaryKey) (r constrain.IResult, err error) {
+func (m *Notify) handle(context constrain.IContext, OID dao.PrimaryKey) (r constrain.IResult, err error) {
 	wxConfig := m.WxService.MiniProgramByOID(db.Orm(), OID)
 
 	certificateVisitor := downloader.MgrInstance().GetCertificateVisitor(wxConfig.MchID)

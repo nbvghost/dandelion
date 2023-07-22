@@ -8,7 +8,6 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/user"
-	"github.com/nbvghost/gpa/types"
 	"github.com/pkg/errors"
 	"io"
 	"mime/multipart"
@@ -18,7 +17,7 @@ type UploadAvatar struct {
 	UserService user.UserService
 	Post        struct {
 		File   *multipart.FileHeader `form:"file"`
-		UserID types.PrimaryKey      `form:"uid"`
+		UserID dao.PrimaryKey        `form:"uid"`
 	} `method:"Post"`
 }
 

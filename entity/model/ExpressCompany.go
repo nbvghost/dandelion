@@ -1,11 +1,11 @@
 package model
 
 import (
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type ExpressCompany struct {
-	types.Entity
+	dao.Entity
 	Key  string `gorm:"column:Key;unique"`
 	Name string `gorm:"column:Name"`
 }

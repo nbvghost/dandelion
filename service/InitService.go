@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"github.com/nbvghost/dandelion/domain/cache"
 	"github.com/nbvghost/dandelion/library/db"
 	"log"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/environments"
 	"github.com/nbvghost/dandelion/library/util"
-	"github.com/nbvghost/dandelion/service/cache"
 	"github.com/nbvghost/tool/encryption"
 )
 
@@ -22,7 +22,7 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 
 	cache.Init()
 
-	if false {
+	if true {
 		return nil
 	}
 

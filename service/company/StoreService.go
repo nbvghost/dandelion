@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type StoreService struct {
@@ -45,14 +45,14 @@ func (service StoreService) LocationList(Latitude, Longitude float64) []map[stri
 	return list
 }
 
-func (service StoreService) GetByGoodsIDAndSpecificationIDAndStoreID(GoodsID, SpecificationID, StoreID types.PrimaryKey) *model.StoreStock {
+func (service StoreService) GetByGoodsIDAndSpecificationIDAndStoreID(GoodsID, SpecificationID, StoreID dao.PrimaryKey) *model.StoreStock {
 	Orm := db.Orm()
 	var ss model.StoreStock
 	Orm.Where(&model.StoreStock{GoodsID: GoodsID, SpecificationID: SpecificationID, StoreID: StoreID}).First(&ss)
 	return &ss
 }
 
-func (service StoreService) ListStoreSpecifications(StoreID, GoodsID types.PrimaryKey) interface{} {
+func (service StoreService) ListStoreSpecifications(StoreID, GoodsID dao.PrimaryKey) interface{} {
 
 	Orm := db.Orm()
 	//SELECT g.ID as ID,g.Title as Title,COUNT(ss.ID) as Total,SUM(ss.Stock) as Stock FROM Goods as g,StoreStock as ss where ss.StoreID=2009 and g.ID=ss.GoodsID  group by ss.GoodsID;
@@ -71,7 +71,7 @@ func (service StoreService) ListStoreSpecifications(StoreID, GoodsID types.Prima
 
 	return result
 }
-func (service StoreService) ListStoreStock(StoreID types.PrimaryKey) interface{} {
+func (service StoreService) ListStoreStock(StoreID dao.PrimaryKey) interface{} {
 
 	Orm := db.Orm()
 	//SELECT g.ID as ID,g.Title as Title,COUNT(ss.ID) as Total,SUM(ss.Stock) as Stock FROM Goods as g,StoreStock as ss where ss.StoreID=2009 and g.ID=ss.GoodsID  group by ss.GoodsID;

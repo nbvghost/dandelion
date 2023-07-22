@@ -6,7 +6,7 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type ConfigurationKey string
@@ -130,8 +130,8 @@ const (
 )
 
 type Configuration struct {
-	types.Entity
-	OID types.PrimaryKey `gorm:"column:OID"`
+	dao.Entity
+	OID dao.PrimaryKey   `gorm:"column:OID"`
 	K   ConfigurationKey `gorm:"column:K"`
 	V   string           `gorm:"column:V"`
 }

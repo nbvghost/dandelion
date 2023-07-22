@@ -3,7 +3,7 @@ package module
 import (
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 	"reflect"
 )
 
@@ -13,7 +13,7 @@ type SiteData[T ListType] struct {
 	PageMenus       []extends.Menus
 	CurrentMenuData CurrentMenuData
 	ContentItem     model.ContentItem
-	ContentItemMap  map[types.PrimaryKey]model.ContentItem
+	ContentItemMap  map[dao.PrimaryKey]model.ContentItem
 	ContentSubType  model.ContentSubType
 	Pagination      Pagination[T]
 	Tags            []extends.Tag
@@ -23,7 +23,7 @@ type SiteData[T ListType] struct {
 	ContentConfig   model.ContentConfig
 	Organization    model.Organization
 	Item            T
-	TypeNameMap     map[types.PrimaryKey]extends.Menus
+	TypeNameMap     map[dao.PrimaryKey]extends.Menus
 }
 
 func (m *SiteData[T]) ListFirst() T {

@@ -9,7 +9,6 @@ import (
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/wechat"
-	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/gweb"
 
 	"io/ioutil"
@@ -22,9 +21,9 @@ type MiniprogramQRcode struct {
 	WxService             wechat.WxService
 	//WechatConfig          *model.WechatConfig `mapping:""`
 	Get struct {
-		Page      string           `form:"Page"`
-		UserID    types.PrimaryKey `form:"UserID"`
-		ProductID types.PrimaryKey `form:"ProductID"`
+		Page      string         `form:"Page"`
+		UserID    dao.PrimaryKey `form:"UserID"`
+		ProductID dao.PrimaryKey `form:"ProductID"`
 	} `method:"Get"`
 }
 

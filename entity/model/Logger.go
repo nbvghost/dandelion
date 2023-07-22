@@ -6,11 +6,11 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type Logger struct {
-	types.Entity
+	dao.Entity
 	OID   uint   `gorm:"column:OID"`
 	Key   int    `gorm:"column:Key"`
 	Title string `gorm:"column:Title"`

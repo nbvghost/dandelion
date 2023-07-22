@@ -1,9 +1,9 @@
 package model
 
-import "github.com/nbvghost/gpa/types"
+import "github.com/nbvghost/dandelion/library/dao"
 
 type PushData struct {
-	types.Entity
+	dao.Entity
 	Content string `gorm:"column:Content;type:json"`
 }
 

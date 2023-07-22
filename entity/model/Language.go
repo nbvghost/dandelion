@@ -1,11 +1,11 @@
 package model
 
 import (
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type Language struct {
-	types.Entity
+	dao.Entity
 	Name        string `gorm:"column:Name"` //语系
 	ChineseName string `gorm:"column:ChineseName"`
 	ISOName     string `gorm:"column:ISOName"`

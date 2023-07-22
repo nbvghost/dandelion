@@ -9,17 +9,22 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
+
+type GoodsAttribute struct {
+	Name  string
+	Value string
+}
 
 // 商品
 type Goods struct {
-	types.Entity
-	OID               types.PrimaryKey    `gorm:"column:OID;index"`               //
+	dao.Entity
+	OID               dao.PrimaryKey      `gorm:"column:OID;index"`               //
 	Uri               string              `gorm:"column:Uri"`                     //
 	Title             string              `gorm:"column:Title"`                   //
-	GoodsTypeID       types.PrimaryKey    `gorm:"column:GoodsTypeID"`             //
-	GoodsTypeChildID  types.PrimaryKey    `gorm:"column:GoodsTypeChildID"`        //
+	GoodsTypeID       dao.PrimaryKey      `gorm:"column:GoodsTypeID"`             //
+	GoodsTypeChildID  dao.PrimaryKey      `gorm:"column:GoodsTypeChildID"`        //
 	Price             uint                `gorm:"column:Price"`                   //
 	Stock             uint                `gorm:"column:Stock"`                   //
 	Hide              uint                `gorm:"column:Hide"`                    //
@@ -28,8 +33,8 @@ type Goods struct {
 	Summary           string              `gorm:"column:Summary;type:text"`       //
 	Introduce         string              `gorm:"column:Introduce;type:text"`     //
 	Pictures          sqltype.StringArray `gorm:"column:Pictures;type:JSON"`      //json array
-	Params            string              `gorm:"column:Params;type:text;"`       //json array
-	ExpressTemplateID types.PrimaryKey    `gorm:"column:ExpressTemplateID"`       //
+	Params            string              `gorm:"column:Params"`                  //json array
+	ExpressTemplateID dao.PrimaryKey      `gorm:"column:ExpressTemplateID"`       //
 	CountSale         uint                `gorm:"column:CountSale"`               //销售量
 	CountView         uint                `gorm:"column:CountView"`               //查看数量
 	OrderMinNum       int                 `gorm:"column:OrderMinNum"`             //最小订购数量
@@ -63,12 +68,12 @@ func (u Goods) TableName() string {
 }
 
 type GoodsType struct {
-	types.Entity
-	OID          types.PrimaryKey `gorm:"column:OID;index"`
-	Uri          string           `gorm:"column:Uri"`
-	Name         string           `gorm:"column:Name"`
-	Introduction string           `gorm:"column:Introduction"` //主类介绍
-	Image        string           `gorm:"column:Image"`
+	dao.Entity
+	OID          dao.PrimaryKey `gorm:"column:OID;index"`
+	Uri          string         `gorm:"column:Uri"`
+	Name         string         `gorm:"column:Name"`
+	Introduction string         `gorm:"column:Introduction"` //主类介绍
+	Image        string         `gorm:"column:Image"`
 }
 
 func (GoodsType) TableName() string {
@@ -97,12 +102,12 @@ func (GoodsType) TableName() string {
 }*/
 
 type GoodsTypeChild struct {
-	types.Entity
-	OID         types.PrimaryKey `gorm:"column:OID;index"`
-	Uri         string           `gorm:"column:Uri"`
-	Name        string           `gorm:"column:Name"`
-	Image       string           `gorm:"column:Image"`
-	GoodsTypeID types.PrimaryKey `gorm:"column:GoodsTypeID"`
+	dao.Entity
+	OID         dao.PrimaryKey `gorm:"column:OID;index"`
+	Uri         string         `gorm:"column:Uri"`
+	Name        string         `gorm:"column:Name"`
+	Image       string         `gorm:"column:Image"`
+	GoodsTypeID dao.PrimaryKey `gorm:"column:GoodsTypeID"`
 }
 
 /*

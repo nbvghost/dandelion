@@ -2,13 +2,13 @@ package wx
 
 import (
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/gpa/types"
 )
 
 type Token struct {
 	Get struct {
-		CompanyID types.PrimaryKey `uri:"CompanyID"`
+		CompanyID dao.PrimaryKey `uri:"CompanyID"`
 	} `method:"Get"`
 }
 

@@ -3,7 +3,7 @@ package model
 import (
 	"strings"
 
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type OrdersGoodsStatus string
@@ -18,12 +18,12 @@ const (
 )
 
 type OrdersGoods struct {
-	types.Entity
-	OID            types.PrimaryKey  `gorm:"column:OID"`
+	dao.Entity
+	OID            dao.PrimaryKey    `gorm:"column:OID"`
 	OrdersGoodsNo  string            `gorm:"column:OrdersGoodsNo;unique"`    //
 	Status         OrdersGoodsStatus `gorm:"column:Status"`                  //OGAskRefund，OGRefundNo，OGRefundOk，OGRefundInfo，OGRefundComplete
 	RefundInfo     string            `gorm:"column:RefundInfo;type:text"`    //RefundInfo json 退款退货信息
-	OrdersID       types.PrimaryKey  `gorm:"column:OrdersID"`                //
+	OrdersID       dao.PrimaryKey    `gorm:"column:OrdersID"`                //
 	Goods          string            `gorm:"column:Goods;type:text"`         //josn
 	Specification  string            `gorm:"column:Specification;type:text"` //json
 	Discounts      string            `gorm:"column:Discounts;type:JSON"`

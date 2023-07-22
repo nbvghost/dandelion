@@ -1,12 +1,12 @@
 package model
 
 import (
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
-//等级
+// 等级
 type Rank struct {
-	types.Entity
+	dao.Entity
 	GrowMaxValue uint   `gorm:"column:GrowMaxValue"`
 	Title        string `gorm:"column:Title"`
 	//VoucherID     uint `gorm:"column:VoucherID"`

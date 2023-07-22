@@ -6,9 +6,9 @@ import (
 
 	"gorm.io/gorm"
 
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/gpa/types"
 )
 
 type BaseDao struct {
@@ -29,7 +29,7 @@ type BaseDao struct {
 	return DB.Where(where).Delete(target).Error
 }
 */
-/*func (b BaseDao) Delete(DB *gorm.DB, target interface{}, ID types.PrimaryKey) error {
+/*func (b BaseDao) Delete(DB *gorm.DB, target interface{}, ID dao.PrimaryKey) error {
 
 	return DB.Delete(target, map[string]interface{}{"ID": ID}).Error
 }*/
@@ -43,18 +43,18 @@ func (b BaseDao) Save(DB *gorm.DB, target interface{}) error {
 	return DB.Save(target).Error
 }*/
 
-/*func (b BaseDao) ChangeModel(DB *gorm.DB, ID types.PrimaryKey, target interface{}) error {
+/*func (b BaseDao) ChangeModel(DB *gorm.DB, ID dao.PrimaryKey, target interface{}) error {
 	err := DB.Model(target).Where(map[string]interface{}{"ID": ID}).Updates(target).Error
 	return err
 }
-func (b BaseDao) ChangeMap(DB *gorm.DB, ID types.PrimaryKey, model interface{}, params map[string]interface{}) error {
+func (b BaseDao) ChangeMap(DB *gorm.DB, ID dao.PrimaryKey, model interface{}, params map[string]interface{}) error {
 
 	return DB.Model(model).Where(map[string]interface{}{"ID": ID}).Updates(params).Error
 }*/
-/*func (b BaseDao) Get(DB *gorm.DB, ID types.PrimaryKey, target interface{}) error {
+/*func (b BaseDao) Get(DB *gorm.DB, ID dao.PrimaryKey, target interface{}) error {
 	return DB.Where(map[string]interface{}{"ID": ID}).First(target).Error
 }*/
-/*func (b BaseDao) FindAllByOID(DB *gorm.DB, target interface{}, OID types.PrimaryKey) error {
+/*func (b BaseDao) FindAllByOID(DB *gorm.DB, target interface{}, OID dao.PrimaryKey) error {
 
 	return DB.Where(map[string]interface{}{"OID": OID}).Find(target).Error
 }*/
@@ -147,7 +147,7 @@ type Datatables struct {
 {"column":0,"dir":"asc"}
 ],"start":0,"length":10,"search":{"value":"","regex":false}}`
 */
-func (b BaseDao) DatatablesListOrder(Orm *gorm.DB, params *Datatables, target interface{}, OID types.PrimaryKey, where string, whereValues ...interface{}) (draw int, recordsTotal int64, recordsFiltered int64, list interface{}) {
+func (b BaseDao) DatatablesListOrder(Orm *gorm.DB, params *Datatables, target interface{}, OID dao.PrimaryKey, where string, whereValues ...interface{}) (draw int, recordsTotal int64, recordsFiltered int64, list interface{}) {
 	draw = params.Draw
 	selectFileds := make([]string, 0)
 	searchableFileds := make([]string, 0)

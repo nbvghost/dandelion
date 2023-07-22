@@ -2,17 +2,17 @@ package order
 
 import (
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/express"
-	"github.com/nbvghost/gpa/types"
 )
 
 type ExpressInfo struct {
 	ExpressTemplateService express.ExpressTemplateService
 	Post                   struct {
-		OrdersID     types.PrimaryKey `form:"OrdersID"`
-		LogisticCode string           `form:"LogisticCode"`
-		ShipperName  string           `form:"ShipperName"`
+		OrdersID     dao.PrimaryKey `form:"OrdersID"`
+		LogisticCode string         `form:"LogisticCode"`
+		ShipperName  string         `form:"ShipperName"`
 	} `method:"post"`
 }
 

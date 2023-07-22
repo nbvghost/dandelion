@@ -34,7 +34,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool"
 	"github.com/nbvghost/tool/object"
 )
@@ -57,7 +56,7 @@ type OrdersService struct {
 	User            user.UserService
 }
 
-func (service OrdersService) FindShoppingCartListDetails(oid types.PrimaryKey, userID types.PrimaryKey, address *model.Address) (*extends.ConfirmOrdersGoods, error) {
+func (service OrdersService) FindShoppingCartListDetails(oid dao.PrimaryKey, userID dao.PrimaryKey, address *model.Address) (*extends.ConfirmOrdersGoods, error) {
 	//Orm := Orm()
 	//ordersService := OrdersService{}
 
@@ -341,7 +340,7 @@ func (service OrdersService) Situation(StartTime, EndTime int64) interface{} {
 	//fmt.Println(result)
 	return result
 }
-func (service OrdersService) RefundInfo(OrdersGoodsID types.PrimaryKey, ShipName, ShipNo string) (error, string) {
+func (service OrdersService) RefundInfo(OrdersGoodsID dao.PrimaryKey, ShipName, ShipNo string) (error, string) {
 	Orm := db.Orm()
 
 	//var ordersGoods model.OrdersGoods
@@ -359,7 +358,7 @@ func (service OrdersService) RefundInfo(OrdersGoodsID types.PrimaryKey, ShipName
 	}
 	return nil, "快递信息填写成功"
 }
-func (service OrdersService) RefundComplete(OrdersGoodsID types.PrimaryKey, RefundType uint, wxConfig *model.WechatConfig) (string, error) {
+func (service OrdersService) RefundComplete(OrdersGoodsID dao.PrimaryKey, RefundType uint, wxConfig *model.WechatConfig) (string, error) {
 	tx := db.Orm().Begin()
 
 	//var ordersGoods model.OrdersGoods
@@ -434,17 +433,17 @@ func (service OrdersService) RefundComplete(OrdersGoodsID types.PrimaryKey, Refu
 	//err := dao.UpdateByPrimaryKey(Orm, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"Status": model.OrdersStatusOGRefundOk})
 	return "已经同意,并已退款", nil
 }
-func (service OrdersService) RefundOk(OrdersGoodsID types.PrimaryKey) (error, string) {
+func (service OrdersService) RefundOk(OrdersGoodsID dao.PrimaryKey) (error, string) {
 	Orm := db.Orm()
 	err := dao.UpdateByPrimaryKey(Orm, entity.OrdersGoods, OrdersGoodsID, map[string]interface{}{"Status": model.OrdersGoodsStatusOGRefundOk})
 	return err, "已经同意"
 }
-func (service OrdersService) RefundNo(OrdersGoodsID types.PrimaryKey) (error, string) {
+func (service OrdersService) RefundNo(OrdersGoodsID dao.PrimaryKey) (error, string) {
 	Orm := db.Orm()
 	err := dao.UpdateByPrimaryKey(Orm, entity.OrdersGoods, OrdersGoodsID, map[string]interface{}{"Status": model.OrdersGoodsStatusOGRefundNo})
 	return err, "已经拒绝"
 }
-func (service OrdersService) AskRefund(OrdersGoodsID types.PrimaryKey, RefundInfo model.RefundInfo) (error, string) {
+func (service OrdersService) AskRefund(OrdersGoodsID dao.PrimaryKey, RefundInfo model.RefundInfo) (error, string) {
 	tx := db.Orm().Begin()
 
 	//var ordersGoods model.OrdersGoods
@@ -498,7 +497,7 @@ func (service OrdersService) AskRefund(OrdersGoodsID types.PrimaryKey, RefundInf
 		return err
 	}
 */
-func (service OrdersService) AddOrdersPackage(db *gorm.DB, TotalMoney uint, UserID types.PrimaryKey) (model.OrdersPackage, error) {
+func (service OrdersService) AddOrdersPackage(db *gorm.DB, TotalMoney uint, UserID dao.PrimaryKey) (model.OrdersPackage, error) {
 
 	//OrderNo       string    `gorm:"column:OrderNo;unique"` //订单号
 	//OrderList string `gorm:"column:OrderList;type:LONGTEXT"`//json []
@@ -524,7 +523,7 @@ func (service OrdersService) AddOrdersPackage(db *gorm.DB, TotalMoney uint, User
 }
 
 // 确认收货
-func (service OrdersService) TakeDeliver(OrdersID types.PrimaryKey) error {
+func (service OrdersService) TakeDeliver(OrdersID dao.PrimaryKey) error {
 	Orm := db.Orm()
 
 	//var orders model.Orders
@@ -574,7 +573,7 @@ func (service OrdersService) TakeDeliver(OrdersID types.PrimaryKey) error {
 		} else {
 
 			tx.Commit()
-			go func(ogs []types.IEntity) {
+			go func(ogs []dao.IEntity) {
 				for i := range ogs {
 					value := ogs[i].(*model.OrdersGoods)
 
@@ -601,7 +600,7 @@ func (service OrdersService) TakeDeliver(OrdersID types.PrimaryKey) error {
 }
 
 // 检查订单状态
-func (service OrdersService) AnalysisOrdersStatus(OrdersID types.PrimaryKey, wxConfig *model.WechatConfig) error {
+func (service OrdersService) AnalysisOrdersStatus(OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) error {
 
 	Orm := db.Orm()
 
@@ -650,7 +649,7 @@ func (service OrdersService) AnalysisOrdersStatus(OrdersID types.PrimaryKey, wxC
 	}
 	return nil
 }
-func (service OrdersService) CancelOk(context context.Context, OrdersID types.PrimaryKey, wxConfig *model.WechatConfig) (string, error) {
+func (service OrdersService) CancelOk(context context.Context, OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) (string, error) {
 	Orm := db.Orm()
 
 	//var orders model.Orders
@@ -700,7 +699,7 @@ func (service OrdersService) CancelOk(context context.Context, OrdersID types.Pr
 						tx.Rollback()
 						return "", err
 					}
-					var ogs []types.IEntity
+					var ogs []dao.IEntity
 					ogs, err = service.FindOrdersGoodsByOrdersID(tx, orders.ID)
 					if err != nil {
 						tx.Rollback()
@@ -743,7 +742,7 @@ func (service OrdersService) CancelOk(context context.Context, OrdersID types.Pr
 }
 
 // 申请取消
-func (service OrdersService) Cancel(ctx context.Context, OrdersID types.PrimaryKey, wxConfig *model.WechatConfig) (string, error) {
+func (service OrdersService) Cancel(ctx context.Context, OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) (string, error) {
 	Orm := db.Orm()
 
 	//var orders model.Orders
@@ -843,7 +842,7 @@ func (service OrdersService) Cancel(ctx context.Context, OrdersID types.PrimaryK
 }
 
 // 发货
-func (service OrdersService) Deliver(ShipName, ShipNo string, OrdersID types.PrimaryKey, wxConfig *model.WechatConfig) error {
+func (service OrdersService) Deliver(ShipName, ShipNo string, OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) error {
 	Orm := db.Orm().Begin()
 
 	//var orders model.Orders
@@ -905,13 +904,13 @@ func (service OrdersService) GetSupplyOrdersByOrderNo(OrderNo string) model.Supp
 	Orm.Where(&model.SupplyOrders{OrderNo: OrderNo}).First(&orders)
 	return orders
 }
-func (service OrdersService) GetOrdersByID(ID types.PrimaryKey) model.Orders {
+func (service OrdersService) GetOrdersByID(ID dao.PrimaryKey) model.Orders {
 	Orm := db.Orm()
 	var orders model.Orders
 	Orm.First(&orders, ID)
 	return orders
 }
-func (service OrdersService) ListOrdersStatusCount(UserID types.PrimaryKey, Status []string) (TotalRecords int64) {
+func (service OrdersService) ListOrdersStatusCount(UserID dao.PrimaryKey, Status []string) (TotalRecords int64) {
 	Orm := db.Orm()
 	var orders []model.Orders
 	db := Orm.Model(model.Orders{})
@@ -953,7 +952,7 @@ type CollageRecord struct {
 	//OrdersGoods model.OrdersGoods
 }
 
-func (service OrdersService) ListCollageRecord(UserID types.PrimaryKey, Index int) []CollageRecord {
+func (service OrdersService) ListCollageRecord(UserID dao.PrimaryKey, Index int) []CollageRecord {
 	Orm := db.Orm()
 
 	db := Orm.Raw(`
@@ -985,7 +984,7 @@ GROUP BY cr."No"
 
 	return packs
 }
-func (service OrdersService) ListOrdersDate(UserID, OID types.PrimaryKey, PostType int, Status []model.OrdersStatus, startDate, endDate time.Time, Limit int, Offset int) (List []interface{}, TotalRecords int64) {
+func (service OrdersService) ListOrdersDate(UserID, OID dao.PrimaryKey, PostType int, Status []model.OrdersStatus, startDate, endDate time.Time, Limit int, Offset int) (List []interface{}, TotalRecords int64) {
 	Orm := db.Orm()
 	var orders []model.Orders
 
@@ -1027,7 +1026,7 @@ func (service OrdersService) ListOrdersDate(UserID, OID types.PrimaryKey, PostTy
 		pack := struct {
 			Orders          model.Orders
 			User            model.User
-			OrdersGoodsList []types.IEntity //[]model.OrdersGoods
+			OrdersGoodsList []dao.IEntity //[]model.OrdersGoods
 			CollageUsers    []model.User
 		}{}
 
@@ -1044,7 +1043,7 @@ func (service OrdersService) ListOrdersDate(UserID, OID types.PrimaryKey, PostTy
 	}
 	return results, recordsTotal
 }
-func (service OrdersService) ListOrders(UserID, OID types.PrimaryKey, PostType int, Status []model.OrdersStatus, Limit int, Offset int) (List []interface{}, TotalRecords int64) {
+func (service OrdersService) ListOrders(UserID, OID dao.PrimaryKey, PostType int, Status []model.OrdersStatus, Limit int, Offset int) (List []interface{}, TotalRecords int64) {
 
 	return service.ListOrdersDate(UserID, OID, PostType, Status, time.Unix(0, 0), time.Unix(0, 0), Limit, Offset)
 }
@@ -1222,7 +1221,7 @@ func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, 
 }
 
 // BuyCollageOrders 拼单购买
-func (service OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, GoodsID, SpecificationID types.PrimaryKey, Quantity uint) error {
+func (service OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, GoodsID, SpecificationID dao.PrimaryKey, Quantity uint) error {
 	Orm := db.Orm()
 	//var goods model.Goods
 	//var specification model.Specification
@@ -1268,7 +1267,7 @@ func (service OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, Go
 }
 
 // 从商品外直接购买，生成OrdersGoods，添加到 play.SessionConfirmOrders
-func (service OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, GoodsID, SpecificationID types.PrimaryKey, Quantity uint) ([]*extends.OrdersGoods, error) {
+func (service OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, GoodsID, SpecificationID dao.PrimaryKey, Quantity uint) ([]*extends.OrdersGoods, error) {
 	Orm := db.Orm()
 	//var goods model.Goods
 	//var specification model.Specification
@@ -1306,7 +1305,7 @@ func (service OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, G
 }
 
 // 从购买车提交的订单，通过 ShoppingCart ID,生成  OrdersGoods 列表,添加到 play.SessionConfirmOrders
-func (service OrdersService) AddCartOrdersByShoppingCartIDs(ctx constrain.IContext, UserID types.PrimaryKey, IDs []string) error {
+func (service OrdersService) AddCartOrdersByShoppingCartIDs(ctx constrain.IContext, UserID dao.PrimaryKey, IDs []string) error {
 	//Orm := Orm()
 	//var scs []model.ShoppingCart
 	scs := service.ShoppingCart.GetGSIDs(UserID, IDs)
@@ -1506,7 +1505,7 @@ func (service OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list [
 	return nil
 
 }
-func (service OrdersService) ChangeOrdersPayMoney(PayMoney float64, OrdersID types.PrimaryKey, wxConfig *model.WechatConfig) (Success result.ActionResultCode, Message string) {
+func (service OrdersService) ChangeOrdersPayMoney(PayMoney float64, OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) (Success result.ActionResultCode, Message string) {
 	tx := db.Orm().Begin()
 
 	orders := service.GetOrdersByID(OrdersID)
@@ -1547,9 +1546,9 @@ func (service OrdersService) AnalyseOrdersGoodsListByOrders(orders *model.Orders
 }
 
 // AnalyseOrdersGoodsList 订单分析，
-func (service OrdersService) AnalyseOrdersGoodsList(oid types.PrimaryKey, addressee *model.Address, orderGoods []*extends.OrdersGoods) (*extends.ConfirmOrdersGoods, error) {
+func (service OrdersService) AnalyseOrdersGoodsList(oid dao.PrimaryKey, addressee *model.Address, orderGoods []*extends.OrdersGoods) (*extends.ConfirmOrdersGoods, error) {
 
-	/*oslist := make(map[types.PrimaryKey][]*extends.OrdersGoods)
+	/*oslist := make(map[dao.PrimaryKey][]*extends.OrdersGoods)
 	for index, v := range orderGoods {
 		items := oslist[v.OID]
 		if items == nil {
@@ -1584,13 +1583,13 @@ func (service OrdersService) AnalyseOrdersGoodsList(oid types.PrimaryKey, addres
 
 type GoodsSkuData struct {
 	SkuImages       []string
-	SkuLabelMap     map[types.PrimaryKey]*model.GoodsSkuLabel
-	SkuLabelDataMap map[types.PrimaryKey]*model.GoodsSkuLabelData
+	SkuLabelMap     map[dao.PrimaryKey]*model.GoodsSkuLabel
+	SkuLabelDataMap map[dao.PrimaryKey]*model.GoodsSkuLabelData
 }
 
-func (service OrdersService) goodsSkuData(tx *gorm.DB, goodsID types.PrimaryKey, specificationLabelIndex sqltype.PrimaryKeyArray) *GoodsSkuData {
+func (service OrdersService) goodsSkuData(tx *gorm.DB, goodsID dao.PrimaryKey, specificationLabelIndex sqltype.PrimaryKeyArray) *GoodsSkuData {
 
-	goodsSkuLabelMap := make(map[types.PrimaryKey]*model.GoodsSkuLabel)
+	goodsSkuLabelMap := make(map[dao.PrimaryKey]*model.GoodsSkuLabel)
 	{
 		goodsSkuLabelList := dao.Find(tx, &model.GoodsSkuLabel{}).Where(`"GoodsID"=?`, goodsID).List()
 		for i := range goodsSkuLabelList {
@@ -1598,7 +1597,7 @@ func (service OrdersService) goodsSkuData(tx *gorm.DB, goodsID types.PrimaryKey,
 		}
 	}
 	skuImages := make([]string, 0)
-	goodsSkuLabelDataMap := make(map[types.PrimaryKey]*model.GoodsSkuLabelData)
+	goodsSkuLabelDataMap := make(map[dao.PrimaryKey]*model.GoodsSkuLabelData)
 	{
 		goodsSkuLabelDataList := dao.Find(tx, &model.GoodsSkuLabelData{}).Where(`"GoodsID"=?`, goodsID).List()
 		for i := range goodsSkuLabelDataList {
@@ -1624,7 +1623,7 @@ func (service OrdersService) goodsSkuData(tx *gorm.DB, goodsID types.PrimaryKey,
 }
 
 // 订单分析，
-func (service OrdersService) analyseOne(OID types.PrimaryKey, address *model.Address, list []*extends.OrdersGoods) (*extends.AnalyseResult, error) {
+func (service OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, list []*extends.OrdersGoods) (*extends.AnalyseResult, error) {
 
 	analyseResult := &extends.AnalyseResult{}
 
@@ -1638,7 +1637,7 @@ func (service OrdersService) analyseOne(OID types.PrimaryKey, address *model.Add
 
 	oggs := make([]extends.OrdersGoodsInfo, 0)
 
-	expresstemplateMap := make(map[types.PrimaryKey]model.ExpressTemplateNMW)
+	expresstemplateMap := make(map[dao.PrimaryKey]model.ExpressTemplateNMW)
 
 	for index := range list {
 		value := list[index]
@@ -1802,7 +1801,7 @@ func (service OrdersService) analyseOne(OID types.PrimaryKey, address *model.Add
 
 }
 
-func (service OrdersService) AddCartOrders(UserID types.PrimaryKey, GoodsID, SpecificationID types.PrimaryKey, Quantity uint) error {
+func (service OrdersService) AddCartOrders(UserID dao.PrimaryKey, GoodsID, SpecificationID dao.PrimaryKey, Quantity uint) error {
 	//Orm := singleton.Orm()
 	shoppingCarts := service.ShoppingCart.FindShoppingCartByUserID(UserID)
 
@@ -1882,7 +1881,7 @@ func (service OrdersService) AddCartOrders(UserID types.PrimaryKey, GoodsID, Spe
 	return nil
 
 }
-func (service OrdersService) FindOrdersGoodsByOrdersID(DB *gorm.DB, OrdersID types.PrimaryKey) ([]types.IEntity, error) {
+func (service OrdersService) FindOrdersGoodsByOrdersID(DB *gorm.DB, OrdersID dao.PrimaryKey) ([]dao.IEntity, error) {
 	//var ogs []model.OrdersGoods
 	//err := service.FindWhere(DB, &ogs, &model.OrdersGoods{OrdersID: OrdersID})
 	ogs := dao.Find(DB, &model.OrdersGoods{}).Where(`"OrdersID"=?`, OrdersID).List()

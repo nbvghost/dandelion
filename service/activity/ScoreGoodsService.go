@@ -10,8 +10,6 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/service/journal"
-
-	"github.com/nbvghost/gpa/types"
 )
 
 type ScoreGoodsService struct {
@@ -21,7 +19,7 @@ type ScoreGoodsService struct {
 	CardItem CardItemService
 }
 
-func (service ScoreGoodsService) Exchange(user *model.User, ScoreGoodsID types.PrimaryKey) error {
+func (service ScoreGoodsService) Exchange(user *model.User, ScoreGoodsID dao.PrimaryKey) error {
 
 	tx := db.Orm().Begin()
 	//var scoreGoods model.ScoreGoods
@@ -80,7 +78,7 @@ func (service ScoreGoodsService) Situation(StartTime, EndTime int64) interface{}
 	return result
 }
 
-func (service ScoreGoodsService) ListScoreGoods() []types.IEntity {
+func (service ScoreGoodsService) ListScoreGoods() []dao.IEntity {
 	Orm := db.Orm()
 	//var list []model.ScoreGoods
 	//dao.Find(Orm, &model.ScoreGoods{})

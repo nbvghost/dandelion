@@ -40,6 +40,8 @@ func Register(route constrain.IRoute) {
 	route.RegisterRoute("user/upload-avatar", &user.UploadAvatar{})
 	route.RegisterRoute("user/user", &user.User{})
 	route.RegisterRoute("user/address", &user.Address{})
+	route.RegisterRoute("user/review", &user.Review{})
+	route.RegisterRoute("user/review-details", &user.ReviewDetails{})
 
 	route.RegisterRoute("goods/wish/goods", &wish.Goods{})
 	route.RegisterRoute("goods/review/goods-info", &review.GoodsInfo{}) //来自产品页的评论

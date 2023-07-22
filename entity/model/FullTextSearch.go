@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type FullTextSearchType string
@@ -12,10 +12,10 @@ const (
 )
 
 type FullTextSearch struct {
-	types.Entity
-	OID           types.PrimaryKey   `gorm:"column:OID;index"`                            //
-	TID           types.PrimaryKey   `gorm:"column:TID;index;uniqueIndex:idx_unique_id"`  //
-	ContentItemID types.PrimaryKey   `gorm:"column:ContentItemID"`                        //
+	dao.Entity
+	OID           dao.PrimaryKey     `gorm:"column:OID;index"`                            //
+	TID           dao.PrimaryKey     `gorm:"column:TID;index;uniqueIndex:idx_unique_id"`  //
+	ContentItemID dao.PrimaryKey     `gorm:"column:ContentItemID"`                        //
 	Title         string             `gorm:"column:Title"`                                //
 	Content       string             `gorm:"column:Content;type:text"`                    //
 	Picture       string             `gorm:"column:Picture"`                              //

@@ -15,7 +15,7 @@ import (
 	"github.com/nbvghost/dandelion/service/content"
 	"github.com/nbvghost/dandelion/service/file"
 
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/gweb"
 
 	"golang.org/x/net/html"
@@ -228,7 +228,7 @@ func (spider SpiderService) GetArticleQueryDataAndAdd(body io.ReadCloser, Conten
 			}
 			//fmt.Println(timedate)
 			//fmt.Println(df)
-			spider.Content.AddSpiderContent(types.PrimaryKey(spider.OID), "热点文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
+			spider.Content.AddSpiderContent(dao.PrimaryKey(spider.OID), "热点文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
 
 		}
 
@@ -286,7 +286,7 @@ func (spider SpiderService) GetArticleDataAndAdd(body io.ReadCloser, ContentSubT
 			}
 			//fmt.Println(timedate)
 			//fmt.Println(df)
-			spider.Content.AddSpiderContent(types.PrimaryKey(spider.OID), "热点文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
+			spider.Content.AddSpiderContent(dao.PrimaryKey(spider.OID), "热点文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
 
 		}
 

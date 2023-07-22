@@ -14,7 +14,6 @@ import (
 	"github.com/nbvghost/dandelion/service/journal"
 	"github.com/nbvghost/dandelion/service/wechat"
 
-	"github.com/nbvghost/gpa/types"
 	"github.com/nbvghost/tool"
 )
 
@@ -24,7 +23,7 @@ type TransfersService struct {
 	Wx      wechat.WxService
 }
 
-func (service TransfersService) UserTransfers(UserID types.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
+func (service TransfersService) UserTransfers(UserID dao.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
 	Orm := db.Orm().Begin()
 
 	//var user model.User
@@ -75,7 +74,7 @@ func (service TransfersService) UserTransfers(UserID types.PrimaryKey, ReUserNam
 	}
 
 }
-func (service TransfersService) StoreTransfers(StoreID types.PrimaryKey, UserID types.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
+func (service TransfersService) StoreTransfers(StoreID dao.PrimaryKey, UserID dao.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
 	Orm := db.Orm().Begin()
 
 	//var store model.Store

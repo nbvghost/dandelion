@@ -61,7 +61,7 @@ func (m *Buy) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 		}
 	} else {
 		if m.Post.GoodsID != 0 && m.Post.SpecificationID != 0 && m.Post.Quantity != 0 {
-			err := m.OrdersService.BuyOrders(ctx, m.User.ID, types.PrimaryKey(m.Post.GoodsID), types.PrimaryKey(m.Post.SpecificationID), uint(m.Post.Quantity))
+			err := m.OrdersService.BuyOrders(ctx, m.User.ID, dao.PrimaryKey(m.Post.GoodsID), dao.PrimaryKey(m.Post.SpecificationID), uint(m.Post.Quantity))
 			return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "立即购买", nil)}, nil
 		} else {
 			return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("订单数据出错"), "", nil)}, nil

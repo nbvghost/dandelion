@@ -6,15 +6,15 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
-//条件增送优惠卷
+// 条件增送优惠卷
 type GiveVoucher struct {
-	types.Entity
-	OID           uint             `gorm:"column:OID"`
-	ScoreMaxValue uint             `gorm:"column:ScoreMaxValue"`
-	VoucherID     types.PrimaryKey `gorm:"column:VoucherID"`
+	dao.Entity
+	OID           uint           `gorm:"column:OID"`
+	ScoreMaxValue uint           `gorm:"column:ScoreMaxValue"`
+	VoucherID     dao.PrimaryKey `gorm:"column:VoucherID"`
 }
 
 func (u *GiveVoucher) BeforeCreate(scope *gorm.DB) (err error) {

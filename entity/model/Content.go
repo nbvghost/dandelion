@@ -3,19 +3,19 @@ package model
 import (
 	"github.com/lib/pq"
 	"github.com/nbvghost/dandelion/entity/sqltype"
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 //Content   ContentType  ContentSubType
 
 // ContentItem Menus
 type ContentItem struct {
-	types.Entity
-	OID             types.PrimaryKey             `gorm:"column:OID;index"`
+	dao.Entity
+	OID             dao.PrimaryKey               `gorm:"column:OID;index"`
 	Uri             string                       `gorm:"column:Uri"`
 	Name            string                       `gorm:"column:Name"`
 	Sort            int                          `gorm:"column:Sort"`
-	ContentTypeID   types.PrimaryKey             `gorm:"column:ContentTypeID"`
+	ContentTypeID   dao.PrimaryKey               `gorm:"column:ContentTypeID"`
 	Type            ContentTypeType              `gorm:"column:Type"`
 	TemplateName    string                       `gorm:"column:TemplateName"` //使用模板的文件名，如多文章列表，
 	Introduction    string                       `gorm:"column:Introduction"` //主类介绍
@@ -29,13 +29,13 @@ func (ContentItem) TableName() string {
 }
 
 type ContentSubType struct {
-	types.Entity
-	OID                    types.PrimaryKey `gorm:"column:OID;index"`
-	Uri                    string           `gorm:"column:Uri"`
-	Name                   string           `gorm:"column:Name"`
-	ContentItemID          types.PrimaryKey `gorm:"column:ContentItemID"`
-	ParentContentSubTypeID types.PrimaryKey `gorm:"column:ParentContentSubTypeID"`
-	Sort                   int              `gorm:"column:Sort"`
+	dao.Entity
+	OID                    dao.PrimaryKey `gorm:"column:OID;index"`
+	Uri                    string         `gorm:"column:Uri"`
+	Name                   string         `gorm:"column:Name"`
+	ContentItemID          dao.PrimaryKey `gorm:"column:ContentItemID"`
+	ParentContentSubTypeID dao.PrimaryKey `gorm:"column:ParentContentSubTypeID"`
+	Sort                   int            `gorm:"column:Sort"`
 }
 
 func (ContentSubType) TableName() string {
@@ -56,7 +56,7 @@ const (
 
 // MenuType
 type ContentType struct {
-	types.Entity
+	dao.Entity
 	Label string          `gorm:"column:Label"`
 	Type  ContentTypeType `gorm:"column:Type;unique"`
 }
@@ -66,21 +66,21 @@ func (ContentType) TableName() string {
 }
 
 type Content struct {
-	types.Entity
-	OID              types.PrimaryKey `gorm:"column:OID;index"`                     //
-	Uri              string           `gorm:"column:Uri"`                           //
-	Title            string           `gorm:"column:Title"`                         //
-	Summary          string           `gorm:"column:Summary"`                       //
-	Content          string           `gorm:"column:Content"`                       //
-	Picture          string           `gorm:"column:Picture"`                       //
-	ContentItemID    types.PrimaryKey `gorm:"column:ContentItemID"`                 //
-	ContentSubTypeID types.PrimaryKey `gorm:"column:ContentSubTypeID"`              //
-	FromUrl          string           `gorm:"column:FromUrl"`                       //
-	Author           string           `gorm:"column:Author"`                        //
-	CountView        int              `gorm:"column:CountView"`                     //
-	CountLike        int              `gorm:"column:CountLike"`                     //
-	CountShare       int              `gorm:"column:CountShare"`                    //
-	Tags             pq.StringArray   `gorm:"column:Tags;type:text[];default:'{}'"` //
+	dao.Entity
+	OID              dao.PrimaryKey `gorm:"column:OID;index"`                     //
+	Uri              string         `gorm:"column:Uri"`                           //
+	Title            string         `gorm:"column:Title"`                         //
+	Summary          string         `gorm:"column:Summary"`                       //
+	Content          string         `gorm:"column:Content"`                       //
+	Picture          string         `gorm:"column:Picture"`                       //
+	ContentItemID    dao.PrimaryKey `gorm:"column:ContentItemID"`                 //
+	ContentSubTypeID dao.PrimaryKey `gorm:"column:ContentSubTypeID"`              //
+	FromUrl          string         `gorm:"column:FromUrl"`                       //
+	Author           string         `gorm:"column:Author"`                        //
+	CountView        int            `gorm:"column:CountView"`                     //
+	CountLike        int            `gorm:"column:CountLike"`                     //
+	CountShare       int            `gorm:"column:CountShare"`                    //
+	Tags             pq.StringArray `gorm:"column:Tags;type:text[];default:'{}'"` //
 }
 
 func (Content) TableName() string {
@@ -88,8 +88,8 @@ func (Content) TableName() string {
 }
 
 type ContentConfig struct {
-	types.Entity
-	OID                 types.PrimaryKey            `gorm:"column:OID;unique"`
+	dao.Entity
+	OID                 dao.PrimaryKey              `gorm:"column:OID;unique"`
 	Name                string                      `gorm:"column:Name"`
 	Logo                string                      `gorm:"column:Logo"`
 	FaviconIco          string                      `gorm:"column:FaviconIco"`

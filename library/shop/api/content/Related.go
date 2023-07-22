@@ -3,18 +3,18 @@ package content
 import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/content"
-	"github.com/nbvghost/gpa/types"
 )
 
 type Related struct {
 	ContentService content.ContentService
 	Get            struct {
-		Offset           int              `form:"Offset"`
-		ContentItemID    types.PrimaryKey `form:"ContentItemID"`
-		ContentSubTypeID types.PrimaryKey `form:"ContentSubTypeID"`
+		Offset           int            `form:"Offset"`
+		ContentItemID    dao.PrimaryKey `form:"ContentItemID"`
+		ContentSubTypeID dao.PrimaryKey `form:"ContentSubTypeID"`
 	} `method:"Get"`
 }
 

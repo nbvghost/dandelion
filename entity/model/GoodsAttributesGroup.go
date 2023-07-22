@@ -1,11 +1,12 @@
 package model
 
-import "github.com/nbvghost/gpa/types"
+import "github.com/nbvghost/dandelion/library/dao"
 
 type GoodsAttributesGroup struct {
-	types.Entity
-	GoodsID types.PrimaryKey `gorm:"column:GoodsID;index"`
-	Name    string           `gorm:"column:Name"`
+	dao.Entity
+	OID     dao.PrimaryKey `gorm:"column:OID;index"` //
+	GoodsID dao.PrimaryKey `gorm:"column:GoodsID;index"`
+	Name    string         `gorm:"column:Name"`
 }
 
 func (u GoodsAttributesGroup) TableName() string {

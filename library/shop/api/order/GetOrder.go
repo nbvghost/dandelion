@@ -4,16 +4,16 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/order"
-	"github.com/nbvghost/gpa/types"
 )
 
 type GetOrder struct {
 	OrdersService order.OrdersService
 	Get           struct {
-		ID types.PrimaryKey `uri:"ID"`
+		ID dao.PrimaryKey `uri:"ID"`
 	} `method:"get"`
 }
 

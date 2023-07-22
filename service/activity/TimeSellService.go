@@ -6,20 +6,19 @@ import (
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/gpa/types"
 )
 
 type TimeSellService struct {
 	model.BaseDao
 }
 
-func (service TimeSellService) GetTimeSellByHash(Hash string, OID types.PrimaryKey) *model.TimeSell {
+func (service TimeSellService) GetTimeSellByHash(Hash string, OID dao.PrimaryKey) *model.TimeSell {
 	var timesell model.TimeSell
 	db.Orm().Model(&model.TimeSell{}).Where("Hash=? and OID=?", Hash, OID).First(&timesell)
 	return &timesell
 }
 
-func (service TimeSellService) GetTimeSellByGoodsID(GoodsID types.PrimaryKey, OID types.PrimaryKey) *model.TimeSell {
+func (service TimeSellService) GetTimeSellByGoodsID(GoodsID dao.PrimaryKey, OID dao.PrimaryKey) *model.TimeSell {
 	//todo:考虑合并成一条sql语句
 	//timesellGoods := service.GetTimeSellGoodsByGoodsID(GoodsID, OID)
 	var timesellGoods model.TimeSellGoods
@@ -29,7 +28,7 @@ func (service TimeSellService) GetTimeSellByGoodsID(GoodsID types.PrimaryKey, OI
 	db.Orm().Model(&model.TimeSell{}).Where(`"Hash"=? and "OID"=?`, timesellGoods.TimeSellHash, timesellGoods.OID).First(&timesell)
 	return &timesell
 }
-func (service TimeSellService) GetTimeSellGoodsByGoodsID(GoodsID types.PrimaryKey, OID types.PrimaryKey) model.TimeSellGoods {
+func (service TimeSellService) GetTimeSellGoodsByGoodsID(GoodsID dao.PrimaryKey, OID dao.PrimaryKey) model.TimeSellGoods {
 	var timesellGoods model.TimeSellGoods
 	db.Orm().Model(&model.TimeSellGoods{}).Where(`"GoodsID"=? and "OID"=?`, GoodsID, OID).First(&timesellGoods)
 	return timesellGoods
@@ -44,7 +43,7 @@ func (service TimeSellService) AddTimeSellAction(context *gweb.Context) (r gweb.
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "", nil)}
 }*/
 
-func (service TimeSellService) DeleteTimeSell(TimeSellID types.PrimaryKey) error {
+func (service TimeSellService) DeleteTimeSell(TimeSellID dao.PrimaryKey) error {
 	//timesell := TimeSellService{}.GetTimeSellByGoodsID(GoodsID)
 	//var ts model.TimeSell
 	ts := dao.GetByPrimaryKey(db.Orm(), &model.TimeSell{}, TimeSellID).(*model.TimeSell)

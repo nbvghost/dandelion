@@ -3,7 +3,7 @@ package sqltype
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type StringArray []string
@@ -28,10 +28,10 @@ func (j StringArray) Value() (driver.Value, error) {
 }
 
 type Number interface {
-	int64 | types.PrimaryKey
+	int64 | dao.PrimaryKey
 }
 
-type PrimaryKeyArray []types.PrimaryKey
+type PrimaryKeyArray []dao.PrimaryKey
 
 // Scan 实现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb
 func (j *PrimaryKeyArray) Scan(value interface{}) error {

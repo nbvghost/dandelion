@@ -274,6 +274,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 			specification.Stock = uint(_canBookCount)
 			specification.Num = 1
 			specification.Weight = 200
+			specification.OID = haveAdmin.OID
 			specifications = append(specifications, specification)
 
 			totlStock = totlStock + uint(specification.Stock)
@@ -300,6 +301,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 		specification.Stock = uint(totlStock)
 		specification.Num = 1
 		specification.Weight = 200
+		specification.OID = haveAdmin.OID
 		specifications = append(specifications, specification)
 
 	}
@@ -381,7 +383,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 	})
 	//fmt.Println(attributes)
 
-	goods.Params = util.StructToJSON(attributes)
+	//goods.Params = util.StructToJSON(attributes)
 
 	/*doc.Find(".table-sku tbody tr").Each(func(i int, s *goquery.Selection) {
 

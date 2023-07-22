@@ -7,7 +7,6 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/gpa/types"
 	"log"
 )
 
@@ -28,7 +27,7 @@ type Address struct {
 		Tel             string //`form:"Tel"`
 	} `method:"Post"`
 	Put struct {
-		ID              types.PrimaryKey
+		ID              dao.PrimaryKey
 		CityName        string //`form:"CityName"`
 		Company         string //`form:"Company"`
 		CountyCode      string //`form:"CountyName"`
@@ -43,10 +42,10 @@ type Address struct {
 		Tel             string //`form:"Tel"`
 	} `method:"Put"`
 	Get struct {
-		ID types.PrimaryKey `form:"id"`
+		ID dao.PrimaryKey `form:"id"`
 	} `method:"Get"`
 	Delete struct {
-		ID types.PrimaryKey `form:"id"`
+		ID dao.PrimaryKey `form:"id"`
 	} `method:"Delete"`
 }
 

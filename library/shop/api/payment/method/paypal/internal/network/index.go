@@ -7,8 +7,8 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/service/configuration"
-	"github.com/nbvghost/gpa/types"
 	"io"
 	"log"
 	"net/http"
@@ -118,11 +118,11 @@ type responseBody struct {
 	ErrorDescription string `json:"error_description"`
 }
 
-func newAccessTokenRedisKey(oid types.PrimaryKey) string {
+func newAccessTokenRedisKey(oid dao.PrimaryKey) string {
 
 	return fmt.Sprintf("payment:paypal:%d:access-token", oid)
 }
-func generateAccessToken(ctx constrain.IContext, oid types.PrimaryKey) (*PaypalAccessToken, error) {
+func generateAccessToken(ctx constrain.IContext, oid dao.PrimaryKey) (*PaypalAccessToken, error) {
 	configurationService := configuration.ConfigurationService{}
 	configMap := configurationService.GetConfigurations(oid, model.ConfigurationKeyPaymentPaypalClientId, model.ConfigurationKeyPaymentPaypalAppSecret)
 
@@ -182,7 +182,7 @@ type OrderDetailsResponse struct {
 	Links  []Link `json:"links"`
 }
 
-func OrderDetails(ctx constrain.IContext, oid types.PrimaryKey, id string) (*OrderDetailsResponse, error) {
+func OrderDetails(ctx constrain.IContext, oid dao.PrimaryKey, id string) (*OrderDetailsResponse, error) {
 	token, err := generateAccessToken(ctx, oid)
 	if err != nil {
 		return nil, err
@@ -225,7 +225,7 @@ type UpdateOrderRequest struct {
 	ChangeList []UpdateOrderChange
 }
 
-func UpdateOrder(ctx constrain.IContext, oid types.PrimaryKey, request *UpdateOrderRequest) error {
+func UpdateOrder(ctx constrain.IContext, oid dao.PrimaryKey, request *UpdateOrderRequest) error {
 	token, err := generateAccessToken(ctx, oid)
 	if err != nil {
 		return err
@@ -269,7 +269,7 @@ type CheckoutOrdersResponse struct {
 	Links  []Link `json:"links"`
 }
 
-func CheckoutOrders(ctx constrain.IContext, oid types.PrimaryKey, request *CheckoutOrdersRequest) (*CheckoutOrdersResponse, error) {
+func CheckoutOrders(ctx constrain.IContext, oid dao.PrimaryKey, request *CheckoutOrdersRequest) (*CheckoutOrdersResponse, error) {
 	token, err := generateAccessToken(ctx, oid)
 	if err != nil {
 		return nil, err
@@ -348,7 +348,7 @@ type CaptureResponse struct {
 	Links []Link `json:"links"`
 }
 
-func Capture(ctx constrain.IContext, oid types.PrimaryKey, request *CaptureRequest) (*CaptureResponse, error) {
+func Capture(ctx constrain.IContext, oid dao.PrimaryKey, request *CaptureRequest) (*CaptureResponse, error) {
 	token, err := generateAccessToken(ctx, oid)
 	if err != nil {
 		return nil, err

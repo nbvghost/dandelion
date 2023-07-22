@@ -8,15 +8,14 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/company"
-	"github.com/nbvghost/gpa/types"
 )
 
 type AddStar struct {
 	StoreService company.StoreService
 	Store        *model.Store `mapping:""`
 	Post         struct {
-		StoreID types.PrimaryKey `form:"StoreID"`
-		Num     uint             `form:"Num"`
+		StoreID dao.PrimaryKey `form:"StoreID"`
+		Num     uint           `form:"Num"`
 	} `method:"Post"`
 }
 

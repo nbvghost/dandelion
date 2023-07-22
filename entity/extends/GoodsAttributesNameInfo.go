@@ -1,7 +1,7 @@
 package extends
 
 import (
-	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type GoodsAttributesNameInfo struct {
@@ -21,6 +21,6 @@ func (m *GoodsAttributesValueInfo) IsZero() bool {
 	return len(m.Value) == 0
 }
 
-func (m *GoodsAttributesValueInfo) Primary() types.PrimaryKey {
+func (m *GoodsAttributesValueInfo) Primary() dao.PrimaryKey {
 	return 0
 }
