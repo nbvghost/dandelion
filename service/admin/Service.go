@@ -177,46 +177,47 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 		}
 	}()
 
-	admin = service.FindAdminByAccount(tx, account)
-	if !admin.IsZero() {
-		return admin, nil
-	}
-
 	/*_org := service.Organization.FindByDomain(tx, mDomain)
 	if _org != nil && _org.ID > 0 {
 
 		return nil, errors.Errorf("域名：" + mDomain + "已经被占用。")
 	}*/
 
-	shop := &model.Organization{}
-	shop.Name = ""
-	shop.Expire = time.Now().Add((365 * 1) * 24 * time.Hour)
-	if err = dao.Create(tx, shop); err != nil {
-		return nil, err
+	admin = service.FindAdminByAccount(tx, account)
+
+	shop := service.Organization.GetOrganization(admin.ID).(*model.Organization)
+	if shop.IsZero() {
+		shop.Name = ""
+		shop.Expire = time.Now().Add((365 * 1) * 24 * time.Hour)
+		if err = dao.Create(tx, shop); err != nil {
+			return nil, err
+		}
 	}
 
-	admin.Account = strings.ToLower(account)
-	//admin.PassWord = encryption.Md5ByString(PassWord)
-	//admin.OID = shop.ID
-	admin.Initiator = true
-	admin.LastLoginAt = time.Now()
-	admin.OID = shop.ID
-	if err = dao.Create(tx, admin); err != nil {
-		return nil, err
+	if admin.IsZero() {
+		admin.Account = strings.ToLower(account)
+		//admin.PassWord = encryption.Md5ByString(PassWord)
+		//admin.OID = shop.ID
+		admin.Initiator = true
+		admin.LastLoginAt = time.Now()
+		admin.OID = shop.ID
+		if err = dao.Create(tx, admin); err != nil {
+			return nil, err
+		}
 	}
 
 	domain := fmt.Sprintf("default")
 
 	var dns model.DNS
-	tx.Model(&model.DNS{}).Where(`"Type"=? and "Domain"=?`, model.DNSTypeA, domain).First(&dns)
-	if !dns.IsZero() {
-		return nil, fmt.Errorf("存在相同的DNS信息,Domain=%s,Type=%s", domain, model.DNSTypeA)
-	}
-	dns.Type = model.DNSTypeA
-	dns.Domain = domain
-	dns.OID = shop.ID
-	if err = tx.Model(&model.DNS{}).Create(&dns).Error; err != nil {
-		return nil, err
+	tx.Model(&model.DNS{}).Where(`"Type"=? and "OID"=?`, model.DNSTypeA, shop.ID).First(&dns)
+	if dns.IsZero() {
+		dns.Type = model.DNSTypeA
+		dns.Domain = domain
+		dns.OID = shop.ID
+		if err = tx.Model(&model.DNS{}).Create(&dns).Error; err != nil {
+			return nil, err
+		}
+		//return nil, fmt.Errorf("存在相同的DNS信息,Domain=%s,Type=%s", domain, model.DNSTypeA)
 	}
 
 	var config *model.Configuration

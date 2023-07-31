@@ -971,7 +971,8 @@ func (service WxService) InitWechatConfig(tx *gorm.DB, OID dao.PrimaryKey) error
 	}
 
 	wechatConfig := &model.WechatConfig{
-		OID: OID,
+		OID:   OID,
+		AppID: strings.ToLower(encryption.Md5ByString(fmt.Sprintf("%d", OID))),
 	}
 	return dao.Create(tx, wechatConfig)
 }
