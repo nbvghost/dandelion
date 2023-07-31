@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/service/wechat"
 	"log"
 	"strings"
 	"time"
@@ -30,6 +31,7 @@ type AdminService struct {
 	Organization  company.OrganizationService
 	Configuration configuration.ConfigurationService
 	Content       content.ContentService
+	WxService     wechat.WxService
 }
 
 func (service AdminService) AddItem(OID dao.PrimaryKey, item *model.Admin) (err error) {
@@ -186,22 +188,20 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 		return nil, errors.Errorf("域名：" + mDomain + "已经被占用。")
 	}*/
 
-	admin.Account = strings.ToLower(account)
-	//admin.PassWord = encryption.Md5ByString(PassWord)
-	//admin.OID = shop.ID
-	admin.Initiator = true
-	admin.LastLoginAt = time.Now()
-	if err = dao.Create(tx, admin); err != nil {
-		return nil, err
-	}
-
 	shop := &model.Organization{}
 	shop.Name = ""
 	shop.Expire = time.Now().Add((365 * 1) * 24 * time.Hour)
 	if err = dao.Create(tx, shop); err != nil {
 		return nil, err
 	}
-	if err = tx.Model(model.Admin{}).Where(map[string]interface{}{"ID": admin.ID}).Updates(map[string]interface{}{"OID": shop.ID}).Error; err != nil {
+
+	admin.Account = strings.ToLower(account)
+	//admin.PassWord = encryption.Md5ByString(PassWord)
+	//admin.OID = shop.ID
+	admin.Initiator = true
+	admin.LastLoginAt = time.Now()
+	admin.OID = shop.ID
+	if err = dao.Create(tx, admin); err != nil {
 		return nil, err
 	}
 
@@ -281,11 +281,15 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 		a.OID = shop.ID
 		err = dao.Create(tx, &a)
 		if err != nil {
-
 			return nil, err
 		}
 	}
 	err = service.Content.AddContentConfig(tx, shop)
+	if err != nil {
+		return nil, err
+	}
+
+	err = service.WxService.InitWechatConfig(tx, shop.ID)
 	if err != nil {
 		return nil, err
 	}

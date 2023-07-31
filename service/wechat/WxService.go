@@ -959,5 +959,21 @@ func (service WxService) MwGetWXJSConfig(url string, OID dao.PrimaryKey) map[str
 
 	return results
 }
+func (service WxService) GetWechatConfig(tx *gorm.DB, OID dao.PrimaryKey) model.WechatConfig {
+	var contentConfig model.WechatConfig
+	tx.Model(&model.WechatConfig{}).Where(map[string]interface{}{"OID": OID}).First(&contentConfig)
+	return contentConfig
+}
+func (service WxService) InitWechatConfig(tx *gorm.DB, OID dao.PrimaryKey) error {
+	item := service.GetWechatConfig(tx, OID)
+	if !item.IsZero() {
+		return nil //fmt.Errorf("已经存在Wechat配制文件")
+	}
+
+	wechatConfig := &model.WechatConfig{
+		OID: OID,
+	}
+	return dao.Create(tx, wechatConfig)
+}
 
 //var GlobalWXConfig = model.WxConfig{CompanyID: -1, AppID: "wx037d3b26b2ba34b2", AppSecret: "fe3faa4e6f8abd87fa4621cb5ed5f725", Token: "30e6e3b03bf7ec6d2ce56a50055e1cd1", EncodingAESKey: "egMWQnCkbuDd7u5GM7EJBnH8mISn5iwAorjRNnFx3dv", MchID: "1342120901"}
