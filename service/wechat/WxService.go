@@ -74,8 +74,7 @@ func NewClient(config *model.WechatConfig) (*core.Client, error) {
 	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
 	mchPrivateKey, err := utils.LoadPrivateKey(config.PrivateKey)
 	if err != nil {
-		log.Fatal("load merchant private key error")
-		return nil, err
+		return nil, fmt.Errorf("load merchant private key error")
 	}
 
 	ctx := context.Background()
@@ -85,8 +84,7 @@ func NewClient(config *model.WechatConfig) (*core.Client, error) {
 	}
 	client, err := core.NewClient(ctx, opts...)
 	if err != nil {
-		log.Fatalf("new wechat pay client err:%s", err)
-		return nil, err
+		return nil, fmt.Errorf("new wechat pay client err:%s", err)
 	}
 
 	// 发送请求，以下载微信支付平台证书为例
