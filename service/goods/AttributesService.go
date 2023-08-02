@@ -6,10 +6,8 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
-	"github.com/nbvghost/gpa"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"reflect"
 	"strings"
 )
 
@@ -61,12 +59,17 @@ func (service AttributesService) QueryGoodsAttributesNameInfo() ([]*extends.Good
 	if err != nil {
 		return nil, err
 	}
-	d, err := gpa.ScanRows(rows, reflect.TypeOf(new(extends.GoodsAttributesNameInfo)), true)
+	var list []*extends.GoodsAttributesNameInfo
+	err = db.Orm().ScanRows(rows, &list)
 	if err != nil {
 		return nil, err
 	}
+	/*d, err := gpa.ScanRows(rows, reflect.TypeOf(new(extends.GoodsAttributesNameInfo)), true)
+	if err != nil {
+		return nil, err
+	}*/
 	//list := gpa.Rows("select * from (select Value,count(Value) as Num from GoodsAttributes where Name=? group by Value) as m order by m.Num desc", []interface{}{name}, &extends.GoodsAttributesValueInfo{})
-	return d.([]*extends.GoodsAttributesNameInfo), err
+	return list, err
 
 	//list := gpa.Rows("select * from (select Name,count(Name) as Num from GoodsAttributes group by Name) as m order by m.Num desc", nil, &extends.GoodsAttributesNameInfo{})
 	//return list.([]*extends.GoodsAttributesNameInfo)
@@ -76,12 +79,19 @@ func (service AttributesService) QueryGoodsAttributesValueInfoByName(name string
 	if err != nil {
 		return nil, err
 	}
-	d, err := gpa.ScanRows(rows, reflect.TypeOf(new(extends.GoodsAttributesValueInfo)), true)
+
+	var list []*extends.GoodsAttributesValueInfo
+	err = db.Orm().ScanRows(rows, &list)
 	if err != nil {
 		return nil, err
 	}
+
+	/*d, err := gpa.ScanRows(rows, reflect.TypeOf(new(extends.GoodsAttributesValueInfo)), true)
+	if err != nil {
+		return nil, err
+	}*/
 	//list := gpa.Rows("select * from (select Value,count(Value) as Num from GoodsAttributes where Name=? group by Value) as m order by m.Num desc", []interface{}{name}, &extends.GoodsAttributesValueInfo{})
-	return d.([]*extends.GoodsAttributesValueInfo), err
+	return list, err
 }
 
 func (service AttributesService) AllAttributesName() ([]*extends.GoodsAttributesNameInfo, error) {

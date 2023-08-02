@@ -12,7 +12,6 @@ import (
 
 	_ "github.com/lib/pq"
 	"github.com/nbvghost/dandelion/library/environments"
-	"github.com/nbvghost/gpa"
 )
 
 type server struct {
@@ -21,7 +20,7 @@ type server struct {
 	gpaOnce sync.Once
 
 	orm *gorm.DB
-	gpa gpa.IDataBase
+	//gpa gpa.IDataBase
 
 	logger logger.Interface
 }
@@ -39,13 +38,13 @@ func (p *server) Orm() *gorm.DB {
 	return p.orm
 }
 
-func (p *server) GPA() gpa.IDataBase {
+/*func (p *server) GPA() gpa.IDataBase {
 	p.gpaOnce.Do(func() {
 		p.gpa = gpa.Open("postgres", p.dsn, nil)
 	})
 
 	return p.gpa
-}
+}*/
 
 func New(dsn string) IPostgres {
 	var newLogger logger.Interface
