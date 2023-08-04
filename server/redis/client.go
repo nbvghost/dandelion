@@ -25,6 +25,7 @@ func (m *client) GetEtcd() constrain.IEtcd {
 	return m.etcd
 }
 func (m *client) TryLock(parentCtx context.Context, key string, wait ...time.Duration) (bool, func()) {
+
 	waitTime := time.Duration(0)
 	if len(wait) > 0 {
 		waitTime = wait[0]
@@ -121,6 +122,33 @@ func (m *client) Exists(ctx context.Context, keys ...string) (int64, error) {
 func (m *client) HGet(ctx context.Context, key, field string) (string, error) {
 	return m.getClient().HGet(ctx, key, field).Result()
 }
+
+/*func (m *client) ListPush(ctx context.Context, key string, values ...any) (int64, error) {
+	return m.getClient().LPush(ctx, key, values...).Result()
+}
+func (m *client) ListLen(ctx context.Context, key string) (int64, error) {
+	return m.getClient().LLen(ctx, key).Result()
+}
+func (m *client) ListIndex(ctx context.Context, key string, index int64) (string, error) {
+	return m.getClient().LIndex(ctx, key, index).Result()
+}
+func (m *client) ListLRem(ctx context.Context, key string, value any) (int64, error) {
+	return m.getClient().LRem(ctx, key,0, value).Result()
+}*/
+
+func (m *client) SetAdd(ctx context.Context, key string, members ...any) (int64, error) {
+	return m.getClient().SAdd(ctx, key, members...).Result()
+}
+func (m *client) SetCard(ctx context.Context, key string) (int64, error) {
+	return m.getClient().SCard(ctx, key).Result()
+}
+func (m *client) SetRem(ctx context.Context, key string, members ...any) (int64, error) {
+	return m.getClient().SRem(ctx, key, members...).Result()
+}
+func (m *client) SetIsMember(ctx context.Context, key string, member any) (bool, error) {
+	return m.getClient().SIsMember(ctx, key, member).Result()
+}
+
 func (m *client) getClient() redis.Cmdable {
 	m.RLock()
 	defer m.RUnlock()

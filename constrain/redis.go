@@ -19,4 +19,9 @@ type IRedis interface {
 	HGet(ctx context.Context, key, field string) (string, error)
 	Exists(ctx context.Context, keys ...string) (int64, error)
 	Incr(ctx context.Context, key string) (int64, error)
+
+	SetAdd(ctx context.Context, key string, members ...any) (int64, error)
+	SetCard(ctx context.Context, key string) (int64, error)
+	SetRem(ctx context.Context, key string, members ...any) (int64, error)
+	SetIsMember(ctx context.Context, key string, member any) (bool, error)
 }
