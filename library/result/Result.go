@@ -142,6 +142,9 @@ func (r *TextResult) Apply(context constrain.IContext) {
 	v.Response.WriteHeader(http.StatusOK)
 	v.Response.Write([]byte(r.Data))
 }
+func NewTextResult(d string) *TextResult {
+	return &TextResult{Data: d}
+}
 
 type ErrorResult struct {
 	Error error
