@@ -63,7 +63,9 @@ func (g *GetLoginUserPhone) HandlePost(ctx constrain.IContext) (constrain.IResul
 	if err != nil {
 		return nil, err
 	}
-	return result.NewData(map[string]any{"User": dao.GetByPrimaryKey(db.Orm(), &model.User{}, ctx.UID())}), nil
+	r := result.NewData(map[string]any{"User": dao.GetByPrimaryKey(db.Orm(), &model.User{}, ctx.UID())})
+	r.Message = "成功绑定手机"
+	return r, nil
 }
 
 type ResultBody struct {

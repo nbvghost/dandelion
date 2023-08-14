@@ -13,8 +13,7 @@ type Buy struct {
 	OrdersService order.OrdersService
 	User          *model.User `mapping:""`
 	Post          struct {
-		List []viewmodel.GoodsSpecification
-		//PostType int
+		List    []viewmodel.GoodsSpecification
 		Address model.Address
 	} `method:"post"`
 }

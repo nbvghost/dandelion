@@ -60,13 +60,14 @@ func (service JournalService) AddStoreJournal(DB *gorm.DB, StoreID dao.PrimaryKe
 	return dao.Create(DB, logger)
 }
 
-func (service JournalService) ListUserJournalLeveBrokerage(UserID dao.PrimaryKey, IDs []uint) interface{} {
+type Result struct {
+	TotalAmount int64          `gorm:"column:TotalAmount"`
+	UserID      dao.PrimaryKey `gorm:"column:UserID"`
+	UserName    string         `gorm:"column:UserName"`
+}
 
+func (service JournalService) ListUserJournalLeveBrokerage(UserID dao.PrimaryKey, IDs []uint) []Result {
 	Orm := db.Orm()
-	type Result struct {
-		TotalAmount int64 `gorm:"column:TotalAmount"`
-		*model.User `json:"User"`
-	}
 
 	var result []Result
 
@@ -86,9 +87,15 @@ func (service JournalService) ListUserJournalLeveBrokerage(UserID dao.PrimaryKey
 
 	*/
 	//var recordsTotal uint
-	db := Orm.Table(`"UserJournal"`).Select(`SUM("UserJournal"."Amount") as "TotalAmount",User.*`).Joins(`JOIN "User" on "User"."ID" = "UserJournal"."FromUserID"`).Where(`"UserJournal"."FromUserID" in (?)`, IDs).Where(`"UserJournal"."UserID" = ?`, UserID).Group(`"UserJournal"."FromUserID"`)
+	db := Orm.Table(`"UserJournal"`).
+		Select(`SUM("UserJournal"."Amount") as "TotalAmount","User"."ID" as "UserID","User"."Name" as "UserName"`).
+		Joins(`JOIN "User" on "User"."ID" = "UserJournal"."FromUserID"`).
+		Where(`"UserJournal"."FromUserID" in (?)`, IDs).
+		Where(`"UserJournal"."UserID" = ?`, UserID).
+		Group(`"UserJournal"."FromUserID","User"."ID"`)
 	//db.Limit(10).Offset(0).Find(&result)
 	db.Find(&result)
+
 	//db.Offset(0).Count(&recordsTotal)
 	//fmt.Println(result)
 	//fmt.Println(recordsTotal)

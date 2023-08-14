@@ -13,6 +13,7 @@ import (
 	"github.com/nbvghost/dandelion/service/order"
 	"github.com/nbvghost/tool"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 type CreateOrders struct {
@@ -22,6 +23,7 @@ type CreateOrders struct {
 	Post           struct {
 		TotalAmount uint //总金额,跟订单进行匹对
 		//PostType   int
+		Address   *model.Address
 		AddressID dao.PrimaryKey
 		List      []viewmodel.GoodsSpecification
 		//Type      string //拼团参数
@@ -45,9 +47,12 @@ func (m *CreateOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 		return nil, err
 	}*/
 
-	address := dao.GetByPrimaryKey(db.Orm(), &model.Address{}, m.Post.AddressID).(*model.Address)
-	if address.ID == 0 {
-		return nil, errors.New("the address cannot be empty")
+	var address = m.Post.Address
+	if m.Post.AddressID > 0 {
+		address = dao.GetByPrimaryKey(db.Orm(), &model.Address{}, m.Post.AddressID).(*model.Address)
+		if address.ID == 0 {
+			return nil, errors.New("the address cannot be empty")
+		}
 	}
 
 	confirmOrdersGoods, err := m.OrdersService.AnalyseOrdersGoodsList(m.User.OID, address, list)
@@ -88,7 +93,7 @@ func (m *CreateOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 		PayMoney := GoodsPrice - FullCutAll + ExpressPrice //支付价格已经包含了 满减，限时抢购的扣去的部分  - _FullCutPrice-FavouredPrice
 
 		orders := model.Orders{}
-		orders.OrderNo = tool.UUID()
+		orders.OrderNo = strings.ToLower(tool.UUID())
 		orders.UserID = m.User.ID
 		orders.OID = m.User.OID //organization.ID
 		//orders.OrdersPackageNo = op.OrderNo

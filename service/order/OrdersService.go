@@ -1453,6 +1453,12 @@ func (service OrdersService) createOrdersGoods(shoppingCart *model.ShoppingCart)
 
 	return ordersGoods, nil
 }
+
+type GoodsSku struct {
+	GoodsSkuLabel     *model.GoodsSkuLabel
+	GoodsSkuLabelData *model.GoodsSkuLabelData
+}
+
 func (service OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list []extends.OrdersGoodsInfo) error {
 	err := dao.Create(db, orders)
 	if err != nil {
@@ -1463,6 +1469,17 @@ func (service OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list [
 		//value.OrdersGoods.OrdersID = orders.ID
 		//value.OrdersGoods.Discounts = value.Discounts //util.StructToJSON((&value).Discounts)
 		//err = dao.Create(db, &((&value).OrdersGoods))
+		var goodsSkuList []GoodsSku
+		for ii := 0; ii < len(value.OrdersGoods.Specification.LabelIndex); ii++ {
+			labelID := value.OrdersGoods.Specification.LabelIndex[ii]
+
+			skuLabelData := value.OrdersGoods.SkuLabelDataMap[labelID]
+			skuLabel := value.OrdersGoods.SkuLabelMap[skuLabelData.GoodsSkuLabelID]
+			goodsSkuList = append(goodsSkuList, GoodsSku{
+				GoodsSkuLabel:     skuLabel,
+				GoodsSkuLabelData: skuLabelData,
+			})
+		}
 		err = dao.Create(db, &model.OrdersGoods{
 			OID:            value.OrdersGoods.OID,
 			OrdersGoodsNo:  value.OrdersGoods.OrdersGoodsNo,
@@ -1471,6 +1488,7 @@ func (service OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list [
 			OrdersID:       orders.ID,
 			Goods:          util.StructToJSON(value.OrdersGoods.Goods),
 			Specification:  util.StructToJSON(value.OrdersGoods.Specification),
+			GoodsSkus:      util.StructToJSON(goodsSkuList),
 			Discounts:      util.StructToJSON(value.Discounts),
 			Quantity:       value.OrdersGoods.Quantity,
 			CostPrice:      value.OrdersGoods.CostPrice,

@@ -61,8 +61,8 @@ func (m *Update) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 		}
 	}
 
-	user := dao.GetByPrimaryKey(db.Orm(), entity.User, m.User.ID)
-	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "OK", Data: user}}, nil
+	u := dao.GetByPrimaryKey(db.Orm(), entity.User, m.User.ID)
+	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "资料更新成功", Data: u}}, nil
 
 }
 func (m *Update) Handle(context constrain.IContext) (r constrain.IResult, err error) {

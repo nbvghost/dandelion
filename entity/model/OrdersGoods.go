@@ -26,6 +26,7 @@ type OrdersGoods struct {
 	OrdersID       dao.PrimaryKey    `gorm:"column:OrdersID"`                //
 	Goods          string            `gorm:"column:Goods;type:text"`         //josn
 	Specification  string            `gorm:"column:Specification;type:text"` //json
+	GoodsSkus      string            `gorm:"column:GoodsSkus;type:JSON"`     //json
 	Discounts      string            `gorm:"column:Discounts;type:JSON"`
 	Quantity       uint              `gorm:"column:Quantity"`       //数量
 	CostPrice      uint              `gorm:"column:CostPrice"`      //单价-原价

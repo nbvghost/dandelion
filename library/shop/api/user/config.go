@@ -16,7 +16,6 @@ type Config struct {
 	ConfigurationService configuration.ConfigurationService
 	ShoppingCartService  order.ShoppingCartService
 	Get                  struct {
-		AppId string `uri:"AppId"`
 	} `method:"Get"`
 }
 
