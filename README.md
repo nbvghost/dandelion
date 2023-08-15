@@ -156,7 +156,7 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 ```
 
 ### 技术支持（微信联系）
-<img src="https://raw.githubusercontent.com/nbvghost/dandelion/master/add-me.jpg" alt="微信联系" width="128" height="128" align="bottom" />
+<img src="https://raw.githubusercontent.com/nbvghost/dandelion/master/add-me.jpg" alt="微信联系" width="256" />
 
 ### 使用IDEA开发
 <a href="https://www.jetbrains.com/?from=dandelion"><img src="https://raw.githubusercontent.com/nbvghost/dandelion/master/icon-goland.png" alt="使用IDEA开发" width="128" height="128" align="bottom" /></a>
