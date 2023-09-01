@@ -9,7 +9,7 @@ import (
 )
 
 type ConfigurationService struct {
-	model.BaseDao
+	//model.BaseDao
 }
 
 func (b ConfigurationService) GetConfiguration(OID dao.PrimaryKey, Key model.ConfigurationKey) model.Configuration {

@@ -158,7 +158,10 @@ func (service WxService) GetAccessToken(WxConfig *model.WechatConfig) string {
 	url := "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + WxConfig.AppID + "&secret=" + WxConfig.AppSecret
 
 	resp, err := http.Get(url)
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
 
 	b, err := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
@@ -166,7 +169,10 @@ func (service WxService) GetAccessToken(WxConfig *model.WechatConfig) string {
 	d := make(map[string]interface{})
 
 	err = json.Unmarshal(b, &d)
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+		return ""
+	}
 	//fmt.Println(string(b))
 	//fmt.Println(d)
 	if d["access_token"] == nil {

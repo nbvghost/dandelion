@@ -36,7 +36,7 @@ func Register(route constrain.IRoute) {
 	route.RegisterRoute("user/info/sharekey", &user.InfoSharekey{})
 	route.RegisterRoute("user/transfers", &user.Transfers{})
 	route.RegisterRoute("user/update", &user.Update{})
-	route.RegisterRoute("user/config", &user.Config{})
+	//route.RegisterRoute("user/config", &user.Config{})
 	route.RegisterRoute("user/upload-avatar", &user.UploadAvatar{})
 	route.RegisterRoute("user/user", &user.User{})
 	route.RegisterRoute("user/address", &user.Address{})

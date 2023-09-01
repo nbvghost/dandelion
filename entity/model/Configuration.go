@@ -53,6 +53,7 @@ const (
 			    }]
 	*/
 	ConfigurationKeyAdvert ConfigurationKey = "Advert"
+	ConfigurationKeyHeader ConfigurationKey = "Header"
 	/*
 		[{
 		      "Matching": [
