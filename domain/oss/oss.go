@@ -40,13 +40,14 @@ func ReadUrl(context constrain.IContext, path string) (string, error) {
 	return fmt.Sprintf("%s://%s/assets%s", util.GetScheme(contextValue.Request), ossHost, path), nil
 }
 func WriteUrl(context constrain.IContext) (string, error) {
-	ossHost, err := context.GetDNSName(key.MicroServerOSS)
+	ossHost, err := context.SelectInsideServer(key.MicroServerOSS)
 	if err != nil {
 		return "", err
 	}
-	contextValue := contexext.FromContext(context)
+	//contextValue := contexext.FromContext(context)
 
-	return fmt.Sprintf("%s://%s/upload", util.GetScheme(contextValue.Request), ossHost), nil
+	//内部连接，只有http,没有https
+	return fmt.Sprintf("%s://%s/upload", "http", ossHost), nil
 }
 
 // UploadFile
