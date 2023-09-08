@@ -115,6 +115,6 @@ func UploadFile(context constrain.IContext, file []byte, path string, fileType s
 }
 func UploadAvatar(context constrain.IContext, userID dao.PrimaryKey, file []byte) (*Upload, error) {
 
-	return UploadFile(context, file, fmt.Sprintf("miniapp/avatar/%d", userID), "", true, fmt.Sprintf("%s", time.Now().Format("20060102150405")))
+	return UploadFile(context, file, fmt.Sprintf("miniapp/avatar/%d", userID), "", false, fmt.Sprintf("%s", time.Now().Format("20060102150405")))
 
 }
