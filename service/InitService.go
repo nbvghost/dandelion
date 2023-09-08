@@ -22,10 +22,6 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 
 	cache.Init()
 
-	if true {
-		return nil
-	}
-
 	_database := db.Orm()
 
 	models := make([]model.IDataBaseFace, 0)

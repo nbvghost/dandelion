@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"time"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
@@ -114,6 +115,6 @@ func UploadFile(context constrain.IContext, file []byte, path string, fileType s
 }
 func UploadAvatar(context constrain.IContext, userID dao.PrimaryKey, file []byte) (*Upload, error) {
 
-	return UploadFile(context, file, "miniapp/avatar", "", true, fmt.Sprintf("%d", userID))
+	return UploadFile(context, file, "miniapp/avatar", "", true, fmt.Sprintf("%d/%s", userID, time.Now().Format("20060102150405")))
 
 }
