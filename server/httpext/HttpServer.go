@@ -98,8 +98,8 @@ func (m *httpServer) Listen() {
 	srv := &http.Server{
 		Handler:      m.engine,
 		Addr:         listenAddr,
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 3 * time.Minute,
+		ReadTimeout:  3 * time.Minute,
 	}
 	log.Fatalln(srv.ListenAndServe())
 }
