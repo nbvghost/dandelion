@@ -18,6 +18,7 @@ type handlerContext struct {
 	uid       dao.PrimaryKey
 	parent    context.Context
 	redis     constrain.IRedis
+	etcd      constrain.IEtcd
 	mode      key.Mode
 	logger    *zap.Logger
 	appName   string
@@ -84,6 +85,9 @@ func (m *handlerContext) Context() context.Context {
 func (m *handlerContext) Redis() constrain.IRedis {
 	return m.redis
 }
+func (m *handlerContext) Etcd() constrain.IEtcd {
+	return m.etcd
+}
 func (m *handlerContext) Logger() *zap.Logger {
 	return m.logger
 }
@@ -105,6 +109,6 @@ func (m *handlerContext) Destroy() {
 		return true
 	})
 }
-func New(parent context.Context, appName, uid string, route string, redis constrain.IRedis, token string, logger *zap.Logger, mode key.Mode) constrain.IContext {
-	return &handlerContext{parent: parent, uid: dao.NewFromString(uid), route: route, redis: redis, appName: appName, token: token, logger: logger, mode: mode, syncCache: &sync.Map{}}
+func New(parent context.Context, appName, uid string, route string, redis constrain.IRedis, etcd constrain.IEtcd, token string, logger *zap.Logger, mode key.Mode) constrain.IContext {
+	return &handlerContext{parent: parent, uid: dao.NewFromString(uid), route: route, redis: redis, etcd: etcd, appName: appName, token: token, logger: logger, mode: mode, syncCache: &sync.Map{}}
 }

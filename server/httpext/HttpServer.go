@@ -34,6 +34,7 @@ type httpServer struct {
 	engine              *mux.Router
 	route               constrain.IRoute
 	redisClient         constrain.IRedis
+	etcdClient          constrain.IEtcd
 	errorHandleResult   constrain.IResultError
 	router              *mux.Router
 	customizeViewRender constrain.IViewRender
@@ -59,7 +60,7 @@ func (m *httpServer) Use(middleware constrain.IMiddleware) {
 			if ctxValue != nil {
 				ctx = r.Context().(constrain.IContext)
 			} else {
-				ctx = middleware.CreateContext(m.redisClient, m.route, w, r)
+				ctx = middleware.CreateContext(m.redisClient, m.etcdClient, m.route, w, r)
 				r = r.WithContext(ctx)
 			}
 
@@ -203,7 +204,11 @@ func newOption(apply func(server *httpServer)) *emptyOption {
 func (e *emptyOption) apply(server *httpServer) {
 	e.applyFunc(server)
 }
-
+func WithEtcdOption(etcdClient constrain.IEtcd) Option {
+	return newOption(func(server *httpServer) {
+		server.etcdClient = etcdClient
+	})
+}
 func WithRedisOption(redisClient constrain.IRedis) Option {
 	return newOption(func(server *httpServer) {
 		server.redisClient = redisClient
