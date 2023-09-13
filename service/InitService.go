@@ -14,6 +14,10 @@ import (
 	"github.com/nbvghost/tool/encryption"
 )
 
+var flagEnv = struct {
+	DisableMigratorAndCreateTable bool
+}{}
+
 func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 	err := db.Connect(etcd, dbName)
 	if err != nil {
@@ -21,6 +25,10 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 	}
 
 	cache.Init()
+
+	if flagEnv.DisableMigratorAndCreateTable {
+		return nil
+	}
 
 	_database := db.Orm()
 

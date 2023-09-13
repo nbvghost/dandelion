@@ -14,3 +14,4 @@
 /third_software/redis/dump.rdb
 /third_software/windows/etcd/*.etcd/
 /third_software/windows/redis/dump.rdb
+test.go
