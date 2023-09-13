@@ -225,28 +225,65 @@ func (m *server) watch() {
 	}()
 }
 
-/*func (m *server) parseServer(serverDesc serviceobject.ServerDesc, isCreate, isModify bool) error {
-	m.serverLocker.Lock()
-	defer m.serverLocker.Unlock()
+/*
+	func (m *server) parseServer(serverDesc serviceobject.ServerDesc, isCreate, isModify bool) error {
+		m.serverLocker.Lock()
+		defer m.serverLocker.Unlock()
 
-	v := m.serverMap[key.MicroServer(serverDesc.Name)]
-	if !isCreate && !isModify {
-		//删除已经存的
-		for i, e := range v {
-			if e.IP == serverDesc.IP && e.Port == serverDesc.Port {
-				v = append(v[:i], v[i+1:]...)
-				log.Printf("del server desc:%+v,isCreate:%v,isModify:%v", serverDesc, isCreate, isModify)
-				break
+		v := m.serverMap[key.MicroServer(serverDesc.Name)]
+		if !isCreate && !isModify {
+			//删除已经存的
+			for i, e := range v {
+				if e.IP == serverDesc.IP && e.Port == serverDesc.Port {
+					v = append(v[:i], v[i+1:]...)
+					log.Printf("del server desc:%+v,isCreate:%v,isModify:%v", serverDesc, isCreate, isModify)
+					break
+				}
 			}
+		} else {
+			v = append(v, serverDesc)
+			log.Printf("new server desc:%+v,isCreate:%v,isModify:%v", serverDesc, isCreate, isModify)
 		}
-	} else {
-		v = append(v, serverDesc)
-		log.Printf("new server desc:%+v,isCreate:%v,isModify:%v", serverDesc, isCreate, isModify)
+		m.serverMap[key.MicroServer(serverDesc.Name)] = v
+		return nil
 	}
-	m.serverMap[key.MicroServer(serverDesc.Name)] = v
-	return nil
-}*/
+*/
+func (m *server) AddDNS(newDNS []etcd.ServerDNS) error {
+	etcdKey := "dns"
+	ctx := context.TODO()
 
+	var hasDns []etcd.ServerDNS
+
+	client := m.getClient()
+
+	resp, err := client.Get(ctx, etcdKey)
+	if err != nil {
+		return err
+	}
+	if len(resp.Kvs) > 0 {
+		err := json.Unmarshal(resp.Kvs[0].Value, &hasDns)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
+	hasDns = append(hasDns, newDNS...)
+
+	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]key.MicroServer{}}
+	if err := copyServer.parseDNS(hasDns, true); err != nil {
+		return err
+	}
+
+	jsonByte, err := json.Marshal(hasDns)
+	if err != nil {
+		return err
+	}
+	_, err = client.Put(ctx, etcdKey, string(jsonByte))
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func (m *server) RegisterDNS(dns []etcd.ServerDNS) error {
 	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]key.MicroServer{}}
 	if err := copyServer.parseDNS(dns, true); err != nil {

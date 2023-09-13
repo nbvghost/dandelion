@@ -21,5 +21,6 @@ type IEtcd interface {
 	ObtainRedis() (*config.RedisOptions, error)
 	RegisterPostgresql(dsn string, serverName string) error
 	RegisterDNS(dns []etcd.ServerDNS) error
+	AddDNS(newDNS []etcd.ServerDNS) error
 	ObtainPostgresql(serverName string) (string, error)
 }
