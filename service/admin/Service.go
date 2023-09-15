@@ -14,16 +14,10 @@ import (
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/dandelion/service/configuration"
 	"github.com/nbvghost/dandelion/service/content"
-	"github.com/nbvghost/gweb"
-
 	"gorm.io/gorm"
 
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/util"
-
-	"github.com/nbvghost/tool/object"
 )
 
 type AdminService struct {
@@ -49,27 +43,27 @@ func (service AdminService) AddItem(OID dao.PrimaryKey, item *model.Admin) (err 
 	return dao.Create(db.Orm(), item)
 }
 
-func (service AdminService) GetItem(context *gweb.Context) (r constrain.IResult, err error) {
+func (service AdminService) GetItem(context constrain.IContext, ID dao.PrimaryKey) (r constrain.IResult, err error) {
 
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
-	ID := object.ParseUint(context.PathParams["ID"])
+	//ID := object.ParseUint(context.PathParams["ID"])
 
 	item := dao.GetByPrimaryKey(db.Orm(), &model.Admin{}, dao.PrimaryKey(ID))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", item)}, err
 }
-func (service AdminService) ListItem(context *gweb.Context) (r constrain.IResult, err error) {
-	admin := context.Session.Attributes.Get(play.SessionAdmin).(*model.Admin)
+func (service AdminService) ListItem(context constrain.IContext, admin *model.Admin) (r constrain.IResult, err error) {
+	//admin := context.Session.Attributes.Get(play.SessionAdmin).(*model.Admin)
 	dts := &model.Datatables{}
-	err = util.RequestBodyToJSON(context.Request.Body, dts)
+	/*err = util.RequestBodyToJSON(context.Request.Body, dts)
 	if err != nil {
 		return nil, err
-	}
+	}*/
 	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(db.Orm(), dts, &[]model.Admin{}, admin.OID, "")
 	return &result.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}, nil
 }
 
-func (service AdminService) DeleteItem(context *gweb.Context) (r constrain.IResult, err error) {
-	ID := object.ParseUint(context.PathParams["ID"])
+func (service AdminService) DeleteItem(context constrain.IContext, ID dao.PrimaryKey) (r constrain.IResult, err error) {
+	//ID := object.ParseUint(context.PathParams["ID"])
 
 	Orm := db.Orm()
 	item := dao.GetByPrimaryKey(Orm, &model.Admin{}, dao.PrimaryKey(ID)).(*model.Admin)
@@ -83,22 +77,22 @@ func (service AdminService) DeleteItem(context *gweb.Context) (r constrain.IResu
 	err = dao.DeleteByPrimaryKey(Orm, item, dao.PrimaryKey(ID))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}, err
 }
-func (service AdminService) ChangeAuthority(context *gweb.Context) (r constrain.IResult, err error) {
+func (service AdminService) ChangeAuthority(context constrain.IContext, admin *model.Admin, ID dao.PrimaryKey) (r constrain.IResult, err error) {
 	Orm := db.Orm()
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
-	ID := object.ParseUint(context.PathParams["ID"])
+	//ID := object.ParseUint(context.PathParams["ID"])
 	item := &model.Admin{}
-	err = util.RequestBodyToJSON(context.Request.Body, item)
+	/*err = util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, err
-	}
+	}*/
 
 	_admin := dao.GetByPrimaryKey(Orm, &model.Admin{}, dao.PrimaryKey(ID)).(*model.Admin)
 	if err != nil {
 		return nil, err
 	}
 	if strings.EqualFold(_admin.Account, "admin") {
-		admin := context.Session.Attributes.Get(play.SessionAdmin).(*model.Admin)
+		//admin := context.Session.Attributes.Get(play.SessionAdmin).(*model.Admin)
 		if strings.EqualFold(admin.Account, _admin.Account) {
 
 		} else {

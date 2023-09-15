@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/db"
 	"log"
 	"strconv"
@@ -10,9 +11,7 @@ import (
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/dandelion/service/configuration"
 	"github.com/nbvghost/dandelion/service/journal"
@@ -20,8 +19,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/nbvghost/tool/encryption"
-
-	"github.com/nbvghost/gweb"
 )
 
 type UserService struct {
@@ -202,8 +199,8 @@ func (service UserService) GetUserInfo(UserID dao.PrimaryKey) model.UserInfo {
 	return userInfo
 }
 
-func (service UserService) UserAction(context *gweb.Context) (r gweb.Result, err error) {
-	company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
+func (service UserService) UserAction(context constrain.IContext) (r constrain.IResult, err error) {
+	/*company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	Orm := db.Orm()
 	action := context.Request.URL.Query().Get("action")
 	switch action {
@@ -212,9 +209,10 @@ func (service UserService) UserAction(context *gweb.Context) (r gweb.Result, err
 		util.RequestBodyToJSON(context.Request.Body, dts)
 		draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(Orm, dts, &[]model.User{}, company.ID, "")
 		return &gweb.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}, nil
-	}
+	}*/
 
-	return &gweb.JsonResult{Data: result.ActionResult{Code: result.Fail, Message: "", Data: nil}}, nil
+	//return &result.JsonResult{Data: result.ActionResult{Code: result.Fail, Message: "", Data: nil}}, nil
+	return result.NewData(nil), nil
 }
 func (service UserService) GetByPhone(Orm *gorm.DB, Tel string) *model.User {
 	user := &model.User{}

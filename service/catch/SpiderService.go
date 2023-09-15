@@ -16,7 +16,6 @@ import (
 	"github.com/nbvghost/dandelion/service/file"
 
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/gweb"
 
 	"golang.org/x/net/html"
 
@@ -194,7 +193,11 @@ func (spider SpiderService) GetArticleQueryDataAndAdd(body io.ReadCloser, Conten
 
 		imgs, _ := s.Find(".img-box a img").Attr("src")
 		//imgsurl := spider.File.DownNetWriteAliyunOSS("http:" + imgs)
-		imgsurl := "/file/load?path=" + spider.File.DownNetImage("http:"+imgs)
+		p, err := spider.File.DownNetImage("http:" + imgs)
+		if err != nil {
+			log.Println(err)
+		}
+		imgsurl := "/file/load?path=" + p
 		//fmt.Println(ds)
 		//fmt.Println(imgs)
 
@@ -252,7 +255,12 @@ func (spider SpiderService) GetArticleDataAndAdd(body io.ReadCloser, ContentSubT
 
 		imgs, _ := s.Find(".img-box a img").Attr("src")
 		//imgsurl := spider.File.DownNetWriteAliyunOSS("http:" + imgs)
-		imgsurl := "/file/load?path=" + spider.File.DownNetImage("http:"+imgs)
+		p, err := spider.File.DownNetImage("http:" + imgs)
+		if err != nil {
+			log.Println(err)
+		}
+		imgsurl := "/file/load?path=" + p
+
 		//fmt.Println(ds)
 		//fmt.Println(imgs)
 
@@ -332,14 +340,14 @@ func (spider SpiderService) WeixinSogou(urls []string, ContentSubTypeName string
 }
 func (spider SpiderService) ReadWeiXinArticle(url string) string {
 
-	err, _, b := gweb.RequestByHeader(url, "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1", "")
-
+	//err, _, b := gweb.RequestByHeader(url, "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1", "")
+	var err error
 	//doc, err := goquery.NewDocument(url)
 	if err != nil {
 		log.Println(err)
 		return ""
 	}
-	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(b))
+	doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer([]byte("")))
 	if err != nil {
 		log.Println(err)
 		return ""
@@ -355,7 +363,7 @@ func (spider SpiderService) ReadWeiXinArticle(url string) string {
 				//vatt.Val = DownNetImage(vatt.Val)
 				value.Attr[index].Key = "data-src"
 				//value.Attr[index].Val = spider.File.DownNetWriteAliyunOSS(vatt.Val)
-				value.Attr[index].Val = "/file/load?path=" + spider.File.DownNetImage(vatt.Val)
+				//value.Attr[index].Val = "/file/load?path=" + spider.File.DownNetImage(vatt.Val)
 				att := html.Attribute{}
 				att.Key = "src"
 				att.Val = value.Attr[index].Val

@@ -22,7 +22,6 @@ import (
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/pkg/errors"
 
-	"github.com/nbvghost/gweb/conf"
 	"github.com/nbvghost/tool/object"
 )
 
@@ -453,7 +452,7 @@ func (fo *templateFuncMap) includeHTML(url string, params interface{}) template.
 	b := bytes.NewBuffer(make([]byte, 0))
 	ww := bufio.NewWriter(b)
 
-	t, err := template.ParseFiles(conf.Config.ViewDir + "/" + url)
+	t, err := template.ParseFiles("view/" + url)
 	if os.IsNotExist(err) {
 		ww.WriteString("IncludeHTML:not found path in:" + url)
 		t = template.New("static")

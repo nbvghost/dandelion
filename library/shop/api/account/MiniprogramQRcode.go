@@ -8,9 +8,8 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
+	"github.com/nbvghost/dandelion/service/file"
 	"github.com/nbvghost/dandelion/service/wechat"
-	"github.com/nbvghost/gweb"
-
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -19,6 +18,7 @@ import (
 type MiniprogramQRcode struct {
 	WXQRCodeParamsService wechat.WXQRCodeParamsService
 	WxService             wechat.WxService
+	FileService           file.FileService
 	//WechatConfig          *model.WechatConfig `mapping:""`
 	Get struct {
 		Page      string         `form:"Page"`
@@ -79,7 +79,10 @@ func (g *MiniprogramQRcode) Handle(ctx constrain.IContext) (constrain.IResult, e
 	//fmt.Println(string(b))
 	defer resp.Body.Close()
 
-	path := gweb.WriteTempFile(b, "image/png")
+	path, err := g.FileService.WriteTempFile(b, "image/png")
+	if err != nil {
+		return nil, err
+	}
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: path}}, nil
 	//return &gweb.ImageBytesResult{Data:b,ContentType:"image/png"}
 	//imageString := "data:image/png;base64," + base64.StdEncoding.EncodeToString(b)

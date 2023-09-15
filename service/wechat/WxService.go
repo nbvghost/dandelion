@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/service/file"
 	"io"
 	"io/ioutil"
 	"log"
@@ -38,8 +39,6 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/services/refunddomestic"
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
 
-	"github.com/nbvghost/gweb"
-
 	"github.com/nbvghost/tool/encryption"
 
 	"github.com/nbvghost/tool"
@@ -53,6 +52,7 @@ type WxService struct {
 	User user.UserService
 	//Orders       order.OrdersService
 	Organization company.OrganizationService
+	FileService  file.FileService
 }
 
 var accessTokenMap = make(map[string]*AccessToken)
@@ -444,7 +444,7 @@ func (service WxService) MWQRCodeTemp(OID uint, UserID uint, qrtype, params stri
 	}
 	//fmt.Println(string(b))
 	defer resp.Body.Close()
-	path := gweb.WriteTempFile(b, "image/png")
+	path, err := service.FileService.WriteTempFile(b, "image/png")
 	return &result.ActionResult{Code: result.Success, Message: "", Data: path}
 
 }
