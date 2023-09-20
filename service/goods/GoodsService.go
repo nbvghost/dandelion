@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/service/express"
 	"log"
 	"strconv"
 	"time"
@@ -23,13 +24,14 @@ import (
 
 type GoodsService struct {
 	model.BaseDao
-	TimeSell             activity.TimeSellService
-	Collage              activity.CollageService
-	PinyinService        pinyin.Service
-	GoodsTypeService     GoodsTypeService
-	AttributesService    AttributesService
-	SpecificationService SpecificationService
-	SKUService           SKUService
+	TimeSell               activity.TimeSellService
+	Collage                activity.CollageService
+	PinyinService          pinyin.Service
+	GoodsTypeService       GoodsTypeService
+	AttributesService      AttributesService
+	SpecificationService   SpecificationService
+	SKUService             SKUService
+	ExpressTemplateService express.ExpressTemplateService
 }
 
 func (service GoodsService) PaginationGoods(OID, GoodsTypeID, GoodsTypeChildID dao.PrimaryKey, pageIndex int) (int, int, int, []*model.Goods) {
@@ -93,22 +95,12 @@ func (service GoodsService) getGoodsByUri(OID dao.PrimaryKey, uri string) model.
 	Orm.Model(model.Goods{}).Where(map[string]interface{}{"OID": goods.OID, "Uri": goods.Uri}).First(&goods)
 	return goods
 }
-func (service GoodsService) SaveGoods(OID dao.PrimaryKey, goods *model.Goods, specifications []model.Specification) error {
+func (service GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Goods, specifications []model.Specification) error {
 	if goods.Tags == nil {
 		goods.Tags = make(pq.StringArray, 0)
 	}
 
-	Orm := db.Orm()
-	var err error
-	tx := Orm.Begin()
-
-	defer func() {
-		if err == nil {
-			tx.Commit()
-		} else {
-			tx.Rollback()
-		}
-	}()
+	goods.OID = OID
 	if len(goods.Title) == 0 {
 		return errors.Errorf("请指定产品标题")
 	}
@@ -125,14 +117,16 @@ func (service GoodsService) SaveGoods(OID dao.PrimaryKey, goods *model.Goods, sp
 	}
 	goods.Uri = uri
 	if goods.ID.IsZero() {
-		err = tx.Create(goods).Error
+		err := tx.Create(goods).Error
+		if err != nil {
+			return err
+		}
 	} else {
 		//err = tx.Save(goods).Error
-		err = tx.Model(goods).Updates(goods).Error
-	}
-
-	if err != nil {
-		return err
+		err := tx.Model(goods).Updates(goods).Error
+		if err != nil {
+			return err
+		}
 	}
 
 	//添加或修改的时候不删除规格
@@ -148,20 +142,31 @@ func (service GoodsService) SaveGoods(OID dao.PrimaryKey, goods *model.Goods, sp
 			value.OID = OID
 			value.GoodsID = goods.ID
 			if value.ID.IsZero() {
-				err = tx.Create(&value).Error
+				err := tx.Create(&value).Error
+				if err != nil {
+					return err
+				}
 				total = total + value.Stock
 			} else {
-				err = tx.Save(&value).Error
+				err := tx.Save(&value).Error
+				if err != nil {
+					return err
+				}
 				//err = tx.Model(&goods).Updates(goods).Error
 				total = total + value.Stock
-			}
-			if err != nil {
-				return err
 			}
 		}
 		goods.Stock = total
 	}
-	err = tx.Save(goods).Error
+
+	if goods.ExpressTemplateID == 0 {
+		expressTemplate := service.ExpressTemplateService.GetExpressTemplateByOID(OID)
+		if expressTemplate.IsZero() {
+			return errors.New("请设置快递信息")
+		}
+		goods.ExpressTemplateID = expressTemplate.ID
+	}
+	err := tx.Save(goods).Error
 	return err
 }
 
@@ -376,11 +381,11 @@ func (service GoodsService) GetDiscounts(GoodsID, OID dao.PrimaryKey) []extends.
 	timeSell := service.TimeSell.GetTimeSellByGoodsID(GoodsID, OID)
 	if timeSell.IsEnable() {
 		//Favoured:=uint(util.Rounding45(float64(value.Price)*(float64(timeSell.Discount)/float64(100)), 2))
-		discounts = append(discounts, extends.Discount{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint(timeSell.Discount)})
+		discounts = append(discounts, extends.Discount{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: extends.DiscountTypeNameTimeSell, Discount: uint(timeSell.Discount)})
 	} else {
 		collage := service.Collage.GetCollageByGoodsID(GoodsID, OID)
 		if collage.ID != 0 && collage.TotalNum > 0 {
-			discounts = append(discounts, extends.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint(collage.Discount)})
+			discounts = append(discounts, extends.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: extends.DiscountTypeNameCollage, Discount: uint(collage.Discount)})
 		}
 	}
 	return discounts

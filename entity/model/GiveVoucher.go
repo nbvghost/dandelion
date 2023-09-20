@@ -25,7 +25,6 @@ func (u *GiveVoucher) BeforeCreate(scope *gorm.DB) (err error) {
 			}
 		}()
 		panic(errors.New(u.TableName() + ":OID不能为空"))
-
 	}
 	return nil
 }

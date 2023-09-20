@@ -35,7 +35,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/nbvghost/tool"
-	"github.com/nbvghost/tool/object"
 )
 
 type OrdersService struct {
@@ -57,17 +56,11 @@ type OrdersService struct {
 }
 
 func (service OrdersService) FindShoppingCartListDetails(oid dao.PrimaryKey, userID dao.PrimaryKey, address *model.Address) (*extends.ConfirmOrdersGoods, error) {
-	//Orm := Orm()
-	//ordersService := OrdersService{}
-
 	list := service.ShoppingCart.FindShoppingCartByUserID(userID)
-	//results := make([]map[string]interface{}, 0)
-	//var error error
-
 	orderGoodsList := make([]*extends.OrdersGoods, 0)
-
 	for i := range list {
-		orderGoods, err := service.createOrdersGoods(list[i].(*model.ShoppingCart))
+		item := list[i].(*model.ShoppingCart)
+		orderGoods, err := service.createOrdersGoods(item.GoodsID, item.SpecificationID, item.Quantity)
 		if err != nil {
 			return nil, err
 		}
@@ -75,7 +68,6 @@ func (service OrdersService) FindShoppingCartListDetails(oid dao.PrimaryKey, use
 		//results[oredersGoods.OID]=append(results[oredersGoods.OID],oredersGoods)
 	}
 	return service.AnalyseOrdersGoodsList(oid, address, orderGoodsList)
-
 }
 
 // 如果订单未完成，或是退款，扣除相应的冻结金额，不用结算，佣金
@@ -87,13 +79,24 @@ func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *m
 	//var orders model.Orders
 	//service.Get(Orm, OrderID, &orders)
 
+	brokerage := service.Configuration.GetBrokerageConfiguration(orders.OID)
+
 	ogs, err := service.FindOrdersGoodsByOrdersID(tx, orders.ID)
+	if err != nil {
+		log.Println(err)
+	}
 	var Brokerage uint
 	for i := range ogs {
 		value := ogs[i].(*model.OrdersGoods)
 		//var specification model.Specification
 		//util.JSONToStruct(value.Specification, &specification)
-		Brokerage = Brokerage + value.TotalBrokerage
+		//Brokerage = Brokerage + value.TotalBrokerage
+		if brokerage.Type == configuration.BrokeragePRODUCT {
+			Brokerage = Brokerage + value.SellPrice
+		}
+		if brokerage.Type == configuration.BrokerageCUSTOM {
+			Brokerage = Brokerage + value.TotalBrokerage
+		}
 	}
 
 	//var orderUser model.User
@@ -102,14 +105,15 @@ func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *m
 		return gorm.ErrRecordNotFound
 	}
 
-	leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve1).V)
-	leve2 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve2).V)
-	leve3 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve3).V)
-	leve4 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve4).V)
-	leve5 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve5).V)
-	leve6 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve6).V)
+	//leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve1).V)
+	//leve2 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve2).V)
+	//leve3 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve3).V)
+	//leve4 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve4).V)
+	//leve5 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve5).V)
+	//leve6 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve6).V)
 
-	leves := []uint{leve1, leve2, leve3, leve4, leve5, leve6}
+	//leves := []uint{leve1, leve2, leve3, leve4, leve5, leve6}
+	leves := []uint{brokerage.Leve1, brokerage.Leve2, brokerage.Leve3, brokerage.Leve4, brokerage.Leve5, brokerage.Leve6}
 
 	//var OutBrokerageMoney int64 = 0
 	for _, value := range leves {
@@ -144,6 +148,7 @@ func (service OrdersService) FirstSettlementUserBrokerage(tx *gorm.DB, orders mo
 
 	//var orders model.Orders
 	//service.Get(Orm, OrderID, &orders)
+	brokerage := service.Configuration.GetBrokerageConfiguration(orders.OID)
 
 	ogs, err := service.FindOrdersGoodsByOrdersID(tx, orders.ID)
 	var Brokerage uint
@@ -151,7 +156,13 @@ func (service OrdersService) FirstSettlementUserBrokerage(tx *gorm.DB, orders mo
 		value := ogs[i].(*model.OrdersGoods)
 		//var specification model.Specification
 		//util.JSONToStruct(value.Specification, &specification)
-		Brokerage = Brokerage + value.TotalBrokerage
+		//Brokerage = Brokerage + value.TotalBrokerage
+		if brokerage.Type == configuration.BrokeragePRODUCT {
+			Brokerage = Brokerage + value.SellPrice
+		}
+		if brokerage.Type == configuration.BrokerageCUSTOM {
+			Brokerage = Brokerage + value.TotalBrokerage
+		}
 	}
 
 	//var orderUser model.User
@@ -160,14 +171,7 @@ func (service OrdersService) FirstSettlementUserBrokerage(tx *gorm.DB, orders mo
 		return gorm.ErrRecordNotFound
 	}
 
-	leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve1).V)
-	leve2 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve2).V)
-	leve3 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve3).V)
-	leve4 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve4).V)
-	leve5 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve5).V)
-	leve6 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve6).V)
-
-	leves := []uint{leve1, leve2, leve3, leve4, leve5, leve6}
+	leves := []uint{brokerage.Leve1, brokerage.Leve2, brokerage.Leve3, brokerage.Leve4, brokerage.Leve5, brokerage.Leve6}
 
 	//var OutBrokerageMoney int64 = 0
 	for index, value := range leves {
@@ -204,13 +208,21 @@ func (service OrdersService) MinusSettlementUserBrokerage(tx *gorm.DB, orders *m
 	//用户自己。下单者
 	//Orm:=singleton.Orm()
 
+	brokerage := service.Configuration.GetBrokerageConfiguration(orders.OID)
+
 	ogs, err := service.FindOrdersGoodsByOrdersID(tx, orders.ID)
 	var Brokerage uint
 	for i := range ogs {
 		value := ogs[i].(*model.OrdersGoods)
 		//var specification model.Specification
 		//util.JSONToStruct(value.Specification, &specification)
-		Brokerage = Brokerage + value.TotalBrokerage
+		//Brokerage = Brokerage + value.TotalBrokerage
+		if brokerage.Type == configuration.BrokeragePRODUCT {
+			Brokerage = Brokerage + value.SellPrice
+		}
+		if brokerage.Type == configuration.BrokerageCUSTOM {
+			Brokerage = Brokerage + value.TotalBrokerage
+		}
 	}
 
 	//var orders model.Orders
@@ -223,14 +235,7 @@ func (service OrdersService) MinusSettlementUserBrokerage(tx *gorm.DB, orders *m
 		return gorm.ErrRecordNotFound
 	}
 
-	leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve1).V)
-	leve2 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve2).V)
-	leve3 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve3).V)
-	leve4 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve4).V)
-	leve5 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve5).V)
-	leve6 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve6).V)
-
-	leves := []uint{leve1, leve2, leve3, leve4, leve5, leve6}
+	leves := []uint{brokerage.Leve1, brokerage.Leve2, brokerage.Leve3, brokerage.Leve4, brokerage.Leve5, brokerage.Leve6}
 
 	//var OutBrokerageMoney int64 = 0
 	for _, value := range leves {
@@ -549,12 +554,13 @@ func (service OrdersService) TakeDeliver(OrdersID dao.PrimaryKey) error {
 			return err
 		}
 
-		var Brokerage uint
+		var ogsList []*model.OrdersGoods
 		for i := range ogs {
 			value := ogs[i].(*model.OrdersGoods)
 			//var specification model.Specification
 			//util.JSONToStruct(value.Specification, &specification)
-			Brokerage = Brokerage + value.TotalBrokerage
+			//Brokerage = Brokerage + value.TotalBrokerage
+			ogsList = append(ogsList, value)
 		}
 
 		/*err = service.CardItem.AddOrdersGoodsCardItem(tx, orders, ogs)
@@ -566,12 +572,11 @@ func (service OrdersService) TakeDeliver(OrdersID dao.PrimaryKey) error {
 		//err = service.CardItem.AddOrdersGoodsCardItem()
 
 		//Orm *gorm.DB, UserID uint, Brokerage uint, TargetID uint, PayMenoy uint
-		err = service.Settlement.SettlementUser(tx, Brokerage, orders)
+		err = service.Settlement.SettlementUser(tx, ogsList, orders)
 		if err != nil {
 			tx.Rollback()
 			return err
 		} else {
-
 			tx.Commit()
 			go func(ogs []dao.IEntity) {
 				for i := range ogs {
@@ -1239,13 +1244,13 @@ func (service OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, Go
 		return errors.New("产品与规格不匹配")
 	}
 
-	shoppingCart := model.ShoppingCart{}
-	shoppingCart.Quantity = Quantity
-	shoppingCart.Specification = util.StructToJSON(specification)
-	shoppingCart.Goods = util.StructToJSON(goods)
-	shoppingCart.UserID = UserID
+	//shoppingCart := model.ShoppingCart{}
+	//shoppingCart.Quantity = Quantity
+	//shoppingCart.Specification = util.StructToJSON(specification)
+	//shoppingCart.Goods = util.StructToJSON(goods)
+	//shoppingCart.UserID = UserID
 
-	ordersGoods, err := service.createOrdersGoods(&shoppingCart)
+	ordersGoods, err := service.createOrdersGoods(goods.ID, specification.ID, Quantity)
 	if err != nil {
 		return err
 	}
@@ -1285,13 +1290,13 @@ func (service OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, G
 		return nil, errors.New("产品与规格不匹配")
 	}
 
-	shoppingCart := model.ShoppingCart{}
-	shoppingCart.Quantity = Quantity
-	shoppingCart.Specification = util.StructToJSON(specification)
-	shoppingCart.Goods = util.StructToJSON(goods)
-	shoppingCart.UserID = UserID
+	//shoppingCart := model.ShoppingCart{}
+	//shoppingCart.Quantity = Quantity
+	//shoppingCart.Specification = util.StructToJSON(specification)
+	//shoppingCart.Goods = util.StructToJSON(goods)
+	//shoppingCart.UserID = UserID
 
-	ordersGoods, err := service.createOrdersGoods(&shoppingCart)
+	ordersGoods, err := service.createOrdersGoods(goods.ID, specification.ID, Quantity)
 	if err != nil {
 		return nil, err
 	}
@@ -1305,31 +1310,19 @@ func (service OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, G
 }
 
 // 从购买车提交的订单，通过 ShoppingCart ID,生成  OrdersGoods 列表,添加到 play.SessionConfirmOrders
-func (service OrdersService) AddCartOrdersByShoppingCartIDs(ctx constrain.IContext, UserID dao.PrimaryKey, IDs []string) error {
-	//Orm := Orm()
-	//var scs []model.ShoppingCart
+/*func (service OrdersService) AddCartOrdersByShoppingCartIDs(ctx constrain.IContext, UserID dao.PrimaryKey, IDs []string) error {
 	scs := service.ShoppingCart.GetGSIDs(UserID, IDs)
-	/*err := Orm.Where(IDs).Find(&scs).Error
-	if err != nil {
-		return err
-	}*/
 	ogs := make([]*extends.OrdersGoods, 0)
 	for _, value := range scs {
-
 		ordersGoods, err := service.createOrdersGoods(&value)
 		if err != nil {
 			return err
 		}
-
 		ogs = append(ogs, ordersGoods)
 	}
-
 	ctx.Redis().Set(ctx, redis.NewConfirmOrders(ctx.UID()), &ogs, 24*time.Hour)
-	//Session.Attributes.Put(gweb.AttributesKey(string(play.SessionConfirmOrders)), &ogs)
-
 	return nil
-
-}
+}*/
 func (service OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*extends.OrdersGoods, error) {
 	ordersGoods := &extends.OrdersGoods{}
 
@@ -1365,6 +1358,8 @@ func (service OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*exten
 	ordersGoods.OID = goods.OID
 	ordersGoods.Quantity = data.Quantity
 
+	ordersGoods.Image = data.Image
+
 	ordersGoods.OrdersGoodsNo = data.OrdersGoodsNo
 	ordersGoods.Discounts = discountList
 	ordersGoods.Status = data.Status
@@ -1380,20 +1375,23 @@ func (service OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*exten
 	ordersGoods.SkuLabelDataMap = goodsSkuData.SkuLabelDataMap
 	return ordersGoods, nil
 }
-func (service OrdersService) createOrdersGoods(shoppingCart *model.ShoppingCart) (*extends.OrdersGoods, error) {
+func (service OrdersService) createOrdersGoods(goodsID dao.PrimaryKey, specificationID dao.PrimaryKey, quantity uint) (*extends.OrdersGoods, error) {
 	ordersGoods := &extends.OrdersGoods{}
-	var goods model.Goods
-	var specification model.Specification
+	//var goods model.Goods
+	//var specification model.Specification
 	//var timesell model.TimeSell
 
-	err := util.JSONToStruct(shoppingCart.Goods, &goods)
+	goods := dao.GetByPrimaryKey(db.Orm(), &model.Goods{}, goodsID).(*model.Goods)
+	specification := dao.GetByPrimaryKey(db.Orm(), &model.Specification{}, specificationID).(*model.Specification)
+
+	/*err := util.JSONToStruct(shoppingCart.Goods, &goods)
 	if err != nil {
 		return nil, err
-	}
-	err = util.JSONToStruct(shoppingCart.Specification, &specification)
+	}*/
+	/*err = util.JSONToStruct(shoppingCart.Specification, &specification)
 	if err != nil {
 		return nil, err
-	}
+	}*/
 
 	/*err := service.Goods.Get(Orm, shoppingCart.GoodsID, &goods)
 	if err != nil {
@@ -1412,19 +1410,19 @@ func (service OrdersService) createOrdersGoods(shoppingCart *model.ShoppingCart)
 		//return errors.New("找不到规格")
 		return nil, errors.New("找不到规格")
 	}
-	if specification.Stock-shoppingCart.Quantity < 0 {
+	if specification.Stock-quantity < 0 {
 		//return errors.New(specification.Label + "库存不足")
 		//ordersGoods.AddError("库存不足")
 		//shoppingCart.Quantity = specification.Stock
 		return nil, errors.New("库存不足")
 	}
 
-	ordersGoods.Specification = &specification
-	ordersGoods.Goods = &goods
+	ordersGoods.Specification = specification
+	ordersGoods.Goods = goods
 	ordersGoods.OID = goods.OID
 	//ordersGoods.GoodsID = goods.ID
 	//ordersGoods.SpecificationID = specification.ID
-	ordersGoods.Quantity = shoppingCart.Quantity
+	ordersGoods.Quantity = quantity
 	ordersGoods.CostPrice = specification.MarketPrice
 	ordersGoods.SellPrice = specification.MarketPrice
 	ordersGoods.OrdersGoodsNo = tool.UUID()
@@ -1486,6 +1484,7 @@ func (service OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list [
 			Status:         value.OrdersGoods.Status,
 			RefundInfo:     value.OrdersGoods.RefundInfo,
 			OrdersID:       orders.ID,
+			Image:          value.OrdersGoods.Image,
 			Goods:          util.StructToJSON(value.OrdersGoods.Goods),
 			Specification:  util.StructToJSON(value.OrdersGoods.Specification),
 			GoodsSkus:      util.StructToJSON(goodsSkuList),
@@ -1624,8 +1623,11 @@ func (service OrdersService) goodsSkuData(tx *gorm.DB, goodsID dao.PrimaryKey, s
 			for _, labelIndex := range specificationLabelIndex {
 				if item.ID == labelIndex {
 					goodsSkuLabelDataMap[item.ID] = item
-					if len(item.Image) > 0 {
-						skuImages = append(skuImages, item.Image)
+
+					if v, ok := goodsSkuLabelMap[item.GoodsSkuLabelID]; ok {
+						if len(item.Image) > 0 && v.Image {
+							skuImages = append(skuImages, item.Image)
+						}
 					}
 					break
 				}
@@ -1671,6 +1673,14 @@ func (service OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Addre
 		value.SkuLabelMap = goodsSkuData.SkuLabelMap
 		value.SkuLabelDataMap = goodsSkuData.SkuLabelDataMap
 
+		if len(value.SkuImages) > 0 {
+			value.Image = value.SkuImages[len(value.SkuImages)-1]
+		} else {
+			if len(value.Goods.Images) > 0 {
+				value.Image = value.Goods.Images[0]
+			}
+		}
+
 		/*if PostType == 1 {
 			//邮寄时，才判断库存
 			if int64(value.Specification.Stock-value.Quantity) < 0 {
@@ -1701,12 +1711,13 @@ func (service OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Addre
 
 		//计算价格以及优惠
 		if len(value.Discounts) > 0 {
-			for index := range value.Discounts {
-				favoured := value.Discounts[index]
-				Price = uint(util.Rounding45(float64(Price)-(float64(Price)*(float64(favoured.Discount)/float64(100))), 2))
+			for i := range value.Discounts {
+				discount := value.Discounts[i]
+				Price = uint(util.Rounding45(float64(Price)-(float64(Price)*(float64(discount.Discount)/float64(100))), 2))
 				analyseResult.GoodsPrice = analyseResult.GoodsPrice + Price
-				Favoured := uint(util.Rounding45(float64(value.SellPrice)*(float64(favoured.Discount)/float64(100)), 2))
+				Favoured := uint(util.Rounding45(float64(value.SellPrice)*(float64(discount.Discount)/float64(100)), 2))
 				analyseResult.FavouredPrice = analyseResult.FavouredPrice + (Favoured * uint(value.Quantity))
+
 				value.SellPrice = value.SellPrice - Favoured
 			}
 			ogs.Discounts = value.Discounts
@@ -1742,10 +1753,9 @@ func (service OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Addre
 				nmw.W = nmw.W + int(weight)
 				expresstemplateMap[value.Goods.ExpressTemplateID] = nmw
 			}
-
 		}
-
 	}
+
 	//计算快满减
 	for index, value := range fullCuts {
 		if FullCutPrice >= value.Amount {
@@ -1855,13 +1865,12 @@ func (service OrdersService) AddCartOrders(UserID dao.PrimaryKey, GoodsID, Speci
 	have := false
 	for _, value := range shoppingCarts {
 		shoppingCart := value.(*model.ShoppingCart)
-		var mgoods model.Goods
-		var mspecification model.Specification
-		util.JSONToStruct(shoppingCart.Goods, &mgoods)
-		util.JSONToStruct(shoppingCart.Specification, &mspecification)
+		//var mgoods model.Goods
+		//var mspecification model.Specification
+		//util.JSONToStruct(shoppingCart.Goods, &mgoods)
+		//util.JSONToStruct(shoppingCart.Specification, &mspecification)
 
-		if mgoods.ID == goods.ID && mspecification.ID == specification.ID {
-
+		if shoppingCart.GoodsID == goods.ID && shoppingCart.SpecificationID == specification.ID {
 			//已经存在，添加数量
 			shoppingCart.Quantity = shoppingCart.Quantity + Quantity
 			if shoppingCart.Quantity > specification.Stock {
@@ -1882,8 +1891,8 @@ func (service OrdersService) AddCartOrders(UserID dao.PrimaryKey, GoodsID, Speci
 		sc := model.ShoppingCart{}
 		sc.UserID = UserID
 		sc.Quantity = Quantity
-		sc.Specification = util.StructToJSON(specification)
-		sc.Goods = util.StructToJSON(goods)
+		//sc.Specification = util.StructToJSON(specification)
+		//sc.Goods = util.StructToJSON(goods)
 		//sc.GSID = strconv.Itoa(int(goods.ID)) + strconv.Itoa(int(specification.ID))
 		sc.GoodsID = goods.ID
 		sc.SpecificationID = specification.ID

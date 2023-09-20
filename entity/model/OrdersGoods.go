@@ -33,6 +33,7 @@ type OrdersGoods struct {
 	SellPrice      uint              `gorm:"column:SellPrice"`      //单价-销售价
 	TotalBrokerage uint              `gorm:"column:TotalBrokerage"` //总佣金
 	Error          string            `gorm:"column:Error"`          //
+	Image          string            `gorm:"column:Image"`          //当前规格的图片，如果规格没有图片，使用产品主图的第一张
 	//SpecificationID uint `gorm:"column:SpecificationID"`             //
 	//CollageNo     string `gorm:"column:CollageNo"` //拼团码，每个订单都是唯一
 	//TimeSellID     uint `gorm:"column:TimeSellID"`             //限时抢购ID

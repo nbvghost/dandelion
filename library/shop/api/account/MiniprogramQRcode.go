@@ -63,6 +63,7 @@ func (g *MiniprogramQRcode) Handle(ctx constrain.IContext) (constrain.IResult, e
 	postData["page"] = g.Get.Page
 	postData["width"] = 600
 	postData["auto_color"] = true
+	postData["check_path"] = false
 
 	body := strings.NewReader(util.StructToJSON(postData))
 	//postData := url.Values{}

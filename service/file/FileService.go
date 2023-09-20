@@ -110,7 +110,7 @@ func (m FileService) DownNetWriteAliyunOSS(url string) (string, error) {
 }
 func (m FileService) WriteTempFile(fileBytes []byte, ContentType string) (string, error) {
 
-	md5Name := encryption.Md5ByBytes(fileBytes)
+	md5Name := strings.ToLower(encryption.Md5ByBytes(fileBytes))
 	var f *os.File
 
 	fileTypes := strings.Split(ContentType, "/")

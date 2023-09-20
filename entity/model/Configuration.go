@@ -15,6 +15,7 @@ const (
 	ConfigurationKeyComponentVerifyTicket ConfigurationKey = "ComponentVerifyTicket"
 	ConfigurationKeyPoster                ConfigurationKey = "Poster"
 	ConfigurationKeyScoreConvertGrowValue ConfigurationKey = "ScoreConvertGrowValue"
+	ConfigurationKeyBrokerageType         ConfigurationKey = "BrokerageType" //PRODUCT,CUSTOM
 	ConfigurationKeyBrokerageLeve1        ConfigurationKey = "BrokerageLeve1"
 	ConfigurationKeyBrokerageLeve2        ConfigurationKey = "BrokerageLeve2"
 	ConfigurationKeyBrokerageLeve3        ConfigurationKey = "BrokerageLeve3"

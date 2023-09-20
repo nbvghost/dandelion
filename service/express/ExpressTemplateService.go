@@ -76,13 +76,13 @@ func (b ExpressTemplateService) GetExpressInfo(OrdersID dao.PrimaryKey, Logistic
 func (b ExpressTemplateService) GetExpressTemplateByName(Name string) model.ExpressTemplate {
 	Orm := db.Orm()
 	var list model.ExpressTemplate
-	Orm.Model(&model.ExpressTemplate{}).Where("Name=?", Name).Find(&list)
+	Orm.Model(&model.ExpressTemplate{}).Where(`"Name"=?`, Name).Find(&list)
 	return list
 }
 func (b ExpressTemplateService) GetExpressTemplateByOID(OID dao.PrimaryKey) model.ExpressTemplate {
 	Orm := db.Orm()
 	var list model.ExpressTemplate
-	Orm.Model(&model.ExpressTemplate{}).Where("OID=?", OID).Find(&list)
+	Orm.Model(&model.ExpressTemplate{}).Where(`"OID"=?`, OID).First(&list)
 	return list
 }
 func (b ExpressTemplateService) SaveExpressTemplate(target *model.ExpressTemplate) error {

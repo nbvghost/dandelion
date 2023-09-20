@@ -145,16 +145,16 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 					return err
 				}
 
-				var Brokerage uint
+				var ogsList []*model.OrdersGoods
 				for i := range ogs {
 					value := ogs[i].(*model.OrdersGoods)
 					//var specification model.Specification
 					//util.JSONToStruct(value.Specification, &specification)
-					Brokerage = Brokerage + value.TotalBrokerage
+					ogsList = append(ogsList, value)
 				}
 
 				//线下订单，由核销后结算给用户。邮寄快递，由确定收货时，结算。
-				err = service.Settlement.SettlementUser(DB, Brokerage, orders)
+				err = service.Settlement.SettlementUser(DB, ogsList, orders)
 				if err != nil {
 					return err
 				}

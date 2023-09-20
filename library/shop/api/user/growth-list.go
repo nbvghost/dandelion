@@ -22,7 +22,7 @@ func (m *GrowthList) Handle(context constrain.IContext) (constrain.IResult, erro
 	var Order string
 	if strings.EqualFold(m.Get.Order, "asc") {
 		Order = `"Growth" asc`
-	} else if strings.EqualFold(Order, "desc") {
+	} else if strings.EqualFold(m.Get.Order, "desc") {
 		Order = `"Growth" desc`
 	} else {
 		Order = `"Growth" asc`

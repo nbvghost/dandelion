@@ -9,7 +9,6 @@ import (
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/activity"
 	"github.com/nbvghost/dandelion/service/company"
 	"github.com/nbvghost/dandelion/service/goods"
@@ -46,12 +45,13 @@ func (service ShoppingCartService) UpdateByUserIDAndID(db *gorm.DB, UserID dao.P
 		return err
 	}*/
 
-	var specification model.Specification
-	util.JSONToStruct(_sc.Specification, &specification)
+	//var specification model.Specification
+	//util.JSONToStruct(_sc.Specification, &specification)
 	/*err = service.Goods.GetSpecification(_sc.SpecificationID, &specification)
 	if err != nil {
 		return err
 	}*/
+	specification := dao.GetByPrimaryKey(db, &model.Specification{}, SpecificationID).(*model.Specification)
 	if _sc.Quantity > specification.Stock {
 		_sc.Quantity = specification.Stock
 	}

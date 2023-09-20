@@ -31,8 +31,8 @@ type SettlementService struct {
 	User          user.UserService
 }
 
-//结算佣金，结算积分，结算成长值，是否送福利卷
-func (service SettlementService) SettlementUser(Orm *gorm.DB, Brokerage uint, orders *model.Orders) error {
+// 结算佣金，结算积分，结算成长值，是否送福利卷
+func (service SettlementService) SettlementUser(Orm *gorm.DB, ordersGoodsList []*model.OrdersGoods, orders *model.Orders) error {
 	var err error
 	//用户自己。下单者
 
@@ -41,27 +41,36 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, Brokerage uint, or
 
 	//var user model.User
 	//service.Get(Orm, orders.UserID, &user)
-	user := dao.GetByPrimaryKey(Orm, &model.User{}, orders.UserID).(*model.User)
+	u := dao.GetByPrimaryKey(Orm, &model.User{}, orders.UserID).(*model.User)
 	//fmt.Println(user.Name)
 
-	leve1 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve1).V)
-	leve2 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve2).V)
-	leve3 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve3).V)
-	leve4 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve4).V)
-	leve5 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve5).V)
-	leve6 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve6).V)
+	brokerage := service.Configuration.GetBrokerageConfiguration(orders.OID) //service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageType)
 
-	leves := []uint{leve1, leve2, leve3, leve4, leve5, leve6}
+	var Brokerage uint
+	for i := range ordersGoodsList {
+		value := ordersGoodsList[i]
+		//var specification model.Specification
+		//util.JSONToStruct(value.Specification, &specification)
+
+		if brokerage.Type == configuration.BrokeragePRODUCT {
+			Brokerage = Brokerage + value.SellPrice
+		}
+		if brokerage.Type == configuration.BrokerageCUSTOM {
+			Brokerage = Brokerage + value.TotalBrokerage
+		}
+	}
+
+	leves := []uint{brokerage.Leve1, brokerage.Leve2, brokerage.Leve3, brokerage.Leve4, brokerage.Leve5, brokerage.Leve6}
 
 	GrowValue := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyScoreConvertGrowValue).V)
 
-	user.Score = user.Score + orders.PayMoney
-	user.Growth = user.Growth + (uint(math.Floor(float64(orders.PayMoney)/100+0.5)) * GrowValue)
-	err = dao.UpdateByPrimaryKey(Orm, &model.User{}, user.ID, &model.User{Growth: user.Growth})
+	u.Score = u.Score + orders.PayMoney
+	u.Growth = u.Growth + (uint(math.Floor(float64(orders.PayMoney)/100+0.5)) * GrowValue)
+	err = dao.UpdateByPrimaryKey(Orm, &model.User{}, u.ID, &model.User{Growth: u.Growth})
 	if err != nil {
 		return err
 	}
-	err = service.Journal.AddScoreJournal(Orm, user.ID, "积分", "购买商品", play.ScoreJournal_Type_GM, int64(user.Score), extends.KV{Key: "OrdersID", Value: orders.ID})
+	err = service.Journal.AddScoreJournal(Orm, u.ID, "积分", "购买商品", play.ScoreJournal_Type_GM, int64(u.Score), extends.KV{Key: "OrdersID", Value: orders.ID})
 	if err != nil {
 		return err
 	}
@@ -89,13 +98,13 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, Brokerage uint, or
 			break
 		}
 		//var _user model.User
-		_user := dao.GetByPrimaryKey(Orm, &model.User{}, user.SuperiorID).(*model.User)
+		_user := dao.GetByPrimaryKey(Orm, &model.User{}, u.SuperiorID).(*model.User)
 		if _user.ID <= 0 {
 			return nil
 		}
 
 		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
-		err = service.Journal.AddUserJournal(Orm, _user.ID, "佣金", strconv.Itoa(index+1)+"级用户", play.UserJournal_Type_LEVE, leveMenoy, extends.KV{Key: "OrdersID", Value: orders.ID}, user.ID)
+		err = service.Journal.AddUserJournal(Orm, _user.ID, "佣金", strconv.Itoa(index+1)+"级用户", play.UserJournal_Type_LEVE, leveMenoy, extends.KV{Key: "OrdersID", Value: orders.ID}, u.ID)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -123,7 +132,7 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, Brokerage uint, or
 
 		service.MessageNotify.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "收入："+strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64)+"元")
 
-		user = _user
+		u = _user
 	}
 
 	return nil

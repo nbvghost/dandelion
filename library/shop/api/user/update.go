@@ -41,7 +41,7 @@ func (m *Update) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		avatar, err := oss.UploadAvatar(ctx, m.User.ID, decodeString)
+		avatar, err := oss.UploadAvatar(ctx, m.User.OID, m.User.ID, decodeString)
 		if err != nil {
 			return nil, err
 		}

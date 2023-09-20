@@ -5,6 +5,11 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 )
 
+type OrdersGoodsInfo struct {
+	OrdersGoods *OrdersGoods
+	Discounts   []Discount
+}
+
 // 商家订单计算结构，
 type ConfirmOrdersGoods struct {
 	//Organization     *model.Organization //如果涉及多个商家的订单的话，则使用OrdersGoodsInfos[].OrdersGoods.OID来区分
@@ -31,6 +36,7 @@ type OrdersGoods struct {
 	CostPrice       uint                                        //单价-原价
 	SellPrice       uint                                        //单价-销售价
 	TotalBrokerage  uint                                        //总佣金
+	Image           string                                      //当前规格的图片，如果规格没有图片，使用产品主图的第一张
 	SkuImages       []string                                    //
 	SkuLabelMap     map[dao.PrimaryKey]*model.GoodsSkuLabel     //
 	SkuLabelDataMap map[dao.PrimaryKey]*model.GoodsSkuLabelData //

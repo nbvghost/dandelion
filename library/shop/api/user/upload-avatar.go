@@ -4,6 +4,7 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/oss"
 	"github.com/nbvghost/dandelion/entity"
+	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
@@ -16,9 +17,10 @@ import (
 type UploadAvatar struct {
 	UserService user.UserService
 	Post        struct {
-		File   *multipart.FileHeader `form:"file"`
-		UserID dao.PrimaryKey        `form:"uid"`
+		File *multipart.FileHeader `form:"file"`
+		//UserID dao.PrimaryKey        `form:"uid"`
 	} `method:"Post"`
+	User *model.User `mapping:""`
 }
 
 func (m *UploadAvatar) Handle(context constrain.IContext) (r constrain.IResult, err error) {
@@ -29,7 +31,7 @@ func (m *UploadAvatar) HandlePost(context constrain.IContext) (r constrain.IResu
 	if err != nil {
 		return nil, err
 	}
-	if m.Post.UserID == 0 {
+	if m.User.ID == 0 {
 		return nil, errors.New("数据错误")
 	}
 	fBytes, err := io.ReadAll(f)
@@ -38,7 +40,7 @@ func (m *UploadAvatar) HandlePost(context constrain.IContext) (r constrain.IResu
 	}
 
 	changeMap := map[string]any{}
-	avatar, err := oss.UploadAvatar(context, m.Post.UserID, fBytes)
+	avatar, err := oss.UploadAvatar(context, m.User.OID, m.User.ID, fBytes)
 	if err != nil {
 		return nil, err
 	}
@@ -48,11 +50,11 @@ func (m *UploadAvatar) HandlePost(context constrain.IContext) (r constrain.IResu
 	changeMap["Portrait"], err = oss.ReadUrl(context, avatar.Data.Path)
 
 	if len(changeMap) > 0 {
-		err := dao.UpdateByPrimaryKey(db.Orm(), entity.User, m.Post.UserID, changeMap)
+		err := dao.UpdateByPrimaryKey(db.Orm(), entity.User, m.User.ID, changeMap)
 		if err != nil {
 			return &result.JsonResult{Data: &result.ActionResult{Code: result.Fail, Message: err.Error(), Data: nil}}, err
 		}
 	}
-	user := dao.GetByPrimaryKey(db.Orm(), entity.User, m.Post.UserID)
+	user := dao.GetByPrimaryKey(db.Orm(), entity.User, m.User.ID)
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "OK", Data: map[string]any{"User": user}}}, nil
 }
