@@ -23,5 +23,5 @@ type Message struct {
 
 func (m *Message) Handle(context constrain.IContext) (r constrain.IResult, err error) {
 	log.Println("message", m.Get.OID, m.Get.Signature, m.Get.Timestamp, m.Get.Nonce, m.Get.EchoStr)
-	return result.NewTextResult("success"), nil
+	return result.NewTextResult(m.Get.EchoStr), nil
 }
