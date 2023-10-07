@@ -13,7 +13,6 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
-	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
 	"github.com/golang/protobuf/proto"
@@ -112,9 +111,14 @@ type service struct {
 	server     config.MicroServerConfig
 	routes     map[string]*route.RouteInfo
 	redis      constrain.IRedis
+	etcdServer constrain.IEtcd
 	grpcServer *grpc.Server
 	option     Option
 	callbacks  []constrain.IMappingCallback
+}
+
+func (m *service) Server() *grpc.Server {
+	return m.grpcServer
 }
 
 func loggersss(format string, a ...interface{}) {
@@ -200,6 +204,7 @@ func (m *service) AddCallback(callbacks ...constrain.IMappingCallback) {
 	m.callbacks = append(m.callbacks, callbacks...)
 }
 func (m *service) Listen() {
+
 	var ip = m.server.IP
 	var port = m.server.Port
 	if ip == "" {
@@ -234,21 +239,28 @@ func (m *service) Listen() {
 	//s := grpc.NewServer()
 	defer m.grpcServer.Stop()
 
+	desc, err = m.etcdServer.Register(serviceobject.NewServerDesc(desc.MicroServer, desc.Port, desc.IP))
+	if err != nil {
+		panic(err)
+	}
+
 	if err = m.option(desc, m.grpcServer); err != nil {
 		log.Fatalln(err)
 	}
-	reflection.Register(m.grpcServer)
+	//reflection.Register(m.grpcServer)
+
 	if err = m.grpcServer.Serve(lis); err != nil {
 		log.Fatalln(err)
 	}
 }
 
-func New(server config.MicroServerConfig, redis constrain.IRedis, option Option, serverOptions ...grpc.ServerOption) IGrpc {
+func New(server config.MicroServerConfig, redis constrain.IRedis, etcdServer constrain.IEtcd, option Option, serverOptions ...grpc.ServerOption) IGrpc {
 	return &service{
 		server:     server,
 		routes:     make(map[string]*route.RouteInfo),
 		option:     option,
 		redis:      redis,
+		etcdServer: etcdServer,
 		grpcServer: grpc.NewServer(serverOptions...),
 	}
 }

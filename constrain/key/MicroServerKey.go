@@ -20,6 +20,6 @@ var (
 	MicroServerSITE       = MicroServer{Name: "dandelion.site", ServerType: ServerTypeHttp}
 	MicroServersShop      = MicroServer{Name: "dandelion.shop", ServerType: ServerTypeHttp}
 	MicroServerMANAGER    = MicroServer{Name: "dandelion.manager", ServerType: ServerTypeHttp}
-	MicroServerMimiServer = MicroServer{Name: "mimi.server", ServerType: ServerTypeHttp}
+	MicroServerMimiServer = MicroServer{Name: "mimi.server", ServerType: ServerTypeGrpc}
 	MicroServerMiniapp    = MicroServer{Name: "miniapp", ServerType: ServerTypeHttp}
 )

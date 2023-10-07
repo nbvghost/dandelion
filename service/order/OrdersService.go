@@ -1062,7 +1062,7 @@ func (service OrdersService) OrderNotify(totalFee uint, outTradeNo string, payTi
 	//TimeEnd := result["time_end"]
 	//attach := result["attach"]
 
-	if strings.EqualFold(attach, play.OrdersType_Supply) {
+	if strings.EqualFold(attach, play.OrdersTypeSupply) {
 		//充值的，目前只涉及到门店自主核销的时候，才需要用到充值
 		orders := service.GetSupplyOrdersByOrderNo(outTradeNo)
 		if orders.IsPay == 0 {
@@ -1092,7 +1092,7 @@ func (service OrdersService) OrderNotify(totalFee uint, outTradeNo string, payTi
 			return "", errors.New("订单已经处理或过期")
 		}
 
-	} else if strings.EqualFold(attach, play.OrdersType_GoodsPackage) { //合并商品订单
+	} else if strings.EqualFold(attach, play.OrdersTypeGoodsPackage) { //合并商品订单
 		tx := db.Orm().Begin()
 		ordersPackage := service.GetOrdersPackageByOrderNo(outTradeNo)
 		if ordersPackage.TotalPayMoney == totalFee {
@@ -1122,7 +1122,7 @@ func (service OrdersService) OrderNotify(totalFee uint, outTradeNo string, payTi
 			return "", errors.New("金额不正确或订单不允许")
 		}
 
-	} else if strings.EqualFold(attach, play.OrdersType_Goods) { //商品订单
+	} else if strings.EqualFold(attach, play.OrdersTypeGoods) { //商品订单
 		//orders.PayMoney == total_fee.
 		tx := db.Orm().Begin()
 		orders := service.GetOrdersByOrderNo(outTradeNo)
@@ -1158,7 +1158,6 @@ func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, 
 				//邮寄
 				err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, &model.Orders{PayTime: payTime, IsPay: 1, Status: model.OrdersStatusPay})
 				if err != nil {
-
 					return false, err.Error()
 				}
 				/*ogs, err := service.OrdersGoods.FindByOrdersID(tx, orders.ID)
@@ -1177,7 +1176,6 @@ func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, 
 				//线下使用
 				err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, &model.Orders{PayTime: payTime, IsPay: 1, Status: model.OrdersStatusPay})
 				if err != nil {
-
 					return false, err.Error()
 				}
 

@@ -47,7 +47,7 @@ func (m *WXPayPackage) Handle(ctx constrain.IContext) (constrain.IResult, error)
 
 	}
 
-	Success, Message, Result := m.WxService.MPOrder(ctx, orders.OrderNo, "购物", "商品消费", []model.OrdersGoods{}, m.User.OpenID, ip, orders.TotalPayMoney, play.OrdersType_GoodsPackage, m.WechatConfig)
+	Success, Message, Result := m.WxService.MPOrder(ctx, orders.OrderNo, "购物", "商品消费", []model.OrdersGoods{}, m.User.OpenID, ip, orders.TotalPayMoney, play.OrdersTypeGoodsPackage, m.WechatConfig)
 	if Success != result.Success {
 		return &result.JsonResult{Data: &result.ActionResult{Code: Success, Message: Message, Data: Result}}, nil
 	}

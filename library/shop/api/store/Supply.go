@@ -46,7 +46,7 @@ func (m *Supply) HandlePost(context constrain.IContext) (constrain.IResult, erro
 
 	WxConfig := m.WechatConfig
 
-	Success, Message, Result := m.Wx.Order(context, supply.OrderNo, "门店", "充值", "", m.User.OpenID, ip, m.Post.PayMoney, play.OrdersType_Supply, WxConfig)
+	Success, Message, Result := m.Wx.Order(context, supply.OrderNo, "门店", "充值", "", m.User.OpenID, ip, m.Post.PayMoney, play.OrdersTypeSupply, WxConfig)
 	if Success != result.Success {
 		return &result.JsonResult{Data: &result.ActionResult{Code: Success, Message: Message, Data: Result}}, nil
 	}

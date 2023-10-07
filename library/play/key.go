@@ -57,9 +57,9 @@ const (
 	CardItem_Type_ScoreGoods  = "ScoreGoods"
 )
 const (
-	OrdersType_Goods        = "Goods"        //商品购买订单
-	OrdersType_GoodsPackage = "GoodsPackage" //合并下单
-	OrdersType_Supply       = "Supply"       //充值
+	OrdersTypeGoods        = "Goods"        //商品购买订单
+	OrdersTypeGoodsPackage = "GoodsPackage" //合并下单
+	OrdersTypeSupply       = "Supply"       //充值
 )
 const (
 	SupplyType_Store = "Store" //门店充值
