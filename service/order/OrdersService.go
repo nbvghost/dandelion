@@ -62,7 +62,7 @@ func (service OrdersService) FindShoppingCartListDetails(oid dao.PrimaryKey, use
 		item := list[i].(*model.ShoppingCart)
 		orderGoods, err := service.createOrdersGoods(item.GoodsID, item.SpecificationID, item.Quantity)
 		if err != nil {
-			orderGoodsList = append(orderGoodsList, &extends.OrdersGoods{ElementStatus: extends.ElementStatus{Success: false, Message: err.Error()}})
+			orderGoodsList = append(orderGoodsList, &extends.OrdersGoods{ElementStatus: extends.ElementStatus{IsError: true, Error: err.Error()}})
 		} else {
 			orderGoodsList = append(orderGoodsList, orderGoods)
 		}
@@ -1674,7 +1674,7 @@ func (service OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Addre
 
 		ogs := extends.OrdersGoodsInfo{}
 
-		if value.ElementStatus.Success == false {
+		if value.ElementStatus.IsError {
 			ogs.OrdersGoods = value
 			oggs = append(oggs, ogs)
 			continue

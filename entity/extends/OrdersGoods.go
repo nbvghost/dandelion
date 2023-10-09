@@ -12,8 +12,8 @@ type OrdersGoodsInfo struct {
 
 // ElementStatus 由于要把列表中的每一项的状态告诉前端，增加这个结构给列表中的每项做标记
 type ElementStatus struct {
-	Success bool
-	Message string
+	IsError bool
+	Error   string
 }
 
 // ConfirmOrdersGoods 商家订单计算结构，
