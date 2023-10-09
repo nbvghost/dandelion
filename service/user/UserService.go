@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/db"
 	"log"
@@ -240,6 +241,8 @@ func (service UserService) AddUserByOpenID(Orm *gorm.DB, OID dao.PrimaryKey, Ope
 	if user.ID == 0 {
 		user.OID = OID
 		user.OpenID = OpenID
+		user.Name = fmt.Sprintf("用户%d", time.Now().Unix())
+		user.Portrait = "https://oss.sites.ink/assets/default"
 		dao.Create(Orm, user)
 	} else {
 
