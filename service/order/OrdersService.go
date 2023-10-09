@@ -55,11 +55,19 @@ type OrdersService struct {
 	User            user.UserService
 }
 
-func (service OrdersService) FindShoppingCartListDetails(oid dao.PrimaryKey, userID dao.PrimaryKey, address *model.Address) (*extends.ConfirmOrdersGoods, error) {
+type ShoppingCartResult struct {
+	ConfirmOrdersGoods *extends.ConfirmOrdersGoods
+	ShoppingCartList   []*model.ShoppingCart
+}
+
+func (service OrdersService) FindShoppingCartListDetails(oid dao.PrimaryKey, userID dao.PrimaryKey, address *model.Address) (*ShoppingCartResult, error) {
 	list := service.ShoppingCart.FindShoppingCartByUserID(userID)
+
+	shoppingCartList := make([]*model.ShoppingCart, 0)
 	orderGoodsList := make([]*extends.OrdersGoods, 0)
 	for i := range list {
 		item := list[i].(*model.ShoppingCart)
+		shoppingCartList = append(shoppingCartList, item)
 		orderGoods, err := service.createOrdersGoods(item.GoodsID, item.SpecificationID, item.Quantity)
 		if err != nil {
 			orderGoodsList = append(orderGoodsList, &extends.OrdersGoods{ElementStatus: extends.ElementStatus{IsError: true, Error: err.Error()}})
@@ -69,7 +77,15 @@ func (service OrdersService) FindShoppingCartListDetails(oid dao.PrimaryKey, use
 
 		//results[oredersGoods.OID]=append(results[oredersGoods.OID],oredersGoods)
 	}
-	return service.AnalyseOrdersGoodsList(oid, address, orderGoodsList)
+
+	confirmOrdersGoods, err := service.AnalyseOrdersGoodsList(oid, address, orderGoodsList)
+	if err != nil {
+		return nil, err
+	}
+	return &ShoppingCartResult{
+		ConfirmOrdersGoods: confirmOrdersGoods,
+		ShoppingCartList:   shoppingCartList,
+	}, nil
 }
 
 // AfterSettlementUserBrokerage 如果订单未完成，或是退款，扣除相应的冻结金额，不用结算，佣金
