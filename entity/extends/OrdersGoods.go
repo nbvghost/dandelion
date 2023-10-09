@@ -10,7 +10,13 @@ type OrdersGoodsInfo struct {
 	Discounts   []Discount
 }
 
-// 商家订单计算结构，
+// ElementStatus 由于要把列表中的每一项的状态告诉前端，增加这个结构给列表中的每项做标记
+type ElementStatus struct {
+	Success bool
+	Message string
+}
+
+// ConfirmOrdersGoods 商家订单计算结构，
 type ConfirmOrdersGoods struct {
 	//Organization     *model.Organization //如果涉及多个商家的订单的话，则使用OrdersGoodsInfos[].OrdersGoods.OID来区分
 	OrdersGoodsInfos []OrdersGoodsInfo
@@ -40,4 +46,5 @@ type OrdersGoods struct {
 	SkuImages       []string                                    //
 	SkuLabelMap     map[dao.PrimaryKey]*model.GoodsSkuLabel     //
 	SkuLabelDataMap map[dao.PrimaryKey]*model.GoodsSkuLabelData //
+	ElementStatus   ElementStatus
 }

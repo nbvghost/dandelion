@@ -62,15 +62,17 @@ func (service OrdersService) FindShoppingCartListDetails(oid dao.PrimaryKey, use
 		item := list[i].(*model.ShoppingCart)
 		orderGoods, err := service.createOrdersGoods(item.GoodsID, item.SpecificationID, item.Quantity)
 		if err != nil {
-			return nil, err
+			orderGoodsList = append(orderGoodsList, &extends.OrdersGoods{ElementStatus: extends.ElementStatus{Success: false, Message: err.Error()}})
+		} else {
+			orderGoodsList = append(orderGoodsList, orderGoods)
 		}
-		orderGoodsList = append(orderGoodsList, orderGoods)
+
 		//results[oredersGoods.OID]=append(results[oredersGoods.OID],oredersGoods)
 	}
 	return service.AnalyseOrdersGoodsList(oid, address, orderGoodsList)
 }
 
-// 如果订单未完成，或是退款，扣除相应的冻结金额，不用结算，佣金
+// AfterSettlementUserBrokerage 如果订单未完成，或是退款，扣除相应的冻结金额，不用结算，佣金
 func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *model.Orders) error {
 	var err error
 	//用户自己。下单者
@@ -281,9 +283,9 @@ func (service OrdersService) OrdersStockManager(db *gorm.DB, orders *model.Order
 		var specification model.Specification
 		//service.Get(Orm, value.SpecificationID, &specification)
 		util.JSONToStruct(value.Specification, &specification)
-		var goods model.Goods
+		var g model.Goods
 		//service.Get(Orm, value.GoodsID, &goods)
-		util.JSONToStruct(value.Goods, &goods)
+		util.JSONToStruct(value.Goods, &g)
 
 		if isMinus {
 			//减
@@ -295,11 +297,11 @@ func (service OrdersService) OrdersStockManager(db *gorm.DB, orders *model.Order
 			if err != nil {
 				return err
 			}
-			Stock = int64(goods.Stock - value.Quantity)
+			Stock = int64(g.Stock - value.Quantity)
 			if Stock < 0 {
 				Stock = 0
 			}
-			err = dao.UpdateByPrimaryKey(db, &model.Goods{}, goods.ID, map[string]interface{}{"Stock": uint(Stock)})
+			err = dao.UpdateByPrimaryKey(db, &model.Goods{}, g.ID, map[string]interface{}{"Stock": uint(Stock)})
 			if err != nil {
 				return err
 			}
@@ -313,11 +315,11 @@ func (service OrdersService) OrdersStockManager(db *gorm.DB, orders *model.Order
 			if err != nil {
 				return err
 			}
-			Stock = int64(goods.Stock + value.Quantity)
+			Stock = int64(g.Stock + value.Quantity)
 			if Stock < 0 {
 				Stock = 0
 			}
-			err = dao.UpdateByPrimaryKey(db, &model.Goods{}, goods.ID, map[string]interface{}{"Stock": uint(Stock)})
+			err = dao.UpdateByPrimaryKey(db, &model.Goods{}, g.ID, map[string]interface{}{"Stock": uint(Stock)})
 			if err != nil {
 				return err
 			}
@@ -1269,22 +1271,22 @@ func (service OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, Go
 
 }
 
-// 从商品外直接购买，生成OrdersGoods，添加到 play.SessionConfirmOrders
+// CreateOrdersGoods 从商品外直接购买，生成OrdersGoods，添加到 play.SessionConfirmOrders
 func (service OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, GoodsID, SpecificationID dao.PrimaryKey, Quantity uint) ([]*extends.OrdersGoods, error) {
 	Orm := db.Orm()
 	//var goods model.Goods
 	//var specification model.Specification
 	//var expresstemplate model.ExpressTemplate
 
-	goods := dao.GetByPrimaryKey(Orm, &model.Goods{}, GoodsID).(*model.Goods)
-	if goods.IsZero() {
+	g := dao.GetByPrimaryKey(Orm, &model.Goods{}, GoodsID).(*model.Goods)
+	if g.IsZero() {
 		return nil, gorm.ErrRecordNotFound
 	}
 	specification := dao.GetByPrimaryKey(Orm, &model.Specification{}, SpecificationID).(*model.Specification)
 	if specification.IsZero() {
 		return nil, gorm.ErrRecordNotFound
 	}
-	if specification.GoodsID != goods.ID {
+	if specification.GoodsID != g.ID {
 		return nil, errors.New("产品与规格不匹配")
 	}
 
@@ -1294,7 +1296,7 @@ func (service OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, G
 	//shoppingCart.Goods = util.StructToJSON(goods)
 	//shoppingCart.UserID = UserID
 
-	ordersGoods, err := service.createOrdersGoods(goods.ID, specification.ID, Quantity)
+	ordersGoods, err := service.createOrdersGoods(g.ID, specification.ID, Quantity)
 	if err != nil {
 		return nil, err
 	}
@@ -1324,11 +1326,11 @@ func (service OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, G
 func (service OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*extends.OrdersGoods, error) {
 	ordersGoods := &extends.OrdersGoods{}
 
-	var goods model.Goods
+	var g model.Goods
 	var specification model.Specification
 	var discountList []extends.Discount
 
-	err := util.JSONToStruct(data.Goods, &goods)
+	err := util.JSONToStruct(data.Goods, &g)
 	if err != nil {
 		return nil, err
 	}
@@ -1341,7 +1343,7 @@ func (service OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*exten
 		return nil, err
 	}
 
-	if specification.GoodsID != goods.ID {
+	if specification.GoodsID != g.ID {
 		return nil, errors.New("产品规格不匹配")
 	}
 	if specification.ID == 0 {
@@ -1352,8 +1354,8 @@ func (service OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*exten
 	}
 
 	ordersGoods.Specification = &specification
-	ordersGoods.Goods = &goods
-	ordersGoods.OID = goods.OID
+	ordersGoods.Goods = &g
+	ordersGoods.OID = g.OID
 	ordersGoods.Quantity = data.Quantity
 
 	ordersGoods.Image = data.Image
@@ -1367,7 +1369,7 @@ func (service OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*exten
 	ordersGoods.SellPrice = data.SellPrice
 	ordersGoods.TotalBrokerage = data.TotalBrokerage
 
-	goodsSkuData := service.goodsSkuData(db.Orm(), goods.ID, specification.LabelIndex)
+	goodsSkuData := service.goodsSkuData(db.Orm(), g.ID, specification.LabelIndex)
 	ordersGoods.SkuImages = goodsSkuData.SkuImages
 	ordersGoods.SkuLabelMap = goodsSkuData.SkuLabelMap
 	ordersGoods.SkuLabelDataMap = goodsSkuData.SkuLabelDataMap
@@ -1379,9 +1381,16 @@ func (service OrdersService) createOrdersGoods(goodsID dao.PrimaryKey, specifica
 	//var specification model.Specification
 	//var timesell model.TimeSell
 
-	goods := dao.GetByPrimaryKey(db.Orm(), &model.Goods{}, goodsID).(*model.Goods)
-	specification := dao.GetByPrimaryKey(db.Orm(), &model.Specification{}, specificationID).(*model.Specification)
+	g := dao.GetByPrimaryKey(db.Orm(), &model.Goods{}, goodsID).(*model.Goods)
+	if g.IsZero() {
+		return nil, errors.New("无效的商品或商品已经不存在")
+	}
 
+	specification := dao.GetByPrimaryKey(db.Orm(), &model.Specification{}, specificationID).(*model.Specification)
+	if specification.ID == 0 {
+		//return errors.New("找不到规格")
+		return nil, errors.New("无效的商品规格或商品规格已经不存在")
+	}
 	/*err := util.JSONToStruct(shoppingCart.Goods, &goods)
 	if err != nil {
 		return nil, err
@@ -1400,14 +1409,11 @@ func (service OrdersService) createOrdersGoods(goodsID dao.PrimaryKey, specifica
 	if err != nil {
 		ordersGoods.AddError(err.Error())
 	}*/
-	if specification.GoodsID != goods.ID {
+	if specification.GoodsID != g.ID {
 		//return errors.New("产品规格不匹配")
-		return nil, errors.New("产品规格不匹配")
+		return nil, errors.New("商品规格无效")
 	}
-	if specification.ID == 0 {
-		//return errors.New("找不到规格")
-		return nil, errors.New("找不到规格")
-	}
+
 	if specification.Stock-quantity < 0 {
 		//return errors.New(specification.Label + "库存不足")
 		//ordersGoods.AddError("库存不足")
@@ -1416,15 +1422,15 @@ func (service OrdersService) createOrdersGoods(goodsID dao.PrimaryKey, specifica
 	}
 
 	ordersGoods.Specification = specification
-	ordersGoods.Goods = goods
-	ordersGoods.OID = goods.OID
+	ordersGoods.Goods = g
+	ordersGoods.OID = g.OID
 	//ordersGoods.GoodsID = goods.ID
 	//ordersGoods.SpecificationID = specification.ID
 	ordersGoods.Quantity = quantity
 	ordersGoods.CostPrice = specification.MarketPrice
 	ordersGoods.SellPrice = specification.MarketPrice
 	ordersGoods.OrdersGoodsNo = tool.UUID()
-	ordersGoods.Discounts = service.Goods.GetDiscounts(goods.ID, goods.OID)
+	ordersGoods.Discounts = service.Goods.GetDiscounts(g.ID, g.OID)
 
 	/*//限时抢购
 	timesell := service.TimeSell.GetTimeSellByGoodsID(goods.ID)
@@ -1591,7 +1597,7 @@ func (service OrdersService) AnalyseOrdersGoodsList(oid dao.PrimaryKey, addresse
 	outResult.FullCut = analyseResult.FullCut
 	outResult.Address = addressee
 
-	outResult.TotalAmount = (analyseResult.GoodsPrice - analyseResult.FullCutAll + analyseResult.ExpressPrice)
+	outResult.TotalAmount = analyseResult.GoodsPrice - analyseResult.FullCutAll + analyseResult.ExpressPrice
 
 	return outResult, nil
 }
@@ -1666,6 +1672,14 @@ func (service OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Addre
 		//util.JSONToStruct(value.Goods, &goods)
 		//util.JSONToStruct(value.Specification, &specification)
 
+		ogs := extends.OrdersGoodsInfo{}
+
+		if value.ElementStatus.Success == false {
+			ogs.OrdersGoods = value
+			oggs = append(oggs, ogs)
+			continue
+		}
+
 		goodsSkuData := service.goodsSkuData(Orm, value.Goods.ID, value.Specification.LabelIndex)
 		value.SkuImages = goodsSkuData.SkuImages
 		value.SkuLabelMap = goodsSkuData.SkuLabelMap
@@ -1697,16 +1711,13 @@ func (service OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Addre
 		value.SellPrice = value.Specification.MarketPrice
 		//value.TotalBrokerage =
 
-		ogs := extends.OrdersGoodsInfo{}
-		ogs.Discounts = make([]extends.Discount, 0)
-
 		//ogss
 
 		/*var discounts []extends.Discount
 		if strings.EqualFold(value.Discounts, "") == false {
 			util.JSONToStruct(value.Discounts, &discounts)
 		}*/
-
+		ogs.Discounts = make([]extends.Discount, 0)
 		//计算价格以及优惠
 		if len(value.Discounts) > 0 {
 			for i := range value.Discounts {
@@ -1774,17 +1785,20 @@ func (service OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Addre
 		expressTemplate := dao.GetByPrimaryKey(Orm, &model.ExpressTemplate{}, ID).(*model.ExpressTemplate)
 
 		etFree := make([]model.ExpressTemplateFreeItem, 0)
-		json.Unmarshal([]byte(expressTemplate.Free), &etFree)
+		err := json.Unmarshal([]byte(expressTemplate.Free), &etFree)
+		if err != nil {
+			return nil, err
+		}
 
 		var expressTemplateFreeItem *model.ExpressTemplateFreeItem
 
 	al:
 		//从包邮列表中，找出一个计费方式
-		for _, exp_f_value := range etFree {
+		for _, expFValue := range etFree {
 
-			for _, exp_f_a_value := range exp_f_value.Areas {
-				if strings.EqualFold(address.ProvinceName, exp_f_a_value) {
-					expressTemplateFreeItem = &exp_f_value
+			for _, expFAValue := range expFValue.Areas {
+				if strings.EqualFold(address.ProvinceName, expFAValue) {
+					expressTemplateFreeItem = &expFValue
 					break al
 				}
 			}
@@ -1799,16 +1813,19 @@ func (service OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Addre
 			//无包邮项目
 
 			etTemplate := model.ExpressTemplateTemplate{}
-			json.Unmarshal([]byte(expressTemplate.Template), &etTemplate)
+			err = json.Unmarshal([]byte(expressTemplate.Template), &etTemplate)
+			if err != nil {
+				return nil, err
+			}
 
 			var expressTemplateItem *model.ExpressTemplateItem
 
 		alt:
-			for _, exp_f_value := range etTemplate.Items {
+			for _, expFValue := range etTemplate.Items {
 
-				for _, exp_f_a_value := range exp_f_value.Areas {
-					if strings.EqualFold(address.ProvinceName, exp_f_a_value) {
-						expressTemplateItem = &exp_f_value
+				for _, expFAValue := range expFValue.Areas {
+					if strings.EqualFold(address.ProvinceName, expFAValue) {
+						expressTemplateItem = &expFValue
 						break alt
 					}
 				}
@@ -1834,8 +1851,8 @@ func (service OrdersService) AddCartOrders(UserID dao.PrimaryKey, GoodsID, Speci
 	tx := db.Orm().Begin()
 
 	//var goods model.Goods
-	goods := dao.GetByPrimaryKey(tx, entity.Goods, GoodsID).(*model.Goods)
-	if goods.IsZero() {
+	g := dao.GetByPrimaryKey(tx, entity.Goods, GoodsID).(*model.Goods)
+	if g.IsZero() {
 		tx.Rollback()
 		return gorm.ErrRecordNotFound
 	}
@@ -1868,7 +1885,7 @@ func (service OrdersService) AddCartOrders(UserID dao.PrimaryKey, GoodsID, Speci
 		//util.JSONToStruct(shoppingCart.Goods, &mgoods)
 		//util.JSONToStruct(shoppingCart.Specification, &mspecification)
 
-		if shoppingCart.GoodsID == goods.ID && shoppingCart.SpecificationID == specification.ID {
+		if shoppingCart.GoodsID == g.ID && shoppingCart.SpecificationID == specification.ID {
 			//已经存在，添加数量
 			shoppingCart.Quantity = shoppingCart.Quantity + Quantity
 			if shoppingCart.Quantity > specification.Stock {
@@ -1892,7 +1909,7 @@ func (service OrdersService) AddCartOrders(UserID dao.PrimaryKey, GoodsID, Speci
 		//sc.Specification = util.StructToJSON(specification)
 		//sc.Goods = util.StructToJSON(goods)
 		//sc.GSID = strconv.Itoa(int(goods.ID)) + strconv.Itoa(int(specification.ID))
-		sc.GoodsID = goods.ID
+		sc.GoodsID = g.ID
 		sc.SpecificationID = specification.ID
 		err := dao.Create(tx, &sc)
 		if err != nil {
@@ -1916,7 +1933,8 @@ func (service OrdersService) FindOrdersGoodsByCollageUser(CollageNo string) []mo
 	orm := db.Orm()
 	var user []model.User
 
-	orm.Raw(`SELECT u.* FROM Orders o,OrdersGoods og,USER u WHERE og."CollageNo"=? AND o."IsPay"=1 and o."ID"=og."OrdersID" AND u."ID"=o."UserID"`, CollageNo).Scan(&user)
+	var sql = `SELECT u.* FROM "Orders" o,"OrdersGoods" og,"User" u WHERE og."CollageNo"=1 AND o."IsPay"=1 and o."ID"=og."OrdersID" AND u."ID"=o."UserID"`
+	orm.Raw(sql, CollageNo).Scan(&user)
 	//orm.Exec("SELECT u.* FROM Orders o,OrdersGoods og,USER u WHERE og.CollageNo=? AND o.ID=og.OrdersID AND u.ID=o.UserID", CollageNo).Find(&user)
 	return user
 }

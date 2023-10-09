@@ -203,7 +203,7 @@ func (service GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsInfo
 
 	}
 
-	specifications := dao.Find(Orm, &model.Specification{}).Where(`"GoodsID"=?`, goods.ID).Order(`"CreatedAt" desc`).List() //service.FindWhere(Orm, &specifications, model.Specification{GoodsID: goods.ID})
+	specifications := dao.Find(Orm, &model.Specification{}).Where(`"GoodsID"=?`, goods.ID).Order(`"LabelIndex"::text asc`).List() //service.FindWhere(Orm, &specifications, model.Specification{GoodsID: goods.ID})
 	for i := range specifications {
 		specification := specifications[i].(*model.Specification)
 		goodsInfo.Specifications = append(goodsInfo.Specifications, specification)

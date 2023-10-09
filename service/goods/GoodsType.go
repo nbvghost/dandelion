@@ -157,10 +157,12 @@ func (service GoodsTypeService) ListGoodsType(OID dao.PrimaryKey) []model.GoodsT
 	service.FindAllByOID(Orm,&gts,OID)
 	return gts*/
 	Orm := db.Orm()
-	var gts []model.GoodsType
+
 	var gtsIDs []uint
 	//service.FindWhere(Orm, &gts, model.GoodsTypeChild{})
 	Orm.Model(&model.Goods{}).Where(`"OID"=?`, OID).Group("GoodsTypeID").Pluck("GoodsTypeID", &gtsIDs)
+
+	var gts []model.GoodsType
 	Orm.Model(&model.GoodsType{}).Where(`"ID" in (?)`, gtsIDs).Find(&gts)
 	return gts
 }
