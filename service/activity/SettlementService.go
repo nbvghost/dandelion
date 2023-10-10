@@ -60,9 +60,9 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, ordersGoodsList []
 		}
 	}
 
-	leves := []uint{brokerage.Leve1, brokerage.Leve2, brokerage.Leve3, brokerage.Leve4, brokerage.Leve5, brokerage.Leve6}
+	leves := []float64{brokerage.Leve1, brokerage.Leve2, brokerage.Leve3, brokerage.Leve4, brokerage.Leve5, brokerage.Leve6}
 
-	GrowValue := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyScoreConvertGrowValue).V)
+	GrowValue := object.ParseUint(service.Configuration.GetConfiguration(Orm, orders.OID, model.ConfigurationKeyScoreConvertGrowValue).V)
 
 	u.Score = u.Score + orders.PayMoney
 	u.Growth = u.Growth + (uint(math.Floor(float64(orders.PayMoney)/100+0.5)) * GrowValue)

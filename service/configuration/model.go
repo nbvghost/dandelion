@@ -51,10 +51,10 @@ const (
 
 type Brokerage struct {
 	Type  BrokerageType //PRODUCT,CUSTOM
-	Leve1 uint
-	Leve2 uint
-	Leve3 uint
-	Leve4 uint
-	Leve5 uint
-	Leve6 uint
+	Leve1 float64
+	Leve2 float64
+	Leve3 float64
+	Leve4 float64
+	Leve5 float64
+	Leve6 float64
 }

@@ -131,7 +131,7 @@ func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *m
 	//leve6 := object.ParseUint(service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageLeve6).V)
 
 	//leves := []uint{leve1, leve2, leve3, leve4, leve5, leve6}
-	leves := []uint{brokerage.Leve1, brokerage.Leve2, brokerage.Leve3, brokerage.Leve4, brokerage.Leve5, brokerage.Leve6}
+	leves := []float64{brokerage.Leve1, brokerage.Leve2, brokerage.Leve3, brokerage.Leve4, brokerage.Leve5, brokerage.Leve6}
 
 	//var OutBrokerageMoney int64 = 0
 	for _, value := range leves {
@@ -189,7 +189,7 @@ func (service OrdersService) FirstSettlementUserBrokerage(tx *gorm.DB, orders mo
 		return gorm.ErrRecordNotFound
 	}
 
-	leves := []uint{brokerage.Leve1, brokerage.Leve2, brokerage.Leve3, brokerage.Leve4, brokerage.Leve5, brokerage.Leve6}
+	leves := []float64{brokerage.Leve1, brokerage.Leve2, brokerage.Leve3, brokerage.Leve4, brokerage.Leve5, brokerage.Leve6}
 
 	//var OutBrokerageMoney int64 = 0
 	for index, value := range leves {
@@ -253,7 +253,7 @@ func (service OrdersService) MinusSettlementUserBrokerage(tx *gorm.DB, orders *m
 		return gorm.ErrRecordNotFound
 	}
 
-	leves := []uint{brokerage.Leve1, brokerage.Leve2, brokerage.Leve3, brokerage.Leve4, brokerage.Leve5, brokerage.Leve6}
+	leves := []float64{brokerage.Leve1, brokerage.Leve2, brokerage.Leve3, brokerage.Leve4, brokerage.Leve5, brokerage.Leve6}
 
 	//var OutBrokerageMoney int64 = 0
 	for _, value := range leves {

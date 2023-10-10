@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/tool/object"
+	"gorm.io/gorm"
 	"log"
 
 	"github.com/nbvghost/dandelion/entity/model"
@@ -14,10 +15,9 @@ type ConfigurationService struct {
 	//model.BaseDao
 }
 
-func (m ConfigurationService) GetConfiguration(OID dao.PrimaryKey, Key model.ConfigurationKey) model.Configuration {
-	Orm := db.Orm()
+func (m ConfigurationService) GetConfiguration(tx *gorm.DB, OID dao.PrimaryKey, Key model.ConfigurationKey) model.Configuration {
 	var item model.Configuration
-	err := Orm.Where(`"K"=? and "OID"=?`, Key, OID).First(&item).Error
+	err := tx.Where(`"K"=? and "OID"=?`, Key, OID).First(&item).Error
 	//db.Where([]int64{20, 21, 22}).Find(&users
 	log.Println(err)
 	return item
@@ -44,41 +44,41 @@ func (m ConfigurationService) GetConfigurations(OID dao.PrimaryKey, keys ...mode
 	}*/
 
 }
-func (m ConfigurationService) ChangeConfiguration(OID dao.PrimaryKey, Key model.ConfigurationKey, Value string) error {
-	Orm := db.Orm()
-	item := m.GetConfiguration(OID, Key)
+func (m ConfigurationService) ChangeConfiguration(db *gorm.DB, OID dao.PrimaryKey, Key model.ConfigurationKey, Value string) error {
+
+	item := m.GetConfiguration(db, OID, Key)
 	item.V = Value
 	if item.ID == 0 {
 		item.K = Key
 		item.V = Value
 		item.OID = OID
-		return Orm.Create(&item).Error
+		return db.Create(&item).Error
 	} else {
-		return Orm.Model(&model.Configuration{}).Where(`"K"=? and "OID"=?`, Key, OID).Updates(map[string]interface{}{"V": Value}).Error
+		return db.Model(&model.Configuration{}).Where(`"K"=? and "OID"=?`, Key, OID).Updates(map[string]interface{}{"V": Value}).Error
 	}
 }
 
 func (m ConfigurationService) GetAdvertConfiguration(oid dao.PrimaryKey) []Advert {
-	c := m.GetConfiguration(oid, model.ConfigurationKeyAdvert)
+	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyAdvert)
 	var h []Advert
 	_ = json.Unmarshal([]byte(c.V), &h)
 	return h
 }
 
 func (m ConfigurationService) GetPopConfiguration(oid dao.PrimaryKey) []Pop {
-	c := m.GetConfiguration(oid, model.ConfigurationKeyPop)
+	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyPop)
 	var h []Pop
 	_ = json.Unmarshal([]byte(c.V), &h)
 	return h
 }
 func (m ConfigurationService) GetQuickLinkConfiguration(oid dao.PrimaryKey) []QuickLink {
-	c := m.GetConfiguration(oid, model.ConfigurationKeyQuickLink)
+	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyQuickLink)
 	var h []QuickLink
 	_ = json.Unmarshal([]byte(c.V), &h)
 	return h
 }
 func (m ConfigurationService) GetHeaderConfiguration(oid dao.PrimaryKey) *Header {
-	c := m.GetConfiguration(oid, model.ConfigurationKeyHeader)
+	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyHeader)
 	h := Header{}
 	_ = json.Unmarshal([]byte(c.V), &h)
 	return &h
@@ -96,12 +96,12 @@ func (m ConfigurationService) GetBrokerageConfiguration(oid dao.PrimaryKey) *Bro
 
 	brokerageType := c[model.ConfigurationKeyBrokerageType]
 
-	leve1 := object.ParseUint(c[model.ConfigurationKeyBrokerageLeve1])
-	leve2 := object.ParseUint(c[model.ConfigurationKeyBrokerageLeve2])
-	leve3 := object.ParseUint(c[model.ConfigurationKeyBrokerageLeve3])
-	leve4 := object.ParseUint(c[model.ConfigurationKeyBrokerageLeve4])
-	leve5 := object.ParseUint(c[model.ConfigurationKeyBrokerageLeve5])
-	leve6 := object.ParseUint(c[model.ConfigurationKeyBrokerageLeve6])
+	leve1 := object.ParseFloat(c[model.ConfigurationKeyBrokerageLeve1])
+	leve2 := object.ParseFloat(c[model.ConfigurationKeyBrokerageLeve2])
+	leve3 := object.ParseFloat(c[model.ConfigurationKeyBrokerageLeve3])
+	leve4 := object.ParseFloat(c[model.ConfigurationKeyBrokerageLeve4])
+	leve5 := object.ParseFloat(c[model.ConfigurationKeyBrokerageLeve5])
+	leve6 := object.ParseFloat(c[model.ConfigurationKeyBrokerageLeve6])
 
 	return &Brokerage{
 		Type:  BrokerageType(brokerageType),
