@@ -10,7 +10,7 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 )
 
-// 充值
+// SupplyOrders 充值
 type SupplyOrders struct {
 	dao.Entity
 	OID      dao.PrimaryKey `gorm:"column:OID"`

@@ -26,6 +26,7 @@ func Register(route constrain.IRoute) {
 
 	route.RegisterRoute("wx/callback", &wx.Callback{})
 	route.RegisterRoute("wx/notify/{OID}", &wx.Notify{})
+	route.RegisterRoute("wx/refund-notify/{OID}", &wx.RefundNotify{})
 	route.RegisterRoute("wx/message/{OID}", &wx.Message{})
 	route.RegisterRoute("wx/token", &wx.Token{})
 

@@ -710,7 +710,7 @@ func (service WxService) CloseOrder(OrderNo string, OID dao.PrimaryKey, wxConfig
 
 }
 
-// 退款-订单内的所有的商品/订单内某个商品
+// Refund 退款-订单内的所有的商品/订单内某个商品
 func (service WxService) Refund(ctx context.Context, order *model.Orders, ordersGoods *model.OrdersGoods, reason string, wxConfig *model.WechatConfig) (*refunddomestic.Refund, error) {
 
 	client, err := NewClient(wxConfig)
