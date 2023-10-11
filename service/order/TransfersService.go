@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/nbvghost/dandelion/entity"
-	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
@@ -57,8 +56,10 @@ func (service TransfersService) UserTransfers(UserID dao.PrimaryKey, ReUserName,
 		Orm.Rollback()
 		return err
 	}
+
 	//DB *gorm.DB, UserID uint, Name, Detail string, Type int, Amount int64, TargetID uint,FromUserID uint
-	err = service.Journal.AddUserJournal(Orm, user.ID, "提现", ReUserName+"提现", play.UserJournal_Type_TX, -int64(user.Amount), extends.KV{Key: "TransfersOrderNo", Value: transfers.OrderNo}, 0)
+	//err = service.Journal.AddUserJournal(Orm, user.ID, "提现", ReUserName+"提现", model.UserJournal_Type_TX, -int64(user.Amount), extends.KV{Key: "TransfersOrderNo", Value: transfers.OrderNo}, user.ID)
+	err = service.Journal.AddUserJournal(Orm, user.ID, "提现", ReUserName+"提现", -int64(user.Amount), journal.NewDataTypeTransfers(transfers.OrderNo), user.ID)
 	if err != nil {
 		Orm.Rollback()
 		return err

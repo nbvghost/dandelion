@@ -5,10 +5,8 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"time"
 
-	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/service/journal"
 )
 
@@ -40,7 +38,8 @@ func (service ScoreGoodsService) Exchange(user *model.User, ScoreGoodsID dao.Pri
 			return err
 		}
 
-		err = service.Journal.AddScoreJournal(tx, user.ID, "积分兑换", scoreGoods.Name, play.ScoreJournal_Type_DH, -int64(scoreGoods.Score), extends.KV{Key: "ScoreGoodsID", Value: scoreGoods.ID})
+		//err = service.Journal.AddScoreJournal(tx, user.ID, "积分兑换", scoreGoods.Name, model.ScoreJournal_Type_DH, -int64(scoreGoods.Score), extends.KV{Key: "ScoreGoodsID", Value: scoreGoods.ID})
+		err = service.Journal.AddScoreJournal(tx, user.ID, "积分兑换", scoreGoods.Name, model.ScoreJournal_Type_DH, -int64(scoreGoods.Score))
 		if err != nil {
 			tx.Rollback()
 			return err

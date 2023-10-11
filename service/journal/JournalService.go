@@ -2,6 +2,7 @@ package journal
 
 import (
 	"errors"
+	"fmt"
 	"github.com/nbvghost/dandelion/library/db"
 	"time"
 
@@ -105,7 +106,6 @@ func (service JournalService) ListUserJournalLeveBrokerage(UserID dao.PrimaryKey
 
 // OrganizationJournal
 func (service JournalService) AddOrganizationJournal(DB *gorm.DB, OID dao.PrimaryKey, Name, Detail string, Type int, Amount int64, KV extends.KV) error {
-
 	logger := &model.OrganizationJournal{}
 	logger.Name = Name
 	logger.Detail = Detail
@@ -131,47 +131,140 @@ func (service JournalService) AddOrganizationJournal(DB *gorm.DB, OID dao.Primar
 
 	return err
 }
+func (service JournalService) DisableFreezeUserAmount(tx *gorm.DB, UserID dao.PrimaryKey, dataType IDataType, FromUserID dao.PrimaryKey) error {
+	//select * from "UserJournal" where "DataKV"::json ->> 'Value'='13';
+	orm := dao.Find(tx, &model.UserFreezeJournal{}).Where(`"UserID"=?`, UserID).Where(`"FromUserID"=?`, FromUserID).Where(`"UnFreezeType"=?`, model.UnFreezeTypeFreeze)
+	md := dataType.ToMap()
+	for key, value := range md {
+		orm.Where(fmt.Sprintf(`"%s"=?`, key), value)
+	}
+	list := orm.List()
+	if len(list) > 0 {
+		item := list[0].(*model.UserFreezeJournal)
+		err := dao.UpdateByPrimaryKey(tx, &model.UserFreezeJournal{}, item.ID, map[string]any{"UnFreezeType": model.UnFreezeTypeDisable})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (service JournalService) UnFreezeUserAmount(tx *gorm.DB, UserID dao.PrimaryKey, dataType IDataType, FromUserID dao.PrimaryKey) error {
+	//select * from "UserJournal" where "DataKV"::json ->> 'Value'='13';
 
-func (service JournalService) AddUserJournal(DB *gorm.DB, UserID dao.PrimaryKey, Name, Detail string, Type int, Amount int64, KV extends.KV, FromUserID dao.PrimaryKey) error {
+	orm := dao.Find(tx, &model.UserFreezeJournal{}).Where(`"UserID"=?`, UserID).Where(`"FromUserID"=?`, FromUserID).Where(`"UnFreezeType"=?`, model.UnFreezeTypeFreeze)
+	md := dataType.ToMap()
+	for key, value := range md {
+		orm.Where(fmt.Sprintf(`"%s"=?`, key), value)
+	}
+	list := orm.List()
+	if len(list) > 0 {
+		item := list[0].(*model.UserFreezeJournal)
+		err := dao.UpdateByPrimaryKey(tx, &model.UserFreezeJournal{}, item.ID, map[string]any{"UnFreezeType": model.UnFreezeTypeUnFreeze})
+		if err != nil {
+			return err
+		}
+
+		err = service.AddUserJournal(tx, UserID, item.Name, item.Detail, item.Amount, dataType, item.FromUserID)
+		if err != nil {
+			return err
+		}
+
+		//err = service.Journal.AddScoreJournal(Orm, _user.ID, "积分", "佣金积分", model.ScoreJournal_Type_LEVE, int64(leveMenoy), extends.KV{Key: "OrdersID", Value: orders.ID})
+		err = service.AddScoreJournal(tx, UserID, "积分", "佣金积分", model.ScoreJournal_Type_LEVE, item.Amount)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (service JournalService) FreezeUserAmount(tx *gorm.DB, UserID dao.PrimaryKey, Name, Detail string, Amount int64, dataType IDataType, FromUserID dao.PrimaryKey) error {
+	fromUser := dao.GetByPrimaryKey(tx, &model.User{}, FromUserID).(*model.User)
+
+	logger := &model.UserFreezeJournal{}
+	logger.Name = Name
+	logger.Detail = Detail
+	logger.Type = dataType.GetType()
+	logger.Amount = int64(Amount)
+	logger.UserID = UserID
+	logger.DataKV = dataType.ToJSON()
+	logger.FromUserID = fromUser.ID
+	logger.FromUserName = fromUser.Name
+
+	err := dao.Create(tx, logger)
+	if err != nil {
+		return err
+	}
+	//var user model.User
+	//tx.First(&user, UserID)
+	//user := dao.GetByPrimaryKey(tx, &model.User{}, UserID).(*model.User)
+
+	var balance int64
+	err = dao.Find(tx, &model.UserFreezeJournal{}).Where(`"UserID"=?`, UserID).Where(`"UnFreezeType"=?`, model.UnFreezeTypeFreeze).Select(`sum("Amount") as "Amount"`).Scan(&balance)
+	if err != nil {
+		return err
+	}
+	err = dao.UpdateByPrimaryKey(tx, &model.User{}, UserID, map[string]interface{}{"Amount": balance})
+	if err != nil {
+		return err
+	}
+	return err
+
+	/*user := dao.GetByPrimaryKey(Orm, &model.User{}, UserID).(*model.User)
+	if user.IsZero() {
+		return gorm.ErrRecordNotFound
+	}
+
+	tm := int64(user.BlockAmount) + Menoy
+	if tm < 0 {
+		return errors.New("冻结金额不足，无法扣款")
+	}
+
+	err := dao.UpdateByPrimaryKey(Orm, &model.User{}, UserID, map[string]interface{}{"BlockAmount": tm})
+	return err*/
+}
+
+func (service JournalService) AddUserJournal(tx *gorm.DB, UserID dao.PrimaryKey, Name, Detail string, Amount int64, dataType IDataType, FromUserID dao.PrimaryKey) error {
+	fromUser := dao.GetByPrimaryKey(tx, &model.User{}, FromUserID).(*model.User)
 
 	logger := &model.UserJournal{}
 	logger.Name = Name
 	logger.Detail = Detail
-	logger.Type = Type
+	logger.Type = dataType.GetType()
 	logger.Amount = Amount
 	logger.UserID = UserID
-	logger.DataKV = util.StructToJSON(KV)
-	logger.FromUserID = FromUserID
+	logger.DataKV = dataType.ToJSON()
+	logger.FromUserID = fromUser.ID
+	logger.FromUserName = fromUser.Name
 
-	var user model.User
-	DB.First(&user, UserID)
+	//var user model.User
+	//tx.First(&user, UserID)
+	user := dao.GetByPrimaryKey(tx, &model.User{}, UserID).(*model.User)
 
-	Balance := int64(user.Amount) + Amount
-	if Balance < 0 {
+	balance := int64(user.Amount) + Amount
+	if balance < 0 {
 		return errors.New("余额不足")
 	}
-	logger.Balance = uint(Balance)
+	logger.Balance = uint(balance)
 
-	err := dao.UpdateByPrimaryKey(DB, &model.User{}, UserID, map[string]interface{}{"Amount": Balance})
+	err := dao.UpdateByPrimaryKey(tx, &model.User{}, UserID, map[string]interface{}{"Amount": balance})
 	if err != nil {
 		return err
 	}
-	err = dao.Create(DB, logger)
-
+	err = dao.Create(tx, logger)
 	return err
 }
-func (service JournalService) AddScoreJournal(DB *gorm.DB, UserID dao.PrimaryKey, Name, Detail string, Type int, Score int64, KV extends.KV) error {
-
+func (service JournalService) AddScoreJournal(tx *gorm.DB, UserID dao.PrimaryKey, Name, Detail string, Type model.ScoreJournalType, Score int64) error {
 	logger := &model.ScoreJournal{}
 	logger.Name = Name
 	logger.Detail = Detail
 	logger.Type = Type
 	logger.Score = Score
 	logger.UserID = UserID
-	logger.DataKV = util.StructToJSON(KV)
+	//logger.DataKV = util.StructToJSON(KV)
 
-	var user model.User
-	DB.First(&user, UserID)
+	//var user model.User
+	//DB.First(&user, UserID)
+	user := dao.GetByPrimaryKey(tx, &model.User{}, UserID).(*model.User)
 
 	Balance := int64(user.Score) + Score
 	if Balance < 0 {
@@ -179,11 +272,10 @@ func (service JournalService) AddScoreJournal(DB *gorm.DB, UserID dao.PrimaryKey
 	}
 	logger.Balance = uint(Balance)
 
-	err := dao.UpdateByPrimaryKey(DB, &model.User{}, UserID, map[string]interface{}{"Score": Balance})
+	err := dao.UpdateByPrimaryKey(tx, &model.User{}, UserID, map[string]interface{}{"Score": Balance})
 	if err != nil {
 		return err
 	}
-	err = dao.Create(DB, logger)
-
+	err = dao.Create(tx, logger)
 	return err
 }

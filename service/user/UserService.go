@@ -79,21 +79,6 @@ func (service UserService) Situation(StartTime, EndTime int64) interface{} {
 	//result.OnlineCount = len(gweb.Sessions.Data)
 	return result
 }
-func (service UserService) AddUserBlockAmount(Orm *gorm.DB, UserID dao.PrimaryKey, Menoy int64) error {
-
-	user := dao.GetByPrimaryKey(Orm, &model.User{}, UserID).(*model.User)
-	if user.IsZero() {
-		return gorm.ErrRecordNotFound
-	}
-
-	tm := int64(user.BlockAmount) + Menoy
-	if tm < 0 {
-		return errors.New("冻结金额不足，无法扣款")
-	}
-
-	err := dao.UpdateByPrimaryKey(Orm, &model.User{}, UserID, map[string]interface{}{"BlockAmount": tm})
-	return err
-}
 
 func (service UserService) FindUserByIDs(IDs []uint) []model.User {
 	var users []model.User

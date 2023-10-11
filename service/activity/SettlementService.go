@@ -6,10 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/service/configuration"
 	"github.com/nbvghost/dandelion/service/journal"
 	"github.com/nbvghost/dandelion/service/user"
@@ -31,7 +29,7 @@ type SettlementService struct {
 	User          user.UserService
 }
 
-// 结算佣金，结算积分，结算成长值，是否送福利卷
+// SettlementUser 结算佣金，结算积分，结算成长值，是否送福利卷
 func (service SettlementService) SettlementUser(Orm *gorm.DB, ordersGoodsList []*model.OrdersGoods, orders *model.Orders) error {
 	var err error
 	//用户自己。下单者
@@ -61,16 +59,15 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, ordersGoodsList []
 	}
 
 	leves := []float64{brokerage.Leve1, brokerage.Leve2, brokerage.Leve3, brokerage.Leve4, brokerage.Leve5, brokerage.Leve6}
-
-	GrowValue := object.ParseUint(service.Configuration.GetConfiguration(Orm, orders.OID, model.ConfigurationKeyScoreConvertGrowValue).V)
-
+	growValue := object.ParseUint(service.Configuration.GetConfiguration(Orm, orders.OID, model.ConfigurationKeyScoreConvertGrowValue).V)
 	u.Score = u.Score + orders.PayMoney
-	u.Growth = u.Growth + (uint(math.Floor(float64(orders.PayMoney)/100+0.5)) * GrowValue)
+	u.Growth = u.Growth + (uint(math.Floor(float64(orders.PayMoney)/100+0.5)) * growValue)
 	err = dao.UpdateByPrimaryKey(Orm, &model.User{}, u.ID, &model.User{Growth: u.Growth})
 	if err != nil {
 		return err
 	}
-	err = service.Journal.AddScoreJournal(Orm, u.ID, "积分", "购买商品", play.ScoreJournal_Type_GM, int64(u.Score), extends.KV{Key: "OrdersID", Value: orders.ID})
+	//err = service.Journal.AddScoreJournal(Orm, u.ID, "积分", "购买商品", play.ScoreJournal_Type_GM, int64(u.Score), extends.KV{Key: "OrdersID", Value: orders.ID})
+	err = service.Journal.AddScoreJournal(Orm, u.ID, "积分", "购买商品", model.ScoreJournal_Type_GM, int64(u.Score))
 	if err != nil {
 		return err
 	}
@@ -79,7 +76,6 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, ordersGoodsList []
 	for _, value := range gvs {
 		//主订单的金额来决定是否送卡卷
 		if uint(orders.PayMoney) >= value.ScoreMaxValue {
-
 			err := service.CardItem.AddVoucherCardItem(Orm, orders.OrderNo, orders.UserID, value.VoucherID)
 			if err != nil {
 				return err
@@ -87,8 +83,6 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, ordersGoodsList []
 			break
 		}
 	}
-
-	err = service.Journal.AddOrganizationJournal(Orm, orders.OID, "商品交易", "商品交易", play.OrganizationJournal_Goods, int64(orders.PayMoney), extends.KV{Key: "OrdersID", Value: orders.ID})
 
 	if err != nil {
 		return err
@@ -103,33 +97,22 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, ordersGoodsList []
 			return nil
 		}
 
-		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
-		err = service.Journal.AddUserJournal(Orm, _user.ID, "佣金", strconv.Itoa(index+1)+"级用户", play.UserJournal_Type_LEVE, leveMenoy, extends.KV{Key: "OrdersID", Value: orders.ID}, u.ID)
+		leveMenoy := int64(math.Floor(value/float64(100)*float64(Brokerage) + 0.5))
+
+		//err = service.User.AddUserBlockAmount(Orm, _user.ID, -leveMenoy)
+		err = service.Journal.UnFreezeUserAmount(Orm, _user.ID, journal.NewDataTypeOrder(orders.ID), orders.UserID)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
 
-		err = service.User.AddUserBlockAmount(Orm, _user.ID, -leveMenoy)
+		/*err = service.Journal.AddUserJournal(Orm, _user.ID, "佣金", strconv.Itoa(index+1)+"级用户", play.UserJournal_Type_LEVE, leveMenoy, extends.KV{Key: "OrdersID", Value: orders.ID}, u.ID)
 		if err != nil {
 			log.Println(err)
 			continue
-		}
-
-		err = service.Journal.AddOrganizationJournal(Orm, orders.OID, "商品交易", "推广佣金"+_user.Name, play.OrganizationJournal_Brokerage, -leveMenoy, extends.KV{Key: "OrdersID", Value: orders.ID})
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-
-		err = service.Journal.AddScoreJournal(Orm, _user.ID, "积分", "佣金积分", play.ScoreJournal_Type_LEVE, int64(leveMenoy), extends.KV{Key: "OrdersID", Value: orders.ID})
-		if err != nil {
-			log.Println(err)
-			continue
-		}
+		}*/
 
 		workTime := time.Now().Unix() - orders.CreatedAt.Unix()
-
 		service.MessageNotify.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "收入："+strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64)+"元")
 
 		u = _user

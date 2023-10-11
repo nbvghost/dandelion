@@ -11,10 +11,8 @@ import (
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity"
-	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/server/httpext"
 	"github.com/nbvghost/dandelion/server/redis"
@@ -74,22 +72,20 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 						if superiorUser.ID != 0 {
 							newUser.SuperiorID = dao.PrimaryKey(SuperiorID)
 
-							//todo
-							InviteUser := 50
-							err := g.JournalService.AddScoreJournal(tx,
-								superiorUser.ID,
-								"邀请新朋友获取积分", "邀请新朋友获取积分",
-								play.ScoreJournal_Type_InviteUser, int64(InviteUser), extends.KV{Key: "SuperiorID", Value: SuperiorID})
+							//err := g.JournalService.AddScoreJournal(tx, superiorUser.ID, "邀请新朋友获取积分", "邀请新朋友获取积分", model.ScoreJournal_Type_InviteUser, int64(50), extends.KV{Key: "SuperiorID", Value: SuperiorID})
+							err := g.JournalService.AddScoreJournal(tx, superiorUser.ID, "获取积分", "邀请新朋友获取积分", model.ScoreJournal_Type_InviteUser, int64(50))
 							if err != nil {
 								log.Println(err)
+								tx.Rollback()
+								return nil, err
 							}
 
-							err = g.JournalService.AddUserJournal(tx,
-								superiorUser.ID,
-								"邀请新朋友获得现金", "邀请新朋友获得现金",
-								play.UserJournal_Type_USER_LEVE, int64(30), extends.KV{Key: "UserID", Value: newUser.ID}, newUser.ID)
+							//err = g.JournalService.AddUserJournal(tx, superiorUser.ID, "获得现金", "邀请新朋友获得现金", model.UserJournal_Type_USER_LEVE, int64(30), extends.KV{Key: "UserID", Value: newUser.ID}, newUser.ID)
+							err = g.JournalService.AddUserJournal(tx, superiorUser.ID, "获得现金", "邀请新朋友获得现金", int64(30), journal.NewDataTypeUser(newUser.ID), newUser.ID)
 							if err != nil {
 								log.Println(err)
+								tx.Rollback()
+								return nil, err
 							}
 
 							go func(superiorUser *model.User, newUser *model.User) {

@@ -77,25 +77,12 @@ const (
 	StoreJournal_Type_FL   = 5 //Voucher 福利卷核销
 	StoreJournal_Type_TX   = 6 //店员提现
 )
-const (
-	UserJournal_Type_HX        = 1 //核销
-	UserJournal_Type_LEVE      = 2 //下单，上下级结算佣金
-	UserJournal_Type_TX        = 3 //提现
-	UserJournal_Type_USER_LEVE = 4 //成为上下级，结算佣金
-)
+
 const (
 	OrganizationJournal_Goods     = 1 //商品销售
 	OrganizationJournal_Brokerage = 2 //商品销售用户的佣金
 )
-const (
-	ScoreJournal_Type_GM           = 1 //购买商品
-	ScoreJournal_Type_DH           = 2 //积分兑换商品
-	ScoreJournal_Type_LEVE         = 3 //上下级结算佣金,获取的积分
-	ScoreJournal_Type_DaySign      = 4 //签到送积分
-	ScoreJournal_Type_Look_Article = 5
-	ScoreJournal_Type_Share        = 6 //转发获历
-	ScoreJournal_Type_InviteUser   = 7 //邀请好友
-)
+
 const (
 	ContentTypeArticles = "articles"
 )

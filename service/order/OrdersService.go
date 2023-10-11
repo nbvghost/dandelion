@@ -88,7 +88,7 @@ func (service OrdersService) FindShoppingCartListDetails(oid dao.PrimaryKey, use
 	}, nil
 }
 
-// AfterSettlementUserBrokerage 如果订单未完成，或是退款，扣除相应的冻结金额，不用结算，佣金
+// AfterSettlementUserBrokerage 退款，扣除相应的冻结金额，不用结算，佣金
 func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *model.Orders) error {
 	var err error
 	//用户自己。下单者
@@ -143,8 +143,9 @@ func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *m
 		if _user.ID <= 0 {
 			return nil
 		}
-		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
-		err = service.User.AddUserBlockAmount(tx, _user.ID, -leveMenoy)
+		//leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
+		//err = service.Journal.AddUserBlockAmount(tx, _user.ID, -leveMenoy)
+		err = service.Journal.DisableFreezeUserAmount(tx, _user.ID, journal.NewDataTypeOrder(orders.ID), orders.UserID)
 		if err != nil {
 			log.Println(err)
 			continue
@@ -205,16 +206,23 @@ func (service OrdersService) FirstSettlementUserBrokerage(tx *gorm.DB, orders mo
 		if _user.ID <= 0 {
 			return nil
 		}
-		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
-		err = service.User.AddUserBlockAmount(tx, _user.ID, leveMenoy)
+		leveAmount := int64(math.Floor(value/float64(100)*float64(Brokerage) + 0.5))
+		/*err = service.User.AddUserBlockAmount(tx, _user.ID, leveMenoy)
+		if err != nil {
+			log.Println(err)
+			continue
+		}*/
+
+		//AddUserJournal(Orm, _user.ID, "佣金", strconv.Itoa(index+1)+"级用户", play.UserJournal_Type_LEVE, leveMenoy, extends.KV{Key: "OrdersID", Value: orders.ID}, u.ID)
+		err = service.Journal.FreezeUserAmount(tx, _user.ID, "佣金", strconv.Itoa(index+1)+"级用户", leveAmount, journal.NewDataTypeOrder(orders.ID), orders.UserID)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
+
 		//OutBrokerageMoney = OutBrokerageMoney + leveMenoy
 		workTime := time.Now().Unix() - orders.CreatedAt.Unix()
-
-		service.MessageNotify.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，预计现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "预计收入："+strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64)+"元")
+		service.MessageNotify.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，预计现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "预计收入："+strconv.FormatFloat(float64(leveAmount)/float64(100), 'f', 2, 64)+"元")
 		//fmt.Println("预计收入：" + strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64) + "元")
 		orderUser = _user
 	}
@@ -266,8 +274,8 @@ func (service OrdersService) MinusSettlementUserBrokerage(tx *gorm.DB, orders *m
 			return nil
 		}*/
 		_user := dao.GetByPrimaryKey(tx, &model.User{}, orderUser.SuperiorID).(*model.User)
-		leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
-		err = service.User.AddUserBlockAmount(tx, _user.ID, -leveMenoy)
+		//leveMenoy := int64(math.Floor(value/float64(100)*float64(Brokerage) + 0.5))
+		err = service.Journal.DisableFreezeUserAmount(tx, _user.ID, journal.NewDataTypeOrder(orders.ID), orders.UserID)
 		if err != nil {
 			return err
 		}
@@ -742,6 +750,28 @@ func (service OrdersService) CancelOk(context context.Context, OrdersID dao.Prim
 					}
 					tx.Commit()
 				}
+			} else {
+
+				refund, err = service.Wx.Refund(context, orders, nil, "用户取消", wxConfig)
+				if err != nil {
+					return "", err
+				}
+				if refund.Status == refunddomestic.STATUS_SUCCESS.Ptr() {
+					err = dao.UpdateByPrimaryKey(Orm, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
+					if err != nil {
+						return "", err
+					}
+					//管理商品库存
+					err = service.OrdersStockManager(Orm, orders, false)
+					if err != nil {
+						return "", err
+					}
+					err = service.MinusSettlementUserBrokerage(Orm, orders)
+					if err != nil {
+						return "", err
+					}
+				}
+
 			}
 
 			if refund != nil {
@@ -1216,20 +1246,14 @@ func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, 
 				}*/
 			}
 
+			err = service.FirstSettlementUserBrokerage(tx, orders)
 			if err != nil {
 
 				return false, err.Error()
-
-			} else {
-
-				err := service.FirstSettlementUserBrokerage(tx, orders)
-				if err != nil {
-
-					return false, err.Error()
-				}
-
-				return true, "已经支付成功"
 			}
+
+			return true, "已经支付成功"
+
 		} else {
 
 			return false, "金额不正确或订单不允许"

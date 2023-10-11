@@ -1,12 +1,11 @@
 package index
 
 import (
+	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/db"
 	"log"
 
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/entity/extends"
-	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/journal"
 )
@@ -19,12 +18,9 @@ type ShareScore struct {
 func (m *ShareScore) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 
-	Share := 50 //config.Config.Share
+	//Share := 50 //config.Config.Share
 
-	err := m.JournalService.AddScoreJournal(db.Orm(),
-		ctx.UID(),
-		"转发与分享送积分", "转发与分享",
-		play.ScoreJournal_Type_Share, int64(Share), extends.KV{})
+	err := m.JournalService.AddScoreJournal(db.Orm(), ctx.UID(), "转发与分享送积分", "转发与分享", model.ScoreJournal_Type_Share, 50)
 	if err != nil {
 		log.Println(err)
 	}

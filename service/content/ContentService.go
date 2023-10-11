@@ -689,10 +689,8 @@ func (service ContentService) GetContentAndAddLook(ctx constrain.IContext, Artic
 
 		//if context.Session.Attributes.Get(play.SessionUser) != nil {
 		//user := context.Session.Attributes.Get(play.SessionUser).(*model.User)
-		err = service.Journal.AddScoreJournal(db.Orm(),
-			ctx.UID(),
-			"看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)),
-			play.ScoreJournal_Type_Look_Article, int64(LookArticle), extends.KV{Key: "ArticleID", Value: article.ID})
+		//err = service.Journal.AddScoreJournal(db.Orm(), ctx.UID(), "看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)), play.ScoreJournal_Type_Look_Article, int64(LookArticle), extends.KV{Key: "ArticleID", Value: article.ID})
+		err = service.Journal.AddScoreJournal(db.Orm(), ctx.UID(), "看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)), model.ScoreJournal_Type_Look_Article, int64(LookArticle))
 		if err != nil {
 			ctx.Logger().Error("GetContentAndAddLook", zap.Error(err))
 		}
