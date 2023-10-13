@@ -139,13 +139,15 @@ func (service JournalService) DisableFreezeUserAmount(tx *gorm.DB, UserID dao.Pr
 		orm.Where(fmt.Sprintf(`"DataKV"::json ->> '%s'='%s'`, key, value))
 	}
 	list := orm.List()
-	if len(list) > 0 {
-		item := list[0].(*model.UserFreezeJournal)
+
+	for i := 0; i < len(list); i++ {
+		item := list[i].(*model.UserFreezeJournal)
 		err := dao.UpdateByPrimaryKey(tx, &model.UserFreezeJournal{}, item.ID, map[string]any{"FreezeType": model.FreezeTypeDisable})
 		if err != nil {
 			return err
 		}
 	}
+
 	return service.UpdateFreezeUserAmount(tx, UserID)
 }
 func (service JournalService) UnFreezeUserAmount(tx *gorm.DB, UserID dao.PrimaryKey, dataType IDataType, FromUserID dao.PrimaryKey) error {

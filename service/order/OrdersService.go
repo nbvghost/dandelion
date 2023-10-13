@@ -99,24 +99,6 @@ func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *m
 
 	brokerage := service.Configuration.GetBrokerageConfiguration(orders.OID)
 
-	ogs, err := service.FindOrdersGoodsByOrdersID(tx, orders.ID)
-	if err != nil {
-		log.Println(err)
-	}
-	var Brokerage uint
-	for i := range ogs {
-		value := ogs[i].(*model.OrdersGoods)
-		//var specification model.Specification
-		//util.JSONToStruct(value.Specification, &specification)
-		//Brokerage = Brokerage + value.TotalBrokerage
-		if brokerage.Type == configuration.BrokeragePRODUCT {
-			Brokerage = Brokerage + value.SellPrice
-		}
-		if brokerage.Type == configuration.BrokerageCUSTOM {
-			Brokerage = Brokerage + value.TotalBrokerage
-		}
-	}
-
 	//var orderUser model.User
 	orderUser := dao.GetByPrimaryKey(tx, &model.User{}, orders.UserID).(*model.User)
 	if orderUser.IsZero() {
@@ -133,28 +115,18 @@ func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *m
 	//leves := []uint{leve1, leve2, leve3, leve4, leve5, leve6}
 	leves := []float64{brokerage.Leve1, brokerage.Leve2, brokerage.Leve3, brokerage.Leve4, brokerage.Leve5, brokerage.Leve6}
 
-	//var OutBrokerageMoney int64 = 0
-	for _, value := range leves {
-		if value <= 0 {
-			break
-		}
-		//var _user model.User
+	for range leves {
 		_user := dao.GetByPrimaryKey(tx, &model.User{}, orderUser.SuperiorID).(*model.User)
 		if _user.ID <= 0 {
-			return nil
+			break
 		}
-		//leveMenoy := int64(math.Floor(float64(value)/float64(100)*float64(Brokerage) + 0.5))
-		//err = service.Journal.AddUserBlockAmount(tx, _user.ID, -leveMenoy)
+
 		err = service.Journal.DisableFreezeUserAmount(tx, _user.ID, journal.NewDataTypeOrder(orders.ID), orders.UserID)
 		if err != nil {
 			log.Println(err)
 			return err
 		}
-		//OutBrokerageMoney = OutBrokerageMoney + leveMenoy
-		//workTime := time.Now().Unix() - orders.CreatedAt.Unix()
 
-		//service.Wx.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，预计现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "预计收入："+strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64)+"元")
-		//fmt.Println("预计收入：" + strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64) + "元")
 		orderUser = _user
 	}
 
