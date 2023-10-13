@@ -1770,6 +1770,12 @@ func (service OrdersService) AddCartOrders(UserID dao.PrimaryKey, GoodsID, Speci
 	return nil
 
 }
+func (service OrdersService) GetOrdersGoodsByOrdersGoodsNo(tx *gorm.DB, ordersGoodsNo string) *model.OrdersGoods {
+	//var ogs []model.OrdersGoods
+	//err := service.FindWhere(DB, &ogs, &model.OrdersGoods{OrdersID: OrdersID})
+	ogs := dao.GetBy(tx, &model.OrdersGoods{}, map[string]any{"OrdersGoodsNo": ordersGoodsNo}).(*model.OrdersGoods)
+	return ogs
+}
 func (service OrdersService) FindOrdersGoodsByOrdersID(DB *gorm.DB, OrdersID dao.PrimaryKey) ([]dao.IEntity, error) {
 	//var ogs []model.OrdersGoods
 	//err := service.FindWhere(DB, &ogs, &model.OrdersGoods{OrdersID: OrdersID})
@@ -1817,6 +1823,54 @@ func (service OrdersService) QueryOrdersTask(wxConfig *model.WechatConfig, order
 		log.Println(err)
 		return err
 	}
+	return nil
+}
+
+type RefundNotifyData struct {
+	Mchid         string    `json:"mchid"`
+	OutTradeNo    string    `json:"out_trade_no"`
+	TransactionId string    `json:"transaction_id"`
+	OutRefundNo   string    `json:"out_refund_no"`
+	RefundId      string    `json:"refund_id"`
+	RefundStatus  string    `json:"refund_status"`
+	SuccessTime   time.Time `json:"success_time"`
+	Amount        struct {
+		Total       int `json:"total"`
+		Refund      int `json:"refund"`
+		PayerTotal  int `json:"payer_total"`
+		PayerRefund int `json:"payer_refund"`
+	} `json:"amount"`
+	UserReceivedAccount string `json:"user_received_account"`
+}
+
+/*
+{"mchid":"1652384025","out_trade_no":"a83f1d2f1c413d66322f27e7f8a699bf",
+"transaction_id":"4200001990202310130267337609","out_refund_no":"a83f1d2f1c413d66322f27e7f8a699bf",
+"refund_id":"50301007362023101326018445177","refund_status":"SUCCESS","success_time":"2023-10-13T15:31:43+08:00",
+"amount":{"total":3600,"refund":3600,"payer_total":3600,"payer_refund":3600},"user_received_account":"支付用户零钱"}
+
+OutTradeNo:   core.String(order.OrderNo),
+OutRefundNo:  core.String(ordersGoods.OrdersGoodsNo),
+*/
+func (service OrdersService) GoodsRefundSuccess(orders *model.Orders, ordersGoods *model.OrdersGoods) error {
+	tx := db.Orm().Begin()
+	err := dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	//管理商品库存
+	err = service.OrdersStockManager(tx, orders, false)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	err = service.AfterSettlementUserBrokerage(tx, orders)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
 	return nil
 }
 
