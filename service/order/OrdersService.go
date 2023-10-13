@@ -148,7 +148,7 @@ func (service OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *m
 		err = service.Journal.DisableFreezeUserAmount(tx, _user.ID, journal.NewDataTypeOrder(orders.ID), orders.UserID)
 		if err != nil {
 			log.Println(err)
-			continue
+			return err
 		}
 		//OutBrokerageMoney = OutBrokerageMoney + leveMenoy
 		//workTime := time.Now().Unix() - orders.CreatedAt.Unix()
