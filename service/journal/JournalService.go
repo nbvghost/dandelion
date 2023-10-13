@@ -132,7 +132,7 @@ func (service JournalService) AddOrganizationJournal(DB *gorm.DB, OID dao.Primar
 	return err
 }
 func (service JournalService) DisableFreezeUserAmount(tx *gorm.DB, UserID dao.PrimaryKey, dataType IDataType, FromUserID dao.PrimaryKey) error {
-	//select * from "UserJournal" where "DataKV"::json ->> 'Value'='13';
+	//where "DataKV"::json ->> 'Value'='13';
 	orm := dao.Find(tx, &model.UserFreezeJournal{}).Where(`"UserID"=?`, UserID).Where(`"FromUserID"=?`, FromUserID).Where(`"FreezeType"=?`, model.FreezeTypeFreeze)
 	md := dataType.ToMap()
 	for key, value := range md {
@@ -146,10 +146,10 @@ func (service JournalService) DisableFreezeUserAmount(tx *gorm.DB, UserID dao.Pr
 			return err
 		}
 	}
-	return nil
+	return service.UpdateFreezeUserAmount(tx, UserID)
 }
 func (service JournalService) UnFreezeUserAmount(tx *gorm.DB, UserID dao.PrimaryKey, dataType IDataType, FromUserID dao.PrimaryKey) error {
-	//select * from "UserJournal" where "DataKV"::json ->> 'Value'='13';
+	//where "DataKV"::json ->> 'Value'='13';
 
 	orm := dao.Find(tx, &model.UserFreezeJournal{}).Where(`"UserID"=?`, UserID).Where(`"FromUserID"=?`, FromUserID).Where(`"FreezeType"=?`, model.FreezeTypeFreeze)
 	md := dataType.ToMap()
@@ -175,7 +175,20 @@ func (service JournalService) UnFreezeUserAmount(tx *gorm.DB, UserID dao.Primary
 			return err
 		}
 	}
-	return nil
+
+	return service.UpdateFreezeUserAmount(tx, UserID)
+}
+func (service JournalService) UpdateFreezeUserAmount(tx *gorm.DB, UserID dao.PrimaryKey) error {
+	var balance int64
+	err := dao.Find(tx, &model.UserFreezeJournal{}).Where(`"UserID"=?`, UserID).Where(`"FreezeType"=?`, model.FreezeTypeFreeze).Select(`sum("Amount") as "Amount"`).Scan(&balance)
+	if err != nil {
+		return err
+	}
+	err = dao.UpdateByPrimaryKey(tx, &model.User{}, UserID, map[string]interface{}{"BlockAmount": balance})
+	if err != nil {
+		return err
+	}
+	return err
 }
 func (service JournalService) FreezeUserAmount(tx *gorm.DB, UserID dao.PrimaryKey, Name, Detail string, Amount int64, dataType IDataType, FromUserID dao.PrimaryKey) error {
 	fromUser := dao.GetByPrimaryKey(tx, &model.User{}, FromUserID).(*model.User)
@@ -198,16 +211,7 @@ func (service JournalService) FreezeUserAmount(tx *gorm.DB, UserID dao.PrimaryKe
 	//tx.First(&user, UserID)
 	//user := dao.GetByPrimaryKey(tx, &model.User{}, UserID).(*model.User)
 
-	var balance int64
-	err = dao.Find(tx, &model.UserFreezeJournal{}).Where(`"UserID"=?`, UserID).Where(`"FreezeType"=?`, model.FreezeTypeFreeze).Select(`sum("Amount") as "Amount"`).Scan(&balance)
-	if err != nil {
-		return err
-	}
-	err = dao.UpdateByPrimaryKey(tx, &model.User{}, UserID, map[string]interface{}{"BlockAmount": balance})
-	if err != nil {
-		return err
-	}
-	return err
+	return service.UpdateFreezeUserAmount(tx, UserID)
 
 	/*user := dao.GetByPrimaryKey(Orm, &model.User{}, UserID).(*model.User)
 	if user.IsZero() {
@@ -236,22 +240,19 @@ func (service JournalService) AddUserJournal(tx *gorm.DB, UserID dao.PrimaryKey,
 	logger.FromUserID = fromUser.ID
 	logger.FromUserName = fromUser.Name
 
-	//var user model.User
-	//tx.First(&user, UserID)
-	user := dao.GetByPrimaryKey(tx, &model.User{}, UserID).(*model.User)
-
-	balance := int64(user.Amount) + Amount
-	if balance < 0 {
-		return errors.New("余额不足")
+	{
+		user := dao.GetByPrimaryKey(tx, &model.User{}, UserID).(*model.User)
+		balance := int64(user.Amount) + Amount
+		if balance < 0 {
+			return errors.New("余额不足")
+		}
+		logger.Balance = uint(balance)
+		err := dao.UpdateByPrimaryKey(tx, &model.User{}, UserID, map[string]interface{}{"Amount": balance})
+		if err != nil {
+			return err
+		}
 	}
-	logger.Balance = uint(balance)
-
-	err := dao.UpdateByPrimaryKey(tx, &model.User{}, UserID, map[string]interface{}{"Amount": balance})
-	if err != nil {
-		return err
-	}
-	err = dao.Create(tx, logger)
-	return err
+	return dao.Create(tx, logger)
 }
 func (service JournalService) AddScoreJournal(tx *gorm.DB, UserID dao.PrimaryKey, Name, Detail string, Type model.ScoreJournalType, Score int64) error {
 	logger := &model.ScoreJournal{}
