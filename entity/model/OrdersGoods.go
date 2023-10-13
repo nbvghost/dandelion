@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/nbvghost/dandelion/library/dao"
@@ -41,12 +42,22 @@ type OrdersGoods struct {
 	//GoodsID         uint `gorm:"column:GoodsID"`                     //
 }
 
-func (og OrdersGoods) AddError(err string) {
+func (m OrdersGoods) GetGoods() *Goods {
+	var goods Goods
+	_ = json.Unmarshal([]byte(m.Goods), &goods)
+	return &goods
+}
+func (m OrdersGoods) GetSpecification() *Specification {
+	var specification Specification
+	_ = json.Unmarshal([]byte(m.Specification), &specification)
+	return &specification
+}
+func (m OrdersGoods) AddError(err string) {
 
-	if strings.EqualFold(og.Error, "") {
-		og.Error = err
+	if strings.EqualFold(m.Error, "") {
+		m.Error = err
 	} else {
-		og.Error = og.Error + "|" + err
+		m.Error = m.Error + "|" + err
 	}
 }
 func (OrdersGoods) TableName() string {

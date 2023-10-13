@@ -711,21 +711,23 @@ func (service WxService) CloseOrder(OrderNo string, OID dao.PrimaryKey, wxConfig
 }
 
 // Refund 退款-订单内的所有的商品/订单内某个商品
-func (service WxService) Refund(ctx context.Context, order *model.Orders, ordersGoods *model.OrdersGoods, reason string, wxConfig *model.WechatConfig) (*refunddomestic.Refund, error) {
+func (service WxService) Refund(ctx context.Context, order *model.Orders, ordersGoods *model.OrdersGoods, reason string, wxConfig *model.WechatConfig) error {
 
 	client, err := NewClient(wxConfig)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	svc := refunddomestic.RefundsApiService{Client: client}
 
 	var createRequest refunddomestic.CreateRequest
 
 	if ordersGoods == nil {
+		//退全部
 		//outMap["out_refund_no"] = order.OrderNo
 		//outMap["out_trade_no"] = order.OrderNo
 		//outMap["refund_fee"] = strconv.Itoa(int(order.PayMoney))
 		//outMap["total_fee"] = strconv.Itoa(int(order.PayMoney))
+
 		createRequest = refunddomestic.CreateRequest{
 			OutTradeNo:   core.String(order.OrderNo),
 			OutRefundNo:  core.String(order.OrderNo),
@@ -741,33 +743,68 @@ func (service WxService) Refund(ctx context.Context, order *model.Orders, orders
 			GoodsDetail: nil,
 		}
 	} else {
+		//部分退款
 		//op := model.Orders.GetOrdersPackageByOrderNo(order.OrdersPackageNo)
 		//op := Orders.GetOrdersByOrderNo(order.OrdersPackageNo)
 		//outMap["out_refund_no"] = order.OrderNo
 		//outMap["out_trade_no"] = order.OrdersPackageNo
 		//outMap["refund_fee"] = strconv.Itoa(int(order.PayMoney))
 		//outMap["total_fee"] = strconv.Itoa(int(ordersPackage.TotalPayMoney))
+
+		goods := ordersGoods.GetGoods()
+		specification := ordersGoods.GetSpecification()
+
+		refundAmount := ordersGoods.SellPrice * ordersGoods.Quantity
+
 		createRequest = refunddomestic.CreateRequest{
 			OutTradeNo:   core.String(order.OrderNo),
-			OutRefundNo:  core.String(order.OrdersPackageNo),
+			OutRefundNo:  core.String(ordersGoods.OrdersGoodsNo),
 			Reason:       core.String(reason),
 			NotifyUrl:    core.String(wxConfig.RefundNotifyUrl),
 			FundsAccount: refunddomestic.REQFUNDSACCOUNT_AVAILABLE.Ptr(),
 			Amount: &refunddomestic.AmountReq{
-				Refund:   core.Int64(int64(ordersGoods.SellPrice)),
+				Refund:   core.Int64(int64(refundAmount)),
 				Total:    core.Int64(int64(order.PayMoney)),
 				From:     nil,
 				Currency: core.String("CNY"),
 			},
-			GoodsDetail: nil,
+			GoodsDetail: []refunddomestic.GoodsDetail{
+				{
+					MerchantGoodsId: core.String(fmt.Sprintf("%d", goods.ID)),
+					//WechatpayGoodsId: core.String(fmt.Sprintf("%d",goods.ID)),
+					GoodsName:      core.String(goods.Title + "/" + specification.Label),
+					UnitPrice:      core.Int64(int64(specification.MarketPrice)),
+					RefundAmount:   core.Int64(int64(refundAmount)),
+					RefundQuantity: core.Int64(int64(ordersGoods.Quantity)),
+				},
+			},
 		}
 	}
 
 	resp, _, err := svc.Create(ctx, createRequest)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return resp, nil
+
+	switch *resp.Status {
+	case refunddomestic.STATUS_SUCCESS:
+		log.Println(fmt.Sprintf("%s:%s\n", *resp.OutTradeNo, "退款成功"))
+	case refunddomestic.STATUS_CLOSED:
+		log.Println(fmt.Sprintf("%s:%s\n", *resp.OutTradeNo, "退款关闭"))
+	case refunddomestic.STATUS_PROCESSING:
+		log.Println(fmt.Sprintf("%s:%s\n", *resp.OutTradeNo, "退款处理中"))
+	case refunddomestic.STATUS_ABNORMAL:
+		return errors.New("退款异常,请联系客服处理")
+	default:
+		return errors.New("未知操作,请联系客服处理")
+	}
+
+	//SUCCESS: 退款成功
+	//CLOSED: 退款关闭
+	//PROCESSING: 退款处理中
+	//ABNORMAL: 退款异常
+
+	return nil
 	//outMap["refund_desc"] = Desc
 
 	/*if Type == 0 {
