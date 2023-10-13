@@ -181,12 +181,14 @@ func (service JournalService) UnFreezeUserAmount(tx *gorm.DB, UserID dao.Primary
 	return service.UpdateFreezeUserAmount(tx, UserID)
 }
 func (service JournalService) UpdateFreezeUserAmount(tx *gorm.DB, UserID dao.PrimaryKey) error {
-	var balance int64
+	var balance = struct {
+		Amount int64 `gorm:"column:Amount"`
+	}{}
 	err := dao.Find(tx, &model.UserFreezeJournal{}).Where(`"UserID"=?`, UserID).Where(`"FreezeType"=?`, model.FreezeTypeFreeze).Select(`sum("Amount") as "Amount"`).Scan(&balance)
 	if err != nil {
 		return err
 	}
-	err = dao.UpdateByPrimaryKey(tx, &model.User{}, UserID, map[string]interface{}{"BlockAmount": balance})
+	err = dao.UpdateByPrimaryKey(tx, &model.User{}, UserID, map[string]interface{}{"BlockAmount": balance.Amount})
 	if err != nil {
 		return err
 	}
