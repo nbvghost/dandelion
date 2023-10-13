@@ -133,7 +133,7 @@ func (service JournalService) AddOrganizationJournal(DB *gorm.DB, OID dao.Primar
 }
 func (service JournalService) DisableFreezeUserAmount(tx *gorm.DB, UserID dao.PrimaryKey, dataType IDataType, FromUserID dao.PrimaryKey) error {
 	//select * from "UserJournal" where "DataKV"::json ->> 'Value'='13';
-	orm := dao.Find(tx, &model.UserFreezeJournal{}).Where(`"UserID"=?`, UserID).Where(`"FromUserID"=?`, FromUserID).Where(`"UnFreezeType"=?`, model.UnFreezeTypeFreeze)
+	orm := dao.Find(tx, &model.UserFreezeJournal{}).Where(`"UserID"=?`, UserID).Where(`"FromUserID"=?`, FromUserID).Where(`"FreezeType"=?`, model.FreezeTypeFreeze)
 	md := dataType.ToMap()
 	for key, value := range md {
 		orm.Where(fmt.Sprintf(`"%s"=?`, key), value)
@@ -141,7 +141,7 @@ func (service JournalService) DisableFreezeUserAmount(tx *gorm.DB, UserID dao.Pr
 	list := orm.List()
 	if len(list) > 0 {
 		item := list[0].(*model.UserFreezeJournal)
-		err := dao.UpdateByPrimaryKey(tx, &model.UserFreezeJournal{}, item.ID, map[string]any{"UnFreezeType": model.UnFreezeTypeDisable})
+		err := dao.UpdateByPrimaryKey(tx, &model.UserFreezeJournal{}, item.ID, map[string]any{"FreezeType": model.FreezeTypeDisable})
 		if err != nil {
 			return err
 		}
@@ -151,7 +151,7 @@ func (service JournalService) DisableFreezeUserAmount(tx *gorm.DB, UserID dao.Pr
 func (service JournalService) UnFreezeUserAmount(tx *gorm.DB, UserID dao.PrimaryKey, dataType IDataType, FromUserID dao.PrimaryKey) error {
 	//select * from "UserJournal" where "DataKV"::json ->> 'Value'='13';
 
-	orm := dao.Find(tx, &model.UserFreezeJournal{}).Where(`"UserID"=?`, UserID).Where(`"FromUserID"=?`, FromUserID).Where(`"UnFreezeType"=?`, model.UnFreezeTypeFreeze)
+	orm := dao.Find(tx, &model.UserFreezeJournal{}).Where(`"UserID"=?`, UserID).Where(`"FromUserID"=?`, FromUserID).Where(`"FreezeType"=?`, model.FreezeTypeFreeze)
 	md := dataType.ToMap()
 	for key, value := range md {
 		orm.Where(fmt.Sprintf(`"%s"=?`, key), value)
@@ -159,7 +159,7 @@ func (service JournalService) UnFreezeUserAmount(tx *gorm.DB, UserID dao.Primary
 	list := orm.List()
 	if len(list) > 0 {
 		item := list[0].(*model.UserFreezeJournal)
-		err := dao.UpdateByPrimaryKey(tx, &model.UserFreezeJournal{}, item.ID, map[string]any{"UnFreezeType": model.UnFreezeTypeUnFreeze})
+		err := dao.UpdateByPrimaryKey(tx, &model.UserFreezeJournal{}, item.ID, map[string]any{"FreezeType": model.FreezeTypeUnFreeze})
 		if err != nil {
 			return err
 		}
@@ -199,11 +199,11 @@ func (service JournalService) FreezeUserAmount(tx *gorm.DB, UserID dao.PrimaryKe
 	//user := dao.GetByPrimaryKey(tx, &model.User{}, UserID).(*model.User)
 
 	var balance int64
-	err = dao.Find(tx, &model.UserFreezeJournal{}).Where(`"UserID"=?`, UserID).Where(`"UnFreezeType"=?`, model.UnFreezeTypeFreeze).Select(`sum("Amount") as "Amount"`).Scan(&balance)
+	err = dao.Find(tx, &model.UserFreezeJournal{}).Where(`"UserID"=?`, UserID).Where(`"FreezeType"=?`, model.FreezeTypeFreeze).Select(`sum("Amount") as "Amount"`).Scan(&balance)
 	if err != nil {
 		return err
 	}
-	err = dao.UpdateByPrimaryKey(tx, &model.User{}, UserID, map[string]interface{}{"Amount": balance})
+	err = dao.UpdateByPrimaryKey(tx, &model.User{}, UserID, map[string]interface{}{"BlockAmount": balance})
 	if err != nil {
 		return err
 	}

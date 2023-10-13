@@ -31,26 +31,26 @@ func (UserJournal) TableName() string {
 	return "UserJournal"
 }
 
-type UnFreezeType int
+type FreezeType int
 
 const (
-	UnFreezeTypeFreeze   UnFreezeType = 0 //冻结
-	UnFreezeTypeUnFreeze UnFreezeType = 1 //解冻并结算到用户的资金账户里
-	UnFreezeTypeDisable  UnFreezeType = 2 //无效冻结，表示，资金来源已经无效，此冻结也无效
+	FreezeTypeFreeze   FreezeType = 0 //冻结
+	FreezeTypeUnFreeze FreezeType = 1 //解冻并结算到用户的资金账户里
+	FreezeTypeDisable  FreezeType = 2 //无效冻结，表示，资金来源已经无效，此冻结也无效
 )
 
 // UserFreezeJournal 被交结的账目明细
 type UserFreezeJournal struct {
 	dao.Entity
-	UserID       dao.PrimaryKey  `gorm:"column:UserID"`             //受益者
-	Name         string          `gorm:"column:Name;not null"`      //
-	Detail       string          `gorm:"column:Detail;not null"`    //
-	Type         UserJournalType `gorm:"column:Type"`               //ddddd
-	Amount       int64           `gorm:"column:Amount"`             //
-	FromUserID   dao.PrimaryKey  `gorm:"column:FromUserID"`         //来源
-	FromUserName string          `gorm:"column:FromUserName"`       //来源
-	DataKV       string          `gorm:"column:DataKV;type:JSON"`   //{Key:"",Value:""}
-	UnFreezeType UnFreezeType    `gorm:"column:UnFreezeType;index"` //
+	UserID       dao.PrimaryKey  `gorm:"column:UserID"`           //受益者
+	Name         string          `gorm:"column:Name;not null"`    //
+	Detail       string          `gorm:"column:Detail;not null"`  //
+	Type         UserJournalType `gorm:"column:Type"`             //ddddd
+	Amount       int64           `gorm:"column:Amount"`           //
+	FromUserID   dao.PrimaryKey  `gorm:"column:FromUserID"`       //来源
+	FromUserName string          `gorm:"column:FromUserName"`     //来源
+	DataKV       string          `gorm:"column:DataKV;type:JSON"` //{Key:"",Value:""}
+	FreezeType   FreezeType      `gorm:"column:FreezeType;index"` //
 }
 
 func (UserFreezeJournal) TableName() string {
