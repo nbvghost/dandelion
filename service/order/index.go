@@ -782,7 +782,7 @@ func (service OrdersService) ListOrders(UserID, OID dao.PrimaryKey, PostType int
 	return service.ListOrdersDate(UserID, OID, PostType, Status, time.Unix(0, 0), time.Unix(0, 0), Limit, Offset)
 }
 
-func (service OrdersService) OrderNotify(totalFee uint, outTradeNo string, payTime time.Time, attach string) (string, error) {
+func (service OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, payTime time.Time, attach string) (string, error) {
 
 	//Orm := singleton.Orm()
 
@@ -875,58 +875,14 @@ func (service OrdersService) OrderNotify(totalFee uint, outTradeNo string, payTi
 }
 
 func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, payTime time.Time) (Success bool, Message string) {
-
-	//orders := service.GetOrdersByOrderNo(out_trade_no)
 	if orders.IsPay == 0 {
 		if orders.Status == model.OrdersStatusOrder {
-
-			//t, _ := time.ParseInLocation("20060102150405", payTime, time.Local)
-			//var TotalBrokerage uint
 			var err error
-			if orders.PostType == 1 {
-				//邮寄
-				err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, &model.Orders{PayTime: payTime, IsPay: 1, Status: model.OrdersStatusPay})
-				if err != nil {
-					return false, err.Error()
-				}
-				/*ogs, err := service.OrdersGoods.FindByOrdersID(tx, orders.ID)
-				if err != nil {
 
-					return false, err.Error()
-				}
-
-				for _, value := range ogs {
-					//var specification model.Specification
-					//util.JSONToStruct(value.Specification, &specification)
-					TotalBrokerage = TotalBrokerage + value.TotalBrokerage
-				}*/
-
-			} else {
-				//线下使用
-				err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, &model.Orders{PayTime: payTime, IsPay: 1, Status: model.OrdersStatusPay})
-				if err != nil {
-					return false, err.Error()
-				}
-
-				/*ogs, err := service.OrdersGoods.FindByOrdersID(tx, orders.ID)
-				if err != nil {
-
-					return false, err.Error()
-				}
-
-				for _, value := range ogs {
-					//var specification model.Specification
-					//util.JSONToStruct(value.Specification, &specification)
-					TotalBrokerage = TotalBrokerage + value.TotalBrokerage
-				}
-
-				err = service.CardItem.AddOrdersGoodsCardItem(tx, orders, ogs)
-				if err != nil {
-
-					return false, err.Error()
-				}*/
+			err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, &model.Orders{PayTime: payTime, IsPay: 1, Status: model.OrdersStatusPay})
+			if err != nil {
+				return false, err.Error()
 			}
-
 			err = service.FirstSettlementUserBrokerage(tx, orders)
 			if err != nil {
 
@@ -943,7 +899,6 @@ func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, 
 
 		return false, "订单已经处理或过期"
 	}
-
 }
 
 // BuyCollageOrders 拼单购买
@@ -1671,25 +1626,42 @@ func (service OrdersService) QueryOrdersTask(wxConfig *model.WechatConfig, order
 		//当前状态为没有支付，去检测一下，订单状态。
 		transaction, err := service.Wx.OrderQuery(context.TODO(), orders.OrderNo, wxConfig)
 		if err != nil {
-			log.Println(err)
 			return err
 		}
 
+		/*
+			【交易状态】 交易状态，枚举值：
+			* SUCCESS：支付成功
+			* REFUND：转入退款
+			* NOTPAY：未支付
+			* CLOSED：已关闭
+			* REVOKED：已撤销（仅付款码支付会返回）
+			* USERPAYING：用户支付中（仅付款码支付会返回）
+			* PAYERROR：支付失败（仅付款码支付会返回）
+		*/
+		switch *transaction.TradeState {
+		case "SUCCESS":
+			payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", *transaction.SuccessTime, time.Local)
+			if err != nil {
+				return err
+			}
+			_, err = service.OrderPaySuccess(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, payTime, *transaction.Attach)
+			if err != nil {
+				return err
+			}
+		case "REFUND":
+		case "NOTPAY":
+		case "CLOSED":
+		case "REVOKED":
+		case "USERPAYING":
+		case "PAYERROR":
+		}
 		if strings.EqualFold(*transaction.TradeState, "SUCCESS") {
 			//TotalFee, _ := strconv.ParseUint(result["total_fee"], 10, 64)
 			//OrderNo := result["out_trade_no"]
 			//TimeEnd := result["time_end"]
 			//attach := result["attach"]
-			payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", *transaction.SuccessTime, time.Local)
-			if err != nil {
-				log.Println(err)
-				return err
-			}
-			_, err = service.OrderNotify(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, payTime, *transaction.Attach)
-			if err != nil {
-				log.Println(err)
-				return err
-			}
+
 		}
 	}
 	err := service.AnalysisOrdersStatus(orders.ID, wxConfig)

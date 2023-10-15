@@ -2,7 +2,9 @@ package job
 
 import (
 	"context"
+	"fmt"
 	"github.com/nbvghost/dandelion/library/db"
+	"github.com/pkg/errors"
 	"log"
 
 	"github.com/nbvghost/dandelion/entity"
@@ -19,19 +21,20 @@ type QueryOrdersTask struct {
 
 func (m *QueryOrdersTask) Run() error {
 	wxConfigList := m.WxService.MiniProgram(db.Orm())
-	for _, config := range wxConfigList {
+	for i := range wxConfigList {
+		config := wxConfigList[i].(*model.WechatConfig)
 		Orm := db.Orm()
 		//var ordersList []model.Orders
-		ordersList := dao.Find(Orm, entity.Orders).Where(`"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed).List()
+		ordersList := dao.Find(Orm, entity.Orders).Where(`"OID"=?`, config.OID).Where(`"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed).List()
 		//service.FindWhere(Orm, &ordersList, `"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed)
 
-		for _, orders := range ordersList {
-			err := m.OrdersService.QueryOrdersTask(config.(*model.WechatConfig), orders.(*model.Orders))
+		for ii := range ordersList {
+			orders := ordersList[ii].(*model.Orders)
+			err := m.OrdersService.QueryOrdersTask(config, orders)
 			if err != nil {
-				log.Println(err)
+				log.Println(errors.WithMessage(err, fmt.Sprintf("订单ID:%s", orders.ID)))
 			}
 		}
-
 	}
 	return nil
 }
