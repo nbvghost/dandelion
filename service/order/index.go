@@ -1622,54 +1622,54 @@ func (service OrdersService) FindOrdersGoodsByCollageUser(CollageNo string) []mo
 }
 
 func (service OrdersService) QueryOrdersTask(wxConfig *model.WechatConfig, orders *model.Orders) error {
-	if orders.IsPay == 0 {
-		//当前状态为没有支付，去检测一下，订单状态。
-		transaction, err := service.Wx.OrderQuery(context.TODO(), orders.OrderNo, wxConfig)
+	//if orders.IsPay == 0 {
+	//当前状态为没有支付，去检测一下，订单状态。
+	transaction, err := service.Wx.OrderQuery(context.TODO(), orders.OrderNo, wxConfig)
+	if err != nil {
+		return err
+	}
+
+	/*
+		【交易状态】 交易状态，枚举值：
+		* SUCCESS：支付成功
+		* REFUND：转入退款
+		* NOTPAY：未支付
+		* CLOSED：已关闭
+		* REVOKED：已撤销（仅付款码支付会返回）
+		* USERPAYING：用户支付中（仅付款码支付会返回）
+		* PAYERROR：支付失败（仅付款码支付会返回）
+	*/
+	switch *transaction.TradeState {
+	case "SUCCESS":
+		payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", *transaction.SuccessTime, time.Local)
 		if err != nil {
 			return err
 		}
-
-		/*
-			【交易状态】 交易状态，枚举值：
-			* SUCCESS：支付成功
-			* REFUND：转入退款
-			* NOTPAY：未支付
-			* CLOSED：已关闭
-			* REVOKED：已撤销（仅付款码支付会返回）
-			* USERPAYING：用户支付中（仅付款码支付会返回）
-			* PAYERROR：支付失败（仅付款码支付会返回）
-		*/
-		switch *transaction.TradeState {
-		case "SUCCESS":
-			payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", *transaction.SuccessTime, time.Local)
-			if err != nil {
-				return err
-			}
-			_, err = service.OrderPaySuccess(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, payTime, *transaction.Attach)
-			if err != nil {
-				return err
-			}
-		case "REFUND":
-			err = service.OrdersRefundSuccess(orders)
-			if err != nil {
-				return err
-			}
-		case "NOTPAY":
-		case "CLOSED":
-			err = dao.UpdateByPrimaryKey(db.Orm(), entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusClosed})
-			if err != nil {
-				return err
-			}
-		case "REVOKED":
-			err = dao.UpdateByPrimaryKey(db.Orm(), entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusClosed})
-			if err != nil {
-				return err
-			}
-		case "USERPAYING":
-		case "PAYERROR":
+		_, err = service.OrderPaySuccess(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, payTime, *transaction.Attach)
+		if err != nil {
+			return err
 		}
+	case "REFUND":
+		err = service.OrdersRefundSuccess(orders)
+		if err != nil {
+			return err
+		}
+	case "NOTPAY":
+	case "CLOSED":
+		err = dao.UpdateByPrimaryKey(db.Orm(), entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusClosed})
+		if err != nil {
+			return err
+		}
+	case "REVOKED":
+		err = dao.UpdateByPrimaryKey(db.Orm(), entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusClosed})
+		if err != nil {
+			return err
+		}
+	case "USERPAYING":
+	case "PAYERROR":
 	}
-	err := service.AnalysisOrdersStatus(orders.ID, wxConfig)
+	//}
+	err = service.AnalysisOrdersStatus(orders.ID, wxConfig)
 	if err != nil {
 		log.Println(err)
 		return err
