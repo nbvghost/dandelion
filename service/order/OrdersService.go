@@ -30,8 +30,6 @@ import (
 	"github.com/nbvghost/dandelion/service/journal"
 	"github.com/nbvghost/dandelion/service/user"
 	"github.com/nbvghost/dandelion/service/wechat"
-	"github.com/wechatpay-apiv3/wechatpay-go/services/refunddomestic"
-
 	"gorm.io/gorm"
 
 	"github.com/nbvghost/tool"
@@ -575,102 +573,6 @@ func (service OrdersService) AnalysisOrdersStatus(OrdersID dao.PrimaryKey, wxCon
 
 	}
 	return nil
-}
-func (service OrdersService) CancelOk(context context.Context, OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) (string, error) {
-	Orm := db.Orm()
-
-	//var orders model.Orders
-	orders := dao.GetByPrimaryKey(Orm, entity.Orders, OrdersID).(*model.Orders)
-	if orders.ID == 0 {
-		return "", errors.New("订单不存在")
-	}
-
-	//ordersPackage := service.GetOrdersPackageByOrderNo(orders.OrdersPackageNo)
-
-	//下单状态
-	if orders.Status == model.OrdersStatusCancel {
-		if orders.IsPay == model.OrdersIsPayPayed {
-
-			var refund *refunddomestic.Refund
-			var err error
-			//邮寄
-			/*if orders.PostType == model.OrdersPostTypePost {
-				err = service.Wx.Refund(context, orders, nil, "用户取消", wxConfig)
-				if err != nil {
-					return "", err
-				}
-
-				err = dao.UpdateByPrimaryKey(Orm, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
-				if err != nil {
-					return "", err
-				}
-				//管理商品库存
-				err = service.OrdersStockManager(Orm, orders, false)
-				if err != nil {
-					return "", err
-				}
-				err = service.MinusSettlementUserBrokerage(Orm, orders)
-				if err != nil {
-					return "", err
-				}
-
-			} else if orders.PostType == model.OrdersPostTypeOffline {
-				err = service.Wx.Refund(context, orders, nil, "用户取消", wxConfig)
-				if err != nil {
-					return "", err
-				}
-				tx := Orm.Begin()
-				err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
-				if err != nil {
-					tx.Rollback()
-					return "", err
-				}
-				var ogs []dao.IEntity
-				ogs, err = service.FindOrdersGoodsByOrdersID(tx, orders.ID)
-				if err != nil {
-					tx.Rollback()
-					return "", err
-				}
-				err = service.CardItem.CancelOrdersGoodsCardItem(tx, orders.UserID, ogs)
-				if err != nil {
-					tx.Rollback()
-					return "", err
-				}
-
-				//管理商品库存
-				err = service.OrdersStockManager(tx, orders, false)
-				if err != nil {
-					tx.Rollback()
-					return "", err
-				}
-				tx.Commit()
-			} else {
-
-			}*/
-
-			err = service.Wx.Refund(context, orders, nil, "用户取消", wxConfig)
-			if err != nil {
-				return "", err
-			}
-
-			if refund != nil {
-				switch refund.Status {
-				case refunddomestic.STATUS_SUCCESS.Ptr():
-					return "退款成功", nil
-				case refunddomestic.STATUS_CLOSED.Ptr():
-					return "退款关闭", nil
-				case refunddomestic.STATUS_PROCESSING.Ptr():
-					return "退款处理中", nil
-				case refunddomestic.STATUS_ABNORMAL.Ptr():
-					return "退款异常", nil
-				}
-				return "", errors.New("无效的退款状态")
-			}
-
-		}
-
-	}
-	return "", errors.New("不允许取消订单")
 }
 
 // 发货
@@ -1857,74 +1759,26 @@ func (service OrdersService) Cancel(ctx context.Context, OrdersID dao.PrimaryKey
 		return "", errors.New("订单不存在")
 	}
 
-	//ordersPackage := service.GetOrdersPackageByOrderNo(orders.OrdersPackageNo)
-
 	//下单状态
 	if orders.Status == model.OrdersStatusOrder {
 		if orders.IsPay == model.OrdersIsPayPayed {
 			err := dao.UpdateByPrimaryKey(Orm, entity.Orders, OrdersID, map[string]interface{}{"Status": model.OrdersStatusCancel})
 			return "申请取消，等待客服确认", err
 		} else {
-			/*transaction, err := service.Wx.OrderQuery(ctx, orders.OrderNo, wxConfig)
+			//没支付的订单
+			//管理商品库存
+			err := service.OrdersStockManager(Orm, orders, false)
 			if err != nil {
 				return "", err
 			}
-			if strings.EqualFold(*transaction.TradeState, "SUCCESS") {
-				//如果查询订单已经支付，由客服确认
-				err := dao.UpdateByPrimaryKey(Orm, entity.Orders, OrdersID, map[string]interface{}{"Status": model.OrdersStatusCancel})
-				return "申请取消，等待客服确认", err
-			} else*/
-			{
-				//没支付的订单
-				//管理商品库存
-				err := service.OrdersStockManager(Orm, orders, false)
-				if err != nil {
-					return "", err
-				}
-				err = dao.UpdateByPrimaryKey(Orm, entity.Orders, OrdersID, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
-				return "取消成功", err
-				/*refund, err := service.Wx.Refund(ctx, orders, ordersPackage, orders.PayMoney, "用户取消", wxConfig)
-				if err != nil {
-					return "", err
-				}
-				log.Println("Orders", "Cancel", refund)
-				if Success == false {
-					Success, Message1 = service.Wx.Refund(ctx, orders, ordersPackage, orders.PayMoney, "用户取消", wxConfig)
-					log.Println("Orders", "Cancel", Message1)
-				}
+			err = dao.UpdateByPrimaryKey(Orm, entity.Orders, OrdersID, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
+			return "取消成功", err
 
-				if Success {
-					//管理商品库存
-					err := service.OrdersStockManager(Orm, orders, false)
-					if err != nil {
-						return "", err
-					}
-					err = dao.UpdateByPrimaryKey(Orm, entity.Orders, OrdersID, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
-					return "取消成功", err
-				} else {
-					//管理商品库存
-					err := service.OrdersStockManager(Orm, orders, false)
-					if err != nil {
-						return "", err
-					}
-					err = dao.UpdateByPrimaryKey(Orm, entity.Orders, OrdersID, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
-					return "取消成功", err
-
-
-					//return errors.New(Message1), ""
-					/*Success, Message2 := service.Wx.Refund(orders, orders.PayMoney, orders.PayMoney, "用户取消", 1)
-					if Success {
-
-					} else {
-
-					}*/
-			}
 		}
 	} else if orders.Status == model.OrdersStatusPay {
 		if orders.IsPay == model.OrdersIsPayPayed {
 			//已经支付的订单，发起退款
-			//ordersPackage := service.GetOrdersPackageByOrderNo(orders.OrdersPackageNo)
-			err := service.Wx.Refund(ctx, orders, nil, "用户取消", wxConfig)
+			_, err := service.CancelOk(ctx, orders.ID, wxConfig)
 			if err != nil {
 				return "", err
 			}
@@ -1932,8 +1786,7 @@ func (service OrdersService) Cancel(ctx context.Context, OrdersID dao.PrimaryKey
 		} else {
 			return "", errors.New("不允许取消订单,订单没有支付或已经过期")
 		}
-
 	} else {
-		return "", errors.New("不允许取消订单")
+		return "", errors.New("申请取消订单失败，请联系客服")
 	}
 }
