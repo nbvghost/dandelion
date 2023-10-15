@@ -2,7 +2,6 @@ package wx
 
 import (
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
@@ -63,12 +62,13 @@ func (m *RefundNotify) handle(context constrain.IContext, OID dao.PrimaryKey) (r
 		if orders.IsZero() {
 			return result.NewJsonResult(map[string]any{"code": "FAIL", "message": "订单不存在"}).WithStatusCode(http.StatusBadRequest), nil
 		}
-		var ordersGoods *model.OrdersGoods
+
+		//var ordersGoods *model.OrdersGoods
 		if !strings.EqualFold(content.OutTradeNo, content.OutRefundNo) {
-			ordersGoods = m.OrdersService.GetOrdersGoodsByOrdersGoodsNo(db.Orm(), content.OutTradeNo)
+			//ordersGoods = m.OrdersService.GetOrdersGoodsByOrdersGoodsNo(db.Orm(), content.OutTradeNo)
 		}
 
-		err = m.OrdersService.GoodsRefundSuccess(&orders, ordersGoods)
+		err = m.OrdersService.OrdersRefundSuccess(&orders)
 		if err != nil {
 			return result.NewJsonResult(map[string]any{"code": "FAIL", "message": err.Error()}).WithStatusCode(http.StatusBadRequest), nil
 		}

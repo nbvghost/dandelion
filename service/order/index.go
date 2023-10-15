@@ -1650,9 +1650,21 @@ func (service OrdersService) QueryOrdersTask(wxConfig *model.WechatConfig, order
 				return err
 			}
 		case "REFUND":
+			err = service.OrdersRefundSuccess(orders)
+			if err != nil {
+				return err
+			}
 		case "NOTPAY":
 		case "CLOSED":
+			err = dao.UpdateByPrimaryKey(db.Orm(), entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusClosed})
+			if err != nil {
+				return err
+			}
 		case "REVOKED":
+			err = dao.UpdateByPrimaryKey(db.Orm(), entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusClosed})
+			if err != nil {
+				return err
+			}
 		case "USERPAYING":
 		case "PAYERROR":
 		}
@@ -1691,7 +1703,7 @@ type RefundNotifyData struct {
 OutTradeNo:   core.String(order.OrderNo),
 OutRefundNo:  core.String(ordersGoods.OrdersGoodsNo),
 */
-func (service OrdersService) GoodsRefundSuccess(orders *model.Orders, ordersGoods *model.OrdersGoods) error {
+func (service OrdersService) OrdersRefundSuccess(orders *model.Orders) error {
 	if orders.Status == model.OrdersStatusCancelOk {
 		//说明已经退款
 		return nil
