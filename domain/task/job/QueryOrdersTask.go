@@ -30,6 +30,7 @@ func (m *QueryOrdersTask) Run() error {
 			Where(`"Status"<>?`, model.OrdersStatusOrderOk).
 			Where(`"Status"<>?`, model.OrdersStatusCancelOk).
 			Where(`"Status"<>?`, model.OrdersStatusDelete).
+			Where(`"Status"<>?`, model.OrdersStatusPay).
 			Where(`"Status"<>?`, model.OrdersStatusClosed).List()
 		//Where(`"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed).List()
 		//service.FindWhere(Orm, &ordersList, `"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed)
