@@ -1656,13 +1656,6 @@ func (service OrdersService) QueryOrdersTask(wxConfig *model.WechatConfig, order
 		case "USERPAYING":
 		case "PAYERROR":
 		}
-		if strings.EqualFold(*transaction.TradeState, "SUCCESS") {
-			//TotalFee, _ := strconv.ParseUint(result["total_fee"], 10, 64)
-			//OrderNo := result["out_trade_no"]
-			//TimeEnd := result["time_end"]
-			//attach := result["attach"]
-
-		}
 	}
 	err := service.AnalysisOrdersStatus(orders.ID, wxConfig)
 	if err != nil {
@@ -1699,6 +1692,18 @@ OutTradeNo:   core.String(order.OrderNo),
 OutRefundNo:  core.String(ordersGoods.OrdersGoodsNo),
 */
 func (service OrdersService) GoodsRefundSuccess(orders *model.Orders, ordersGoods *model.OrdersGoods) error {
+	if orders.Status == model.OrdersStatusCancelOk {
+		//说明已经退款
+		return nil
+	}
+	if orders.Status == model.OrdersStatusClosed {
+		//关闭了，不处理
+		return nil
+	}
+	if orders.Status == model.OrdersStatusDelete {
+		//删除了，不处理
+		return nil
+	}
 	tx := db.Orm().Begin()
 	err := dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
 	if err != nil {

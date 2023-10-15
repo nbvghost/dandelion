@@ -25,7 +25,13 @@ func (m *QueryOrdersTask) Run() error {
 		config := wxConfigList[i].(*model.WechatConfig)
 		Orm := db.Orm()
 		//var ordersList []model.Orders
-		ordersList := dao.Find(Orm, entity.Orders).Where(`"OID"=?`, config.OID).Where(`"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed).List()
+		ordersList := dao.Find(Orm, entity.Orders).
+			Where(`"OID"=?`, config.OID).
+			Where(`"Status"<>?`, model.OrdersStatusOrderOk).
+			Where(`"Status"<>?`, model.OrdersStatusCancelOk).
+			Where(`"Status"<>?`, model.OrdersStatusDelete).
+			Where(`"Status"<>?`, model.OrdersStatusClosed).List()
+		//Where(`"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed).List()
 		//service.FindWhere(Orm, &ordersList, `"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed)
 
 		for ii := range ordersList {
