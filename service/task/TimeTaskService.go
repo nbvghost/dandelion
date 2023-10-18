@@ -59,8 +59,13 @@ func (m TimeTaskService) QuerySupplyOrdersTask(wxConfig *model.WechatConfig) {
 			//TimeEnd := result["time_end"]
 			//attach := result["attach"]
 			payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", *transaction.SuccessTime, time.Local)
-			log.Println(err)
-			m.Orders.OrderNotify(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, payTime, *transaction.Attach)
+			if err != nil {
+				log.Println(err)
+			}
+			_, err = m.Orders.OrderPaySuccess(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, *transaction.TransactionId, payTime, *transaction.Attach)
+			if err != nil {
+				log.Println(err)
+			}
 			//m.Orders.OrderNotify(result)
 		}
 

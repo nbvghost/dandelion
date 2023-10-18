@@ -64,7 +64,7 @@ func (m *Notify) handle(context constrain.IContext, OID dao.PrimaryKey) (r const
 		log.Println(err)
 		return result.NewJsonResult(map[string]any{"code": "FAIL", "message": err.Error()}).WithStatusCode(http.StatusBadRequest), nil
 	}
-	message, err := m.OrdersService.OrderPaySuccess(uint(*content.Amount.PayerTotal), *content.OutTradeNo, payTime, *content.Attach)
+	message, err := m.OrdersService.OrderPaySuccess(uint(*content.Amount.PayerTotal), *content.OutTradeNo, *content.TransactionId, payTime, *content.Attach)
 	if err != nil {
 		return result.NewJsonResult(map[string]any{"code": "FAIL", "message": message}).WithStatusCode(http.StatusBadRequest), nil
 	} else {

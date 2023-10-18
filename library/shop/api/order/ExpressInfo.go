@@ -25,14 +25,12 @@ func (m *ExpressInfo) HandlePut(ctx constrain.IContext) (constrain.IResult, erro
 	//LogisticCode := context.Request.FormValue("LogisticCode")
 	//ShipperName := context.Request.FormValue("ShipperName")
 	//LogisticCode, ShipperName
-	Result := m.ExpressTemplateService.GetExpressInfo(m.Post.OrdersID, m.Post.LogisticCode, m.Post.ShipperName)
+	Result, err := m.ExpressTemplateService.GetExpressInfo(ctx, m.Post.OrdersID)
 
-	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: Result}}, nil
+	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: Result}}, err
 }
 
 func (m *ExpressInfo) Handle(ctx constrain.IContext) (constrain.IResult, error) {
-
 	//TODO implement me
 	panic("implement me")
-
 }

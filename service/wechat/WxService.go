@@ -12,6 +12,8 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/domain/oss"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/file"
 	"io"
@@ -123,6 +125,83 @@ type DeliveryInfo struct {
 	DeliveryName string `json:"delivery_name"`
 }
 
+func (service WxService) GetTraceWaybill(context constrain.IContext, ordersID dao.PrimaryKey) (string, error) {
+	//trace_waybill
+	////https://api.weixin.qq.com/cgi-bin/express/delivery/open_msg/trace_waybill?access_token=XXX
+
+	orders := dao.GetByPrimaryKey(db.Orm(), &model.Orders{}, ordersID).(*model.Orders)
+	ordersGoodsList := dao.Find(db.Orm(), &model.OrdersGoods{}).Where(`"OrdersID"=?`, orders.ID).List() //.(*model.OrdersGoods)
+
+	u := dao.GetByPrimaryKey(db.Orm(), &model.User{}, orders.UserID).(*model.User)
+
+	var address = &model.Address{}
+	err := json.Unmarshal([]byte(orders.Address), address)
+	if err != nil {
+		return "", err
+	}
+
+	wxConfig := service.MiniProgramByOID(db.Orm(), orders.OID)
+
+	ossUrl, err := oss.Url(context)
+	if err != nil {
+		return "", err
+	}
+
+	var r = struct {
+		ErrCode      int    `json:"errcode"`
+		ErrMsg       string `json:"errmsg"`
+		WaybillToken string `json:"waybill_token"`
+	}{}
+
+	{
+		detailList := make([]map[string]any, 0)
+		for i := range ordersGoodsList {
+			item := ordersGoodsList[i].(*model.OrdersGoods)
+
+			goods := item.GetGoods()
+
+			detailList = append(detailList, map[string]any{
+				"goods_name":    goods.Title,
+				"goods_img_url": ossUrl + item.Image,
+				"goods_desc":    goods.Summary,
+			})
+		}
+
+		marshal, err := json.Marshal(map[string]any{
+			"openid":            u.OpenID,
+			"receiver_phone":    address.Tel,
+			"waybill_id":        orders.ShipInfo.No,
+			"trans_id":          orders.TransactionID,
+			"order_detail_path": fmt.Sprintf("/pages/order_info/order_info?ID=%d", orders.ID),
+			"goods_info": map[string]any{
+				"detail_list": detailList,
+			},
+		})
+		if err != nil {
+			return "", err
+		}
+
+		url := "https://api.weixin.qq.com/cgi-bin/express/delivery/open_msg/trace_waybill?access_token=" + service.GetAccessToken(wxConfig)
+		resp, err := http.Post(url, "application/json", bytes.NewBuffer(marshal))
+		if err != nil {
+			return "", err
+		}
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return "", err
+		}
+		err = json.Unmarshal(body, &r)
+		if err != nil {
+			return "", err
+		}
+		if r.ErrCode != 0 {
+			return "", errors.New(r.ErrMsg)
+		}
+	}
+	return r.WaybillToken, nil
+}
 func (service WxService) GetDeliveryList(accessToken string) ([]DeliveryInfo, error) {
 	url := "https://api.weixin.qq.com/cgi-bin/express/delivery/open_msg/get_delivery_list?access_token=" + accessToken
 

@@ -87,8 +87,8 @@ func (service MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []dao.
 	weapp_template_msg_data["touser"] = notifyUser.OpenID
 
 	data_data := make(map[string]interface{})
-	data_data["keyword1"] = map[string]interface{}{"value": Order.ShipName, "color": "#173177"}
-	data_data["keyword2"] = map[string]interface{}{"value": Order.ShipNo, "color": "#173177"}
+	data_data["keyword1"] = map[string]interface{}{"value": Order.ShipInfo.Name, "color": "#173177"}
+	data_data["keyword2"] = map[string]interface{}{"value": Order.ShipInfo.No, "color": "#173177"}
 
 	var Titles = ""
 	for i := range ogs {

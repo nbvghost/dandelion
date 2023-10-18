@@ -1,12 +1,12 @@
 package order
 
 import (
-	"strings"
-
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/order"
+	"strings"
 )
 
 type List struct {
@@ -27,9 +27,15 @@ func (m *List) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 			StatusList = append(StatusList, model.OrdersStatus(list[i]))
 		}
 	}
-	if m.Get.PageSize == 0 {
-		m.Get.PageSize = 10
+
+	params := &order.ListOrdersQueryParam{
+		UserID: m.User.ID,
+		Status: StatusList,
 	}
-	list, totalRecords := m.OrdersService.ListOrders(m.User.ID, m.User.OID, 0, StatusList, m.Get.PageSize, m.Get.PageSize*m.Get.Index)
-	return result.NewData(map[string]any{"List": list, "Total": totalRecords, "Index": m.Get.Index}), nil
+
+	list, err := m.OrdersService.ListOrders(params, m.User.OID, (&extends.Order{}).OrderByColumn(`"CreatedAt"`, true), m.Get.Index+1, m.Get.PageSize)
+	if err != nil {
+		return nil, err
+	}
+	return result.NewData(map[string]any{"List": list.List, "Total": list.Total, "Index": m.Get.Index}), nil
 }

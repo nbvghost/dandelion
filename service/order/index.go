@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/library/db"
+	"gorm.io/gorm/clause"
 	"log"
 	"math"
 	"strconv"
@@ -576,7 +577,7 @@ func (service OrdersService) AnalysisOrdersStatus(OrdersID dao.PrimaryKey, wxCon
 }
 
 // 发货
-func (service OrdersService) Deliver(ShipName, ShipNo string, OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) error {
+func (service OrdersService) Deliver(ShipID dao.PrimaryKey, ShipNo string, OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) error {
 	Orm := db.Orm().Begin()
 
 	//var orders model.Orders
@@ -590,27 +591,38 @@ func (service OrdersService) Deliver(ShipName, ShipNo string, OrdersID dao.Prima
 		return errors.New("订单没有支付")
 	}
 
-	err := dao.UpdateByPrimaryKey(Orm, &model.Orders{}, OrdersID, &model.Orders{ShipName: ShipName, ShipNo: ShipNo, DeliverTime: time.Now(), Status: model.OrdersStatusDeliver})
-	if err != nil {
+	expressCompany := dao.GetByPrimaryKey(Orm, &model.ExpressCompany{}, ShipID).(*model.ExpressCompany)
+	if expressCompany.IsZero() {
 		Orm.Rollback()
-		return err
+		return errors.New("找不到快递信息")
 	}
-	orders.ShipName = ShipName
-	orders.ShipNo = ShipNo
+
+	orders.ShipInfo = sqltype.ShipInfo{
+		No:   ShipNo,
+		Name: expressCompany.Name,
+		Key:  expressCompany.Key,
+	}
+
 	orders.DeliverTime = time.Now()
 	orders.Status = model.OrdersStatusDeliver
 
-	ogs, err := service.FindOrdersGoodsByOrdersID(db.Orm(), orders.ID)
+	err := dao.UpdateByPrimaryKey(Orm, &model.Orders{}, OrdersID, &model.Orders{ShipInfo: orders.ShipInfo, DeliverTime: orders.DeliverTime, Status: orders.Status})
 	if err != nil {
 		Orm.Rollback()
 		return err
 	}
 
-	as := service.MessageNotify.OrderDeliveryNotify(orders, ogs, wxConfig)
+	/*ogs, err := service.FindOrdersGoodsByOrdersID(db.Orm(), orders.ID)
+	if err != nil {
+		Orm.Rollback()
+		return err
+	}*/
+
+	/*as := service.MessageNotify.OrderDeliveryNotify(orders, ogs, wxConfig)
 	if as.Code != result.Success {
 
 		err = errors.New(as.Message)
-	}
+	}*/
 	Orm.Commit()
 	return err
 }
@@ -718,71 +730,75 @@ GROUP BY cr."No"
 
 	return packs
 }
-func (service OrdersService) ListOrdersDate(UserID, OID dao.PrimaryKey, PostType int, Status []model.OrdersStatus, startDate, endDate time.Time, Limit int, Offset int) (List []interface{}, TotalRecords int64) {
+
+type ListOrdersQueryParam struct {
+	UserID             dao.PrimaryKey
+	Status             []model.OrdersStatus
+	StartDate, EndDate time.Time
+}
+
+func (service OrdersService) ListOrders(queryParam *ListOrdersQueryParam, oid dao.PrimaryKey, fieldOrder clause.OrderByColumn, pageNo int, pageSize int) (*result.Pagination, error) {
+	if pageSize <= 0 {
+		pageSize = 10
+	}
+
+	pageIndex := pageNo - 1
+	if pageIndex < 0 {
+		pageIndex = 0
+	}
+
 	Orm := db.Orm()
 	var orders []model.Orders
 
 	db := Orm.Model(model.Orders{})
-
-	if UserID != 0 {
-		db = db.Where(`"UserID"=?`, UserID)
-	}
-	if OID > 0 {
-		db = db.Where(`"OID"=?`, OID)
-	}
-	if PostType != 0 {
-		db = db.Where(`"PostType"=?`, PostType)
+	if oid > 0 {
+		db = db.Where(`"OID"=?`, oid)
 	}
 
-	if startDate.Unix() != 0 && endDate.Unix() != 0 {
-		db = db.Where(`"UpdatedAt">=? and "UpdatedAt"<=?`, startDate, endDate)
+	if queryParam != nil {
+		if queryParam.UserID != 0 {
+			db = db.Where(`"UserID"=?`, queryParam.UserID)
+		}
+
+		if queryParam.StartDate.IsZero() == false && queryParam.EndDate.IsZero() == false {
+			db = db.Where(`"CreatedAt">=? and "CreatedAt"<=?`, queryParam.StartDate, queryParam.EndDate)
+		}
+
+		if len(queryParam.Status) > 0 {
+			db = db.Where(`"Status" in ?`, queryParam.Status)
+		}
 	}
 
-	if len(Status) > 0 {
-		db = db.Where(`"Status" in ?`, Status)
-		/*for index, value := range Status {
-			if index != 0 {
-				db = db.Or("Status = ?", value)
-			}
-		}*/
-	}
+	var recordsTotal int64
 
-	var recordsTotal int64 = 0
-	if Limit > 0 {
-		db = db.Count(&recordsTotal).Limit(Limit).Offset(Offset).Order(`"CreatedAt" desc`).Find(&orders)
-	} else {
-		db = db.Count(&recordsTotal).Order(`"CreatedAt" desc`).Find(&orders)
-	}
+	db = db.Count(&recordsTotal).Limit(pageSize).Offset(pageSize * pageIndex).Order(fieldOrder).Find(&orders)
 
 	results := make([]interface{}, 0)
 	for _, value := range orders {
-
 		pack := struct {
 			Orders          model.Orders
 			User            model.User
 			OrdersGoodsList []dao.IEntity //[]model.OrdersGoods
-			CollageUsers    []model.User
 		}{}
 
 		pack.Orders = value
 
 		pack.User = *(dao.GetByPrimaryKey(Orm, &model.User{}, value.UserID).(*model.User))
 
-		ogs, _ := service.FindOrdersGoodsByOrdersID(Orm, value.ID)
+		ogs, err := service.FindOrdersGoodsByOrdersID(Orm, value.ID)
+		if err != nil {
+			return nil, err
+		}
 		pack.OrdersGoodsList = ogs
 		//:todo 拼单
 		//og := ogs[0]
 		//pack.CollageUsers = service.FindOrdersGoodsByCollageUser(og.CollageNo)
 		results = append(results, pack)
 	}
-	return results, recordsTotal
-}
-func (service OrdersService) ListOrders(UserID, OID dao.PrimaryKey, PostType int, Status []model.OrdersStatus, Limit int, Offset int) (List []interface{}, TotalRecords int64) {
-
-	return service.ListOrdersDate(UserID, OID, PostType, Status, time.Unix(0, 0), time.Unix(0, 0), Limit, Offset)
+	return result.NewPagination(pageNo, pageSize, int(recordsTotal), results), nil
 }
 
-func (service OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, payTime time.Time, attach string) (string, error) {
+func (service OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transactionId string, payTime time.Time, attach string) (string, error) {
 
 	//Orm := singleton.Orm()
 
@@ -838,7 +854,7 @@ func (service OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, p
 
 			for index := range OrderList {
 				//orders := service.GetOrdersByOrderNo(value)
-				df, msg := service.ProcessingOrders(tx, OrderList[index], payTime)
+				df, msg := service.ProcessingOrders(tx, OrderList[index], transactionId, payTime)
 				if df == false {
 					tx.Rollback()
 					return "", errors.New(msg)
@@ -856,7 +872,7 @@ func (service OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, p
 		tx := db.Orm().Begin()
 		orders := service.GetOrdersByOrderNo(outTradeNo)
 		if orders.PayMoney == totalFee {
-			su, msg := service.ProcessingOrders(tx, orders, payTime)
+			su, msg := service.ProcessingOrders(tx, orders, transactionId, payTime)
 			if su == false {
 				tx.Rollback()
 				return "", errors.New(msg)
@@ -874,12 +890,12 @@ func (service OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, p
 
 }
 
-func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, payTime time.Time) (Success bool, Message string) {
+func (service OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, transactionId string, payTime time.Time) (Success bool, Message string) {
 	if orders.IsPay == 0 {
 		if orders.Status == model.OrdersStatusOrder {
 			var err error
 
-			err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, &model.Orders{PayTime: payTime, IsPay: 1, Status: model.OrdersStatusPay})
+			err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, &model.Orders{PayTime: payTime, TransactionID: transactionId, IsPay: 1, Status: model.OrdersStatusPay})
 			if err != nil {
 				return false, err.Error()
 			}
@@ -1645,7 +1661,7 @@ func (service OrdersService) QueryOrdersTask(wxConfig *model.WechatConfig, order
 		if err != nil {
 			return err
 		}
-		_, err = service.OrderPaySuccess(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, payTime, *transaction.Attach)
+		_, err = service.OrderPaySuccess(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, *transaction.TransactionId, payTime, *transaction.Attach)
 		if err != nil {
 			return err
 		}

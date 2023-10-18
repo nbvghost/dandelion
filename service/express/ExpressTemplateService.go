@@ -1,77 +1,26 @@
 package express
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"errors"
-	"github.com/nbvghost/dandelion/library/db"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"net/url"
-	"strconv"
-	"strings"
-
+	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/tool/encryption"
+	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/service/wechat"
 )
 
 type ExpressTemplateService struct {
-	model.BaseDao
+	WxService wechat.WxService
 }
 
-func (b ExpressTemplateService) GetExpressInfo(OrdersID dao.PrimaryKey, LogisticCode, ShipperName string) map[string]interface{} {
-
-	shipperMap := make(map[string]string)
-	shipperMap["中国邮政"] = "YZPY"
-	shipperMap["EMS"] = "EMS"
-	shipperMap["顺丰快递"] = "SF"
-	shipperMap["中通快递"] = "ZTO"
-	shipperMap["圆通快递"] = "YTO"
-	shipperMap["申通快递"] = "STO"
-	shipperMap["韵达快递"] = "YD"
-	shipperMap["百世汇通"] = "HTKY"
-	shipperMap["天天快递"] = "HHTT"
-	shipperMap["国通快递"] = "GTO"
-	shipperMap["宅急送"] = "ZJS"
-
-	ShipperNameCode := shipperMap[ShipperName]
-
-	requestData := "{'OrderCode':'" + strconv.Itoa(int(OrdersID)) + "','ShipperCode':'" + ShipperNameCode + "','LogisticCode':'" + LogisticCode + "'}"
-
-	DataSign := base64.StdEncoding.EncodeToString([]byte(strings.ToLower(encryption.Md5ByString(requestData + "8d8ef028-000f-4f3e-8475-bc90d5772002"))))
-
-	postData := url.Values{}
-
-	postData.Add("RequestData", url.PathEscape(requestData))
-	postData.Add("EBusinessID", "1334134")
-	postData.Add("RequestType", "1002")
-	postData.Add("DataType", "2")
-	postData.Add("DataSign", url.PathEscape(string(DataSign)))
-
-	//fmt.Println(postData.Encode())
-
-	result := make(map[string]interface{})
-
-	resp, err := http.PostForm("http://api.kdniao.cc/Ebusiness/EbusinessOrderHandle.aspx", postData)
+func (b ExpressTemplateService) GetExpressInfo(context constrain.IContext, OrdersID dao.PrimaryKey) (map[string]interface{}, error) {
+	waybill, err := b.WxService.GetTraceWaybill(context, OrdersID)
 	if err != nil {
-		return result
+		return nil, err
 	}
-	defer resp.Body.Close()
-	//resp, err := http.PostForm("http://sandboxapi.kdniao.cc:8080/kdniaosandbox/gateway/exterfaceInvoke.json", postData)
-
-	bsdfsd, errs := ioutil.ReadAll(resp.Body)
-	log.Println(errs)
-	json.Unmarshal(bsdfsd, &result)
-
-	result["ShipperName"] = ShipperName
-	result["ShipperCode"] = ShipperNameCode
-	result["ShipperNo"] = LogisticCode
-
-	//fmt.Println(errs)
-	//fmt.Println(result)
-	return result
+	return map[string]interface{}{
+		"WaybillToken": waybill,
+	}, nil
 }
 func (b ExpressTemplateService) GetExpressTemplateByName(Name string) model.ExpressTemplate {
 	Orm := db.Orm()
