@@ -162,7 +162,7 @@ func (service WxService) GetTraceWaybill(context constrain.IContext, ordersID da
 
 			detailList = append(detailList, map[string]any{
 				"goods_name":    goods.Title,
-				"goods_img_url": ossUrl + item.Image,
+				"goods_img_url": "https:" + ossUrl + item.Image,
 				"goods_desc":    goods.Summary,
 			})
 		}
