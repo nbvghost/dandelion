@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/oss"
+
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/file"
 	"io"
@@ -163,7 +164,8 @@ func (service WxService) GetTraceWaybill(context constrain.IContext, ordersID da
 			detailList = append(detailList, map[string]any{
 				"goods_name":    goods.Title,
 				"goods_img_url": "https:" + ossUrl + item.Image,
-				"goods_desc":    goods.Summary,
+				//"goods_img_url": "https://oss.sites.ink/assets/default/goods/111/image/c12da74a2153dcfb5a9acc6478a12ee1.webp",
+				"goods_desc": goods.Summary,
 			})
 		}
 

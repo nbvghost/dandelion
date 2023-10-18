@@ -10,9 +10,7 @@ import (
 type ExpressInfo struct {
 	ExpressTemplateService express.ExpressTemplateService
 	Post                   struct {
-		OrdersID     dao.PrimaryKey `form:"OrdersID"`
-		LogisticCode string         `form:"LogisticCode"`
-		ShipperName  string         `form:"ShipperName"`
+		OrdersID dao.PrimaryKey `form:"OrdersID"`
 	} `method:"post"`
 }
 
