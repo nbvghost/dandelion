@@ -633,6 +633,9 @@ func (service WxService) Transfers(transfers model.Transfers, transferDetailInpu
 	)
 
 	if err != nil {
+		if apiError, ok := err.(*core.APIError); ok {
+			return errors.New(apiError.Message)
+		}
 		// 处理错误
 		log.Printf("call GetTransferBatchByNo err:%s", err)
 		return err

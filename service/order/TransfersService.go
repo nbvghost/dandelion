@@ -44,7 +44,7 @@ func (service TransfersService) UserTransfers(UserID dao.PrimaryKey, ReUserName,
 	}
 
 	transfers := model.Transfers{}
-
+	transfers.OID = user.OID
 	transfers.Amount = user.Amount
 
 	transfers.Desc = ReUserName + "余额提现"
@@ -107,6 +107,7 @@ func (service TransfersService) StoreTransfers(StoreID dao.PrimaryKey, UserID da
 		return gorm.ErrRecordNotFound
 	}
 	transfers := model.Transfers{}
+	transfers.OID = store.OID
 	transfers.StoreID = store.ID
 	transfers.Amount = store.Amount
 

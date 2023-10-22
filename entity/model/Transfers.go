@@ -6,6 +6,7 @@ import (
 
 type Transfers struct {
 	dao.Entity
+	OID        dao.PrimaryKey `gorm:"column:OID"`
 	OrderNo    string         `gorm:"column:OrderNo;unique"` //订单号
 	UserID     dao.PrimaryKey `gorm:"column:UserID"`         //
 	StoreID    dao.PrimaryKey `gorm:"column:StoreID"`
