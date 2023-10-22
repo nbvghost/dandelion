@@ -81,7 +81,7 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 							}
 
 							//err = g.JournalService.AddUserJournal(tx, superiorUser.ID, "获得现金", "邀请新朋友获得现金", model.UserJournal_Type_USER_LEVE, int64(30), extends.KV{Key: "UserID", Value: newUser.ID}, newUser.ID)
-							err = g.JournalService.AddUserJournal(tx, superiorUser.ID, "获得现金", "邀请新朋友获得现金", int64(30), journal.NewDataTypeUser(newUser.ID), newUser.ID)
+							_, err = g.JournalService.AddUserJournal(tx, superiorUser.ID, "获得现金", "邀请新朋友获得现金", int64(30), journal.NewDataTypeUser(newUser.ID), newUser.ID)
 							if err != nil {
 								log.Println(err)
 								tx.Rollback()

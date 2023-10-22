@@ -828,7 +828,7 @@ func (service OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, t
 				return "", err
 			} else {
 				if strings.EqualFold(orders.Type, play.SupplyType_Store) {
-					err := service.Journal.AddStoreJournal(tx, orders.StoreID, "门店", "充值", play.StoreJournal_Type_CZ, int64(totalFee), orders.ID)
+					_, err := service.Journal.AddStoreJournal(tx, orders.StoreID, "门店", "充值", play.StoreJournal_Type_CZ, int64(totalFee), orders.ID)
 					if err != nil {
 						tx.Rollback()
 						return "", err

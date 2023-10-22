@@ -112,13 +112,13 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 
 		if orders.PostType == 1 {
 			//邮寄订单，给利润给
-			err = service.Journal.AddStoreJournal(DB, store.ID, "商品核销", goods.Title+"("+specification.Label+")", play.StoreJournal_Type_HX, int64(specification.MarketPrice-specification.CostPrice), cardItem.ID)
+			_, err = service.Journal.AddStoreJournal(DB, store.ID, "商品核销", goods.Title+"("+specification.Label+")", play.StoreJournal_Type_HX, int64(specification.MarketPrice-specification.CostPrice), cardItem.ID)
 			if err != nil {
 				return err
 			}
 		} else if orders.PostType == 2 {
 			//线下订单，给成本价
-			err = service.Journal.AddStoreJournal(DB, store.ID, "商品核销", goods.Title+"("+specification.Label+")", play.StoreJournal_Type_HX, int64(specification.MarketPrice-specification.CostPrice), cardItem.ID)
+			_, err = service.Journal.AddStoreJournal(DB, store.ID, "商品核销", goods.Title+"("+specification.Label+")", play.StoreJournal_Type_HX, int64(specification.MarketPrice-specification.CostPrice), cardItem.ID)
 			if err != nil {
 				return err
 			}
@@ -174,7 +174,7 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 				return err
 			}
 
-			err = service.Journal.AddStoreJournal(DB, store.ID, "积分商品核销", scoreGoods.Name, play.StoreJournal_Type_SG, int64(scoreGoods.Price), cardItem.ID)
+			_, err = service.Journal.AddStoreJournal(DB, store.ID, "积分商品核销", scoreGoods.Name, play.StoreJournal_Type_SG, int64(scoreGoods.Price), cardItem.ID)
 			if err != nil {
 				return err
 			}
@@ -185,7 +185,7 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 			if err != nil {
 				return err
 			}
-			err = service.Journal.AddStoreJournal(DB, store.ID, "福利卷核销", voucher.Name, play.StoreJournal_Type_FL, int64(voucher.Amount), cardItem.ID)
+			_, err = service.Journal.AddStoreJournal(DB, store.ID, "福利卷核销", voucher.Name, play.StoreJournal_Type_FL, int64(voucher.Amount), cardItem.ID)
 			if err != nil {
 				return err
 			}
@@ -253,7 +253,7 @@ func (service VerificationService) VerificationSelf(StoreID, StoreStockID dao.Pr
 					return (&result.ActionResult{}).SmartError(err, "", 0)
 				} else {
 					detail := fmt.Sprintf("%v,规格：%v(%v)kg成本价：%v，数量：%v", goods.Title, specification.Label, float64(specification.Num)*float64(specification.Weight)/1000, specification.CostPrice, Quantity)
-					err = service.Journal.AddStoreJournal(tx, StoreID, "自主核销商品库存", detail, play.StoreJournal_Type_ZZHX, -int64(specification.CostPrice*Quantity), ss.ID)
+					_, err = service.Journal.AddStoreJournal(tx, StoreID, "自主核销商品库存", detail, play.StoreJournal_Type_ZZHX, -int64(specification.CostPrice*Quantity), ss.ID)
 					if err != nil {
 						tx.Rollback()
 						return (&result.ActionResult{}).SmartError(err, "", 0)
