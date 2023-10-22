@@ -13,6 +13,7 @@ type Address struct {
 	CountyName      string         `gorm:"column:CountyName"`
 	ProvinceName    string         `gorm:"column:ProvinceName"`
 	CityName        string         `gorm:"column:CityName"`
+	AreaName        string         `gorm:"column:AreaName"`
 	Detail          string         `gorm:"column:Detail"`
 	PostalCode      string         `gorm:"column:PostalCode"`
 	Tel             string         `gorm:"column:Tel"`

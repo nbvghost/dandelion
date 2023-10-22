@@ -43,7 +43,7 @@ func (m ExpressTemplateItem) CalculateExpressPrice(et *ExpressTemplate, nmw Expr
 	}
 }
 
-//[{"Areas":["上海","江西省","山东省"],"Type":"N","N":1,"$$hashKey":"object:67"},
+// [{"Areas":["上海","江西省","山东省"],"Type":"N","N":1,"$$hashKey":"object:67"},
 // {"Areas":["海南省","青海省","陕西省"],"Type":"M","M":3,"$$hashKey":"object:70"},
 // {"Areas":["新疆维吾尔自治区","重庆","四川省"],"Type":"NM","N":3,"M":3,"$$hashKey":"object:73"}]
 type ExpressTemplateFreeItem struct {
@@ -53,8 +53,8 @@ type ExpressTemplateFreeItem struct {
 	M     float64 //元
 }
 
-//et 快递模板
-//nmw 包邮方式
+// et 快递模板
+// nmw 包邮方式
 func (m ExpressTemplateFreeItem) IsFree(et *ExpressTemplate, nmw ExpressTemplateNMW) bool {
 	//ITEM  KG
 	if strings.EqualFold(et.Drawee, "BUSINESS") {
@@ -125,13 +125,4 @@ type ExpressTemplateTemplate struct {
 	//{"Default":{"Areas":[],"N":4,"M":4,"AN":4,"ANM":4},"Items":[{"Areas":["江西省","上海"],"N":4,"M":4,"AN":4,"ANM":4,"$$hashKey":"object:144"}]}
 	Default ExpressTemplateItem
 	Items   []ExpressTemplateItem
-}
-
-//退货信息
-type RefundInfo struct {
-	ShipName    string //退货快递公司
-	ShipNo      string //退货快递编号
-	HasGoods    bool   //是否包含商品，true=包含商品，false=只有款
-	Reason      string //原因
-	RefundPrice uint   //返回金额
 }

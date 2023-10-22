@@ -269,47 +269,50 @@ func (service OrdersService) Situation(StartTime, EndTime int64) interface{} {
 	//fmt.Println(result)
 	return result
 }
-func (service OrdersService) RefundInfo(OrdersGoodsID dao.PrimaryKey, ShipName, ShipNo string) (error, string) {
+func (service OrdersService) RefundShip(OrdersID dao.PrimaryKey, ShipKey, ShipName, ShipNo string) (error, string) {
 	Orm := db.Orm()
 
 	//var ordersGoods model.OrdersGoods
-	ordersGoods := dao.GetByPrimaryKey(Orm, &model.OrdersGoods{}, OrdersGoodsID).(*model.OrdersGoods)
+	orders := dao.GetByPrimaryKey(Orm, &model.Orders{}, OrdersID).(*model.Orders)
 
-	var RefundInfo model.RefundInfo
-	util.JSONToStruct(ordersGoods.RefundInfo, &RefundInfo)
-	RefundInfo.ShipName = ShipName
-	RefundInfo.ShipNo = ShipNo
+	orders.RefundInfo.ShipInfo.No = ShipNo
+	orders.RefundInfo.ShipInfo.Name = ShipName
+	orders.RefundInfo.ShipInfo.Key = ShipKey
+	orders.RefundInfo.Status = sqltype.RefundStatusRefundShip
 
-	err := dao.UpdateByPrimaryKey(Orm, &model.OrdersGoods{}, OrdersGoodsID, map[string]interface{}{"RefundInfo": util.StructToJSON(&RefundInfo), "Status": model.OrdersGoodsStatusOGRefundInfo})
+	err := dao.UpdateByPrimaryKey(Orm, &model.Orders{}, orders.ID, map[string]interface{}{"RefundInfo": orders.RefundInfo})
 	if err != nil {
-
 		return err, ""
 	}
 	return nil, "快递信息填写成功"
 }
 
 // RefundComplete 后台执行的退款
-func (service OrdersService) RefundComplete(OrdersGoodsID dao.PrimaryKey, RefundType uint, wxConfig *model.WechatConfig) (string, error) {
+func (service OrdersService) RefundComplete(OrdersID dao.PrimaryKey, RefundType uint, wxConfig *model.WechatConfig) (string, error) {
 	tx := db.Orm().Begin()
 
 	//var ordersGoods model.OrdersGoods
-	ordersGoods := dao.GetByPrimaryKey(tx, entity.OrdersGoods, OrdersGoodsID).(*model.OrdersGoods)
+	//ordersGoods := dao.GetByPrimaryKey(tx, entity.OrdersGoods, OrdersGoodsID).(*model.OrdersGoods)
 
 	//var orders model.Orders
-	orders := dao.GetByPrimaryKey(tx, entity.Orders, ordersGoods.OrdersID).(*model.Orders)
+	orders := dao.GetByPrimaryKey(tx, entity.Orders, OrdersID).(*model.Orders)
+	if orders.IsZero() {
+		tx.Rollback()
+		return "", errors.New("找不到订单数据")
+	}
 
 	//ordersPackage := service.GetOrdersPackageByOrderNo(orders.OrdersPackageNo)
 
 	//RefundPrice := int64(ordersGoods.SellPrice) - int64(math.Floor(((float64(ordersGoods.SellPrice)*float64(ordersGoods.Quantity))/float64(orders.GoodsMoney)*float64(orders.DiscountMoney))+0.5))
-	RefundPrice := ordersGoods.SellPrice * uint(ordersGoods.Quantity)
+	/*RefundPrice := ordersGoods.SellPrice * uint(ordersGoods.Quantity)
 	if RefundPrice < 0 {
 		RefundPrice = 0
-	}
-	var RefundInfo model.RefundInfo
-	util.JSONToStruct(ordersGoods.RefundInfo, &RefundInfo)
-	RefundInfo.RefundPrice = RefundPrice
-
-	err := dao.UpdateByPrimaryKey(tx, &model.OrdersGoods{}, OrdersGoodsID, map[string]interface{}{"RefundInfo": util.StructToJSON(&RefundInfo), "Status": model.OrdersGoodsStatusOGRefundComplete})
+	}*/
+	//var RefundInfo model.RefundInfo
+	//util.JSONToStruct(ordersGoods.RefundInfo, &RefundInfo)
+	//RefundInfo.RefundPrice = RefundPrice
+	orders.RefundInfo.Status = sqltype.RefundStatusRefundComplete
+	err := dao.UpdateByPrimaryKey(tx, &model.Orders{}, orders.ID, map[string]interface{}{"RefundInfo": orders.RefundInfo})
 	if err != nil {
 		tx.Rollback()
 		return "", err
@@ -320,8 +323,13 @@ func (service OrdersService) RefundComplete(OrdersGoodsID dao.PrimaryKey, Refund
 		tx.Rollback()
 		return "", err
 	}
-
-	ogs, err := service.FindOrdersGoodsByOrdersID(tx, ordersGoods.OrdersID)
+	//扣除佣金
+	err = service.AfterSettlementUserBrokerage(tx, orders)
+	if err != nil {
+		tx.Rollback()
+		return "", err
+	}
+	/*ogs, err := service.FindOrdersGoodsByOrdersID(tx, orders.OrdersID)
 	if err != nil {
 		tx.Rollback()
 		return "", err
@@ -352,64 +360,72 @@ func (service OrdersService) RefundComplete(OrdersGoodsID dao.PrimaryKey, Refund
 			tx.Rollback()
 			return "", err
 		}
-	}
+	}*/
 
 	tx.Commit()
 
 	//err := dao.UpdateByPrimaryKey(Orm, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"Status": model.OrdersStatusOGRefundOk})
 	return "已经同意,并已退款", nil
 }
-func (service OrdersService) RefundOk(OrdersGoodsID dao.PrimaryKey) (error, string) {
+func (service OrdersService) RefundAgree(OrdersID dao.PrimaryKey) (error, string) {
 	Orm := db.Orm()
-	err := dao.UpdateByPrimaryKey(Orm, entity.OrdersGoods, OrdersGoodsID, map[string]interface{}{"Status": model.OrdersGoodsStatusOGRefundOk})
+	orders := dao.GetByPrimaryKey(Orm, entity.Orders, OrdersID).(*model.Orders)
+	orders.RefundInfo.Status = sqltype.RefundStatusRefundAgree
+	err := dao.UpdateByPrimaryKey(Orm, entity.Orders, OrdersID, map[string]interface{}{"RefundInfo": orders.RefundInfo})
 	return err, "已经同意"
 }
-func (service OrdersService) RefundNo(OrdersGoodsID dao.PrimaryKey) (error, string) {
+func (service OrdersService) RefundReject(OrdersID dao.PrimaryKey) (error, string) {
+	//Orm := db.Orm()
+	//err := dao.UpdateByPrimaryKey(Orm, entity.OrdersGoods, OrdersGoodsID, map[string]interface{}{"Status": model.OrdersGoodsStatusOGRefundNo})
 	Orm := db.Orm()
-	err := dao.UpdateByPrimaryKey(Orm, entity.OrdersGoods, OrdersGoodsID, map[string]interface{}{"Status": model.OrdersGoodsStatusOGRefundNo})
+	orders := dao.GetByPrimaryKey(Orm, entity.Orders, OrdersID).(*model.Orders)
+	orders.RefundInfo.Status = sqltype.RefundStatusRefundReject
+	err := dao.UpdateByPrimaryKey(Orm, entity.Orders, OrdersID, map[string]interface{}{"RefundInfo": orders.RefundInfo})
 	return err, "已经拒绝"
 }
-func (service OrdersService) AskRefund(OrdersGoodsID dao.PrimaryKey, RefundInfo model.RefundInfo) (error, string) {
+func (service OrdersService) AskRefund(OrdersID dao.PrimaryKey, HasGoods bool, Reason string) (error, string) {
 	tx := db.Orm().Begin()
 
 	//var ordersGoods model.OrdersGoods
-	ordersGoods := dao.GetByPrimaryKey(tx, entity.OrdersGoods, OrdersGoodsID).(*model.OrdersGoods)
+	//ordersGoods := dao.GetByPrimaryKey(tx, entity.OrdersGoods, OrdersID).(*model.OrdersGoods)
 
 	//var orders model.Orders
-	orders := dao.GetByPrimaryKey(tx, entity.Orders, ordersGoods.OrdersID).(*model.Orders)
-
-	if ordersGoods.ID == 0 {
-
-		return errors.New("订单不存在"), ""
-	}
+	orders := dao.GetByPrimaryKey(tx, entity.Orders, OrdersID).(*model.Orders)
 	if orders.ID == 0 {
-
+		tx.Rollback()
 		return errors.New("订单不存在"), ""
 	}
+
+	orders.RefundInfo.HasGoods = HasGoods
+	orders.RefundInfo.Reason = Reason
+	orders.RefundInfo.AskTime = time.Now()
+	orders.RefundInfo.Status = sqltype.RefundStatusRefund
 	//下单状态,如果订单状态为，已经发货状态或正在退款中
 	if (orders.Status == model.OrdersStatusDeliver) || (orders.Status == model.OrdersStatusRefund) {
+		var err error
+		if orders.Status == model.OrdersStatusDeliver {
+			err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusRefund, "RefundInfo": orders.RefundInfo})
+		} else {
+			err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusRefund, "RefundInfo": orders.RefundInfo})
+		}
 
-		err := dao.UpdateByPrimaryKey(tx, entity.OrdersGoods, OrdersGoodsID, map[string]interface{}{"RefundInfo": util.StructToJSON(&RefundInfo), "Status": model.OrdersGoodsStatusOGAskRefund})
+		if err != nil {
+			tx.Rollback()
+			return err, ""
+		}
+		tx.Commit()
+		return nil, "已经申请，等待商家确认"
+
+		/*err := dao.UpdateByPrimaryKey(tx, entity.OrdersGoods, OrdersGoodsID, map[string]interface{}{"RefundInfo": util.StructToJSON(&RefundInfo), "Status": model.OrdersGoodsStatusOGAskRefund})
 		if err != nil {
 			tx.Rollback()
 			return err, ""
 		} else {
-			var err error
-			if orders.Status == model.OrdersStatusDeliver {
-				err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusRefund, "RefundTime": time.Now()})
-			} else {
-				err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusRefund})
-			}
 
-			if err != nil {
-				tx.Rollback()
-				return err, ""
-			}
-			tx.Commit()
-			return nil, "已经申请，等待商家确认"
-		}
+		}*/
 
 	}
+	tx.Rollback()
 	return errors.New("不允许申请退款"), ""
 }
 
@@ -1733,13 +1749,24 @@ func (service OrdersService) OrdersRefundSuccess(orders *model.Orders) error {
 		return nil
 	}
 	tx := db.Orm().Begin()
-	err := dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
-	if err != nil {
-		tx.Rollback()
-		return err
+
+	if orders.Status == model.OrdersStatusRefund {
+		orders.RefundInfo.Status = sqltype.RefundStatusRefundPay
+		err := dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusClosed, "RefundInfo": orders.RefundInfo})
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	} else {
+		err := dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
+
 	//管理商品库存
-	err = service.OrdersStockManager(tx, orders, false)
+	err := service.OrdersStockManager(tx, orders, false)
 	if err != nil {
 		tx.Rollback()
 		return err
@@ -1782,8 +1809,12 @@ func (service OrdersService) Cancel(ctx context.Context, OrdersID dao.PrimaryKey
 		}
 	} else if orders.Status == model.OrdersStatusPay {
 		if orders.IsPay == model.OrdersIsPayPayed {
+			err := dao.UpdateByPrimaryKey(Orm, entity.Orders, OrdersID, map[string]interface{}{"Status": model.OrdersStatusCancel})
+			if err != nil {
+				return "", err
+			}
 			//已经支付的订单，发起退款
-			_, err := service.CancelOk(ctx, orders.ID, wxConfig)
+			_, err = service.CancelOk(ctx, orders.ID, wxConfig)
 			if err != nil {
 				return "", err
 			}

@@ -17,7 +17,8 @@ type Image struct {
 
 type Header struct {
 	Image
-	Style string
+	Style   string
+	Version string
 }
 
 type QuickLink struct {

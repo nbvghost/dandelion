@@ -4,6 +4,7 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/shop/api/account"
 	"github.com/nbvghost/dandelion/library/shop/api/content"
+	"github.com/nbvghost/dandelion/library/shop/api/express"
 	"github.com/nbvghost/dandelion/library/shop/api/goods/review"
 	"github.com/nbvghost/dandelion/library/shop/api/goods/wish"
 	"github.com/nbvghost/dandelion/library/shop/api/index"
@@ -88,6 +89,8 @@ func Register(route constrain.IRoute) {
 	route.RegisterRoute("order/collage/record", &order.CollageRecord{})
 	route.RegisterRoute("order/change", &order.Change{})
 	route.RegisterRoute("order/express/info", &order.ExpressInfo{})
+
+	route.RegisterRoute("express/delivery-list", &express.DeliveryList{})
 
 	route.RegisterRoute("index/goods_type/list", &index.GoodsTypeList{})
 	route.RegisterRoute("index/goods_type/child/{GoodsTypeID}/list", &index.GoodsTypeChildList{})

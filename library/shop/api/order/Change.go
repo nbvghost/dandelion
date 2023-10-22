@@ -5,7 +5,6 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/order"
 	"github.com/pkg/errors"
 )
@@ -14,12 +13,14 @@ type Change struct {
 	OrdersService order.OrdersService
 	WechatConfig  *model.WechatConfig `mapping:""`
 	Put           struct {
-		Action        string         `form:"Action"`
-		OrdersGoodsID dao.PrimaryKey `form:"OrdersGoodsID"`
-		ID            dao.PrimaryKey `form:"ID"`
-		ShipName      string         `form:"ShipName"`
-		ShipNo        string         `form:"ShipNo"`
-		RefundInfo    string         `form:"RefundInfo"`
+		Action   string         `form:"Action"`
+		OrdersID dao.PrimaryKey `form:"OrdersID"`
+		ID       dao.PrimaryKey `form:"ID"`
+		ShipName string         `form:"ShipName"`
+		ShipNo   string         `form:"ShipNo"`
+		ShipKey  string         `form:"ShipKey"`
+		HasGoods bool           `form:"HasGoods"`
+		Reason   string         `form:"Reason"`
 	} `method:"put"`
 }
 
@@ -27,20 +28,20 @@ func (m *Change) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
 	//context.Request.ParseForm()
 	//Action := context.Request.FormValue("Action")
 	switch m.Put.Action {
-	case "RefundInfo":
+	case "RefundShip":
 		//OrdersGoodsID, _ := strconv.ParseUint(context.Request.FormValue("OrdersGoodsID"), 10, 64)
 		//OrdersGoodsID := object.ParseUint(context.Request.FormValue("OrdersGoodsID"))
 		//ShipName := context.Request.FormValue("ShipName")
 		//ShipNo := context.Request.FormValue("ShipNo")
-		err, info := m.OrdersService.RefundInfo(dao.PrimaryKey(m.Put.OrdersGoodsID), m.Put.ShipName, m.Put.ShipNo)
+		err, info := m.OrdersService.RefundShip(dao.PrimaryKey(m.Put.OrdersID), m.Put.ShipKey, m.Put.ShipName, m.Put.ShipNo)
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, nil
 	case "AskRefund":
 		//OrdersGoodsID, _ := strconv.ParseUint(context.Request.FormValue("OrdersGoodsID"), 10, 64)
 		//OrdersGoodsID := object.ParseUint(context.Request.FormValue("OrdersGoodsID"))
 		//RefundInfoJson := context.Request.FormValue("RefundInfo")
-		var RefundInfo model.RefundInfo
-		util.JSONToStruct(m.Put.RefundInfo, &RefundInfo)
-		err, info := m.OrdersService.AskRefund(dao.PrimaryKey(m.Put.OrdersGoodsID), RefundInfo)
+		//var refundInfo sqltype.RefundInfo //{"HasGoods":true,"Reason":"dsfdsfds fdsfad"}
+		//util.JSONToStruct(m.Put.RefundInfo, &refundInfo)
+		err, info := m.OrdersService.AskRefund(dao.PrimaryKey(m.Put.OrdersID), m.Put.HasGoods, m.Put.Reason)
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, err
 	case "TakeDeliver":
 		//ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
