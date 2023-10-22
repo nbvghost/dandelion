@@ -35,7 +35,7 @@ func (service JournalService) StoreListJournal(StoreID dao.PrimaryKey, startDate
 	return StoreJournals
 
 }
-func (service JournalService) AddStoreJournal(DB *gorm.DB, StoreID dao.PrimaryKey, Name, Detail string, Type int, Amount int64, TargetID dao.PrimaryKey) error {
+func (service JournalService) AddStoreJournal(DB *gorm.DB, StoreID dao.PrimaryKey, Name, Detail string, Type int, Amount int64, TargetID dao.PrimaryKey) (*model.StoreJournal, error) {
 
 	logger := &model.StoreJournal{}
 	logger.Name = Name
@@ -50,15 +50,19 @@ func (service JournalService) AddStoreJournal(DB *gorm.DB, StoreID dao.PrimaryKe
 
 	Balance := int64(store.Amount) + Amount
 	if Balance < 0 {
-		return errors.New("余额不足")
+		return nil, errors.New("余额不足")
 	}
 	logger.Balance = uint(Balance)
 
 	err := dao.UpdateByPrimaryKey(DB, &model.Store{}, StoreID, map[string]interface{}{"Amount": Balance})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return dao.Create(DB, logger)
+	err = dao.Create(DB, logger)
+	if err != nil {
+		return nil, err
+	}
+	return logger, nil
 }
 
 type Result struct {
@@ -166,7 +170,7 @@ func (service JournalService) UnFreezeUserAmount(tx *gorm.DB, UserID dao.Primary
 			return err
 		}
 
-		err = service.AddUserJournal(tx, UserID, item.Name, item.Detail, item.Amount, dataType, item.FromUserID)
+		_, err = service.AddUserJournal(tx, UserID, item.Name, item.Detail, item.Amount, dataType, item.FromUserID)
 		if err != nil {
 			return err
 		}
@@ -231,7 +235,7 @@ func (service JournalService) FreezeUserAmount(tx *gorm.DB, UserID dao.PrimaryKe
 	return err*/
 }
 
-func (service JournalService) AddUserJournal(tx *gorm.DB, UserID dao.PrimaryKey, Name, Detail string, Amount int64, dataType IDataType, FromUserID dao.PrimaryKey) error {
+func (service JournalService) AddUserJournal(tx *gorm.DB, UserID dao.PrimaryKey, Name, Detail string, Amount int64, dataType IDataType, FromUserID dao.PrimaryKey) (*model.UserJournal, error) {
 	fromUser := dao.GetByPrimaryKey(tx, &model.User{}, FromUserID).(*model.User)
 
 	logger := &model.UserJournal{}
@@ -248,15 +252,19 @@ func (service JournalService) AddUserJournal(tx *gorm.DB, UserID dao.PrimaryKey,
 		user := dao.GetByPrimaryKey(tx, &model.User{}, UserID).(*model.User)
 		balance := int64(user.Amount) + Amount
 		if balance < 0 {
-			return errors.New("余额不足")
+			return nil, errors.New("余额不足")
 		}
 		logger.Balance = uint(balance)
 		err := dao.UpdateByPrimaryKey(tx, &model.User{}, UserID, map[string]interface{}{"Amount": balance})
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return dao.Create(tx, logger)
+	err := dao.Create(tx, logger)
+	if err != nil {
+		return nil, err
+	}
+	return logger, nil
 }
 func (service JournalService) AddScoreJournal(tx *gorm.DB, UserID dao.PrimaryKey, Name, Detail string, Type model.ScoreJournalType, Score int64) error {
 	logger := &model.ScoreJournal{}

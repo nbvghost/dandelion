@@ -6,7 +6,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/sha1"
-	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"encoding/xml"
@@ -14,6 +13,7 @@ import (
 	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/oss"
+	"github.com/wechatpay-apiv3/wechatpay-go/services/transferbatch"
 
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/file"
@@ -550,185 +550,99 @@ func (service WxService) OrderQuery(ctx context.Context, OrderNo string, wxConfi
 	return resp, nil
 }
 
-// 查询提现接口
-func (service WxService) GetTransfersInfo(transfers *model.Transfers, wxConfig *model.WechatConfig) (Success bool) {
-
-	//WxConfig := service.MiniProgram()
-
-	outMap := make(util.Map)
-	outMap["nonce_str"] = tool.UUID()
-	outMap["partner_trade_no"] = transfers.OrderNo
-	outMap["mch_id"] = wxConfig.MchID
-	outMap["appid"] = wxConfig.AppID
-
-	list := &collections.ListString{}
-	for k, v := range outMap {
-		list.Append(k + "=" + v)
-	}
-	list.SortL()
-
-	sign := encryption.Md5ByString(list.Join("&") + "&key=" + wxConfig.MchAPIv2Key)
-	outMap["sign"] = sign
-
-	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
-	log.Println(err)
-
-	// Load client cert
-	cert, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")
+// GetTransfersInfo 查询提现接口
+func (service WxService) GetTransfersInfo(transfers *model.Transfers, wxConfig *model.WechatConfig) (*transferbatch.TransferBatchGet, error) {
+	mchPrivateKey, err := utils.LoadPrivateKey(wxConfig.PrivateKey)
 	if err != nil {
-		log.Fatal(err)
-		return false
+		log.Printf("load merchant private key error:%s", err)
+		return nil, err
 	}
 
-	// Load CA cert
-	/*caCert, err := ioutil.ReadFile("cert/wxpay/rootca.pem")
+	ctx := context.Background()
+	// 使用商户私钥等初始化 client，并使它具有自动定时获取微信支付平台证书的能力
+	opts := []core.ClientOption{
+		option.WithWechatPayAutoAuthCipher(wxConfig.MchID, wxConfig.MchCertificateSerialNumber, mchPrivateKey, wxConfig.MchAPIv3Key),
+	}
+	client, err := core.NewClient(ctx, opts...)
 	if err != nil {
-		log.Fatal(err)
-	}*/
-	//caCertPool := x509.NewCertPool()
-	//caCertPool.AppendCertsFromPEM(caCert)
-
-	// Setup HTTPS client
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{cert},
-		//RootCAs:      caCertPool,
+		log.Printf("new wechat pay client err:%s", err)
+		return nil, err
 	}
-	tlsConfig.BuildNameToCertificate()
-	transport := &http.Transport{TLSClientConfig: tlsConfig}
-	client := &http.Client{Transport: transport}
-
-	reader := strings.NewReader(string(b))
-	response, err := client.Post("https://api.mch.weixin.qq.com/mmpaymkttransfers/gettransferinfo", "text/xml", reader)
-	log.Println(err)
+	svc := transferbatch.TransferBatchApiService{Client: client}
+	resp, apiResult, err := svc.GetTransferBatchByOutNo(ctx,
+		transferbatch.GetTransferBatchByOutNoRequest{
+			OutBatchNo:      core.String(transfers.OrderNo),
+			NeedQueryDetail: core.Bool(false),
+			Offset:          core.Int64(0),
+			Limit:           core.Int64(100),
+			DetailStatus:    core.String("ALL"),
+		},
+	)
 	if err != nil {
-		return false
-	}
-
-	b, err = ioutil.ReadAll(response.Body)
-	log.Println(err)
-	if err != nil {
-		return false
-	}
-
-	//fmt.Println(string(b))
-
-	var inData = make(util.Map)
-	err = xml.Unmarshal(b, &inData)
-	log.Println(err)
-	if err != nil {
-		return false
-	}
-
-	//fmt.Println(inData)
-
-	if strings.EqualFold(inData["return_code"], "SUCCESS") && strings.EqualFold(inData["result_code"], "SUCCESS") {
-		Success = true
-		return
+		// 处理错误
+		log.Printf("call GetTransferBatchByOutNo err:%s", err)
+		return nil, err
 	} else {
-		//loggerService := service.LoggerService{}
-		//loggerService.Error("Appointment:"+strconv.Itoa(int(OrderNo)), inData["err_code"]+":"+inData["err_code_des"])
-
-		if strings.EqualFold(inData["return_code"], "FAIL") {
-			Success = false
-			return
-		} else {
-			//fmt.Println(inData["err_code"])
-			//fmt.Println(inData["err_code_des"])
-			Success = false
-			return
+		// 处理返回结果
+		log.Printf("status=%d resp=%s", apiResult.Response.StatusCode, resp)
+		if apiResult.Response.StatusCode != 200 {
+			return nil, errors.New("转账查询请求错误")
 		}
-		//return false, inData["err_code_des"]
+		return resp.TransferBatch, nil
 	}
-
 }
 
-// 提现
-func (service WxService) Transfers(transfers model.Transfers, wxConfig *model.WechatConfig) (Success bool, Message string) {
-	//WxConfig := service.MiniProgram()
-
-	outMap := make(util.Map)
-	outMap["mch_appid"] = wxConfig.AppID
-	outMap["mchid"] = wxConfig.MchID
-	outMap["nonce_str"] = tool.UUID()
-
-	outMap["partner_trade_no"] = transfers.OrderNo
-	outMap["openid"] = transfers.OpenId
-	outMap["check_name"] = "FORCE_CHECK"
-	outMap["re_user_name"] = transfers.ReUserName
-	outMap["amount"] = strconv.Itoa(int(transfers.Amount))
-	outMap["desc"] = transfers.Desc
-	outMap["spbill_create_ip"] = transfers.IP
-
-	list := &collections.ListString{}
-	for k, v := range outMap {
-		list.Append(k + "=" + v)
-	}
-	list.SortL()
-
-	sign := encryption.Md5ByString(list.Join("&") + "&key=" + wxConfig.MchAPIv2Key)
-	outMap["sign"] = sign
-
-	b, err := xml.MarshalIndent(util.Map(outMap), "", "")
-	log.Println(err)
-
-	// Load client cert
-	cert, err := tls.LoadX509KeyPair("cert/wxpay/apiclient_cert.pem", "cert/wxpay/apiclient_key.pem")
+// Transfers 提现
+func (service WxService) Transfers(transfers model.Transfers, transferDetailInputs []transferbatch.TransferDetailInput, wxConfig *model.WechatConfig) error {
+	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
+	mchPrivateKey, err := utils.LoadPrivateKey(wxConfig.PrivateKey)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("load merchant private key error:%s", err)
+		return err
 	}
 
-	// Load CA cert
-	/*caCert, err := ioutil.ReadFile("cert/wxpay/rootca.pem")
+	ctx := context.Background()
+	// 使用商户私钥等初始化 client，并使它具有自动定时获取微信支付平台证书的能力
+	opts := []core.ClientOption{
+		option.WithWechatPayAutoAuthCipher(wxConfig.MchID, wxConfig.MchCertificateSerialNumber, mchPrivateKey, wxConfig.MchAPIv3Key),
+	}
+	client, err := core.NewClient(ctx, opts...)
 	if err != nil {
-		log.Fatal(err)
-	}*/
-	//caCertPool := x509.NewCertPool()
-	//caCertPool.AppendCertsFromPEM(caCert)
-
-	// Setup HTTPS client
-	tlsConfig := &tls.Config{
-		Certificates: []tls.Certificate{cert},
-		//RootCAs:      caCertPool,
+		log.Printf("new wechat pay client err:%s", err)
+		return err
 	}
-	tlsConfig.BuildNameToCertificate()
-	transport := &http.Transport{TLSClientConfig: tlsConfig}
-	client := &http.Client{Transport: transport}
 
-	reader := strings.NewReader(string(b))
-	response, err := client.Post("https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers", "text/xml", reader)
-	log.Println(err)
+	svc := transferbatch.TransferBatchApiService{Client: client}
+	resp, apiResult, err := svc.InitiateBatchTransfer(ctx,
+		transferbatch.InitiateBatchTransferRequest{
+			Appid:       core.String(wxConfig.AppID),
+			OutBatchNo:  core.String(transfers.OrderNo),
+			BatchName:   core.String("提现"),
+			BatchRemark: core.String(transfers.Desc),
+			TotalAmount: core.Int64(int64(transfers.Amount)),
+			TotalNum:    core.Int64(int64(len(transferDetailInputs))),
+			/*TransferDetailList: []transferbatch.TransferDetailInput{transferbatch.TransferDetailInput{
+				OutDetailNo:    core.String(fmt.Sprintf("%d", userJournal.ID)),
+				TransferAmount: core.Int64(int64(transfers.Amount)),
+				TransferRemark: core.String("用户余额提现"),
+				Openid:         core.String(transfers.OpenId),
+				UserName:       core.String(transfers.ReUserName),
+			}},*/
+			TransferDetailList: transferDetailInputs,
+		},
+	)
 
-	b, err = ioutil.ReadAll(response.Body)
-	log.Println(err)
-
-	//fmt.Println(string(b))
-
-	var inData = make(util.Map)
-	err = xml.Unmarshal(b, &inData)
-	log.Println(err)
-
-	//fmt.Println(inData)
-
-	if strings.EqualFold(inData["return_code"], "SUCCESS") && strings.EqualFold(inData["result_code"], "SUCCESS") {
-		Success = true
-		Message = "提现申请成功"
-		return
+	if err != nil {
+		// 处理错误
+		log.Printf("call GetTransferBatchByNo err:%s", err)
+		return err
 	} else {
-		//loggerService := service.LoggerService{}
-		//loggerService.Error("Appointment:"+strconv.Itoa(int(OrderNo)), inData["err_code"]+":"+inData["err_code_des"])
-
-		if strings.EqualFold(inData["return_code"], "FAIL") {
-			Success = false
-			Message = inData["return_msg"]
-			return
-		} else {
-			//fmt.Println(inData["err_code"])
-			//fmt.Println(inData["err_code_des"])
-			Success = false
-			Message = inData["err_code"] + ":" + inData["err_code_des"]
-			return
+		// 处理返回结果
+		log.Printf("status=%d resp=%s", apiResult.Response.StatusCode, resp.String())
+		if apiResult.Response.StatusCode != 200 {
+			return errors.New("提现请求错误")
 		}
-		//return false, inData["err_code_des"]
+		return nil
 	}
 }
 

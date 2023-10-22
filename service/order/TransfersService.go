@@ -2,7 +2,10 @@ package order
 
 import (
 	"errors"
+	"fmt"
 	"github.com/nbvghost/dandelion/library/db"
+	"github.com/wechatpay-apiv3/wechatpay-go/core"
+	"github.com/wechatpay-apiv3/wechatpay-go/services/transferbatch"
 
 	"gorm.io/gorm"
 
@@ -44,7 +47,7 @@ func (service TransfersService) UserTransfers(UserID dao.PrimaryKey, ReUserName,
 
 	transfers.Amount = user.Amount
 
-	transfers.Desc = ReUserName + "提现"
+	transfers.Desc = ReUserName + "余额提现"
 
 	transfers.ReUserName = ReUserName
 	transfers.OrderNo = tool.UUID()
@@ -59,16 +62,23 @@ func (service TransfersService) UserTransfers(UserID dao.PrimaryKey, ReUserName,
 
 	//DB *gorm.DB, UserID uint, Name, Detail string, Type int, Amount int64, TargetID uint,FromUserID uint
 	//err = service.Journal.AddUserJournal(Orm, user.ID, "提现", ReUserName+"提现", model.UserJournal_Type_TX, -int64(user.Amount), extends.KV{Key: "TransfersOrderNo", Value: transfers.OrderNo}, user.ID)
-	err = service.Journal.AddUserJournal(Orm, user.ID, "提现", ReUserName+"提现", -int64(user.Amount), journal.NewDataTypeTransfers(transfers.OrderNo), user.ID)
+	var userJournal *model.UserJournal
+	userJournal, err = service.Journal.AddUserJournal(Orm, user.ID, "提现", ReUserName+"提现", -int64(user.Amount), journal.NewDataTypeTransfers(transfers.OrderNo), user.ID)
 	if err != nil {
 		Orm.Rollback()
 		return err
 	}
 
-	Success, Message := service.Wx.Transfers(transfers, wxConfig)
-	if Success == false {
+	err = service.Wx.Transfers(transfers, []transferbatch.TransferDetailInput{{
+		OutDetailNo:    core.String(fmt.Sprintf("%d", userJournal.ID)),
+		TransferAmount: core.Int64(int64(transfers.Amount)),
+		TransferRemark: core.String("用户余额提现"),
+		Openid:         core.String(transfers.OpenId),
+		UserName:       core.String(transfers.ReUserName),
+	}}, wxConfig)
+	if err != nil {
 		Orm.Rollback()
-		return errors.New(Message)
+		return err
 	} else {
 		Orm.Commit()
 		return nil
@@ -113,16 +123,24 @@ func (service TransfersService) StoreTransfers(StoreID dao.PrimaryKey, UserID da
 		return err
 	}
 
-	err = service.Journal.AddStoreJournal(Orm, store.ID, "提现", ReUserName+"提现", play.StoreJournal_Type_TX, -int64(store.Amount), transfers.ID)
+	var storeJournal *model.StoreJournal
+	storeJournal, err = service.Journal.AddStoreJournal(Orm, store.ID, "提现", ReUserName+"提现", play.StoreJournal_Type_TX, -int64(store.Amount), transfers.ID)
 	if err != nil {
 		Orm.Rollback()
 		return err
 	}
 
-	Success, Message := service.Wx.Transfers(transfers, wxConfig)
-	if Success == false {
+	err = service.Wx.Transfers(transfers, []transferbatch.TransferDetailInput{{
+		OutDetailNo:    core.String(fmt.Sprintf("%d", storeJournal.ID)),
+		TransferAmount: core.Int64(int64(transfers.Amount)),
+		TransferRemark: core.String("门店余额提现"),
+		Openid:         core.String(transfers.OpenId),
+		UserName:       core.String(transfers.ReUserName),
+	}},
+		wxConfig)
+	if err != nil {
 		Orm.Rollback()
-		return errors.New(Message)
+		return err
 	} else {
 		Orm.Commit()
 		return nil
