@@ -2,6 +2,8 @@ package index
 
 import (
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/entity"
+	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
@@ -23,5 +25,9 @@ func (m *Goods) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
 	goodsInfo, err := m.GoodsService.GetGoods(Orm, ctx, dao.PrimaryKey(m.Get.ID))
 
+	err = dao.UpdateByPrimaryKey(db.Orm(), entity.Goods, goodsInfo.Goods.ID, &model.Goods{CountView: goodsInfo.Goods.CountView + 1})
+	if err != nil {
+		return nil, err
+	}
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: goodsInfo}}, err
 }

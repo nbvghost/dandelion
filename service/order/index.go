@@ -475,7 +475,7 @@ func (service OrdersService) TakeDeliver(OrdersID dao.PrimaryKey) error {
 		return errors.New("订单不存在")
 	}
 	//下单状态,只有邮寄才能确认收货
-	if (orders.Status == model.OrdersStatusDeliver) && orders.PostType == 1 {
+	if orders.Status == model.OrdersStatusDeliver {
 
 		tx := Orm.Begin()
 
@@ -518,13 +518,7 @@ func (service OrdersService) TakeDeliver(OrdersID dao.PrimaryKey) error {
 			go func(ogs []dao.IEntity) {
 				for i := range ogs {
 					value := ogs[i].(*model.OrdersGoods)
-
-					var _goods model.Goods
-					//service.Goods.Get(singleton.Orm(), value.GoodsID, &_goods)
-					err = util.JSONToStruct(value.Goods, &_goods)
-					if err != nil {
-						return
-					}
+					_goods := value.GetGoods()
 					if _goods.ID != 0 {
 						err = dao.UpdateByPrimaryKey(db.Orm(), entity.Goods, _goods.ID, &model.Goods{CountSale: _goods.CountSale + uint(value.Quantity)})
 						if err != nil {
