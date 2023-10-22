@@ -70,7 +70,7 @@ func (service TransfersService) UserTransfers(UserID dao.PrimaryKey, ReUserName,
 	}
 
 	err = service.Wx.Transfers(transfers, []transferbatch.TransferDetailInput{{
-		OutDetailNo:    core.String(fmt.Sprintf("%d", userJournal.ID)),
+		OutDetailNo:    core.String(fmt.Sprintf("UserJournal%d", userJournal.ID)),
 		TransferAmount: core.Int64(int64(transfers.Amount)),
 		TransferRemark: core.String("用户余额提现"),
 		Openid:         core.String(transfers.OpenId),
@@ -131,7 +131,7 @@ func (service TransfersService) StoreTransfers(StoreID dao.PrimaryKey, UserID da
 	}
 
 	err = service.Wx.Transfers(transfers, []transferbatch.TransferDetailInput{{
-		OutDetailNo:    core.String(fmt.Sprintf("%d", storeJournal.ID)),
+		OutDetailNo:    core.String(fmt.Sprintf("StoreJournal%d", storeJournal.ID)),
 		TransferAmount: core.Int64(int64(transfers.Amount)),
 		TransferRemark: core.String("门店余额提现"),
 		Openid:         core.String(transfers.OpenId),
