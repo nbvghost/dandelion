@@ -152,11 +152,11 @@ func (service JournalService) DisableFreezeUserAmount(tx *gorm.DB, UserID dao.Pr
 }
 func (service JournalService) UnFreezeUserAmount(tx *gorm.DB, UserID dao.PrimaryKey, dataType IDataType, FromUserID dao.PrimaryKey) error {
 	//where "DataKV"::json ->> 'Value'='13';
-
 	orm := dao.Find(tx, &model.UserFreezeJournal{}).Where(`"UserID"=?`, UserID).Where(`"FromUserID"=?`, FromUserID).Where(`"FreezeType"=?`, model.FreezeTypeFreeze)
 	md := dataType.ToMap()
 	for key, value := range md {
-		orm.Where(fmt.Sprintf(`"%s"=?`, key), value)
+		//orm.Where(fmt.Sprintf(`"%s"=?`, key), value)
+		orm.Where(fmt.Sprintf(`"DataKV"::json ->> '%s'='%s'`, key, value))
 	}
 	list := orm.List()
 	if len(list) > 0 {

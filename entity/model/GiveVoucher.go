@@ -9,7 +9,7 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 )
 
-// 条件增送优惠卷
+// GiveVoucher 条件增送优惠卷
 type GiveVoucher struct {
 	dao.Entity
 	OID           uint           `gorm:"column:OID"`

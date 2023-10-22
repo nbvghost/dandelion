@@ -15,13 +15,13 @@ type GiveVoucherService struct {
 func (service GiveVoucherService) FindDESC() []model.GiveVoucher {
 	Orm := db.Orm()
 	var ranks []model.GiveVoucher
-	Orm.Model(&model.GiveVoucher{}).Order("ScoreMaxValue desc").Find(&ranks)
+	Orm.Model(&model.GiveVoucher{}).Order(`"ScoreMaxValue" desc`).Find(&ranks)
 	return ranks
 }
 func (service GiveVoucherService) FindASC() []model.GiveVoucher {
 	Orm := db.Orm()
 	var ranks []model.GiveVoucher
-	Orm.Model(&model.GiveVoucher{}).Order("ScoreMaxValue asc").Find(&ranks)
+	Orm.Model(&model.GiveVoucher{}).Order(`"ScoreMaxValue" asc`).Find(&ranks)
 	return ranks
 }
 func (service GiveVoucherService) AddItem(item model.GiveVoucher) error {
