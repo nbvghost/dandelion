@@ -5,6 +5,7 @@ import (
 	"github.com/lib/pq"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/express"
+	"gorm.io/gorm/clause"
 	"log"
 	"strconv"
 	"time"
@@ -391,18 +392,54 @@ func (service GoodsService) GetDiscounts(GoodsID, OID dao.PrimaryKey) []extends.
 	return discounts
 }
 
-func (service GoodsService) GoodsList(SqlOrder string, Index, Size int, where interface{}, args ...interface{}) extends.GoodsInfoPagination {
+type ListQueryParam struct {
+	GoodsTypeID      dao.PrimaryKey
+	GoodsTypeChildID dao.PrimaryKey
+}
+
+func (service GoodsService) GoodsList(queryParam *ListQueryParam, oid dao.PrimaryKey, orderBy clause.OrderByColumn, pageNo, pageSize int) *result.Pagination {
 	Orm := db.Orm()
 	//var goodsList []model.Goods
 	//db := Orm.Model(&model.Goods{}).Order("CountSale desc").Limit(10)
 	//db.Find(&result)
 
-	pager := service.FindWherePaging(Orm, SqlOrder, model.Goods{}, Index, Size, where, args...)
+	if pageSize <= 0 {
+		pageSize = 10
+	}
 
-	return extends.GoodsInfoPagination{
-		List:  service.GetGoodsInfoList(pager.Data.([]model.Goods)),
-		Total: pager.Total,
+	pageIndex := pageNo - 1
+	if pageIndex < 0 {
+		pageIndex = 0
+	}
+
+	var goodsList []model.Goods
+
+	orm := Orm.Model(model.Goods{})
+	if oid > 0 {
+		orm = orm.Where(`"OID"=?`, oid)
+	}
+
+	orm = orm.Where(`"Hide"=?`, 0)
+
+	if queryParam != nil {
+		if queryParam.GoodsTypeID > 0 {
+			orm = orm.Where(`"GoodsTypeID"=?`, queryParam.GoodsTypeID)
+		}
+		if queryParam.GoodsTypeChildID > 0 {
+			orm = orm.Where(`"GoodsTypeChildID"=?`, queryParam.GoodsTypeChildID)
+		}
+	}
+
+	var recordsTotal int64
+
+	orm.Count(&recordsTotal).Limit(pageSize).Offset(pageSize * pageIndex).Order(orderBy).Find(&goodsList)
+	//pager := service.FindWherePaging(Orm, SqlOrder, model.Goods{}, Index, Size, where, args...)
+	return result.NewPagination(pageNo, pageSize, int(recordsTotal), service.GetGoodsInfoList(goodsList))
+
+	/*return extends.GoodsInfoPagination{
+		List:  service.GetGoodsInfoList(goodsList),
+		Total: recordsTotal,
 		Index: pager.Offset,
 		Size:  pager.Limit,
-	}
+	}*/
 }
