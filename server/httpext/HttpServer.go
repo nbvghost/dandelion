@@ -38,6 +38,8 @@ type httpServer struct {
 	errorHandleResult   constrain.IResultError
 	router              *mux.Router
 	customizeViewRender constrain.IViewRender
+	middlewares         []constrain.IMiddleware
+	defaultMiddleware   *httpMiddleware
 }
 
 func (m *httpServer) ApiErrorHandle(result constrain.IResultError) {
@@ -45,53 +47,7 @@ func (m *httpServer) ApiErrorHandle(result constrain.IResultError) {
 }
 
 func (m *httpServer) Use(middleware constrain.IMiddleware) {
-	m.router.Use(func(next http.Handler) http.Handler {
-		if m.route == nil {
-			log.Println("没有启用路由功能，因为httpServer.route(constrain.IRoute)对象为空")
-			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				next.ServeHTTP(w, r)
-			})
-		}
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var err error
-
-			var ctx constrain.IContext
-			ctxValue := contexext.FromContext(r.Context())
-			if ctxValue != nil {
-				ctx = r.Context().(constrain.IContext)
-			} else {
-				ctx = middleware.CreateContext(m.redisClient, m.etcdClient, m.route, w, r)
-				r = r.WithContext(ctx)
-			}
-
-			defer ctx.Destroy()
-
-			defer func() {
-				if rerr := recover(); rerr != nil {
-					switch rerr.(type) {
-					case error:
-						err = rerr.(error)
-					default:
-						err = fmt.Errorf("%v", rerr)
-					}
-					ctx.Logger().Error("http-server", zap.Error(err))
-					m.handleError(ctx, m.customizeViewRender, w, r, err)
-				}
-
-			}()
-
-			var isNext bool
-			if isNext, err = middleware.Handle(ctx, m.route, m.customizeViewRender, w, r); err != nil {
-				ctx.Logger().Error("http-server", zap.Error(err))
-				m.handleError(ctx, m.customizeViewRender, w, r, err)
-				return
-			}
-			if !isNext {
-				return
-			}
-			next.ServeHTTP(w, r)
-		})
-	})
+	m.middlewares = append(m.middlewares, middleware)
 }
 func (m *httpServer) Listen() {
 	listenAddr := fmt.Sprintf("%s:%d", m.serverDesc.ip, m.serverDesc.port)
@@ -221,7 +177,7 @@ func WithCustomizeViewRenderOption(customizeViewRender constrain.IViewRender) Op
 }
 
 func NewHttpServer(engine *mux.Router, router *mux.Router, mRoute constrain.IRoute, ops ...Option) *httpServer {
-	s := &httpServer{router: router, route: mRoute, engine: engine}
+	s := &httpServer{router: router, route: mRoute, engine: engine, defaultMiddleware: &httpMiddleware{}}
 	for i := range ops {
 		ops[i].apply(s)
 	}
@@ -259,5 +215,60 @@ func NewHttpServer(engine *mux.Router, router *mux.Router, mRoute constrain.IRou
 		}*/
 		//})
 	}
+
+	s.router.Use(func(next http.Handler) http.Handler {
+		if s.route == nil {
+			log.Println("没有启用路由功能，因为httpServer.route(constrain.IRoute)对象为空")
+			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				next.ServeHTTP(w, r)
+			})
+		}
+		return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+			var ctx constrain.IContext
+			ctxValue := contexext.FromContext(request.Context())
+			if ctxValue != nil {
+				ctx = request.Context().(constrain.IContext)
+				ctxValue = contexext.FromContext(ctx)
+			} else {
+				ctx = s.defaultMiddleware.CreateContext(s.redisClient, s.etcdClient, s.route, response, request) //CreateContext(m.redisClient, m.etcdClient, m.route, response, request)
+				ctxValue = contexext.FromContext(ctx)
+				ctxValue.Request = request.WithContext(ctx)
+			}
+
+			defer func() {
+				var err error
+				if rerr := recover(); rerr != nil {
+					switch rerr.(type) {
+					case error:
+						err = rerr.(error)
+					default:
+						err = fmt.Errorf("%v", rerr)
+					}
+					ctx.Logger().Error("http-server", zap.Error(err))
+					s.handleError(ctx, s.customizeViewRender, ctxValue.Response, ctxValue.Request, err)
+				}
+
+			}()
+
+			for i := range s.middlewares {
+				middleware := s.middlewares[i]
+				if err := middleware.Handle(ctx, s.route, s.customizeViewRender, ctxValue.Response, ctxValue.Request); err != nil {
+					ctx.Logger().Error("http-server", zap.Error(err))
+					s.handleError(ctx, s.customizeViewRender, ctxValue.Response, ctxValue.Request, err)
+					return
+				}
+			}
+			if ctxValue.Request.Method == http.MethodOptions {
+				return
+			}
+			if err := s.defaultMiddleware.Handle(ctx, s.route, s.customizeViewRender, ctxValue.Response, ctxValue.Request); err != nil {
+				ctx.Logger().Error("http-server", zap.Error(err))
+				s.handleError(ctx, s.customizeViewRender, ctxValue.Response, ctxValue.Request, err)
+				return
+			}
+			next.ServeHTTP(ctxValue.Response, ctxValue.Request)
+		})
+	})
+
 	return s
 }

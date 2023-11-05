@@ -30,8 +30,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-var DefaultHttpMiddleware = &httpMiddleware{}
-
 type httpMiddleware struct {
 	context    constrain.IContext
 	serverName string
@@ -233,25 +231,24 @@ func (m *httpMiddleware) CreateContext(redisClient constrain.IRedis, etcdClient 
 	ctx := contexext.New(contexext.NewContext(parentCtx, contextValue), m.serverName, session.ID, r.URL.Path, redisClient, etcdClient, session.Token, logger, key.Mode(mode))
 	return ctx
 }
-func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute, customizeViewRender constrain.IViewRender, w http.ResponseWriter, r *http.Request) (bool, error) {
+func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute, customizeViewRender constrain.IViewRender, w http.ResponseWriter, r *http.Request) error {
 	var err error
 	ctxValue := contexext.FromContext(ctx)
 
 	{
 		if strings.EqualFold(ctx.Mode().String(), key.ModeRelease.String()) && !environments.Release() {
 			err = errors.New("正式环境访问开发环境的服务")
-			return false, err
+			return err
 		}
 		if strings.EqualFold(ctx.Mode().String(), key.ModeDev.String()) && environments.Release() {
 			err = errors.New("开发环境访问正式环境的服务")
-			return false, err
+			return err
 		}
 	}
 
-	w.Header().Set("Code", "0")
+	ctxValue.Response.Header().Set("Code", "0")
 
 	var apiHandler any
-	var broken bool
 	var routeInfo constrain.IRouteInfo
 	contextValue := contexext.FromContext(ctx)
 
@@ -292,7 +289,7 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 				return false, err
 			}
 		}*/
-		return false, err
+		return err
 	}
 
 	///=withoutAuth = routeInfo.GetWithoutAuth()
@@ -301,15 +298,12 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 	apiHandler = reflect.New(routeInfo.GetHandlerType()).Interface()
 
 	if err = m.bindData(apiHandler, contextValue); err != nil {
-		return false, err
+		return err
 	}
 
-	broken, err = router.Handle(ctx, apiHandler)
+	err = router.Handle(ctx, apiHandler)
 	if err != nil {
-		return false, err
-	}
-	if broken {
-		return false, nil
+		return err
 	}
 
 	if ctxValue.IsApi {
@@ -323,10 +317,10 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			if v, ok := apiHandler.(constrain.IHandlerPost); ok {
 				handle = v.HandlePost
 			}
-		case http.MethodHead:
-			if v, ok := apiHandler.(constrain.IHandlerHead); ok {
-				handle = v.HandleHead
-			}
+		/*case http.MethodHead:
+		if v, ok := apiHandler.(constrain.IHandlerHead); ok {
+			handle = v.HandleHead
+		}*/
 		case http.MethodPut:
 			if v, ok := apiHandler.(constrain.IHandlerPut); ok {
 				handle = v.HandlePut
@@ -339,24 +333,24 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			if v, ok := apiHandler.(constrain.IHandlerDelete); ok {
 				handle = v.HandleDelete
 			}
-		case http.MethodConnect:
-			if v, ok := apiHandler.(constrain.IHandlerConnect); ok {
-				handle = v.HandleConnect
-			}
-		case http.MethodOptions:
-			if v, ok := apiHandler.(constrain.IHandlerOptions); ok {
-				handle = v.HandleOptions
-			}
-		case http.MethodTrace:
-			if v, ok := apiHandler.(constrain.IHandlerTrace); ok {
-				handle = v.HandleTrace
-			}
+		/*case http.MethodConnect:
+		if v, ok := apiHandler.(constrain.IHandlerConnect); ok {
+			handle = v.HandleConnect
+		}*/
+		/*case http.MethodOptions:
+		if v, ok := apiHandler.(constrain.IHandlerOptions); ok {
+			handle = v.HandleOptions
+		}*/
+		/*case http.MethodTrace:
+		if v, ok := apiHandler.(constrain.IHandlerTrace); ok {
+			handle = v.HandleTrace
+		}*/
 		default:
-			return false, result.NewCodeWithMessage(result.HttpError, fmt.Sprintf("错误的http方法:%s", r.Method))
+			return result.NewCodeWithMessage(result.HttpError, fmt.Sprintf("错误的http方法:%s", r.Method))
 
 		}
 		if handle == nil {
-			return false, result.NewCodeWithMessage(result.HttpError, fmt.Sprintf("找不到http方法:%s的handle", r.Method))
+			return result.NewCodeWithMessage(result.HttpError, fmt.Sprintf("找不到http方法:%s的handle", r.Method))
 		}
 		var returnResult constrain.IResult
 		returnResult, err = handle(ctx)
@@ -364,13 +358,13 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			returnResult = result.NewError(err)
 		} else {
 			if err != nil {
-				return false, err
+				return err
 			}
 			if returnResult == nil {
-				return false, errors.Errorf("对Api访问的类型：%v不支持", apiHandler)
+				return errors.Errorf("对Api访问的类型：%v不支持", apiHandler)
 			}
 			if err != nil {
-				return false, err
+				return err
 			}
 		}
 		returnResult.Apply(ctx)
@@ -380,18 +374,18 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			var viewResult constrain.IViewResult
 			viewResult, err = v.Render(ctx)
 			if err != nil {
-				return false, err
+				return err
 			}
 			if viewResult == nil {
-				return false, errors.New("没有返回数据")
+				return errors.New("没有返回数据")
 			}
 			if _, okk := viewResult.(*route.NoneView); okk {
-				return true, nil
+				return nil
 			}
 			rr := viewResult.GetResult(ctx, v)
 			if rr != nil {
 				rr.Apply(ctx)
-				return true, nil
+				return nil
 			}
 
 			viewBaseValue := reflect.ValueOf(viewResult).Elem().FieldByName("ViewBase")
@@ -400,7 +394,7 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			htmlMeta := extends.NewHtmlMeta(contextValue.Lang, contextValue.RequestUrl)
 			if viewBase.HtmlMetaCallback != nil {
 				if err = viewBase.HtmlMetaCallback(viewBase, htmlMeta); err != nil {
-					return false, err
+					return err
 				}
 			}
 			viewBase.HtmlMeta = htmlMeta
@@ -408,17 +402,17 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 
 			if customizeViewRender != nil {
 				if err = customizeViewRender.Render(ctx, r, w, viewResult); err != nil {
-					return false, err
+					return err
 				}
-				return true, nil
+				return nil
 			}
 			vr := &viewRender{}
 			if err = vr.Render(ctx, r, w, viewResult); err != nil {
-				return false, err
+				return err
 			}
 		} else {
-			return false, errors.Errorf("对视图访问的类型：%v不支持", apiHandler)
+			return errors.Errorf("对视图访问的类型：%v不支持", apiHandler)
 		}
 	}
-	return true, nil
+	return nil
 }

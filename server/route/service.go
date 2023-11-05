@@ -128,7 +128,7 @@ func (m *service) CreateHandle(isApi bool, r *http.Request) (constrain.IRouteInf
 	//return apiHandler, routeInfo.GetWithoutAuth(), nil
 	return routeInfo, nil
 }
-func (m *service) Handle(context constrain.IContext, routeHandler any) (bool, error) {
+func (m *service) Handle(context constrain.IContext, routeHandler any) error {
 	if m.mappingCallback != nil {
 		m.mappingCallback.Before(context, routeHandler)
 	}
@@ -166,13 +166,11 @@ func (m *service) Handle(context constrain.IContext, routeHandler any) (bool, er
 						if m.mappingCallback != nil {
 							m.mappingCallback.Before(context, m.interceptors[k].Interceptors[i])
 						}
-						broken, err := m.interceptors[k].Interceptors[i].Execute(context)
+						err := m.interceptors[k].Interceptors[i].Execute(context)
 						if err != nil {
-							return true, err
+							return err
 						}
-						if broken {
-							return true, nil
-						}
+						return nil
 					}
 				}
 
@@ -187,7 +185,7 @@ func (m *service) Handle(context constrain.IContext, routeHandler any) (bool, er
 		}
 	}*/
 
-	return false, nil
+	return nil
 
 }
 
