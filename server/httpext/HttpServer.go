@@ -182,7 +182,7 @@ func NewHttpServer(engine *mux.Router, router *mux.Router, mRoute constrain.IRou
 		ops[i].apply(s)
 	}
 
-	if router != nil && mRoute != nil {
+	if s.router != nil && s.route != nil {
 		router.NotFoundHandler = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			if request.URL.Path == "/404" {
 				writer.WriteHeader(http.StatusNotFound)
