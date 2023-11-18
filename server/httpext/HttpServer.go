@@ -3,6 +3,7 @@ package httpext
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/dandelion/config"
 	"html/template"
 	"log"
 	"net/http"
@@ -30,7 +31,7 @@ type Session struct {
 }
 
 type httpServer struct {
-	serverDesc          *serverDesc
+	//serverDesc          *serverDesc
 	engine              *mux.Router
 	route               constrain.IRoute
 	redisClient         constrain.IRedis
@@ -49,8 +50,18 @@ func (m *httpServer) ApiErrorHandle(result constrain.IResultError) {
 func (m *httpServer) Use(middleware constrain.IMiddleware) {
 	m.middlewares = append(m.middlewares, middleware)
 }
-func (m *httpServer) Listen() {
-	listenAddr := fmt.Sprintf("%s:%d", m.serverDesc.ip, m.serverDesc.port)
+func (m *httpServer) Listen(microServerConfig *config.MicroServerConfig) error {
+	if m.etcdClient != nil {
+		if microServerConfig.Port == 0 {
+			var err error
+			microServerConfig, err = m.etcdClient.Register(microServerConfig)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	listenAddr := fmt.Sprintf("%s:%d", microServerConfig.IP, microServerConfig.Port)
 	log.Printf("HttpServer Listen:%s", listenAddr)
 	srv := &http.Server{
 		Handler:      m.engine,
@@ -58,7 +69,7 @@ func (m *httpServer) Listen() {
 		WriteTimeout: 3 * time.Minute,
 		ReadTimeout:  3 * time.Minute,
 	}
-	log.Fatalln(srv.ListenAndServe())
+	return srv.ListenAndServe()
 }
 func (m *httpServer) handleError(ctx constrain.IContext, customizeViewRender constrain.IViewRender, w http.ResponseWriter, r *http.Request, err error) {
 	var bytes []byte
@@ -137,7 +148,7 @@ type Option interface {
 	apply(server *httpServer)
 }
 
-type serverDesc struct {
+/*type serverDesc struct {
 	serverName string
 	ip         string
 	port       int
@@ -145,10 +156,11 @@ type serverDesc struct {
 
 func (s *serverDesc) apply(server *httpServer) {
 	server.serverDesc = s
-}
-func WithServerDesc(serverName string, ip string, port int) Option {
+}*/
+
+/*func WithServerDesc(serverName string, ip string, port int) Option {
 	return &serverDesc{serverName: serverName, ip: ip, port: port}
-}
+}*/
 
 type emptyOption struct {
 	applyFunc func(server *httpServer)
@@ -160,24 +172,28 @@ func newOption(apply func(server *httpServer)) *emptyOption {
 func (e *emptyOption) apply(server *httpServer) {
 	e.applyFunc(server)
 }
-func WithEtcdOption(etcdClient constrain.IEtcd) Option {
-	return newOption(func(server *httpServer) {
-		server.etcdClient = etcdClient
-	})
-}
-func WithRedisOption(redisClient constrain.IRedis) Option {
-	return newOption(func(server *httpServer) {
-		server.redisClient = redisClient
-	})
-}
+
+/*
+	func WithEtcdOption(etcdClient constrain.IEtcd) Option {
+		return newOption(func(server *httpServer) {
+			server.etcdClient = etcdClient
+		})
+	}
+
+	func WithRedisOption(redisClient constrain.IRedis) Option {
+		return newOption(func(server *httpServer) {
+			server.redisClient = redisClient
+		})
+	}
+*/
 func WithCustomizeViewRenderOption(customizeViewRender constrain.IViewRender) Option {
 	return newOption(func(server *httpServer) {
 		server.customizeViewRender = customizeViewRender
 	})
 }
 
-func NewHttpServer(engine *mux.Router, router *mux.Router, mRoute constrain.IRoute, ops ...Option) *httpServer {
-	s := &httpServer{router: router, route: mRoute, engine: engine, defaultMiddleware: &httpMiddleware{}}
+func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, engine *mux.Router, router *mux.Router, mRoute constrain.IRoute, ops ...Option) *httpServer {
+	s := &httpServer{router: router, redisClient: redisClient, etcdClient: etcdClient, route: mRoute, engine: engine, defaultMiddleware: &httpMiddleware{}}
 	for i := range ops {
 		ops[i].apply(s)
 	}

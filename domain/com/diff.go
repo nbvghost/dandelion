@@ -32,13 +32,18 @@ func CreateStructByMap(m map[string]any, structType any) any {
 }
 
 // Diff 只比较struct 里元字段类型的字段，如果字段是struct则不进行比较，from,to 都是(*struct)
-func Diff(fromPtr, toPtr any, ignoreField ...string) map[string]any {
+/*
+fromPtr:现有数据
+changePtr:为要修改的对象的数据
+*/
+func Diff(fromPtr, changePtr any, ignoreField ...string) map[string]any {
 	ma := make(map[string]any)
 	vfrom := reflect.ValueOf(fromPtr).Elem()
 	tfrom := vfrom.Type()
-	vto := reflect.ValueOf(toPtr).Elem()
+	vto := reflect.ValueOf(changePtr).Elem()
 	tto := vfrom.Type()
 
+	//比较时，两个值 必须是同一种数据类型
 	if tfrom.Kind() != tto.Kind() {
 		//panic(fmt.Errorf("from kind %v to kind %v,error,kind is not match", tfrom.Kind(), tto.Kind()))
 		log.Println(fmt.Errorf("from kind %v to kind %v,error,kind is not match", tfrom.Kind(), tto.Kind()))
@@ -82,8 +87,18 @@ func Diff(fromPtr, toPtr any, ignoreField ...string) map[string]any {
 		if IndexOf(ignoreField, fieldName) != -1 {
 			continue
 		}
-		fv := vfrom.Field(i).Interface()
-		tv := vto.Field(i).Interface()
+		fv := vfrom.FieldByName(fieldName).Interface()
+
+		//
+		vtoField := vto.FieldByName(fieldName)
+		if vtoField.Kind() == reflect.Ptr {
+			if vtoField.IsNil() {
+				continue
+			}
+			vtoField = vtoField.Elem()
+		}
+		tv := vtoField.Interface()
+
 		switch fieldKind {
 		case reflect.Slice:
 			if !reflect.DeepEqual(fv, tv) {

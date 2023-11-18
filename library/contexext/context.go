@@ -92,10 +92,10 @@ func (m *handlerContext) Logger() *zap.Logger {
 	return m.logger
 }
 func (m *handlerContext) SelectInsideServer(appName key.MicroServer) (string, error) {
-	return m.redis.GetEtcd().SelectInsideServer(appName)
+	return m.etcd.SelectInsideServer(appName)
 }
 func (m *handlerContext) GetDNSName(localName key.MicroServer) (string, error) {
-	return m.redis.GetEtcd().GetDNSName(localName)
+	return m.etcd.GetDNSName(localName)
 }
 func (m *handlerContext) Token() string {
 	return m.token

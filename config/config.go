@@ -2,6 +2,7 @@ package config
 
 import (
 	"crypto/tls"
+	"fmt"
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -14,6 +15,15 @@ type MicroServerConfig struct {
 	MicroServer key.MicroServer
 	Port        int
 	IP          string
+	Addr        string
+}
+
+func NewMicroServerConfig(microServerKey key.MicroServer, port int, ip string) *MicroServerConfig {
+	return &MicroServerConfig{
+		MicroServer: microServerKey,
+		Port:        port,
+		IP:          ip,
+	}
 }
 
 type RedisOptions struct {
@@ -124,4 +134,18 @@ type ServerConfig struct {
 	Server MicroServerConfig
 	Etcd   clientv3.Config
 	Redis  RedisOptions
+}
+
+type PostgresqlConfig struct {
+	Host     string `json:"Host"`
+	User     string `json:"User"`
+	Password string `json:"Password"`
+	DBName   string `json:"DBName"`
+	Port     int    `json:"Port"`
+	SSLMode  string `json:"SSLMode"`
+	TimeZone string `json:"TimeZone"`
+}
+
+func (m *PostgresqlConfig) GetDSN() string {
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s", m.Host, m.User, m.Password, m.DBName, m.Port, m.SSLMode, m.TimeZone)
 }

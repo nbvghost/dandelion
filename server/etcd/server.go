@@ -23,8 +23,6 @@ import (
 	"github.com/pkg/errors"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
-
-	"github.com/nbvghost/dandelion/server/serviceobject"
 )
 
 type server struct {
@@ -67,21 +65,7 @@ func (m *server) ObtainRedis() (*config.RedisOptions, error) {
 	}
 	return &op, nil
 }
-func (m *server) RegisterRedis(config config.RedisOptions) error {
-	var err error
-	client := m.getClient()
-	ctx := context.Background()
 
-	b, err := json.Marshal(config)
-	if err != nil {
-		return err
-	}
-	_, err = client.Put(ctx, "redis", string(b))
-	if err != nil {
-		return err
-	}
-	return nil
-}
 func (m *server) parseDNS(dns []etcd.ServerDNS, check bool) error {
 	defer m.dnsLocker.Unlock()
 	m.dnsLocker.Lock()
@@ -248,63 +232,7 @@ func (m *server) watch() {
 		return nil
 	}
 */
-func (m *server) AddDNS(newDNS []etcd.ServerDNS) error {
-	etcdKey := "dns"
-	ctx := context.TODO()
 
-	var hasDns []etcd.ServerDNS
-
-	client := m.getClient()
-
-	resp, err := client.Get(ctx, etcdKey)
-	if err != nil {
-		return err
-	}
-	if len(resp.Kvs) > 0 {
-		err := json.Unmarshal(resp.Kvs[0].Value, &hasDns)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-
-	hasDns = append(hasDns, newDNS...)
-
-	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]key.MicroServer{}}
-	if err := copyServer.parseDNS(hasDns, true); err != nil {
-		return err
-	}
-
-	jsonByte, err := json.Marshal(hasDns)
-	if err != nil {
-		return err
-	}
-	_, err = client.Put(ctx, etcdKey, string(jsonByte))
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func (m *server) RegisterDNS(dns []etcd.ServerDNS) error {
-	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]key.MicroServer{}}
-	if err := copyServer.parseDNS(dns, true); err != nil {
-		return err
-	}
-	client := m.getClient()
-
-	etcdKey := "dns"
-
-	ctx := context.TODO()
-
-	jsonByte, err := json.Marshal(dns)
-	if err != nil {
-		return err
-	}
-	_, err = client.Put(ctx, etcdKey, string(jsonByte))
-	if err != nil {
-		return err
-	}
-	return nil
-}
 func (m *server) ObtainPostgresql(serverName string) (string, error) {
 	var err error
 	client := m.getClient()
@@ -319,19 +247,9 @@ func (m *server) ObtainPostgresql(serverName string) (string, error) {
 	}
 	return string(resp.Kvs[0].Value), err
 }
-func (m *server) RegisterPostgresql(dsn string, serverName string) error {
-	var err error
-	client := m.getClient()
-	ctx := context.Background()
-	_, err = client.Put(ctx, fmt.Sprintf("%s/%s", "postgresql", serverName), dsn)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
 // Register 注册服务
-func (m *server) Register(desc *serviceobject.ServerDesc) (*serviceobject.ServerDesc, error) {
+func (m *server) Register(desc *config.MicroServerConfig) (*config.MicroServerConfig, error) {
 	var err error
 	client := m.getClient()
 
@@ -447,12 +365,13 @@ func (m *server) SelectInsideServer(appName key.MicroServer) (string, error) {
 		return "", errors.Errorf("没有可以用的服务节点:%s", appName)
 	}
 	v := resp.Kvs[random.Intn(len(resp.Kvs))]
-	var serverDesc serviceobject.ServerDesc
+	var serverDesc config.MicroServerConfig
 	if err = json.Unmarshal(v.Value, &serverDesc); err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("%s:%d", serverDesc.IP, serverDesc.Port), nil
 }
+
 func NewServer(config clientv3.Config) constrain.IEtcd {
 	client, err := clientv3.New(config)
 	if err != nil {

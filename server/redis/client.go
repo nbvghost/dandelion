@@ -17,13 +17,9 @@ type client struct {
 	sync.RWMutex
 	once   sync.Once
 	client *redis.Client
-	etcd   constrain.IEtcd
-	redis  config.RedisOptions
+	redis  *config.RedisOptions
 }
 
-func (m *client) GetEtcd() constrain.IEtcd {
-	return m.etcd
-}
 func (m *client) TryLock(parentCtx context.Context, key string, wait ...time.Duration) (bool, func()) {
 
 	waitTime := time.Duration(0)
@@ -183,8 +179,8 @@ func (m *client) getClient() redis.Cmdable {
 	}
 	return m.client
 }
-func NewClient(redis config.RedisOptions, etcd constrain.IEtcd) constrain.IRedis {
-	c := &client{redis: redis, etcd: etcd}
+func NewClient(redis *config.RedisOptions) constrain.IRedis {
+	c := &client{redis: redis}
 	c.getClient()
 	return c
 }
