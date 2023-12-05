@@ -73,14 +73,18 @@ func (m *FindQuery) Count() int64 {
 	return total
 }
 func (m *FindQuery) Limit(index, pageSize int) int64 {
-	if index < 0 {
-		index = 0
-	}
-	if pageSize <= 0 {
-		pageSize = 10
-	}
 	var total int64
-	m.db.Count(&total).Limit(pageSize).Offset(pageSize * index)
+	if pageSize < 0 {
+		m.db.Count(&total)
+	} else {
+		if index < 0 {
+			index = 0
+		}
+		if pageSize <= 0 {
+			pageSize = 10
+		}
+		m.db.Count(&total).Limit(pageSize).Offset(pageSize * index)
+	}
 	return total
 }
 func (m *FindQuery) LimitOnly(pageSize int) *FindQuery {
