@@ -129,6 +129,10 @@ const (
 	ConfigurationKeyQuickLink              ConfigurationKey = "QuickLink"
 	ConfigurationKeyPaymentPaypalClientId  ConfigurationKey = "PaymentPaypalClientId"
 	ConfigurationKeyPaymentPaypalAppSecret ConfigurationKey = "PaymentPaypalAppSecret"
+
+	ConfigurationKeyAliyunAccessKeyID     ConfigurationKey = "AliyunAccessKeyID"
+	ConfigurationKeyAliyunAccessKeySecret ConfigurationKey = "AliyunAccessKeySecret"
+	ConfigurationKeyAliyunSMSSignName     ConfigurationKey = "AliyunSMSSignName"
 )
 
 type Configuration struct {

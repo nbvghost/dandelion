@@ -6,6 +6,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/constrain/key"
+	"github.com/nbvghost/dandelion/library/contexext"
+	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/util"
+	"github.com/nbvghost/dandelion/service/aliyun"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -21,20 +28,71 @@ import (
 	"github.com/nbvghost/tool/collections"
 )
 
-type SMSService struct {
+type Service struct {
+}
+
+func (s Service) PhoneVerifyCode(ctx constrain.IContext, phone string, code string) (bool, error) {
+	redisKey := key.NewRedisVerifyPhoneCodeKey(phone)
+	has, err := ctx.Redis().SetIsMember(ctx, redisKey, code)
+	if err != nil {
+		return false, err
+	}
+	if !has {
+		return false, errors.Errorf("验证码不正确")
+	}
+	_, err = ctx.Redis().SetRem(ctx, redisKey, code)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+func (s Service) SendPhoneVerifyCode(ctx constrain.IContext, oid dao.PrimaryKey, phone string) error {
+	contextValue := contexext.FromContext(ctx)
+
+	desi := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
+
+	codes := desi[key.Random.Intn(10)] + desi[key.Random.Intn(10)] + desi[key.Random.Intn(10)] + desi[key.Random.Intn(10)] + desi[key.Random.Intn(10)]
+
+	ip := util.GetIP(contextValue.Request)
+
+	redisKey := key.NewRedisVerifyPhoneCodeKey(phone)
+
+	memberLen, err := ctx.Redis().SetCard(ctx, redisKey)
+	if err != nil {
+		return err
+	}
+	if memberLen >= 5 {
+		return fmt.Errorf("验证码请求太频繁，请稍后在试")
+	}
+	_, err = ctx.Redis().SetAdd(ctx, redisKey, codes)
+	if err != nil {
+		return err
+	}
+	err = ctx.Redis().Expire(ctx, redisKey, time.Minute*5)
+	if err != nil {
+		return err
+	}
+	sms := aliyun.NewSMS(oid)
+	err = sms.Send("SMS_4785426", phone, map[string]any{"code": codes, "product": "手机号"})
+	if err != nil {
+		return err
+	}
+	_, err = ctx.Redis().Incr(ctx, key.NewRedisVerifyPhoneIPKey(ip))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func specialUrlEncode(value string) string {
-
 	sdt := url.QueryEscape(value)
 	sdt = strings.Replace(sdt, "+", "%20", -1)
 	sdt = strings.Replace(sdt, "*", "%2A", -1)
 	sdt = strings.Replace(sdt, "%7E", "~", -1)
-
 	return sdt
 }
 
-func (s SMSService) SendAliyunSms(ParamMap map[string]interface{}, TemplateCode string, tel string, accessKeyId, accessSecret string) (bool, string) {
+func (s Service) SendAliyunSms(ParamMap map[string]interface{}, TemplateCode string, tel string, accessKeyId, accessSecret string) (bool, string) {
 
 	//accessKeyId:=""
 	//accessSecret:=""
@@ -121,7 +179,7 @@ func (s SMSService) SendAliyunSms(ParamMap map[string]interface{}, TemplateCode 
 	}
 
 }
-func (s SMSService) SendIDCode(Code string, tel string) (result.ActionResultCode, string) {
+func (s Service) SendIDCode(Code string, tel string) (result.ActionResultCode, string) {
 
 	params := url.Values{}
 	params.Add("app_key", "24807838")
