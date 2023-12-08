@@ -11,7 +11,6 @@ import (
 	"github.com/nbvghost/dandelion/service/configuration"
 	"github.com/pkg/errors"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
-	"log"
 )
 
 type SMS struct {
@@ -64,10 +63,8 @@ func (m *SMS) Send(templateCode string, phone string, data map[string]any) error
 	if err != nil {
 		return err
 	}
-
-	log.Println(result)
 	if *(result.Body.Code) != "OK" {
 		return errors.New(*result.Body.Message)
 	}
-	return errors.Errorf("%s", "短信发送失败，请稍候在试")
+	return nil
 }
