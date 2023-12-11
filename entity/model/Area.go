@@ -12,11 +12,10 @@ import "github.com/nbvghost/dandelion/library/dao"
 //
 // pcode: 直接父级别的code
 type Area struct {
-	dao.Entity
-	Code  uint   `gorm:"column:Code;index"`
-	Name  string `gorm:"column:Name"`
-	Level uint   `gorm:"column:Level"`
-	PCode uint   `gorm:"column:PCode;index"`
+	Code  dao.PrimaryKey `gorm:"COMMENT:Code;NOT NULL;column:Code;PRIMARY_KEY"`
+	Name  string         `gorm:"column:Name"`
+	Level uint           `gorm:"column:Level"`
+	PCode dao.PrimaryKey `gorm:"column:PCode;index"`
 }
 
 func (Area) TableName() string {
