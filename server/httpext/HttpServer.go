@@ -39,6 +39,7 @@ type httpServer struct {
 	errorHandleResult   constrain.IResultError
 	router              *mux.Router
 	customizeViewRender constrain.IViewRender
+	notFoundViewRender  constrain.IViewRender
 	middlewares         []constrain.IMiddleware
 	defaultMiddleware   *httpMiddleware
 }
@@ -191,6 +192,58 @@ func WithCustomizeViewRenderOption(customizeViewRender constrain.IViewRender) Op
 		server.customizeViewRender = customizeViewRender
 	})
 }
+func WithNotFoundViewRenderOption(customizeViewRender constrain.IViewRender) Option {
+	return newOption(func(server *httpServer) {
+		server.notFoundViewRender = customizeViewRender
+	})
+}
+
+func (m *httpServer) handlerFunc(viewRender constrain.IViewRender, response http.ResponseWriter, request *http.Request) (next bool, ctxValue *contexext.ContextValue) {
+
+	var ctx constrain.IContext
+	ctxValue = contexext.FromContext(request.Context())
+	if ctxValue != nil {
+		ctx = request.Context().(constrain.IContext)
+		ctxValue = contexext.FromContext(ctx)
+	} else {
+		ctx = m.defaultMiddleware.CreateContext(m.redisClient, m.etcdClient, m.route, response, request) //CreateContext(m.redisClient, m.etcdClient, m.route, response, request)
+		ctxValue = contexext.FromContext(ctx)
+		ctxValue.Request = request.WithContext(ctx)
+	}
+
+	defer func() {
+		var err error
+		if rerr := recover(); rerr != nil {
+			switch rerr.(type) {
+			case error:
+				err = rerr.(error)
+			default:
+				err = fmt.Errorf("%v", rerr)
+			}
+			ctx.Logger().Error("http-server", zap.Error(err))
+			m.handleError(ctx, viewRender, ctxValue.Response, ctxValue.Request, err)
+		}
+
+	}()
+
+	for i := range m.middlewares {
+		middleware := m.middlewares[i]
+		if err := middleware.Handle(ctx, m.route, viewRender, ctxValue.Response, ctxValue.Request); err != nil {
+			ctx.Logger().Error("http-server", zap.Error(err))
+			m.handleError(ctx, viewRender, ctxValue.Response, ctxValue.Request, err)
+			return
+		}
+	}
+	if ctxValue.Request.Method == http.MethodOptions {
+		return
+	}
+	if err := m.defaultMiddleware.Handle(ctx, m.route, viewRender, ctxValue.Response, ctxValue.Request); err != nil {
+		ctx.Logger().Error("http-server", zap.Error(err))
+		m.handleError(ctx, viewRender, ctxValue.Response, ctxValue.Request, err)
+		return
+	}
+	return true, ctxValue
+}
 
 func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, engine *mux.Router, router *mux.Router, mRoute constrain.IRoute, ops ...Option) *httpServer {
 	s := &httpServer{router: router, redisClient: redisClient, etcdClient: etcdClient, route: mRoute, engine: engine, defaultMiddleware: &httpMiddleware{}}
@@ -200,16 +253,21 @@ func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, eng
 
 	if s.router != nil && s.route != nil {
 		router.NotFoundHandler = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			if request.URL.Path == "/404" {
-				writer.WriteHeader(http.StatusNotFound)
-				t, _ := template.New("404").Parse("404")
-				err := t.Execute(writer, nil)
-				if err != nil {
-					log.Println(err)
+			if s.notFoundViewRender == nil {
+				if request.URL.Path == "/404" {
+					writer.WriteHeader(http.StatusNotFound)
+					t, _ := template.New("404").Parse("404")
+					err := t.Execute(writer, nil)
+					if err != nil {
+						log.Println(err)
+					}
+				} else {
+					http.Redirect(writer, request, "/404", http.StatusPermanentRedirect)
 				}
 			} else {
-				http.Redirect(writer, request, "/404", http.StatusPermanentRedirect)
+				s.handlerFunc(s.notFoundViewRender, writer, request)
 			}
+
 		})
 		//router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -239,49 +297,10 @@ func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, eng
 				})
 			}
 			return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-				var ctx constrain.IContext
-				ctxValue := contexext.FromContext(request.Context())
-				if ctxValue != nil {
-					ctx = request.Context().(constrain.IContext)
-					ctxValue = contexext.FromContext(ctx)
-				} else {
-					ctx = s.defaultMiddleware.CreateContext(s.redisClient, s.etcdClient, s.route, response, request) //CreateContext(m.redisClient, m.etcdClient, m.route, response, request)
-					ctxValue = contexext.FromContext(ctx)
-					ctxValue.Request = request.WithContext(ctx)
+				hasNext, ctxValue := s.handlerFunc(s.customizeViewRender, response, request)
+				if hasNext {
+					next.ServeHTTP(ctxValue.Response, ctxValue.Request)
 				}
-
-				defer func() {
-					var err error
-					if rerr := recover(); rerr != nil {
-						switch rerr.(type) {
-						case error:
-							err = rerr.(error)
-						default:
-							err = fmt.Errorf("%v", rerr)
-						}
-						ctx.Logger().Error("http-server", zap.Error(err))
-						s.handleError(ctx, s.customizeViewRender, ctxValue.Response, ctxValue.Request, err)
-					}
-
-				}()
-
-				for i := range s.middlewares {
-					middleware := s.middlewares[i]
-					if err := middleware.Handle(ctx, s.route, s.customizeViewRender, ctxValue.Response, ctxValue.Request); err != nil {
-						ctx.Logger().Error("http-server", zap.Error(err))
-						s.handleError(ctx, s.customizeViewRender, ctxValue.Response, ctxValue.Request, err)
-						return
-					}
-				}
-				if ctxValue.Request.Method == http.MethodOptions {
-					return
-				}
-				if err := s.defaultMiddleware.Handle(ctx, s.route, s.customizeViewRender, ctxValue.Response, ctxValue.Request); err != nil {
-					ctx.Logger().Error("http-server", zap.Error(err))
-					s.handleError(ctx, s.customizeViewRender, ctxValue.Response, ctxValue.Request, err)
-					return
-				}
-				next.ServeHTTP(ctxValue.Response, ctxValue.Request)
 			})
 		})
 	}
