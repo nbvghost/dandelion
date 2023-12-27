@@ -94,7 +94,7 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 	models = append(models, model.WechatConfig{})
 	models = append(models, model.PushData{})
 	models = append(models, model.ExpressCompany{})
-	models = append(models, model.Area{})
+	models = append(models, &model.Area{})
 	models = append(models, model.Address{})
 	models = append(models, model.GoodsSkuLabel{})
 	models = append(models, model.GoodsSkuLabelData{})

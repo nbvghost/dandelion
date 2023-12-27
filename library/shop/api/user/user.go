@@ -6,14 +6,16 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
+	"github.com/nbvghost/dandelion/service/user"
 	"github.com/nbvghost/tool/encryption"
 	"github.com/pkg/errors"
 	"strings"
 )
 
 type User struct {
-	User *model.User `mapping:""`
-	Get  struct {
+	UserService user.UserService
+	User        *model.User `mapping:""`
+	Get         struct {
 	} `method:"Get"`
 	Put struct {
 		Email           string
@@ -63,14 +65,17 @@ func (m *User) HandlePut(context constrain.IContext) (r constrain.IResult, err e
 		return nil, err
 	}
 
-	err = dao.UpdateBy(tx, &model.UserInfo{}, map[string]any{"AllowAssistance": m.Put.AllowAssistance}, `"UserID"=?`, context.UID())
+	userInfo := m.UserService.GetUserInfo(context.UID())
+	userInfo.SetAllowAssistance(m.Put.AllowAssistance)
+	err = userInfo.Update(tx)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
 	}
-	user := dao.GetByPrimaryKey(tx, &model.User{}, context.UID())
-	userInfo := dao.GetBy(tx, &model.UserInfo{}, map[string]any{"UserID": context.UID()})
+
+	u := dao.GetByPrimaryKey(tx, &model.User{}, context.UID())
+
 	tx.Commit()
 
-	return result.NewData(map[string]any{"User": user, "UserInfo": userInfo}), nil
+	return result.NewData(map[string]any{"User": u, "UserInfo": userInfo.Data()}), nil
 }

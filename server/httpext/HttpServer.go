@@ -32,16 +32,16 @@ type Session struct {
 
 type httpServer struct {
 	//serverDesc          *serverDesc
-	engine              *mux.Router
-	route               constrain.IRoute
-	redisClient         constrain.IRedis
-	etcdClient          constrain.IEtcd
-	errorHandleResult   constrain.IResultError
-	router              *mux.Router
-	customizeViewRender constrain.IViewRender
-	notFoundViewRender  constrain.IViewRender
-	middlewares         []constrain.IMiddleware
-	defaultMiddleware   *httpMiddleware
+	engine             *mux.Router
+	route              constrain.IRoute
+	redisClient        constrain.IRedis
+	etcdClient         constrain.IEtcd
+	errorHandleResult  constrain.IResultError
+	router             *mux.Router
+	viewRender         constrain.IViewRender
+	notFoundViewRender constrain.IViewRender
+	middlewares        []constrain.IMiddleware
+	defaultMiddleware  *httpMiddleware
 }
 
 func (m *httpServer) ApiErrorHandle(result constrain.IResultError) {
@@ -117,16 +117,20 @@ func (m *httpServer) handleError(ctx constrain.IContext, customizeViewRender con
 			viewBase.HtmlMeta = htmlMeta
 			viewBaseValue.Set(reflect.ValueOf(viewBase))
 
-			if customizeViewRender != nil {
-				if err = customizeViewRender.Render(ctx, r, w, viewResult); err != nil {
-					ctx.Logger().Error("render", zap.Error(err))
-				}
+			if customizeViewRender == nil {
+				ctx.Logger().Error("render", zap.Error(errors.New("没找开视图渲染器")))
 				return
 			}
-			vr := &viewRender{}
-			if err = vr.Render(ctx, r, w, viewResult); err != nil {
+
+			if err = customizeViewRender.Render(ctx, r, w, viewResult); err != nil {
 				ctx.Logger().Error("render", zap.Error(err))
 			}
+			return
+
+			/*vr := &viewRender{}
+			if err = vr.Render(ctx, r, w, viewResult); err != nil {
+				ctx.Logger().Error("render", zap.Error(err))
+			}*/
 
 			/*t, errTemplate := template.New("").Parse(html_404)
 			if errTemplate == nil {
@@ -187,9 +191,9 @@ func (e *emptyOption) apply(server *httpServer) {
 		})
 	}
 */
-func WithCustomizeViewRenderOption(customizeViewRender constrain.IViewRender) Option {
+func WithViewRenderOption(customizeViewRender constrain.IViewRender) Option {
 	return newOption(func(server *httpServer) {
-		server.customizeViewRender = customizeViewRender
+		server.viewRender = customizeViewRender
 	})
 }
 func WithNotFoundViewRenderOption(customizeViewRender constrain.IViewRender) Option {
@@ -297,7 +301,7 @@ func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, eng
 				})
 			}
 			return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-				hasNext, ctxValue := s.handlerFunc(s.customizeViewRender, response, request)
+				hasNext, ctxValue := s.handlerFunc(s.viewRender, response, request)
 				if hasNext {
 					next.ServeHTTP(ctxValue.Response, ctxValue.Request)
 				}

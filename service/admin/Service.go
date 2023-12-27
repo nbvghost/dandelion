@@ -309,6 +309,11 @@ func (service AdminService) FindAdminByAccount(Orm *gorm.DB, Account string) *mo
 	Orm.Where(map[string]interface{}{"Account": Account}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)
 	return manager
 }
+func (service AdminService) FindAdminByAccountAndPassWord(Orm *gorm.DB, Account string, PassWord string) *model.Admin {
+	manager := &model.Admin{}
+	Orm.Where(map[string]interface{}{"Account": Account, "PassWord": PassWord}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)
+	return manager
+}
 
 /*func (service AdminService) ManagerAction(context *gweb.Context) (r constrain.IResult, err error) {
 	Orm := singleton.Orm()

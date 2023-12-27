@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/tool/object"
 	"log"
 	"strconv"
 	"strings"
@@ -173,16 +174,111 @@ func (service UserService) Leve6(Leve5IDs []uint) []uint {
 	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve5IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
-func (service UserService) GetUserInfo(UserID dao.PrimaryKey) model.UserInfo {
+func (service UserService) GetUserInfo(UserID dao.PrimaryKey) *UserInfoValue {
 	Orm := db.Orm()
 	//.First(&user, 10)
-	var userInfo model.UserInfo
-	Orm.Where(&model.UserInfo{UserID: UserID}).First(&userInfo)
-	if userInfo.ID == 0 && UserID != 0 {
-		userInfo.UserID = UserID
-		dao.Create(Orm, &userInfo)
+	m := make(map[model.UserInfoKey]string)
+	oldD := make(map[model.UserInfoKey]string)
+	var userInfo []*model.UserInfo
+	Orm.Where(`"UserID"=?`, UserID).Find(&userInfo)
+	for _, v := range userInfo {
+		m[v.Key] = v.Value
+		oldD[v.Key] = v.Value
 	}
-	return userInfo
+	return &UserInfoValue{userID: UserID, data: m, oldData: oldD}
+}
+
+type UserInfoValue struct {
+	userID  dao.PrimaryKey
+	data    map[model.UserInfoKey]string
+	oldData map[model.UserInfoKey]string
+}
+
+func (m *UserInfoValue) Data() map[model.UserInfoKey]string {
+	return m.data
+}
+func (m *UserInfoValue) Update(db *gorm.DB) error {
+	change := make(map[model.UserInfoKey]string)
+	for key, s := range m.data {
+		if v, ok := m.oldData[key]; ok {
+			if strings.EqualFold(v, s) {
+				continue
+			}
+		}
+		change[key] = m.data[key]
+	}
+	if len(change) > 0 {
+		for key, s := range change {
+			has := dao.GetBy(db, &model.UserInfo{}, map[string]any{"UserID": m.userID, "Key": key})
+			if has.IsZero() {
+				err := dao.Create(db, &model.UserInfo{
+					UserID: m.userID,
+					Key:    key,
+					Value:  s,
+				})
+				if err != nil {
+					return err
+				}
+			} else {
+				err := dao.UpdateBy(db, &model.UserInfo{}, map[string]any{"Value": s}, map[string]any{"UserID": m.userID, "Key": key})
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+func (m *UserInfoValue) GetDaySignTime() time.Time {
+	if v, ok := m.data[model.UserInfoKeyDaySignTime]; ok {
+		t, _ := time.Parse(time.RFC3339, v)
+		return t
+	}
+	return time.Time{}
+}
+func (m *UserInfoValue) SetDaySignTime(v time.Time) {
+	m.data[model.UserInfoKeyDaySignTime] = v.Format(time.RFC3339)
+}
+
+func (m *UserInfoValue) GetDaySignCount() int {
+	return object.ParseInt(m.data[model.UserInfoKeyDaySignCount])
+}
+
+func (m *UserInfoValue) GetLastIP() string {
+	return object.ParseString(m.data[model.UserInfoKeyLastIP])
+}
+func (m *UserInfoValue) GetAllowAssistance() bool {
+	return object.ParseBool(m.data[model.UserInfoKeyAllowAssistance])
+}
+func (m *UserInfoValue) GetSubscribe() bool {
+	return object.ParseBool(m.data[model.UserInfoKeySubscribe])
+}
+
+func (m *UserInfoValue) SetDaySignCount(v int) {
+	m.data[model.UserInfoKeyDaySignCount] = object.ParseString(v)
+}
+func (m *UserInfoValue) SetLastIP(v string) {
+	m.data[model.UserInfoKeyLastIP] = v
+}
+func (m *UserInfoValue) SetAllowAssistance(v bool) {
+	m.data[model.UserInfoKeyAllowAssistance] = object.ParseString(v)
+}
+func (m *UserInfoValue) SetSubscribe(v bool) {
+	m.data[model.UserInfoKeySubscribe] = object.ParseString(v)
+}
+
+type UserInfoKeyStateType string
+
+const (
+	UserInfoKeyStateTypeNormal  UserInfoKeyStateType = ""        //
+	UserInfoKeyStateTypeClosure UserInfoKeyStateType = "closure" //封闭
+)
+
+func (m *UserInfoValue) SetState(v UserInfoKeyStateType) {
+	m.data[model.UserInfoKeyState] = string(v)
+}
+func (m *UserInfoValue) GetState() UserInfoKeyStateType {
+	return UserInfoKeyStateType(m.data[model.UserInfoKeyState])
 }
 
 func (service UserService) UserAction(context constrain.IContext) (r constrain.IResult, err error) {
@@ -215,25 +311,24 @@ func (service UserService) GetByEmail(Orm *gorm.DB, email string) *model.User {
 func (service UserService) FindUserByOpenID(Orm *gorm.DB, OID dao.PrimaryKey, OpenID string) *model.User {
 	user := &model.User{}
 	//CompanyOpenID := user.GetCompanyOpenID(CompanyID, OpenID)
-	err := Orm.Where(`"OpenID"=? and "OID"=?`, OpenID, OID).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
-	log.Println(err)
+	Orm.Where(`"OpenID"=? and "OID"=?`, OpenID, OID).First(user) //SelectOne(user, "select * from User where Tel=?", Tel)
 	return user
 }
-func (service UserService) AddUserByOpenID(Orm *gorm.DB, OID dao.PrimaryKey, OpenID string) *model.User {
+func (service UserService) AddUserByOpenID(Orm *gorm.DB, OID dao.PrimaryKey, OpenID string) (*model.User, error) {
 	//Orm := singleton.Orm()
-
 	user := service.FindUserByOpenID(Orm, OID, OpenID)
-	if user.ID == 0 {
+	if user.IsZero() {
 		user.OID = OID
 		user.OpenID = OpenID
 		user.Name = fmt.Sprintf("用户%d", time.Now().Unix())
 		user.Portrait = "https://oss.sites.ink/assets/default"
-		dao.Create(Orm, user)
-	} else {
-
+		err := dao.Create(Orm, user)
+		if err != nil {
+			return nil, err
+		}
 	}
 	//CompanyOpenID := user.GetCompanyOpenID(CompanyID, OpenID)
 	//err := Orm.Where("OpenID=?", OpenID).First(user).Error //SelectOne(user, "select * from User where Tel=?", Tel)
 	//log.Println(err)
-	return user
+	return user, nil
 }

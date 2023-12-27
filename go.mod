@@ -17,7 +17,7 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/lib/pq v1.10.9
 	github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89
-	github.com/nbvghost/tool v0.0.0-20221212031430-451935358811
+	github.com/nbvghost/tool v0.0.0-20231227080900-d7368e0b2f7c
 	github.com/pkg/errors v0.9.1
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/wechatpay-apiv3/wechatpay-go v0.2.16

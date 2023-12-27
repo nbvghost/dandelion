@@ -284,11 +284,15 @@ func (service JournalService) AddScoreJournal(tx *gorm.DB, UserID dao.PrimaryKey
 		return errors.New("积分不足")
 	}
 	logger.Balance = uint(Balance)
-
-	err := dao.UpdateByPrimaryKey(tx, &model.User{}, UserID, map[string]interface{}{"Score": Balance})
+	//Update("price", gorm.Expr("price * ? + ?", 2, 100))
+	err := tx.Model(&model.User{}).Where(`"ID"=?`, user.ID).Update(`"Score"`, gorm.Expr(`"Score"+?`, Score)).Error
 	if err != nil {
 		return err
 	}
+	/*err = dao.UpdateByPrimaryKey(tx, &model.User{}, UserID, map[string]interface{}{"Score": Balance})
+	if err != nil {
+		return err
+	}*/
 	err = dao.Create(tx, logger)
 	return err
 }

@@ -3,7 +3,6 @@ package user
 import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service/activity"
@@ -96,22 +95,19 @@ func (m *Info) Handle(context constrain.IContext) (r constrain.IResult, err erro
 }
 
 func (m *Info) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
-	changeMap := make(map[string]any)
+	userInfo := m.UserService.GetUserInfo(context.UID())
 	if m.Put.ChangeAllowAssistance {
-		changeMap["AllowAssistance"] = m.Put.AllowAssistance
+		userInfo.SetAllowAssistance(m.Put.AllowAssistance)
+		//changeMap["AllowAssistance"] = m.Put.AllowAssistance
 	}
 	if m.Put.ChangeSubscribe {
-		changeMap["Subscribe"] = m.Put.Subscribe
+		//changeMap["Subscribe"] = m.Put.Subscribe
+		userInfo.SetSubscribe(m.Put.Subscribe)
 	}
 
-	if len(changeMap) > 0 {
-		tx := db.Orm().Begin()
-		err = dao.UpdateBy(tx, &model.UserInfo{}, changeMap, `"UserID"=?`, context.UID())
-		if err != nil {
-			tx.Rollback()
-			return nil, err
-		}
-		tx.Commit()
+	err = userInfo.Update(db.Orm())
+	if err != nil {
+		return nil, err
 	}
 	return result.NewSuccess("OK"), nil
 }

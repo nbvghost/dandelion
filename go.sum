@@ -262,6 +262,8 @@ github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89 h1:5kowTqKh3Gfb63
 github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89/go.mod h1:+W4H7/2BLm99QxjF8Q+ETCBBf4l2Q0cdfWrISmXC4N4=
 github.com/nbvghost/tool v0.0.0-20221212031430-451935358811 h1:hFMlv1MP+RIWZp/+IeTBYPLM8fQpJBfddzEMIQ4R6jQ=
 github.com/nbvghost/tool v0.0.0-20221212031430-451935358811/go.mod h1:quDXQiTC/onMpV0j7NOof8bEqFghPvuMlBuunheGAT4=
+github.com/nbvghost/tool v0.0.0-20231227080900-d7368e0b2f7c h1:BCd+IYSoK9f5O0XB0WYac7PN5V3/S/aB61A0X6bGQLw=
+github.com/nbvghost/tool v0.0.0-20231227080900-d7368e0b2f7c/go.mod h1:K82wdAUZY4MoCBkgMkkkUMC+A3vaz7dpQsl8pRAAi20=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWbfPhv4DMiApHyliiK5xCTNVSPiaAs=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=

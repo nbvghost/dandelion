@@ -19,7 +19,9 @@ func (m ConfigurationService) GetConfiguration(tx *gorm.DB, OID dao.PrimaryKey, 
 	var item model.Configuration
 	err := tx.Where(`"K"=? and "OID"=?`, Key, OID).First(&item).Error
 	//db.Where([]int64{20, 21, 22}).Find(&users
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 	return item
 }
 func (m ConfigurationService) GetConfigurations(OID dao.PrimaryKey, keys ...model.ConfigurationKey) map[model.ConfigurationKey]string {
@@ -27,7 +29,9 @@ func (m ConfigurationService) GetConfigurations(OID dao.PrimaryKey, keys ...mode
 	var items []model.Configuration
 	err := Orm.Where(`"K" in (?) and "OID"=?`, keys, OID).Find(&items).Error
 	//db.Where([]int64{20, 21, 22}).Find(&users
-	log.Println(err)
+	if err != nil {
+		log.Println(err)
+	}
 
 	list := make(map[model.ConfigurationKey]string)
 	for _, value := range items {

@@ -400,16 +400,18 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			viewBase.HtmlMeta = htmlMeta
 			viewBaseValue.Set(reflect.ValueOf(viewBase))
 
-			if customizeViewRender != nil {
-				if err = customizeViewRender.Render(ctx, r, w, viewResult); err != nil {
-					return err
-				}
-				return nil
+			if customizeViewRender == nil {
+				return errors.New("没找开视图渲染器")
 			}
-			vr := &viewRender{}
-			if err = vr.Render(ctx, r, w, viewResult); err != nil {
+
+			if err = customizeViewRender.Render(ctx, r, w, viewResult); err != nil {
 				return err
 			}
+			return nil
+			/*vr := &DefaultViewRender{}
+			if err = vr.Render(ctx, r, w, viewResult); err != nil {
+				return err
+			}*/
 		} else {
 			return errors.Errorf("对视图访问的类型：%v不支持", apiHandler)
 		}
