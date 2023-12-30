@@ -2,6 +2,7 @@ package result
 
 import (
 	"github.com/nbvghost/dandelion/constrain"
+	"time"
 )
 
 type ActionResultCode int
@@ -22,11 +23,12 @@ const IOError ActionResultCode = -107
 const NIOError ActionResultCode = -108
 const SessionTimeOut ActionResultCode = -400
 
-//var dbMap *gorp.DbMap
+// ActionResult 接口返回的结构体
 type ActionResult struct {
 	Code    ActionResultCode
 	Message string
 	Data    interface{}
+	Now     int64
 }
 
 func (as *ActionResult) Apply(ctx constrain.IContext) {
@@ -41,12 +43,14 @@ func New(err error, msg string) *ActionResult {
 			Code:    Success,
 			Message: msg,
 			Data:    nil,
+			Now:     time.Now().UnixMilli(),
 		}
 	} else {
 		return &ActionResult{
 			Code:    Error,
 			Message: err.Error(),
 			Data:    nil,
+			Now:     time.Now().UnixMilli(),
 		}
 	}
 }
@@ -55,6 +59,7 @@ func NewSuccess(msg string) *ActionResult {
 		Code:    Success,
 		Message: msg,
 		Data:    nil,
+		Now:     time.Now().UnixMilli(),
 	}
 }
 func NewError(err error) *ActionResult {
@@ -63,6 +68,7 @@ func NewError(err error) *ActionResult {
 			Code:    Success,
 			Message: "OK",
 			Data:    nil,
+			Now:     time.Now().UnixMilli(),
 		}
 	} else {
 		if v, ok := err.(*ActionResult); ok {
@@ -72,6 +78,7 @@ func NewError(err error) *ActionResult {
 				Code:    Error,
 				Message: err.Error(),
 				Data:    nil,
+				Now:     time.Now().UnixMilli(),
 			}
 		}
 
@@ -82,6 +89,7 @@ func NewErrorText(text string) *ActionResult {
 		Code:    Error,
 		Message: text,
 		Data:    nil,
+		Now:     time.Now().UnixMilli(),
 	}
 }
 func NewCodeWithMessage(code ActionResultCode, message string) *ActionResult {
@@ -89,6 +97,7 @@ func NewCodeWithMessage(code ActionResultCode, message string) *ActionResult {
 		Code:    code,
 		Message: message,
 		Data:    nil,
+		Now:     time.Now().UnixMilli(),
 	}
 }
 func NewData(data interface{}) *ActionResult {
@@ -96,6 +105,7 @@ func NewData(data interface{}) *ActionResult {
 		Code:    Success,
 		Message: "OK",
 		Data:    data,
+		Now:     time.Now().UnixMilli(),
 	}
 }
 func NewErrorList(errs []error) *ActionResult {
@@ -104,6 +114,7 @@ func NewErrorList(errs []error) *ActionResult {
 			Code:    Success,
 			Message: "OK",
 			Data:    nil,
+			Now:     time.Now().UnixMilli(),
 		}
 	}
 	as := &ActionResult{}
@@ -115,6 +126,7 @@ func NewErrorList(errs []error) *ActionResult {
 			Code:    Error,
 			Message: errs[i].Error(),
 			Data:    nil,
+			Now:     time.Now().UnixMilli(),
 		})
 	}
 	as.Data = asList
@@ -125,6 +137,7 @@ func (as *ActionResult) SmartSuccessData(data interface{}) *ActionResult {
 	as.Message = "SUCCESS"
 	as.Code = Success
 	as.Data = data
+	as.Now = time.Now().UnixMilli()
 	return as
 }
 func (as *ActionResult) SmartError(err error, successTxt string, data interface{}) *ActionResult {
@@ -133,10 +146,12 @@ func (as *ActionResult) SmartError(err error, successTxt string, data interface{
 		as.Message = successTxt
 		as.Code = Success
 		as.Data = data
+		as.Now = time.Now().UnixMilli()
 	} else {
 		as.Message = err.Error()
 		as.Code = Fail
 		as.Data = data
+		as.Now = time.Now().UnixMilli()
 	}
 	return as
 }
@@ -147,6 +162,7 @@ func (as *ActionResult) Smart(code ActionResultCode, s string, f string) *Action
 	} else {
 		as.Message = f
 	}
+	as.Now = time.Now().UnixMilli()
 	return as
 }
 func (as *ActionResult) SmartData(code ActionResultCode, s string, f string, data interface{}) *ActionResult {
@@ -157,5 +173,6 @@ func (as *ActionResult) SmartData(code ActionResultCode, s string, f string, dat
 	} else {
 		as.Message = f
 	}
+	as.Now = time.Now().UnixMilli()
 	return as
 }
