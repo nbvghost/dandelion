@@ -18,6 +18,7 @@ const (
 	UserInfoKeyAllowAssistance UserInfoKey = "AllowAssistance"
 	UserInfoKeySubscribe       UserInfoKey = "Subscribe"
 	UserInfoKeyState           UserInfoKey = "State"
+	UserInfoKeyAgent           UserInfoKey = "Agent"
 )
 
 type UserInfo struct {

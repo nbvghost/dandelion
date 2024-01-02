@@ -253,6 +253,9 @@ func (m *UserInfoValue) GetAllowAssistance() bool {
 func (m *UserInfoValue) GetSubscribe() bool {
 	return object.ParseBool(m.data[model.UserInfoKeySubscribe])
 }
+func (m *UserInfoValue) GetAgent() bool {
+	return object.ParseBool(m.data[model.UserInfoKeyAgent])
+}
 
 func (m *UserInfoValue) SetDaySignCount(v int) {
 	m.data[model.UserInfoKeyDaySignCount] = object.ParseString(v)
@@ -276,6 +279,9 @@ const (
 
 func (m *UserInfoValue) SetState(v UserInfoKeyStateType) {
 	m.data[model.UserInfoKeyState] = string(v)
+}
+func (m *UserInfoValue) SetAgent(v bool) {
+	m.data[model.UserInfoKeyAgent] = strconv.FormatBool(v)
 }
 func (m *UserInfoValue) GetState() UserInfoKeyStateType {
 	return UserInfoKeyStateType(m.data[model.UserInfoKeyState])
