@@ -24,8 +24,6 @@ import (
 	"github.com/nbvghost/dandelion/server/route"
 	"github.com/nbvghost/tool"
 
-	"github.com/nbvghost/dandelion/server/serviceobject"
-
 	"google.golang.org/grpc"
 )
 
@@ -105,7 +103,7 @@ func (m *customizeService) Call(srv interface{}, ctx context.Context, dec func(i
 
 }
 
-type Option func(*serviceobject.ServerDesc, *grpc.Server) error
+type Option func(*config.MicroServerConfig, *grpc.Server) error
 type service struct {
 	//serviceobject.UnimplementedServerServer
 	server     config.MicroServerConfig
@@ -229,7 +227,7 @@ func (m *service) Listen() {
 		port, _ = strconv.Atoi(_port)
 	}
 
-	desc := &serviceobject.ServerDesc{
+	desc := &config.MicroServerConfig{
 		MicroServer: m.server.MicroServer,
 		Port:        port,
 		IP:          ip,
@@ -239,7 +237,7 @@ func (m *service) Listen() {
 	//s := grpc.NewServer()
 	defer m.grpcServer.Stop()
 
-	desc, err = m.etcdServer.Register(serviceobject.NewServerDesc(desc.MicroServer, desc.Port, desc.IP))
+	desc, err = m.etcdServer.Register(config.NewMicroServerConfig(desc.MicroServer, desc.Port, desc.IP))
 	if err != nil {
 		panic(err)
 	}

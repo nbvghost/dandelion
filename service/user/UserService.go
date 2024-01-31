@@ -174,6 +174,16 @@ func (service UserService) Leve6(Leve5IDs []uint) []uint {
 	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve5IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
+
+const (
+	UserInfoKeyBrokerageLeve1 model.UserInfoKey = "BrokerageLeve1"
+	UserInfoKeyBrokerageLeve2 model.UserInfoKey = "BrokerageLeve2"
+	UserInfoKeyBrokerageLeve3 model.UserInfoKey = "BrokerageLeve3"
+	UserInfoKeyBrokerageLeve4 model.UserInfoKey = "BrokerageLeve4"
+	UserInfoKeyBrokerageLeve5 model.UserInfoKey = "BrokerageLeve5"
+	UserInfoKeyBrokerageLeve6 model.UserInfoKey = "BrokerageLeve6"
+)
+
 func (service UserService) GetUserInfo(UserID dao.PrimaryKey) *UserInfoValue {
 	Orm := db.Orm()
 	//.First(&user, 10)
@@ -185,34 +195,34 @@ func (service UserService) GetUserInfo(UserID dao.PrimaryKey) *UserInfoValue {
 		m[v.Key] = v.Value
 		oldD[v.Key] = v.Value
 	}
-	return &UserInfoValue{userID: UserID, data: m, oldData: oldD}
+	return &UserInfoValue{UserID: UserID, SourceData: m, OldData: oldD}
 }
 
 type UserInfoValue struct {
-	userID  dao.PrimaryKey
-	data    map[model.UserInfoKey]string
-	oldData map[model.UserInfoKey]string
+	UserID     dao.PrimaryKey
+	SourceData map[model.UserInfoKey]string
+	OldData    map[model.UserInfoKey]string
 }
 
 func (m *UserInfoValue) Data() map[model.UserInfoKey]string {
-	return m.data
+	return m.SourceData
 }
 func (m *UserInfoValue) Update(db *gorm.DB) error {
 	change := make(map[model.UserInfoKey]string)
-	for key, s := range m.data {
-		if v, ok := m.oldData[key]; ok {
+	for key, s := range m.SourceData {
+		if v, ok := m.OldData[key]; ok {
 			if strings.EqualFold(v, s) {
 				continue
 			}
 		}
-		change[key] = m.data[key]
+		change[key] = m.SourceData[key]
 	}
 	if len(change) > 0 {
 		for key, s := range change {
-			has := dao.GetBy(db, &model.UserInfo{}, map[string]any{"UserID": m.userID, "Key": key})
+			has := dao.GetBy(db, &model.UserInfo{}, map[string]any{"UserID": m.UserID, "Key": key})
 			if has.IsZero() {
 				err := dao.Create(db, &model.UserInfo{
-					UserID: m.userID,
+					UserID: m.UserID,
 					Key:    key,
 					Value:  s,
 				})
@@ -220,7 +230,7 @@ func (m *UserInfoValue) Update(db *gorm.DB) error {
 					return err
 				}
 			} else {
-				err := dao.UpdateBy(db, &model.UserInfo{}, map[string]any{"Value": s}, map[string]any{"UserID": m.userID, "Key": key})
+				err := dao.UpdateBy(db, &model.UserInfo{}, map[string]any{"Value": s}, map[string]any{"UserID": m.UserID, "Key": key})
 				if err != nil {
 					return err
 				}
@@ -230,44 +240,63 @@ func (m *UserInfoValue) Update(db *gorm.DB) error {
 	return nil
 }
 func (m *UserInfoValue) GetDaySignTime() time.Time {
-	if v, ok := m.data[model.UserInfoKeyDaySignTime]; ok {
+	if v, ok := m.SourceData[model.UserInfoKeyDaySignTime]; ok {
 		t, _ := time.Parse(time.RFC3339, v)
 		return t
 	}
 	return time.Time{}
 }
 func (m *UserInfoValue) SetDaySignTime(v time.Time) {
-	m.data[model.UserInfoKeyDaySignTime] = v.Format(time.RFC3339)
+	m.SourceData[model.UserInfoKeyDaySignTime] = v.Format(time.RFC3339)
 }
 
 func (m *UserInfoValue) GetDaySignCount() int {
-	return object.ParseInt(m.data[model.UserInfoKeyDaySignCount])
+	return object.ParseInt(m.SourceData[model.UserInfoKeyDaySignCount])
+}
+func (m *UserInfoValue) GetBrokerageLeve() configuration.Brokerage {
+	return configuration.Brokerage{
+		Leve1: object.ParseFloat(m.SourceData[UserInfoKeyBrokerageLeve1]),
+		Leve2: object.ParseFloat(m.SourceData[UserInfoKeyBrokerageLeve2]),
+		Leve3: object.ParseFloat(m.SourceData[UserInfoKeyBrokerageLeve3]),
+		Leve4: object.ParseFloat(m.SourceData[UserInfoKeyBrokerageLeve4]),
+		Leve5: object.ParseFloat(m.SourceData[UserInfoKeyBrokerageLeve5]),
+		Leve6: object.ParseFloat(m.SourceData[UserInfoKeyBrokerageLeve6]),
+	}
 }
 
 func (m *UserInfoValue) GetLastIP() string {
-	return object.ParseString(m.data[model.UserInfoKeyLastIP])
+	return object.ParseString(m.SourceData[model.UserInfoKeyLastIP])
 }
 func (m *UserInfoValue) GetAllowAssistance() bool {
-	return object.ParseBool(m.data[model.UserInfoKeyAllowAssistance])
+	return object.ParseBool(m.SourceData[model.UserInfoKeyAllowAssistance])
 }
 func (m *UserInfoValue) GetSubscribe() bool {
-	return object.ParseBool(m.data[model.UserInfoKeySubscribe])
+	return object.ParseBool(m.SourceData[model.UserInfoKeySubscribe])
 }
 func (m *UserInfoValue) GetAgent() bool {
-	return object.ParseBool(m.data[model.UserInfoKeyAgent])
+	return object.ParseBool(m.SourceData[model.UserInfoKeyAgent])
 }
 
 func (m *UserInfoValue) SetDaySignCount(v int) {
-	m.data[model.UserInfoKeyDaySignCount] = object.ParseString(v)
+	m.SourceData[model.UserInfoKeyDaySignCount] = object.ParseString(v)
 }
 func (m *UserInfoValue) SetLastIP(v string) {
-	m.data[model.UserInfoKeyLastIP] = v
+	m.SourceData[model.UserInfoKeyLastIP] = v
 }
 func (m *UserInfoValue) SetAllowAssistance(v bool) {
-	m.data[model.UserInfoKeyAllowAssistance] = object.ParseString(v)
+	m.SourceData[model.UserInfoKeyAllowAssistance] = object.ParseString(v)
 }
 func (m *UserInfoValue) SetSubscribe(v bool) {
-	m.data[model.UserInfoKeySubscribe] = object.ParseString(v)
+	m.SourceData[model.UserInfoKeySubscribe] = object.ParseString(v)
+}
+
+func (m *UserInfoValue) SetBrokerageLeve(v configuration.Brokerage) {
+	m.SourceData[UserInfoKeyBrokerageLeve1] = object.ParseString(v.Leve1)
+	m.SourceData[UserInfoKeyBrokerageLeve2] = object.ParseString(v.Leve2)
+	m.SourceData[UserInfoKeyBrokerageLeve3] = object.ParseString(v.Leve3)
+	m.SourceData[UserInfoKeyBrokerageLeve4] = object.ParseString(v.Leve4)
+	m.SourceData[UserInfoKeyBrokerageLeve5] = object.ParseString(v.Leve5)
+	m.SourceData[UserInfoKeyBrokerageLeve6] = object.ParseString(v.Leve6)
 }
 
 type UserInfoKeyStateType string
@@ -278,13 +307,13 @@ const (
 )
 
 func (m *UserInfoValue) SetState(v UserInfoKeyStateType) {
-	m.data[model.UserInfoKeyState] = string(v)
+	m.SourceData[model.UserInfoKeyState] = string(v)
 }
 func (m *UserInfoValue) SetAgent(v bool) {
-	m.data[model.UserInfoKeyAgent] = strconv.FormatBool(v)
+	m.SourceData[model.UserInfoKeyAgent] = strconv.FormatBool(v)
 }
 func (m *UserInfoValue) GetState() UserInfoKeyStateType {
-	return UserInfoKeyStateType(m.data[model.UserInfoKeyState])
+	return UserInfoKeyStateType(m.SourceData[model.UserInfoKeyState])
 }
 
 func (service UserService) UserAction(context constrain.IContext) (r constrain.IResult, err error) {
