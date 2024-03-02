@@ -49,7 +49,10 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 
 	if err == nil {
 		tx := db.Orm().Begin()
-		newUser := g.UserService.AddUserByOpenID(tx, g.Organization.ID, OpenID)
+		newUser, err := g.UserService.AddUserByOpenID(tx, g.Organization.ID, OpenID)
+		if err != nil {
+			return nil, err
+		}
 		newUser.OpenID = OpenID
 		//newUser.Name = userInfo["nickName"].(string)
 		//newUser.Portrait = userInfo["avatarUrl"].(string)

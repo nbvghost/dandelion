@@ -214,6 +214,19 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 		//return nil, fmt.Errorf("存在相同的DNS信息,Domain=%s,Type=%s", domain, model.DNSTypeA)
 	}
 
+	err = dao.Create(tx, &model.ExpressTemplate{
+		Entity:   dao.Entity{},
+		OID:      shop.ID,
+		Name:     "默认",
+		Drawee:   "BUSINESS",
+		Type:     "ITEM",
+		Template: `{"Default":{"Areas":[],"N":0,"M":0,"AN":0,"ANM":0},"Items":[]}`,
+		Free:     "[]",
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	var config *model.Configuration
 
 	config = dao.GetBy(tx, &model.Configuration{}, map[string]any{"K": model.ConfigurationKeyBrokerageLeve1, "OID": shop.ID}).(*model.Configuration)

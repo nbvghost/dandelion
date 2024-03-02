@@ -15,7 +15,7 @@ func (service ContentService) FindAllContentSubType(OID dao.PrimaryKey) []model.
 func (service ContentService) FindContentSubTypesByContentItemIDs(ContentItemIDs []uint) []model.ContentSubType {
 	Orm := db.Orm()
 	var menus []model.ContentSubType
-	Orm.Model(model.ContentSubType{}).Where("ContentItemID in (?)", ContentItemIDs).Order("Sort asc").Find(&menus)
+	Orm.Model(model.ContentSubType{}).Where(`"ContentItemID" in (?)`, ContentItemIDs).Order(`"Sort" asc`).Find(&menus)
 	return menus
 }
 func (service ContentService) FindContentSubTypesByContentItemID(ContentItemID uint) []model.ContentSubType {
@@ -30,7 +30,7 @@ func (service ContentService) FindContentSubTypesByContentItemID(ContentItemID u
 func (service ContentService) FindContentSubTypesByParentContentSubTypeID(ParentContentSubTypeID dao.PrimaryKey) []model.ContentSubType {
 	Orm := db.Orm()
 	var menus []model.ContentSubType
-	Orm.Model(model.ContentSubType{}).Where("ParentContentSubTypeID=?", ParentContentSubTypeID).Order("Sort asc").Find(&menus)
+	Orm.Model(model.ContentSubType{}).Where(`"ParentContentSubTypeID"=?`, ParentContentSubTypeID).Order(`"Sort" asc`).Find(&menus)
 	return menus
 }
 func (service ContentService) FindContentSubTypesByContentItemIDAndParentContentSubTypeID(ContentItemID, ParentContentSubTypeID dao.PrimaryKey) []model.ContentSubType {
@@ -64,8 +64,7 @@ func (service ContentService) GetContentSubTypeByNameContentItemIDParentContentS
 	Orm := db.Orm()
 	var menus model.ContentSubType
 
-	Orm.Where("Name=?", Name).Where("ContentItemID=? and ParentContentSubTypeID=?", ContentItemID, ParentContentSubTypeID).First(&menus)
+	Orm.Where(map[string]any{"Name": Name, "ContentItemID": ContentItemID, "ParentContentSubTypeID": ParentContentSubTypeID}).First(&menus)
 
 	return menus
-
 }

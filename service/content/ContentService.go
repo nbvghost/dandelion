@@ -159,6 +159,7 @@ func (service ContentService) SaveContentSubType(OID dao.PrimaryKey, item *model
 	item.OID = OID
 
 	if item.IsZero() {
+		item.Sort = time.Now().Unix()
 		contentItem := service.GetContentItemByID(item.ContentItemID)
 		if contentItem.IsZero() {
 			return errors.Errorf("类型不存在:%d", item.ContentItemID)
@@ -791,6 +792,7 @@ func (service ContentService) SaveContent(OID dao.PrimaryKey, article *model.Con
 			"Title":            article.Title,
 			"Tags":             article.Tags,
 			"Uri":              article.Uri,
+			"Images":           article.Images,
 		})
 	}
 	return err

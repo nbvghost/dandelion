@@ -35,7 +35,7 @@ type ContentSubType struct {
 	Name                   string         `gorm:"column:Name"`
 	ContentItemID          dao.PrimaryKey `gorm:"column:ContentItemID"`
 	ParentContentSubTypeID dao.PrimaryKey `gorm:"column:ParentContentSubTypeID"`
-	Sort                   int            `gorm:"column:Sort"`
+	Sort                   int64          `gorm:"column:Sort"`
 }
 
 func (ContentSubType) TableName() string {
@@ -73,6 +73,7 @@ type Content struct {
 	Summary          string         `gorm:"column:Summary"`                       //
 	Content          string         `gorm:"column:Content"`                       //
 	Picture          string         `gorm:"column:Picture"`                       //
+	Images           pq.StringArray `gorm:"column:Images;type:text[]"`            //多图展示
 	ContentItemID    dao.PrimaryKey `gorm:"column:ContentItemID"`                 //
 	ContentSubTypeID dao.PrimaryKey `gorm:"column:ContentSubTypeID"`              //
 	FromUrl          string         `gorm:"column:FromUrl"`                       //
