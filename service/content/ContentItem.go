@@ -55,3 +55,20 @@ func (service ContentService) GetContentItemIDs(OID dao.PrimaryKey) []uint {
 	Orm.Model(&model.ContentItem{}).Where(map[string]interface{}{"OID": OID}).Pluck(`"ID"`, &levea)
 	return levea
 }
+func (service ContentService) FindContentItemByShowAtHome(OID dao.PrimaryKey) []*model.ContentItem {
+	Orm := db.Orm()
+	var levea []*model.ContentItem
+	Orm.Model(&model.ContentItem{}).Where(map[string]interface{}{"OID": OID, "ShowAtHome": true}).Order(`"Sort"`).Find(&levea)
+	return levea
+}
+func (service ContentService) FindContentItemByTypeTemplate(oid dao.PrimaryKey, contentType string, templateName string, pageIndex int) (int64, []*model.ContentItem) {
+	var list []*model.ContentItem
+	var total int64
+
+	d := db.Orm().Model(model.ContentItem{}).Order(`"Sort"`).
+		Where(`"OID"=? and "Type"=? and "TemplateName"=?`, oid, contentType, templateName)
+
+	d.Count(&total)
+	d.Offset(pageIndex * 20).Limit(20).Find(&list)
+	return total, list
+}

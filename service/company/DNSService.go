@@ -1,11 +1,9 @@
 package company
 
 import (
-	"github.com/nbvghost/dandelion/library/db"
-	"strings"
-
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 )
 
 type DNSService struct {
@@ -26,10 +24,8 @@ func (service DNSService) GetDefaultDNS(OID dao.PrimaryKey) *model.DNS {
 	Orm := db.Orm()
 	var list []model.DNS
 	Orm.Model(model.DNS{}).Where(`"OID"=? and "Type"=?`, OID, model.DNSTypeA).Find(&list)
-	for i := range list {
-		if strings.EqualFold(list[i].Domain, "default") {
-			return &list[i]
-		}
+	if len(list) > 0 {
+		return &list[0]
 	}
 	return &model.DNS{}
 }

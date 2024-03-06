@@ -170,7 +170,7 @@ func (m *service) Handle(context constrain.IContext, routeHandler any) error {
 						if err != nil {
 							return err
 						}
-						return nil
+						//return nil
 					}
 				}
 

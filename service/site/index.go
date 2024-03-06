@@ -43,13 +43,13 @@ func (service Service) menus(OID dao.PrimaryKey, hide uint) extends.MenusData {
 		}).Order(`"Sort"`).Find(&contentItemList)
 	case 1: //hide
 		Orm.Model(model.ContentItem{}).Where(map[string]interface{}{
-			"Hide": true,
-			"OID":  OID,
+			"ShowAtMenu": false,
+			"OID":        OID,
 		}).Order(`"Sort"`).Find(&contentItemList)
 	case 2: //show
 		Orm.Model(model.ContentItem{}).Where(map[string]interface{}{
-			"Hide": false,
-			"OID":  OID,
+			"ShowAtMenu": true,
+			"OID":        OID,
 		}).Order(`"Sort"`).Find(&contentItemList)
 	default:
 		Orm.Model(model.ContentItem{}).Where(map[string]interface{}{
@@ -95,6 +95,7 @@ func (service Service) menus(OID dao.PrimaryKey, hide uint) extends.MenusData {
 			Type:         contentItem.Type,
 			Introduction: contentItem.Introduction,
 			Image:        contentItem.Image,
+			Badge:        contentItem.Badge,
 			List:         nil,
 		}
 		if contentItem.Type == model.ContentTypeProducts {
@@ -109,6 +110,7 @@ func (service Service) menus(OID dao.PrimaryKey, hide uint) extends.MenusData {
 					Type:         contentItem.Type,
 					Introduction: contentItem.Introduction,
 					Image:        contentItem.Image,
+					Badge:        contentItem.Badge,
 					List:         nil,
 				}
 				for iii := 0; iii < len(goodsTypeChildList); iii++ {
@@ -289,14 +291,14 @@ func (service Service) GetContentTypeByUri(context constrain.IContext, OID dao.P
 	currentMenuData := module.NewMenusData(item, itemSub)
 
 	menusData := service.FindShowMenus(OID)
-	for _, v := range menusData.List {
+
+	allMenusData := service.FindAllMenus(OID)
+	for _, v := range allMenusData.List {
 		if v.ID == currentMenuData.TypeID {
 			currentMenuData.Menus = v
 			break
 		}
 	}
-
-	allMenusData := service.FindAllMenus(OID)
 
 	pageIndex, pageSize, total, list := service.ContentService.PaginationContent(OID, currentMenuData.TypeID, currentMenuData.SubTypeID, pageIndex, 20)
 
@@ -308,7 +310,7 @@ func (service Service) GetContentTypeByUri(context constrain.IContext, OID dao.P
 
 	var typeNameMap = make(map[dao.PrimaryKey]extends.Menus)
 
-	for index, v := range menusData.List {
+	for index, v := range allMenusData.List {
 		for sv := range v.List {
 			typeNameMap[v.List[sv].ID] = v.List[sv]
 			for ssv := range v.List[sv].List {
@@ -316,19 +318,19 @@ func (service Service) GetContentTypeByUri(context constrain.IContext, OID dao.P
 			}
 		}
 		if v.ID == currentMenuData.TypeID {
-			navigations = append(navigations, menusData.List[index])
+			navigations = append(navigations, allMenusData.List[index])
 			for si, sv := range v.List {
 				typeNameMap[sv.ID] = sv
 				if sv.ID == currentMenuData.SubTypeID {
-					navigations = append(navigations, menusData.List[index].List[si])
+					navigations = append(navigations, allMenusData.List[index].List[si])
 				} else {
 					for _, ssv := range sv.List {
 						typeNameMap[ssv.ID] = ssv
 					}
 					for ssi, ssv := range sv.List {
 						if ssv.ID == currentMenuData.SubTypeID {
-							navigations = append(navigations, menusData.List[index].List[si])
-							navigations = append(navigations, menusData.List[index].List[si].List[ssi])
+							navigations = append(navigations, allMenusData.List[index].List[si])
+							navigations = append(navigations, allMenusData.List[index].List[si].List[ssi])
 							break
 						}
 					}

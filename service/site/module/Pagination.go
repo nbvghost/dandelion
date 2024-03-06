@@ -8,7 +8,7 @@ type Paging struct {
 }
 
 type ListType interface {
-	~*model.Content | ~*model.FullTextSearch | ~*model.Goods
+	~*model.Content | ~*model.FullTextSearch | ~*model.Goods | ~*model.ContentItem
 }
 type Pagination[T ListType] struct {
 	PageIndex int

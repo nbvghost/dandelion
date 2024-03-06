@@ -35,6 +35,16 @@ type HtmlMeta struct {
 	//<meta property = "twitter:card" content = "summary_large_image" />
 	//<meta property = "twitter:image"    content = "https://res.cloudinary.com/fay/he%20world%20of%20mapping/blog-social-card-1.1"    />
 	//<meta property = "twitter:site" content = "@colbyfayock" />
+
+	//<meta property="og:title" content="Open Graph protocol">
+	//<meta property="og:type" content="website">
+	//<meta property="og:url" content="https://ogp.me/">
+	//<meta property="og:image" content="https://ogp.me/logo.png">
+	//<meta property="og:image:type" content="image/png">
+	//<meta property="og:image:width" content="300">
+	//<meta property="og:image:height" content="300">
+	//<meta property="og:image:alt" content="The Open Graph logo">
+	//<meta property="og:description" content="The Open Graph protocol enables any web page to become a rich object in a social graph.">
 }
 
 func (m *HtmlMeta) SetOGType(Type HtmlMetaOGType) *HtmlMeta {
@@ -79,7 +89,7 @@ func (m *HtmlMeta) setRequestURl(url string) *HtmlMeta {
 	m.Properties = append(m.Properties, property)
 	return m
 }
-func (m *HtmlMeta) SetBase(title string, siteName string, description string) *HtmlMeta {
+func (m *HtmlMeta) SetBase(title string, siteName string, keywords string, description string) *HtmlMeta {
 	property := map[string]interface{}{}
 	if len([]rune(description)) > 150 {
 		description = string([]rune(description)[0:150])
@@ -91,7 +101,15 @@ func (m *HtmlMeta) SetBase(title string, siteName string, description string) *H
 	property["twitter:card"] = "summary_large_image"
 	property["twitter:title"] = title + " | " + siteName
 	property["twitter:description"] = description
+
+	property["keywords"] = keywords
+	property["description"] = description
+
 	m.Properties = append(m.Properties, property)
+
+	//keywords    string `gorm:"column:Keywords"`    //
+	//description string `gorm:"column:Description"` //
+
 	return m
 }
 

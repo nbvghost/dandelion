@@ -40,6 +40,18 @@ func (service ContentService) HotLikeList(OID, ContentItemID dao.PrimaryKey, cou
 	db.Find(&result)
 	return result
 }
+func (service ContentService) SortList(OID, ContentItemID dao.PrimaryKey, sort string, sortMethod int, count uint) []model.Content {
+	Orm := db.Orm()
+	var result []model.Content
+	db := Orm.Model(&model.Content{}).Where(map[string]interface{}{"OID": OID}).Where(`"ContentItemID"=?`, ContentItemID)
+	if sortMethod >= 0 {
+		db = db.Order(fmt.Sprintf(`"%s" asc`, sort))
+	} else {
+		db = db.Order(fmt.Sprintf(`"%s" desc`, sort))
+	}
+	db.Limit(int(count)).Find(&result)
+	return result
+}
 
 func (service ContentService) FindContentByTag(OID dao.PrimaryKey, tag extends.Tag, _pageIndex int, orders ...extends.Order) (pageIndex, pageSize int, total int64, list []*model.Content, err error) {
 	//select * from "Content" where array_length("Tags",1) is null;
@@ -248,6 +260,7 @@ func (service ContentService) SaveContentItem(OID dao.PrimaryKey, item *model.Co
 			"Name":         item.Name,
 			"Uri":          item.Uri,
 			"Image":        item.Image,
+			"Badge":        item.Badge,
 			"Introduction": item.Introduction,
 		}).Error
 		if err != nil {
@@ -261,7 +274,7 @@ func (service ContentService) SaveContentItem(OID dao.PrimaryKey, item *model.Co
 
 	return &result.ActionResult{
 		Code:    result.Success,
-		Message: "添加成功",
+		Message: "保存成功",
 		Data:    nil,
 	}
 }
@@ -793,6 +806,10 @@ func (service ContentService) SaveContent(OID dao.PrimaryKey, article *model.Con
 			"Tags":             article.Tags,
 			"Uri":              article.Uri,
 			"Images":           article.Images,
+			"FieldGroupID":     article.FieldGroupID,
+			"FieldData":        article.FieldData,
+			"Keywords":         article.Keywords,
+			"Description":      article.Description,
 		})
 	}
 	return err
@@ -806,6 +823,19 @@ func (service ContentService) GalleryBlock(OID dao.PrimaryKey, num int) ([]model
 	}
 	contentList := service.FindContentByIDAndNum(contentItemIDList, num)
 	return contentItemList, contentList
+}
+
+func (service ContentService) FindContentByTypeTemplate(oid dao.PrimaryKey, contentType string, templateName string, pageIndex int) (int64, []*model.Content) {
+	var list []*model.Content
+	var total int64
+
+	d := db.Orm().Model(model.Content{}).Select(`"Content".*`).
+		Joins(`left join "ContentItem" on "Content"."ContentItemID"="ContentItem"."ID"`).Order(`"Content"."CreatedAt" desc`).
+		Where(`"Content"."OID"=? and "ContentItem"."Type"=? and "ContentItem"."TemplateName"=?`, oid, contentType, templateName)
+
+	d.Count(&total)
+	d.Offset(pageIndex * 20).Limit(20).Find(&list)
+	return total, list
 }
 
 /*func (service ContentService) FindByOIDLimit(oid dao.PrimaryKey, pageIndex int, pageSize int) (int, int, int, []*model.Content) {

@@ -13,6 +13,7 @@ type Menus struct {
 	Type         model.ContentTypeType
 	Introduction string //主类介绍
 	Image        string //主类图片
+	Badge        string //主类图片
 	List         []Menus
 }
 
@@ -25,6 +26,7 @@ func NewMenusByContentSubType(contentItem *model.ContentItem, contentSubType *mo
 		Type:         contentItem.Type,
 		Introduction: contentItem.Introduction,
 		Image:        contentItem.Image,
+		Badge:        contentItem.Badge,
 		List:         nil,
 	}
 }
@@ -37,6 +39,7 @@ func NewMenusByContentItem(contentItem *model.ContentItem) Menus {
 		Type:         contentItem.Type,
 		Introduction: contentItem.Introduction,
 		Image:        contentItem.Image,
+		Badge:        contentItem.Badge,
 		List:         nil,
 	}
 }
