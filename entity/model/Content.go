@@ -120,7 +120,7 @@ type ContentConfig struct {
 	EnableHTMLCache     bool                        `gorm:"column:EnableHTMLCache"`
 	EnableMultiLanguage bool                        `gorm:"column:EnableMultiLanguage"`
 	FocusPicture        sqltype.FocusPictureList    `gorm:"column:FocusPicture;type:JSON"`
-	TemplateConfig      string                      `gorm:"column:TemplateConfig;type:JSON"`
+	TemplateConfig      string                      `gorm:"column:TemplateConfig;type:JSON;default:'{}'"`
 }
 
 func (ContentConfig) TableName() string {
