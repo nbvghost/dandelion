@@ -271,6 +271,7 @@ func NewFuncMap() ITemplateFunc {
 	fm.funcMap["DigitMod"] = fm.digitMod
 	fm.funcMap["Map"] = fm.mapFunc
 	fm.funcMap["Index"] = fm.Index
+	fm.funcMap["Empty"] = fm.empty
 	return fm
 }
 func indirectInterface(v reflect.Value) reflect.Value {
@@ -306,6 +307,24 @@ func indexArg(index reflect.Value, cap int) (int, error) {
 		return 0, fmt.Errorf("index out of range: %d", x)
 	}
 	return int(x), nil
+}
+func (fo *templateFuncMap) empty(v any) bool {
+	if v == nil {
+		return true
+	}
+	item := reflect.ValueOf(v)
+	if item.IsZero() {
+		return true
+	}
+	if item.Kind() == reflect.Ptr {
+		if item.IsNil() {
+			return true
+		}
+	}
+	if !item.IsValid() {
+		return true
+	}
+	return false
 }
 func (fo *templateFuncMap) Index(item reflect.Value, index reflect.Value) (reflect.Value, error) {
 	index = indirectInterface(index)
