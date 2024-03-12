@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -162,6 +163,50 @@ func IsMobile(request *http.Request) bool {
 	} else {
 		return false
 	}
+}
+func GetIPLocation(ip string) (string, error) {
+	response, err := http.Get(fmt.Sprintf("https://opendata.baidu.com/api.php?query=%s&co=&resource_id=6006&oe=utf8", ip))
+	if err != nil {
+		return "", err
+	}
+	type IpInfo struct {
+		Status       string `json:"status"`
+		T            string `json:"t"`
+		SetCacheTime string `json:"set_cache_time"`
+		Data         []struct {
+			ExtendedLocation string `json:"ExtendedLocation"`
+			OriginQuery      string `json:"OriginQuery"`
+			Appinfo          string `json:"appinfo"`
+			DispType         int    `json:"disp_type"`
+			Fetchkey         string `json:"fetchkey"`
+			Location         string `json:"location"`
+			Origip           string `json:"origip"`
+			Origipquery      string `json:"origipquery"`
+			Resourceid       string `json:"resourceid"`
+			RoleId           int    `json:"role_id"`
+			ShareImage       int    `json:"shareImage"`
+			ShowLikeShare    int    `json:"showLikeShare"`
+			Showlamp         string `json:"showlamp"`
+			Titlecont        string `json:"titlecont"`
+			Tplt             string `json:"tplt"`
+		} `json:"data"`
+	}
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return "", err
+	}
+	defer response.Body.Close()
+
+	var ipInfo = IpInfo{}
+	err = json.Unmarshal(body, &ipInfo)
+	if err != nil {
+		return "", err
+	}
+	if len(ipInfo.Data) == 0 {
+		return "", errors.New("没有找到ip的地理位置信息")
+	}
+	return ipInfo.Data[0].Location, nil
+
 }
 func GetIP(request *http.Request) string {
 	//fmt.Println(context.Request)
