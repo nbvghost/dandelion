@@ -6,10 +6,12 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/tool"
 	"html/template"
 	"io/fs"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -272,6 +274,8 @@ func NewFuncMap() ITemplateFunc {
 	fm.funcMap["Map"] = fm.mapFunc
 	fm.funcMap["Index"] = fm.Index
 	fm.funcMap["Empty"] = fm.empty
+	fm.funcMap["Random"] = fm.random
+	fm.funcMap["UUID"] = fm.uuid
 	return fm
 }
 func indirectInterface(v reflect.Value) reflect.Value {
@@ -307,6 +311,15 @@ func indexArg(index reflect.Value, cap int) (int, error) {
 		return 0, fmt.Errorf("index out of range: %d", x)
 	}
 	return int(x), nil
+}
+
+var r = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+func (fo *templateFuncMap) random() int64 {
+	return r.Int63n(time.Now().UnixNano())
+}
+func (fo *templateFuncMap) uuid() string {
+	return tool.UUID()
 }
 func (fo *templateFuncMap) empty(v any) bool {
 	if v == nil {
