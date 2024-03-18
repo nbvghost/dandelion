@@ -717,7 +717,7 @@ func (service ContentService) GetContentAndAddLook(ctx constrain.IContext, Artic
 func (service ContentService) HaveContentByTitle(ContentItemID, ContentSubTypeID uint, Title string) bool {
 	Orm := db.Orm()
 	_article := &model.Content{}
-	Orm.Where("ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeID).Where("Title=?", Title).First(_article)
+	Orm.Where(`"ContentItemID"=? and "ContentSubTypeID"=?`, ContentItemID, ContentSubTypeID).Where(`"Title"=?`, Title).First(_article)
 	if _article.ID == 0 {
 		return false
 	} else {
@@ -836,6 +836,11 @@ func (service ContentService) FindContentByTypeTemplate(oid dao.PrimaryKey, cont
 	d.Count(&total)
 	d.Offset(pageIndex * 20).Limit(20).Find(&list)
 	return total, list
+}
+func (service ContentService) FindContentByFieldGroupID(oid dao.PrimaryKey, fieldGroupID dao.PrimaryKey) []*model.Content {
+	var list []*model.Content
+	db.Orm().Model(model.Content{}).Where(`"OID"=? and "FieldGroupID"=?`, oid, fieldGroupID).Find(&list)
+	return list
 }
 
 /*func (service ContentService) FindByOIDLimit(oid dao.PrimaryKey, pageIndex int, pageSize int) (int, int, int, []*model.Content) {

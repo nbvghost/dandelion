@@ -27,8 +27,7 @@ type handlerContext struct {
 	syncCache *sync.Map
 }
 
-type ContextKey struct {
-}
+type ContextKey struct{}
 type ContextValue struct {
 	Mapping    constrain.IMappingCallback
 	Timeout    uint64
