@@ -6,13 +6,12 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/viewmodel"
-	"github.com/nbvghost/dandelion/service/order"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type Add struct {
-	OrdersService order.OrdersService
-	User          *model.User                  `mapping:""`
-	Post          viewmodel.GoodsSpecification `method:"post"`
+	User *model.User                  `mapping:""`
+	Post viewmodel.GoodsSpecification `method:"post"`
 }
 
 func (m *Add) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
@@ -27,7 +26,7 @@ func (m *Add) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	//SpecificationID := object.ParseUint(context.Request.FormValue("SpecificationID"))
 	//Quantity := object.ParseUint(context.Request.FormValue("Quantity"))
 
-	err := m.OrdersService.AddCartOrders(m.User.ID, dao.PrimaryKey(m.Post.GoodsID), dao.PrimaryKey(m.Post.SpecificationID), uint(m.Post.Quantity))
+	err := service.Order.Orders.AddCartOrders(m.User.ID, dao.PrimaryKey(m.Post.GoodsID), dao.PrimaryKey(m.Post.SpecificationID), uint(m.Post.Quantity))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "已添加到购物车", nil)}, nil
 }
 

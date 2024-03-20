@@ -9,8 +9,7 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal/network"
-	"github.com/nbvghost/dandelion/service/configuration"
-	"github.com/nbvghost/dandelion/service/order"
+	"github.com/nbvghost/dandelion/service"
 	"regexp"
 	"strconv"
 	"strings"
@@ -19,10 +18,8 @@ import (
 var nameReg = regexp.MustCompile(`\s+`)
 
 type CheckoutOrders struct {
-	ConfigurationService configuration.ConfigurationService
-	OrdersService        order.OrdersService
-	User                 *model.User `mapping:""`
-	Post                 struct {
+	User *model.User `mapping:""`
+	Post struct {
 		OrderNo               string
 		AddressID             dao.PrimaryKey
 		AdditionalInformation string
@@ -34,7 +31,7 @@ func (m *CheckoutOrders) Handle(ctx constrain.IContext) (constrain.IResult, erro
 	panic("implement me")
 }
 func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
-	orders := m.OrdersService.GetOrdersByOrderNo(m.Post.OrderNo)
+	orders := service.Order.Orders.GetOrdersByOrderNo(m.Post.OrderNo)
 	if orders.ID == 0 {
 		return nil, errors.New("no order found")
 	}
@@ -64,7 +61,7 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 	shippingAddress := &network.Address{}
 	shippingAddress.SetAddress(address)
 
-	confirmOrdersGoods, err := m.OrdersService.AnalyseOrdersGoodsListByOrders(&orders, address)
+	confirmOrdersGoods, err := service.Order.Orders.AnalyseOrdersGoodsListByOrders(&orders, address)
 	if err != nil {
 		return nil, err
 	}

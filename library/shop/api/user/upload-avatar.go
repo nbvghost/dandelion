@@ -8,15 +8,13 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/user"
 	"github.com/pkg/errors"
 	"io"
 	"mime/multipart"
 )
 
 type UploadAvatar struct {
-	UserService user.UserService
-	Post        struct {
+	Post struct {
 		File *multipart.FileHeader `form:"file"`
 		//UserID dao.PrimaryKey        `form:"uid"`
 	} `method:"Post"`

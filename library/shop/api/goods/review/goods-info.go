@@ -6,11 +6,9 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/activity"
 )
 
 type GoodsInfo struct {
-	CardItemService activity.CardItemService
 	User            *model.User `mapping:""`
 	Get             struct {
 		GoodsID  dao.PrimaryKey `form:"goods-id"`

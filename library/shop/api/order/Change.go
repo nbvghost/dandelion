@@ -5,14 +5,13 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/order"
+	"github.com/nbvghost/dandelion/service"
 	"github.com/pkg/errors"
 )
 
 type Change struct {
-	OrdersService order.OrdersService
-	WechatConfig  *model.WechatConfig `mapping:""`
-	Put           struct {
+	WechatConfig *model.WechatConfig `mapping:""`
+	Put          struct {
 		Action   string         `form:"Action"`
 		OrdersID dao.PrimaryKey `form:"OrdersID"`
 		ID       dao.PrimaryKey `form:"ID"`
@@ -33,7 +32,7 @@ func (m *Change) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
 		//OrdersGoodsID := object.ParseUint(context.Request.FormValue("OrdersGoodsID"))
 		//ShipName := context.Request.FormValue("ShipName")
 		//ShipNo := context.Request.FormValue("ShipNo")
-		err, info := m.OrdersService.RefundShip(dao.PrimaryKey(m.Put.OrdersID), m.Put.ShipKey, m.Put.ShipName, m.Put.ShipNo)
+		err, info := service.Order.Orders.RefundShip(dao.PrimaryKey(m.Put.OrdersID), m.Put.ShipKey, m.Put.ShipName, m.Put.ShipNo)
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, nil
 	case "AskRefund":
 		//OrdersGoodsID, _ := strconv.ParseUint(context.Request.FormValue("OrdersGoodsID"), 10, 64)
@@ -41,17 +40,17 @@ func (m *Change) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
 		//RefundInfoJson := context.Request.FormValue("RefundInfo")
 		//var refundInfo sqltype.RefundInfo //{"HasGoods":true,"Reason":"dsfdsfds fdsfad"}
 		//util.JSONToStruct(m.Put.RefundInfo, &refundInfo)
-		err, info := m.OrdersService.AskRefund(dao.PrimaryKey(m.Put.OrdersID), m.Put.HasGoods, m.Put.Reason)
+		err, info := service.Order.Orders.AskRefund(dao.PrimaryKey(m.Put.OrdersID), m.Put.HasGoods, m.Put.Reason)
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, err
 	case "TakeDeliver":
 		//ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
 		//ID := object.ParseUint(context.Request.FormValue("ID"))
-		err := m.OrdersService.TakeDeliver(dao.PrimaryKey(m.Put.ID))
+		err := service.Order.Orders.TakeDeliver(dao.PrimaryKey(m.Put.ID))
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "确认收货成功", nil)}, err
 	case "Cancel":
 		//ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
 		//ID := object.ParseUint(context.Request.FormValue("ID"))
-		info, err := m.OrdersService.Cancel(ctx, dao.PrimaryKey(m.Put.ID), m.WechatConfig)
+		info, err := service.Order.Orders.Cancel(ctx, dao.PrimaryKey(m.Put.ID), m.WechatConfig)
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, err
 
 	}

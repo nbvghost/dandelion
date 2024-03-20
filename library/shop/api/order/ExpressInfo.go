@@ -4,12 +4,11 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/express"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type ExpressInfo struct {
-	ExpressTemplateService express.ExpressTemplateService
-	Post                   struct {
+	Post struct {
 		OrdersID dao.PrimaryKey `form:"OrdersID"`
 	} `method:"post"`
 }
@@ -23,7 +22,7 @@ func (m *ExpressInfo) HandlePut(ctx constrain.IContext) (constrain.IResult, erro
 	//LogisticCode := context.Request.FormValue("LogisticCode")
 	//ShipperName := context.Request.FormValue("ShipperName")
 	//LogisticCode, ShipperName
-	Result, err := m.ExpressTemplateService.GetExpressInfo(ctx, m.Post.OrdersID)
+	Result, err := service.Express.ExpressTemplate.GetExpressInfo(ctx, m.Post.OrdersID)
 
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: Result}}, err
 }

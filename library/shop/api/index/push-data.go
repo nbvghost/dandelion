@@ -10,11 +10,9 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/goods"
 )
 
 type PushData struct {
-	GoodsService goods.GoodsService
 	Organization *model.Organization `mapping:""`
 	Post         any                 `method:"post"`
 }

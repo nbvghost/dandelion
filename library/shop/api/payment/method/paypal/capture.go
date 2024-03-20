@@ -8,18 +8,14 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal/network"
-	"github.com/nbvghost/dandelion/service/configuration"
-	"github.com/nbvghost/dandelion/service/order"
+	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/tool/object"
 	"time"
 )
 
 type Capture struct {
-	ConfigurationService configuration.ConfigurationService
-	ShoppingCartService  order.ShoppingCartService
-	OrdersService        order.OrdersService
-	User                 *model.User `mapping:""`
-	Post                 struct {
+	User *model.User `mapping:""`
+	Post struct {
 		PaypalOrderID string `uri:"PaypalOrderID"`
 	} `method:"post"`
 }
@@ -35,7 +31,7 @@ func (m *Capture) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 	if len(capture.PurchaseUnits) == 0 {
 		return nil, errors.New("payment failed,invalid order")
 	}
-	mOrder := m.OrdersService.GetOrdersByOrderNo(capture.PurchaseUnits[0].ReferenceId)
+	mOrder := service.Order.Orders.GetOrdersByOrderNo(capture.PurchaseUnits[0].ReferenceId)
 	if mOrder.IsZero() {
 		return nil, errors.New("unable to confirm order, confirmation order failed")
 	}

@@ -9,18 +9,15 @@ import (
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/library/viewmodel"
-	"github.com/nbvghost/dandelion/service/activity"
-	"github.com/nbvghost/dandelion/service/order"
+	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/tool"
 	"github.com/pkg/errors"
 	"strings"
 )
 
 type CreateOrders struct {
-	OrdersService  order.OrdersService
-	CollageService activity.CollageService
-	User           *model.User `mapping:""`
-	Post           struct {
+	User *model.User `mapping:""`
+	Post struct {
 		TotalAmount uint //总金额,跟订单进行匹对
 		//PostType   int
 		Address   *model.Address
@@ -34,7 +31,7 @@ type CreateOrders struct {
 func (m *CreateOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	list := make([]*extends.OrdersGoods, 0)
 	for _, goodsSpecification := range m.Post.List {
-		goods, err := m.OrdersService.CreateOrdersGoods(ctx, m.User.ID, goodsSpecification.GoodsID, goodsSpecification.SpecificationID, goodsSpecification.Quantity)
+		goods, err := service.Order.Orders.CreateOrdersGoods(ctx, m.User.ID, goodsSpecification.GoodsID, goodsSpecification.SpecificationID, goodsSpecification.Quantity)
 		if err != nil {
 			return nil, err
 		}
@@ -55,7 +52,7 @@ func (m *CreateOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 		}
 	}
 
-	confirmOrdersGoods, err := m.OrdersService.AnalyseOrdersGoodsList(m.User.OID, address, list)
+	confirmOrdersGoods, err := service.Order.Orders.AnalyseOrdersGoodsList(m.User.OID, address, list)
 	//如果 organizationOrders 存在着多个商家的订单，无法进入合拼支付，只能分开支付
 	/*if len(organizationOrders) == 0 {
 		return nil, errors.New("找不到订单")
@@ -107,7 +104,7 @@ func (m *CreateOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 		orders.GoodsMoney = uint(GoodsPrice)
 		orders.ExpressMoney = uint(ExpressPrice)
 
-		err := m.OrdersService.AddOrders(tx, &orders, oggs)
+		err := service.Order.Orders.AddOrders(tx, &orders, oggs)
 		if err != nil {
 			tx.Rollback()
 			return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", nil)}, nil

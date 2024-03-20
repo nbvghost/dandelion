@@ -5,13 +5,11 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/user"
 )
 
 type Review struct {
-	UserService user.UserService
-	User        *model.User `mapping:""`
-	Get         struct {
+	User *model.User `mapping:""`
+	Get  struct {
 		Index    int `form:"index"`
 		PageSize int `form:"page-size"`
 	} `method:"get"`

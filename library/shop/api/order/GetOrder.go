@@ -7,12 +7,11 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/order"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type GetOrder struct {
-	OrdersService order.OrdersService
-	Get           struct {
+	Get struct {
 		ID dao.PrimaryKey `uri:"ID"`
 	} `method:"get"`
 }
@@ -23,14 +22,14 @@ func (m *GetOrder) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 		OrdersGoodsList []*extends.OrdersGoods
 		CollageUsers    []model.User
 	}{}
-	pack.Orders = m.OrdersService.GetOrdersByID(m.Get.ID)
+	pack.Orders = service.Order.Orders.GetOrdersByID(m.Get.ID)
 
-	ordersGoodsList, err := m.OrdersService.FindOrdersGoodsByOrdersID(db.Orm(), pack.Orders.ID)
+	ordersGoodsList, err := service.Order.Orders.FindOrdersGoodsByOrdersID(db.Orm(), pack.Orders.ID)
 	if err != nil {
 		return nil, err
 	}
 	for i := 0; i < len(ordersGoodsList); i++ {
-		goods, err := m.OrdersService.ConvertOrdersGoods(ordersGoodsList[i].(*model.OrdersGoods))
+		goods, err := service.Order.Orders.ConvertOrdersGoods(ordersGoodsList[i].(*model.OrdersGoods))
 		if err != nil {
 			return nil, err
 		}

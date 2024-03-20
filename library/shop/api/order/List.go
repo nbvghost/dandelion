@@ -5,14 +5,14 @@ import (
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/order"
+	"github.com/nbvghost/dandelion/service"
+	"github.com/nbvghost/dandelion/service/mode"
 	"strings"
 )
 
 type List struct {
-	OrdersService order.OrdersService
-	User          *model.User `mapping:""`
-	Get           struct {
+	User *model.User `mapping:""`
+	Get  struct {
 		Status   string `form:"status"`
 		Index    int    `form:"index"`
 		PageSize int    `form:"page-size"`
@@ -28,12 +28,12 @@ func (m *List) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 		}
 	}
 
-	params := &order.ListOrdersQueryParam{
+	params := &mode.ListOrdersQueryParam{
 		UserID: m.User.ID,
 		Status: StatusList,
 	}
 
-	list, err := m.OrdersService.ListOrders(params, m.User.OID, (&extends.Order{}).OrderByColumn(`"CreatedAt"`, true), m.Get.Index+1, m.Get.PageSize)
+	list, err := service.Order.Orders.ListOrders(params, m.User.OID, (&extends.Order{}).OrderByColumn(`"CreatedAt"`, true), m.Get.Index+1, m.Get.PageSize)
 	if err != nil {
 		return nil, err
 	}

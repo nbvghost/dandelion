@@ -6,12 +6,11 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/content"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type Related struct {
-	ContentService content.ContentService
-	Get            struct {
+	Get struct {
 		Offset           int            `form:"Offset"`
 		ContentItemID    dao.PrimaryKey `form:"ContentItemID"`
 		ContentSubTypeID dao.PrimaryKey `form:"ContentSubTypeID"`
@@ -30,7 +29,6 @@ func (g *Related) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
 	//var articles []entity.Content
 	//controller.Content.FindOrderWhereLength(entity.Orm(),"Look desc",&articles,)
-	pagin := g.ContentService.FindSelectWherePaging(db.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "CreatedAt desc", model.Content{}, g.Get.Offset, "ContentItemID=? and ContentSubTypeID=?", g.Get.ContentItemID, g.Get.ContentSubTypeID)
+	pagin := service.Content.FindSelectWherePaging(db.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "CreatedAt desc", model.Content{}, g.Get.Offset, "ContentItemID=? and ContentSubTypeID=?", g.Get.ContentItemID, g.Get.ContentSubTypeID)
 	return &result.JsonResult{Data: &pagin}, nil
-
 }

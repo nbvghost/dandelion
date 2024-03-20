@@ -7,12 +7,10 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/wechat"
 )
 
 type DeliveryList struct {
-	WxService wechat.WxService
-	Post      struct {
+	Post struct {
 		Name string
 	} `method:"post"`
 }

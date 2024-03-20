@@ -6,16 +6,15 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/user"
+	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/tool/encryption"
 	"github.com/pkg/errors"
 	"strings"
 )
 
 type User struct {
-	UserService user.UserService
-	User        *model.User `mapping:""`
-	Get         struct {
+	User *model.User `mapping:""`
+	Get  struct {
 	} `method:"Get"`
 	Put struct {
 		Email           string
@@ -65,7 +64,7 @@ func (m *User) HandlePut(context constrain.IContext) (r constrain.IResult, err e
 		return nil, err
 	}
 
-	userInfo := m.UserService.GetUserInfo(context.UID())
+	userInfo := service.User.GetUserInfo(context.UID())
 	userInfo.SetAllowAssistance(m.Put.AllowAssistance)
 	err = userInfo.Update(tx)
 	if err != nil {

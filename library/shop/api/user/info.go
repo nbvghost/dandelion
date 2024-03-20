@@ -5,19 +5,11 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/activity"
-	"github.com/nbvghost/dandelion/service/company"
-	"github.com/nbvghost/dandelion/service/order"
-	"github.com/nbvghost/dandelion/service/user"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type Info struct {
-	UserService     user.UserService
-	StoreService    company.StoreService
-	RankService     activity.RankService
-	OrdersService   order.OrdersService
-	CardItemService activity.CardItemService
-	User            *model.User `mapping:""`
+	User *model.User `mapping:""`
 
 	Get struct {
 	} `method:"Get"`
@@ -31,10 +23,9 @@ type Info struct {
 
 func (m *Info) Handle(context constrain.IContext) (r constrain.IResult, err error) {
 
-	store := m.StoreService.GetByPhone(m.User.Phone)
-
-	leve1UserIDs := m.UserService.Leve1(m.User.ID)
-	leve2UserIDs := m.UserService.Leve2(leve1UserIDs)
+	store := service.Company.Store.GetByPhone(m.User.Phone)
+	leve1UserIDs := service.User.Leve1(m.User.ID)
+	leve2UserIDs := service.User.Leve2(leve1UserIDs)
 
 	results := make(map[string]interface{})
 	results["Store"] = store
@@ -42,7 +33,7 @@ func (m *Info) Handle(context constrain.IContext) (r constrain.IResult, err erro
 	results["Leve1Count"] = len(leve1UserIDs)
 	results["Leve2Count"] = len(leve2UserIDs)
 
-	ranks := m.RankService.FindDESC()
+	ranks := service.Activity.Rank.FindDESC()
 	for i, v := range ranks {
 
 		if m.User.Growth >= v.GrowMaxValue {
@@ -76,11 +67,11 @@ func (m *Info) Handle(context constrain.IContext) (r constrain.IResult, err erro
 
 	}
 
-	ACount := m.OrdersService.ListOrdersStatusCount(m.User.ID, []string{"Order"})
-	BCount := m.OrdersService.ListOrdersStatusCount(m.User.ID, []string{"Pay"})
-	CCount := m.OrdersService.ListOrdersStatusCount(m.User.ID, []string{"Deliver"})
-	DCount := m.OrdersService.ListOrdersStatusCount(m.User.ID, []string{"OrderOk"})
-	ECount := m.CardItemService.ListNewCount(m.User.ID)
+	ACount := service.Order.Orders.ListOrdersStatusCount(m.User.ID, []string{"Order"})
+	BCount := service.Order.Orders.ListOrdersStatusCount(m.User.ID, []string{"Pay"})
+	CCount := service.Order.Orders.ListOrdersStatusCount(m.User.ID, []string{"Deliver"})
+	DCount := service.Order.Orders.ListOrdersStatusCount(m.User.ID, []string{"OrderOk"})
+	ECount := service.Activity.CardItem.ListNewCount(m.User.ID)
 
 	results["ACount"] = ACount
 	results["BCount"] = BCount
@@ -95,7 +86,7 @@ func (m *Info) Handle(context constrain.IContext) (r constrain.IResult, err erro
 }
 
 func (m *Info) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
-	userInfo := m.UserService.GetUserInfo(context.UID())
+	userInfo := service.User.GetUserInfo(context.UID())
 	if m.Put.ChangeAllowAssistance {
 		userInfo.SetAllowAssistance(m.Put.AllowAssistance)
 		//changeMap["AllowAssistance"] = m.Put.AllowAssistance

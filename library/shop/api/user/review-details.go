@@ -6,13 +6,11 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/user"
 )
 
 type ReviewDetails struct {
-	UserService user.UserService
-	User        *model.User `mapping:""`
-	Get         struct {
+	User *model.User `mapping:""`
+	Get  struct {
 		ID dao.PrimaryKey `form:"id"`
 	} `method:"get"`
 }

@@ -5,24 +5,20 @@ import (
 	"encoding/json"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
+	"github.com/nbvghost/dandelion/service"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/service/user"
-	"github.com/nbvghost/dandelion/service/wechat"
 	"github.com/pkg/errors"
 )
 
 type GetLoginUserPhone struct {
-	UserService           user.UserService
-	WxService             wechat.WxService
-	WXQRCodeParamsService wechat.WXQRCodeParamsService
-	User                  *model.User         `mapping:""`
-	WechatConfig          *model.WechatConfig `mapping:""`
-	Post                  struct {
+	User         *model.User         `mapping:""`
+	WechatConfig *model.WechatConfig `mapping:""`
+	Post         struct {
 		iv            string
 		encryptedData string
 		Code          string
@@ -33,7 +29,7 @@ func (g *GetLoginUserPhone) Handle(ctx constrain.IContext) (constrain.IResult, e
 	return nil, nil
 }
 func (g *GetLoginUserPhone) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
-	accessToken := g.WxService.GetAccessToken(g.WechatConfig)
+	accessToken := service.Wechat.Wx.GetAccessToken(g.WechatConfig)
 
 	body, err := json.Marshal(map[string]any{"code": g.Post.Code})
 	if err != nil {

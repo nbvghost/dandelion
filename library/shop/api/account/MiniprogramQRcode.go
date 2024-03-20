@@ -8,17 +8,13 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
-	"github.com/nbvghost/dandelion/service/file"
-	"github.com/nbvghost/dandelion/service/wechat"
+	"github.com/nbvghost/dandelion/service"
 	"io/ioutil"
 	"net/http"
 	"strings"
 )
 
 type MiniprogramQRcode struct {
-	WXQRCodeParamsService wechat.WXQRCodeParamsService
-	WxService             wechat.WxService
-	FileService           file.FileService
 	//WechatConfig          *model.WechatConfig `mapping:""`
 	Get struct {
 		Page      string         `form:"Page"`
@@ -35,7 +31,7 @@ func (g *MiniprogramQRcode) HandlePost(ctx constrain.IContext) (constrain.IResul
 func (g *MiniprogramQRcode) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
 	user := dao.GetByPrimaryKey(db.Orm(), entity.User, g.Get.UserID).(*model.User)
-	wechatConfig := g.WxService.MiniProgramByOID(db.Orm(), user.OID)
+	wechatConfig := service.Wechat.Wx.MiniProgramByOID(db.Orm(), user.OID)
 
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*entity.Organization)
@@ -46,15 +42,15 @@ func (g *MiniprogramQRcode) Handle(ctx constrain.IContext) (constrain.IResult, e
 	//Page := object.ParseUint(context.Request.URL.Query().Get("Page"))
 	//UserID := object.ParseUint(context.Request.URL.Query().Get("UserID"))
 
-	MyShareKey := g.WXQRCodeParamsService.EncodeShareKey(g.Get.UserID, 0)
+	MyShareKey := service.Wechat.WXQRCodeParams.EncodeShareKey(g.Get.UserID, 0)
 
 	//ProductID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ProductID"), 10, 64)
 	//ProductID := object.ParseUint(context.Request.URL.Query().Get("ProductID"))
 	if g.Get.ProductID != 0 {
-		MyShareKey = g.WXQRCodeParamsService.EncodeShareKey(g.Get.UserID, uint(g.Get.ProductID))
+		MyShareKey = service.Wechat.WXQRCodeParams.EncodeShareKey(g.Get.UserID, uint(g.Get.ProductID))
 	}
 
-	accessToken := g.WxService.GetAccessToken(wechatConfig)
+	accessToken := service.Wechat.Wx.GetAccessToken(wechatConfig)
 
 	postData := make(map[string]interface{})
 	//results := make(map[string]interface{})
@@ -80,7 +76,7 @@ func (g *MiniprogramQRcode) Handle(ctx constrain.IContext) (constrain.IResult, e
 	//fmt.Println(string(b))
 	defer resp.Body.Close()
 
-	path, err := g.FileService.WriteTempFile(b, "image/png")
+	path, err := service.File.File.WriteTempFile(b, "image/png")
 	if err != nil {
 		return nil, err
 	}

@@ -9,15 +9,12 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
-	"github.com/nbvghost/dandelion/service/activity"
-	"github.com/nbvghost/dandelion/service/order"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type InfoOrders struct {
-	OrdersService  order.OrdersService
-	CollageService activity.CollageService
-	User           *model.User `mapping:""`
-	Get            struct {
+	User *model.User `mapping:""`
+	Get  struct {
 		OrderNo string `form:"order-no"`
 	} `method:"get"`
 	Put struct {
@@ -27,12 +24,12 @@ type InfoOrders struct {
 }
 
 func (m *InfoOrders) Handle(ctx constrain.IContext) (constrain.IResult, error) {
-	orders := m.OrdersService.GetOrdersByOrderNo(m.Get.OrderNo)
+	orders := service.Order.Orders.GetOrdersByOrderNo(m.Get.OrderNo)
 	var address model.Address
 	if err := json.Unmarshal([]byte(orders.Address), &address); err != nil {
 		return nil, err
 	}
-	confirmOrdersGoods, err := m.OrdersService.AnalyseOrdersGoodsListByOrders(&orders, &address)
+	confirmOrdersGoods, err := service.Order.Orders.AnalyseOrdersGoodsListByOrders(&orders, &address)
 	return result.NewData(confirmOrdersGoods), err
 }
 func (m *InfoOrders) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
@@ -43,12 +40,12 @@ func (m *InfoOrders) HandlePut(ctx constrain.IContext) (constrain.IResult, error
 	if len(m.Put.OrderNo) == 0 {
 		return nil, errors.New("the parameter is invalid")
 	}
-	orders := m.OrdersService.GetOrdersByOrderNo(m.Put.OrderNo)
+	orders := service.Order.Orders.GetOrdersByOrderNo(m.Put.OrderNo)
 	if orders.ID == 0 {
 		return nil, errors.New("order data does not exist")
 	}
 
-	confirmOrdersGoods, err := m.OrdersService.AnalyseOrdersGoodsListByOrders(&orders, address)
+	confirmOrdersGoods, err := service.Order.Orders.AnalyseOrdersGoodsListByOrders(&orders, address)
 	if err != nil {
 		return nil, err
 	}

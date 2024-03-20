@@ -4,12 +4,11 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/journal"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type JournalList struct {
-	JournalService journal.JournalService
-	Store          *model.Store `mapping:""`
+	Store *model.Store `mapping:""`
 
 	Post struct {
 		StartDate string `form:"StartDate"`
@@ -21,7 +20,7 @@ func (m *JournalList) HandlePost(context constrain.IContext) (constrain.IResult,
 
 	//StoreID, _ := strconv.ParseUint(context.Request.FormValue("StoreID"), 10, 64)
 
-	list := m.JournalService.StoreListJournal(m.Store.ID, m.Post.StartDate, m.Post.EndDate)
+	list := service.Journal.StoreListJournal(m.Store.ID, m.Post.StartDate, m.Post.EndDate)
 
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: list}}, nil
 }

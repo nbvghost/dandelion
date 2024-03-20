@@ -6,8 +6,8 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/order"
-	"github.com/nbvghost/dandelion/service/wechat"
+	"github.com/nbvghost/dandelion/service"
+	"github.com/nbvghost/dandelion/service/mode"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/downloader"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/notify"
@@ -17,8 +17,6 @@ import (
 )
 
 type RefundNotify struct {
-	WxService     wechat.WxService
-	OrdersService order.OrdersService
 	Get           struct {
 		OID dao.PrimaryKey `uri:"OID"`
 	} `method:"Get"`
@@ -35,11 +33,11 @@ func (m *RefundNotify) HandlePost(context constrain.IContext) (r constrain.IResu
 }
 
 func (m *RefundNotify) handle(context constrain.IContext, OID dao.PrimaryKey) (r constrain.IResult, err error) {
-	wxConfig := m.WxService.MiniProgramByOID(db.Orm(), OID)
+	wxConfig := service.Wechat.Wx.MiniProgramByOID(db.Orm(), OID)
 
 	certificateVisitor := downloader.MgrInstance().GetCertificateVisitor(wxConfig.MchID)
 
-	content := new(order.RefundNotifyData)
+	content := new(mode.RefundNotifyData)
 
 	handler, err := notify.NewRSANotifyHandler(wxConfig.MchAPIv3Key, verifiers.NewSHA256WithRSAVerifier(certificateVisitor))
 	if err != nil {
@@ -58,7 +56,7 @@ func (m *RefundNotify) handle(context constrain.IContext, OID dao.PrimaryKey) (r
 	log.Println(content)
 
 	if strings.EqualFold(content.RefundStatus, "SUCCESS") || strings.EqualFold(content.RefundStatus, "CLOSED") {
-		orders := m.OrdersService.GetOrdersByOrderNo(content.OutTradeNo)
+		orders := service.Order.Orders.GetOrdersByOrderNo(content.OutTradeNo)
 		if orders.IsZero() {
 			return result.NewJsonResult(map[string]any{"code": "FAIL", "message": "订单不存在"}).WithStatusCode(http.StatusBadRequest), nil
 		}
@@ -68,7 +66,7 @@ func (m *RefundNotify) handle(context constrain.IContext, OID dao.PrimaryKey) (r
 			//ordersGoods = m.OrdersService.GetOrdersGoodsByOrdersGoodsNo(db.Orm(), content.OutTradeNo)
 		}
 
-		err = m.OrdersService.OrdersRefundSuccess(&orders)
+		err = service.Order.Orders.OrdersRefundSuccess(&orders)
 		if err != nil {
 			return result.NewJsonResult(map[string]any{"code": "FAIL", "message": err.Error()}).WithStatusCode(http.StatusBadRequest), nil
 		}

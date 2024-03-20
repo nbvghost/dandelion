@@ -3,6 +3,7 @@ package user
 import (
 	"fmt"
 	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/service"
 	"log"
 	"strconv"
 	"time"
@@ -10,20 +11,16 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/journal"
-	"github.com/nbvghost/dandelion/service/user"
 	"github.com/pkg/errors"
 )
 
 type DaySign struct {
-	UserService    user.UserService
-	JournalService journal.JournalService
-	User           *model.User `mapping:""`
+	User *model.User `mapping:""`
 }
 
 func (m *DaySign) Handle(context constrain.IContext) (r constrain.IResult, err error) {
 
-	userInfo := m.UserService.GetUserInfo(m.User.ID)
+	userInfo := service.User.GetUserInfo(m.User.ID)
 
 	now := userInfo.GetDaySignTime()
 	today := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 0, now.Location())
@@ -74,7 +71,7 @@ func (m *DaySign) Handle(context constrain.IContext) (r constrain.IResult, err e
 
 		}
 		//err := m.JournalService.AddScoreJournal(db.Orm(), m.User.ID, "签到送积分", userInfo.DaySignTime.String()+"/"+strconv.Itoa(int(score))+"/"+strconv.Itoa(userInfo.DaySignCount), play.ScoreJournal_Type_DaySign, int64(score), extends.KV{Key: "UserInfoID", Value: userInfo.ID})
-		err := m.JournalService.AddScoreJournal(db.Orm(), m.User.ID, "签到送积分", userInfo.GetDaySignTime().String()+"/"+strconv.Itoa(int(score))+"/"+strconv.Itoa(userInfo.GetDaySignCount()), model.ScoreJournal_Type_DaySign, int64(score))
+		err := service.Journal.AddScoreJournal(db.Orm(), m.User.ID, "签到送积分", userInfo.GetDaySignTime().String()+"/"+strconv.Itoa(int(score))+"/"+strconv.Itoa(userInfo.GetDaySignCount()), model.ScoreJournal_Type_DaySign, int64(score))
 		if err != nil {
 			as.Code = result.Fail
 			as.Message = err.Error()

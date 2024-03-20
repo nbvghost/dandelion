@@ -8,7 +8,7 @@ import (
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/service/configuration"
+	"github.com/nbvghost/dandelion/service"
 	"io"
 	"log"
 	"net/http"
@@ -123,8 +123,8 @@ func newAccessTokenRedisKey(oid dao.PrimaryKey) string {
 	return fmt.Sprintf("payment:paypal:%d:access-token", oid)
 }
 func generateAccessToken(ctx constrain.IContext, oid dao.PrimaryKey) (*PaypalAccessToken, error) {
-	configurationService := configuration.ConfigurationService{}
-	configMap := configurationService.GetConfigurations(oid, model.ConfigurationKeyPaymentPaypalClientId, model.ConfigurationKeyPaymentPaypalAppSecret)
+
+	configMap := service.Configuration.GetConfigurations(oid, model.ConfigurationKeyPaymentPaypalClientId, model.ConfigurationKeyPaymentPaypalAppSecret)
 
 	at := &responseBody{}
 	clientId := configMap[model.ConfigurationKeyPaymentPaypalClientId]

@@ -2,6 +2,7 @@ package order
 
 import (
 	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/service"
 	"log"
 	"strings"
 
@@ -13,16 +14,12 @@ import (
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
-	"github.com/nbvghost/dandelion/service/order"
-	"github.com/nbvghost/dandelion/service/wechat"
 )
 
 type WXPayAlone struct {
-	WxService     wechat.WxService
-	OrdersService order.OrdersService
-	User          *model.User         `mapping:""`
-	WechatConfig  *model.WechatConfig `mapping:""`
-	Get           struct {
+	User         *model.User         `mapping:""`
+	WechatConfig *model.WechatConfig `mapping:""`
+	Get          struct {
 		OrderNo string `form:"OrderNo"`
 	} `method:"get"`
 }
@@ -37,22 +34,22 @@ func (m *WXPayAlone) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	ip := util.GetIP(contextValue.Request)
 
 	//package
-	orders := m.OrdersService.GetOrdersByOrderNo(m.Get.OrderNo)
+	orders := service.Order.Orders.GetOrdersByOrderNo(m.Get.OrderNo)
 	if strings.EqualFold(orders.PrepayID, "") == false {
 
-		outData, err := m.WxService.GetWXAConfig(orders.PrepayID, WxConfig)
+		outData, err := service.Wechat.Wx.GetWXAConfig(orders.PrepayID, WxConfig)
 		if err != nil {
 			return nil, err
 		}
 		return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "OK", Data: outData}}, nil
 	}
 
-	Success, Message, Result := m.WxService.MPOrder(ctx, orders.OrderNo, "购物", "商品消费", []model.OrdersGoods{}, m.User.OpenID, ip, orders.PayMoney, play.OrdersTypeGoods, WxConfig)
+	Success, Message, Result := service.Wechat.Wx.MPOrder(ctx, orders.OrderNo, "购物", "商品消费", []model.OrdersGoods{}, m.User.OpenID, ip, orders.PayMoney, play.OrdersTypeGoods, WxConfig)
 	if Success != result.Success {
 		return &result.JsonResult{Data: &result.ActionResult{Code: Success, Message: Message, Data: Result}}, nil
 	}
 
-	outData, err := m.WxService.GetWXAConfig(*Result.PrepayId, WxConfig)
+	outData, err := service.Wechat.Wx.GetWXAConfig(*Result.PrepayId, WxConfig)
 	if err != nil {
 		return nil, err
 	}
