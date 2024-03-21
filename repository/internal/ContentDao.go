@@ -34,6 +34,7 @@ func (ContentDao) SortList(OID, ContentItemID dao.PrimaryKey, sort string, sortM
 	} else {
 		d = d.Order(fmt.Sprintf(`"%s" desc`, sort))
 	}
+	d = d.Order(`"CreatedAt" desc`)
 	d.Limit(int(count)).Find(&result)
 	return result
 }

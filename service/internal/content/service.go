@@ -69,7 +69,7 @@ func (service ContentService) PaginationContent(OID, ContentItemID, ContentSubTy
 	if ContentItemID == 0 {
 		db := dao.Find(db.Orm(), &model.Content{}).Where(`"OID"=?`, OID)
 		total := db.Limit(pageIndex, pageSize)
-		mlist := db.List()
+		mlist := db.Order(`"CreatedAt" desc`).List()
 		list := make([]*model.Content, 0)
 		for i := range mlist {
 			list = append(list, mlist[i].(*model.Content))
@@ -79,7 +79,7 @@ func (service ContentService) PaginationContent(OID, ContentItemID, ContentSubTy
 	if ContentSubTypeID == 0 {
 		db := dao.Find(db.Orm(), &model.Content{}).Where(`"OID"=? and "ContentItemID"=?`, OID, ContentItemID)
 		total := db.Limit(pageIndex, pageSize)
-		mlist := db.List()
+		mlist := db.Order(`"CreatedAt" desc`).List()
 		list := make([]*model.Content, 0)
 		for i := range mlist {
 			list = append(list, mlist[i].(*model.Content))
@@ -97,7 +97,7 @@ func (service ContentService) PaginationContent(OID, ContentItemID, ContentSubTy
 	db.Count(&total)
 
 	var list []*model.Content
-	db.Limit(pageSize).Offset(pageIndex * pageSize).Find(&list)
+	db.Limit(pageSize).Offset(pageIndex * pageSize).Order(`"CreatedAt" desc`).Find(&list)
 
 	return pageIndex, pageSize, int(total), list
 }
