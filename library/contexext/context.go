@@ -2,7 +2,9 @@ package contexext
 
 import (
 	"context"
+	"errors"
 	"github.com/nbvghost/dandelion/library/dao"
+	"log"
 	"net/http"
 	"net/url"
 	"sync"
@@ -25,11 +27,23 @@ type handlerContext struct {
 	route     string
 	token     string
 	syncCache *sync.Map
+	mapping   constrain.IMappingCallback
+}
+
+func (m *handlerContext) Mapping(v interface{}) {
+	if m.mapping == nil {
+		log.Println()
+		m.Logger().Info("mapping", zap.Error(errors.New("不支持 mapping 方法")))
+		return
+	}
+	err := m.mapping.Mapping(m, v)
+	if err != nil {
+		m.Logger().With(zap.Error(err))
+	}
 }
 
 type ContextKey struct{}
 type ContextValue struct {
-	Mapping    constrain.IMappingCallback
 	Timeout    uint64
 	Response   http.ResponseWriter
 	Request    *http.Request
@@ -108,6 +122,6 @@ func (m *handlerContext) Destroy() {
 		return true
 	})
 }
-func New(parent context.Context, appName, uid string, route string, redis constrain.IRedis, etcd constrain.IEtcd, token string, logger *zap.Logger, mode key.Mode) constrain.IContext {
-	return &handlerContext{parent: parent, uid: dao.NewFromString(uid), route: route, redis: redis, etcd: etcd, appName: appName, token: token, logger: logger, mode: mode, syncCache: &sync.Map{}}
+func New(parent context.Context, appName, uid string, route string, mapping constrain.IMappingCallback, redis constrain.IRedis, etcd constrain.IEtcd, token string, logger *zap.Logger, mode key.Mode) constrain.IContext {
+	return &handlerContext{parent: parent, uid: dao.NewFromString(uid), mapping: mapping, route: route, redis: redis, etcd: etcd, appName: appName, token: token, logger: logger, mode: mode, syncCache: &sync.Map{}}
 }

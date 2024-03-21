@@ -202,7 +202,7 @@ func (fo *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 		}
 
 		contextValue := contexext.FromContext(context)
-		contextValue.Mapping.Mapping(context, function)
+		context.Mapping(function)
 
 		backCallFunc := reflect.MakeFunc(makeFuncType, func(args []reflect.Value) (results []reflect.Value) {
 			for i := 0; i < len(args); i++ {

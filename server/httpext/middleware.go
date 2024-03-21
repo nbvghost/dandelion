@@ -207,7 +207,6 @@ func (m *httpMiddleware) CreateContext(redisClient constrain.IRedis, etcdClient 
 	}
 
 	contextValue := &contexext.ContextValue{
-		Mapping:    mappingCallback,
 		Response:   w,
 		Request:    r,
 		Timeout:    Timeout,
@@ -228,7 +227,7 @@ func (m *httpMiddleware) CreateContext(redisClient constrain.IRedis, etcdClient 
 
 	logger = logger.With(zap.String("Path", r.URL.String()))
 
-	ctx := contexext.New(contexext.NewContext(parentCtx, contextValue), m.serverName, session.ID, r.URL.Path, redisClient, etcdClient, session.Token, logger, key.Mode(mode))
+	ctx := contexext.New(contexext.NewContext(parentCtx, contextValue), m.serverName, session.ID, r.URL.Path, mappingCallback, redisClient, etcdClient, session.Token, logger, key.Mode(mode))
 	return ctx
 }
 func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute, beforeViewRender constrain.IBeforeViewRender, afterViewRender constrain.IAfterViewRender, w http.ResponseWriter, r *http.Request) error {

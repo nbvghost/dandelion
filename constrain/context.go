@@ -31,6 +31,7 @@ type IContext interface {
 	Mode() key.Mode
 	SyncCache() *sync.Map
 	Destroy()
+	Mapping(v interface{})
 	//DomainName() string
 	//SelectFileServer() string
 }
