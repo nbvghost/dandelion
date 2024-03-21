@@ -231,7 +231,7 @@ func (m *httpMiddleware) CreateContext(redisClient constrain.IRedis, etcdClient 
 	ctx := contexext.New(contexext.NewContext(parentCtx, contextValue), m.serverName, session.ID, r.URL.Path, redisClient, etcdClient, session.Token, logger, key.Mode(mode))
 	return ctx
 }
-func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute, customizeViewRender constrain.IViewRender, w http.ResponseWriter, r *http.Request) error {
+func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute, beforeViewRender constrain.IBeforeViewRender, afterViewRender constrain.IAfterViewRender, w http.ResponseWriter, r *http.Request) error {
 	var err error
 	ctxValue := contexext.FromContext(ctx)
 
@@ -301,12 +301,18 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 		return err
 	}
 
-	err = router.Handle(ctx, apiHandler)
+	err = router.ExecuteInterceptors(ctx, apiHandler)
 	if err != nil {
 		return err
 	}
 
 	if ctxValue.IsApi {
+		//注入路由mapping
+		err = router.GetMappingCallback().Mapping(ctx, apiHandler)
+		if err != nil {
+			return err
+		}
+
 		var handle func(ctx constrain.IContext) (constrain.IResult, error)
 		switch r.Method {
 		case http.MethodGet:
@@ -370,6 +376,24 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 		returnResult.Apply(ctx)
 
 	} else {
+		if beforeViewRender != nil {
+			var canNext bool
+			err = beforeViewRender.Render(ctx, r, w, func() {
+				canNext = true
+			})
+			if err != nil {
+				return err
+			}
+			if !canNext {
+				return nil
+			}
+		}
+		//注入路由mapping
+		err = router.GetMappingCallback().Mapping(ctx, apiHandler)
+		if err != nil {
+			return err
+		}
+
 		if v, ok := apiHandler.(constrain.IViewHandler); ok {
 			var viewResult constrain.IViewResult
 			viewResult, err = v.Render(ctx)
@@ -400,11 +424,10 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			viewBase.HtmlMeta = htmlMeta
 			viewBaseValue.Set(reflect.ValueOf(viewBase))
 
-			if customizeViewRender == nil {
+			if afterViewRender == nil {
 				return errors.New("没找开视图渲染器")
 			}
-
-			if err = customizeViewRender.Render(ctx, r, w, viewResult); err != nil {
+			if err = afterViewRender.Render(ctx, r, w, viewResult); err != nil {
 				return err
 			}
 			return nil

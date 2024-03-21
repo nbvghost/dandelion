@@ -38,8 +38,9 @@ type httpServer struct {
 	etcdClient         constrain.IEtcd
 	errorHandleResult  constrain.IResultError
 	router             *mux.Router
-	viewRender         constrain.IViewRender
-	notFoundViewRender constrain.IViewRender
+	beforeViewRender   constrain.IBeforeViewRender
+	viewRender         constrain.IAfterViewRender
+	notFoundViewRender constrain.IAfterViewRender
 	middlewares        []constrain.IMiddleware
 	defaultMiddleware  *httpMiddleware
 }
@@ -48,18 +49,20 @@ func (m *httpServer) ApiErrorHandle(result constrain.IResultError) {
 	m.errorHandleResult = result
 }
 
-func (m *httpServer) Use(middleware constrain.IMiddleware) {
-	m.middlewares = append(m.middlewares, middleware)
-}
+/*
+	func (m *httpServer) Use(middleware constrain.IMiddleware) {
+		m.middlewares = append(m.middlewares, middleware)
+	}
+*/
 func (m *httpServer) Listen(microServerConfig *config.MicroServerConfig) error {
 	if m.etcdClient != nil {
-		if microServerConfig.Port == 0 {
-			var err error
-			microServerConfig, err = m.etcdClient.Register(microServerConfig)
-			if err != nil {
-				return err
-			}
+		//if microServerConfig.Port == 0 {
+		var err error
+		microServerConfig, err = m.etcdClient.Register(microServerConfig)
+		if err != nil {
+			return err
 		}
+		//}
 	}
 
 	listenAddr := fmt.Sprintf("%s:%d", microServerConfig.IP, microServerConfig.Port)
@@ -72,7 +75,7 @@ func (m *httpServer) Listen(microServerConfig *config.MicroServerConfig) error {
 	}
 	return srv.ListenAndServe()
 }
-func (m *httpServer) handleError(ctx constrain.IContext, customizeViewRender constrain.IViewRender, w http.ResponseWriter, r *http.Request, err error) {
+func (m *httpServer) handleError(ctx constrain.IContext, customizeViewRender constrain.IAfterViewRender, w http.ResponseWriter, r *http.Request, err error) {
 	var bytes []byte
 	contextValue := contexext.FromContext(ctx)
 
@@ -191,18 +194,23 @@ func (e *emptyOption) apply(server *httpServer) {
 		})
 	}
 */
-func WithViewRenderOption(customizeViewRender constrain.IViewRender) Option {
+func WithBeforeViewRenderOption(beforeViewRender constrain.IBeforeViewRender) Option {
+	return newOption(func(server *httpServer) {
+		server.beforeViewRender = beforeViewRender
+	})
+}
+func WithViewRenderOption(customizeViewRender constrain.IAfterViewRender) Option {
 	return newOption(func(server *httpServer) {
 		server.viewRender = customizeViewRender
 	})
 }
-func WithNotFoundViewRenderOption(customizeViewRender constrain.IViewRender) Option {
+func WithNotFoundViewRenderOption(customizeViewRender constrain.IAfterViewRender) Option {
 	return newOption(func(server *httpServer) {
 		server.notFoundViewRender = customizeViewRender
 	})
 }
 
-func (m *httpServer) handlerFunc(viewRender constrain.IViewRender, response http.ResponseWriter, request *http.Request) (next bool, ctxValue *contexext.ContextValue) {
+func (m *httpServer) handlerFunc(beforeViewRender constrain.IBeforeViewRender, viewRender constrain.IAfterViewRender, response http.ResponseWriter, request *http.Request) (next bool, ctxValue *contexext.ContextValue) {
 
 	var ctx constrain.IContext
 	ctxValue = contexext.FromContext(request.Context())
@@ -232,16 +240,17 @@ func (m *httpServer) handlerFunc(viewRender constrain.IViewRender, response http
 
 	for i := range m.middlewares {
 		middleware := m.middlewares[i]
-		if err := middleware.Handle(ctx, m.route, viewRender, ctxValue.Response, ctxValue.Request); err != nil {
+		if err := middleware.Handle(ctx, m.route, beforeViewRender, viewRender, ctxValue.Response, ctxValue.Request); err != nil {
 			ctx.Logger().Error("http-server", zap.Error(err))
 			m.handleError(ctx, viewRender, ctxValue.Response, ctxValue.Request, err)
 			return
 		}
 	}
+
 	if ctxValue.Request.Method == http.MethodOptions {
 		return
 	}
-	if err := m.defaultMiddleware.Handle(ctx, m.route, viewRender, ctxValue.Response, ctxValue.Request); err != nil {
+	if err := m.defaultMiddleware.Handle(ctx, m.route, beforeViewRender, viewRender, ctxValue.Response, ctxValue.Request); err != nil {
 		ctx.Logger().Error("http-server", zap.Error(err))
 		m.handleError(ctx, viewRender, ctxValue.Response, ctxValue.Request, err)
 		return
@@ -269,7 +278,7 @@ func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, eng
 					http.Redirect(writer, request, "/404", http.StatusPermanentRedirect)
 				}
 			} else {
-				s.handlerFunc(s.notFoundViewRender, writer, request)
+				s.handlerFunc(s.beforeViewRender, s.notFoundViewRender, writer, request)
 			}
 
 		})
@@ -301,7 +310,7 @@ func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, eng
 				})
 			}
 			return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-				hasNext, ctxValue := s.handlerFunc(s.viewRender, response, request)
+				hasNext, ctxValue := s.handlerFunc(s.beforeViewRender, s.viewRender, response, request)
 				if hasNext {
 					next.ServeHTTP(ctxValue.Response, ctxValue.Request)
 				}
