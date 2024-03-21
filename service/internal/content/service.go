@@ -567,7 +567,7 @@ func (service ContentService) SaveContent(OID dao.PrimaryKey, article *model.Con
 				return errors.Errorf("无效的类别%v", contentSubType.ID)
 			}
 
-			content := repository.ContentDao.GetContentByContentItemIDAndContentSubTypeID(article.ContentItemID, article.ContentSubTypeID)
+			content := repository.ContentDao.FindContentByContentItemIDAndContentSubTypeID(article.ContentItemID, article.ContentSubTypeID)
 			if content.ID > 0 && article.ID != content.ID {
 				return errors.Errorf("添加的内容与原内容冲突")
 			}

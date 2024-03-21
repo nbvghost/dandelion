@@ -11,6 +11,11 @@ import (
 
 type ContentDao struct{}
 
+func (ContentDao) GetContentByID(ID dao.PrimaryKey) *model.Content {
+	article := dao.GetByPrimaryKey(db.Orm(), &model.Content{}, ID).(*model.Content) //SelectOne(user, "select * from User where Email=?", Email)
+	//service.ChangeMap(singleton.Orm(), ID, &model.Article{}, map[string]interface{}{"Look": article.Look + 1})
+	return article
+}
 func (ContentDao) HotViewList(OID, ContentItemID dao.PrimaryKey, count uint) []model.Content {
 	Orm := db.Orm()
 	var result []model.Content
@@ -68,12 +73,17 @@ func (ContentDao) FindContentByContentSubTypeID(ContentSubTypeID dao.PrimaryKey)
 
 	return contentList
 }
-func (ContentDao) FindContentByContentItemIDAndContentSubTypeID(ContentItemID uint, ContentSubTypeID uint) *model.Content {
+func (ContentDao) FindContentByContentItemIDAndContentSubTypeID(ContentItemID dao.PrimaryKey, ContentSubTypeID dao.PrimaryKey) *model.Content {
 	//service.FindWhere(singleton.Orm(), &content, "ContentItemID=? and ContentSubTypeID=?", ContentItemID, ContentSubTypeID) //SelectOne(user, "select * from User where Email=?", Email)
 	content := dao.GetBy(db.Orm(), &model.Content{}, map[string]any{"ContentItemID": ContentItemID, "ContentSubTypeID": ContentSubTypeID}).(*model.Content)
 	return content
 }
-
+func (m ContentDao) GetContentByContentItemID(ContentItemID dao.PrimaryKey) *model.Content {
+	//article := &model.Content{}
+	//db.Orm().Where(map[string]interface{}{"ContentItemID": ContentItemID, "ContentSubTypeID": 0}).First(article)
+	//service.ChangeMap(singleton.Orm(), ID, &model.Article{}, map[string]interface{}{"Look": article.Look + 1})
+	return m.FindContentByContentItemIDAndContentSubTypeID(ContentItemID, 0)
+}
 func (ContentDao) HaveContentByTitle(ContentItemID, ContentSubTypeID uint, Title string) bool {
 	Orm := db.Orm()
 	_article := &model.Content{}
@@ -96,15 +106,7 @@ func (ContentDao) GetContentByUri(OID dao.PrimaryKey, uri string) *model.Content
 	Orm.Model(model.Content{}).Where(map[string]interface{}{"OID": OID, "Uri": uri}).First(&item)
 	return &item
 }
-func (ContentDao) GetContentByContentItemID(ContentItemID uint) *model.Content {
-	article := &model.Content{}
-	db.Orm().Where(map[string]interface{}{
-		"ContentItemID":    ContentItemID,
-		"ContentSubTypeID": 0,
-	}).First(article)
-	//service.ChangeMap(singleton.Orm(), ID, &model.Article{}, map[string]interface{}{"Look": article.Look + 1})
-	return article
-}
+
 func (ContentDao) GetContentByContentItemIDAndTitle(ContentItemID uint, Title string) *model.Content {
 	article := &model.Content{}
 	db.Orm().Where(map[string]interface{}{
@@ -114,21 +116,7 @@ func (ContentDao) GetContentByContentItemIDAndTitle(ContentItemID uint, Title st
 	//service.ChangeMap(singleton.Orm(), ID, &model.Article{}, map[string]interface{}{"Look": article.Look + 1})
 	return article
 }
-func (ContentDao) GetContentByContentItemIDAndContentSubTypeID(ContentItemID, ContentSubTypeID dao.PrimaryKey) model.Content {
-	article := model.Content{}
-	db.Orm().Where(map[string]interface{}{
-		"ContentItemID":    ContentItemID,
-		"ContentSubTypeID": ContentSubTypeID,
-	}).First(&article)
-	//service.ChangeMap(singleton.Orm(), ID, &model.Article{}, map[string]interface{}{"Look": article.Look + 1})
-	return article
-}
 
-func (ContentDao) GetContentByID(ID dao.PrimaryKey) *model.Content {
-	article := dao.GetByPrimaryKey(db.Orm(), &model.Content{}, ID).(*model.Content) //SelectOne(user, "select * from User where Email=?", Email)
-	//service.ChangeMap(singleton.Orm(), ID, &model.Article{}, map[string]interface{}{"Look": article.Look + 1})
-	return article
-}
 func (ContentDao) FindContentByFieldGroupID(oid dao.PrimaryKey, fieldGroupID dao.PrimaryKey) []*model.Content {
 	var list []*model.Content
 	db.Orm().Model(model.Content{}).Where(`"OID"=? and "FieldGroupID"=?`, oid, fieldGroupID).Find(&list)
