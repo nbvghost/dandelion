@@ -82,7 +82,7 @@ func (service AdminService) ChangeAuthority(context constrain.IContext, admin *m
 	Orm := db.Orm()
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ID"])
-	item := &model.Admin{}
+	//item := &model.Admin{}
 	/*err = util.RequestBodyToJSON(context.Request.Body, item)
 	if err != nil {
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, err
@@ -101,7 +101,7 @@ func (service AdminService) ChangeAuthority(context constrain.IContext, admin *m
 		}
 	}
 
-	err = dao.UpdateByPrimaryKey(Orm, &model.Admin{}, dao.PrimaryKey(ID), &model.Admin{Authority: item.Authority})
+	//err = dao.UpdateByPrimaryKey(Orm, &model.Admin{}, dao.PrimaryKey(ID), &model.Admin{Authority: item.Authority})
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
 }
 

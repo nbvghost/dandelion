@@ -14,7 +14,8 @@ type IMiddleware interface {
 
 // 路由执行前，处理视图的接口
 type IBeforeViewRender interface {
-	Render(context IContext, request *http.Request, writer http.ResponseWriter, next func()) error
+	View(context IContext, request *http.Request, writer http.ResponseWriter, next func()) error
+	Api(context IContext, request *http.Request, writer http.ResponseWriter, next func()) error
 }
 
 // 路由执行后，处理视图的接口

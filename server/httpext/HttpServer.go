@@ -7,7 +7,6 @@ import (
 	"html/template"
 	"log"
 	"net/http"
-	"reflect"
 	"time"
 
 	"github.com/nbvghost/dandelion/library/result"
@@ -16,10 +15,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/entity/extends"
-	"github.com/nbvghost/dandelion/server/route"
-	"github.com/pkg/errors"
-
 	"github.com/nbvghost/dandelion/library/contexext"
 )
 
@@ -97,7 +92,7 @@ func (m *httpServer) handleError(ctx constrain.IContext, customizeViewRender con
 			}
 			w.Write(bytes)
 		} else {
-			w.WriteHeader(http.StatusNotFound)
+			/*w.WriteHeader(http.StatusNotFound)
 			d := map[string]interface{}{
 				"ErrorText": err.Error(),
 				"Stack":     fmt.Sprintf("%+v", errors.WithStack(err)),
@@ -127,7 +122,8 @@ func (m *httpServer) handleError(ctx constrain.IContext, customizeViewRender con
 
 			if err = customizeViewRender.Render(ctx, r, w, viewResult); err != nil {
 				ctx.Logger().Error("render", zap.Error(err))
-			}
+			}*/
+			http.Redirect(w, r, "/404", http.StatusPermanentRedirect)
 			return
 
 			/*vr := &viewRender{}
@@ -246,10 +242,9 @@ func (m *httpServer) handlerFunc(beforeViewRender constrain.IBeforeViewRender, v
 			return
 		}
 	}
-
-	if ctxValue.Request.Method == http.MethodOptions {
+	/*if ctxValue.Request.Method == http.MethodOptions {
 		return
-	}
+	}*/
 	if err := m.defaultMiddleware.Handle(ctx, m.route, beforeViewRender, viewRender, ctxValue.Response, ctxValue.Request); err != nil {
 		ctx.Logger().Error("http-server", zap.Error(err))
 		m.handleError(ctx, viewRender, ctxValue.Response, ctxValue.Request, err)

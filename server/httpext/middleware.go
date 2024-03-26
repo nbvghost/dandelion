@@ -48,7 +48,7 @@ func (m *httpMiddleware) filterFlags(content string) string {
 	}
 	return content
 }
-func (m *httpMiddleware) bindData(apiHandler any, contextValue *contexext.ContextValue) error {
+func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contextValue *contexext.ContextValue) error {
 	v := reflect.ValueOf(apiHandler)
 	t := reflect.TypeOf(apiHandler).Elem()
 	num := t.NumField()
@@ -95,10 +95,13 @@ func (m *httpMiddleware) bindData(apiHandler any, contextValue *contexext.Contex
 
 	err = binding.Default(contextValue.Request.Method, m.filterFlags(contextValue.Request.Header.Get("Content-Type"))).Bind(contextValue.Request.Clone(contextValue.Request.Context()), bodyValue.Addr().Interface())
 	if err != nil {
+		ctx.Logger().With(zap.Error(err))
 		return err
+
 	}
 	err = binding.Header.Bind(contextValue.Request, vv.Addr().Interface())
 	if err != nil {
+		ctx.Logger().With(zap.Error(err))
 		return err
 	}
 
@@ -111,6 +114,7 @@ func (m *httpMiddleware) bindData(apiHandler any, contextValue *contexext.Contex
 		if len(uriMap) > 0 {
 			err = binding.Uri.BindUri(uriMap, vv.Addr().Interface())
 			if err != nil {
+				ctx.Logger().With(zap.Error(err))
 				return err
 			}
 		}
@@ -118,10 +122,11 @@ func (m *httpMiddleware) bindData(apiHandler any, contextValue *contexext.Contex
 
 	err = binding.Query.Bind(contextValue.Request, vv.Addr().Interface())
 	if err != nil {
+		ctx.Logger().With(zap.Error(err))
 		return err
 	}
 	contextValue.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-	return err
+	return nil
 }
 
 func (m *httpMiddleware) getSession(parentCtx context.Context, redisClient constrain.IRedis, token string) (Session, error) {
@@ -296,19 +301,32 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 	//创建新的handler处理器
 	apiHandler = reflect.New(routeInfo.GetHandlerType()).Interface()
 
-	if err = m.bindData(apiHandler, contextValue); err != nil {
-		return err
-	}
-
-	err = router.ExecuteInterceptors(ctx, apiHandler)
-	if err != nil {
-		return err
-	}
-
 	if ctxValue.IsApi {
+		if beforeViewRender != nil {
+			var canNext bool
+			err = beforeViewRender.Api(ctx, r, w, func() {
+				canNext = true
+			})
+			if err != nil {
+				return err
+			}
+			if !canNext {
+				return nil
+			}
+		}
+
+		err = router.ExecuteInterceptors(ctx, apiHandler)
+		if err != nil {
+			return err
+		}
+
 		//注入路由mapping
 		err = router.GetMappingCallback().Mapping(ctx, apiHandler)
 		if err != nil {
+			return err
+		}
+
+		if err = m.bindData(apiHandler, ctx, contextValue); err != nil {
 			return err
 		}
 
@@ -377,7 +395,7 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 	} else {
 		if beforeViewRender != nil {
 			var canNext bool
-			err = beforeViewRender.Render(ctx, r, w, func() {
+			err = beforeViewRender.View(ctx, r, w, func() {
 				canNext = true
 			})
 			if err != nil {
@@ -387,9 +405,19 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 				return nil
 			}
 		}
+
+		err = router.ExecuteInterceptors(ctx, apiHandler)
+		if err != nil {
+			return err
+		}
+
 		//注入路由mapping
 		err = router.GetMappingCallback().Mapping(ctx, apiHandler)
 		if err != nil {
+			return err
+		}
+
+		if err = m.bindData(apiHandler, ctx, contextValue); err != nil {
 			return err
 		}
 

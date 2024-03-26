@@ -102,6 +102,7 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 	models = append(models, model.UserFreezeJournal{})
 	models = append(models, model.CustomizeFieldGroup{})
 	models = append(models, model.CustomizeField{})
+	models = append(models, model.Role{})
 
 	//set db session application name
 	_database.Exec(fmt.Sprintf("SET application_name='%s'", app))
