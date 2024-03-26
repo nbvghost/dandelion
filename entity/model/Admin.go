@@ -14,7 +14,7 @@ type Admin struct {
 	Phone       string         `gorm:"column:Phone;default:''"`
 	Name        string         `gorm:"column:Name"`
 	PassWord    string         `gorm:"column:PassWord;not null;default:''" json:"-"`
-	RoleList    pq.Int64Array  `gorm:"column:RoleList;type:text[]"` //角色
+	RoleList    pq.Int64Array  `gorm:"column:RoleList;type:bigint[]"` //角色
 	LastLoginAt time.Time      `gorm:"column:LastLoginAt"`
 	Initiator   bool           `gorm:"column:Initiator"`
 	//Authority   string         `gorm:"column:Authority;default:''"` //json 权限
