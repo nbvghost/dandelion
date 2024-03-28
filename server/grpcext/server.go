@@ -35,7 +35,7 @@ type customizeService struct {
 	serviceDesc grpc.ServiceDesc
 	routes      map[string]*route.RouteInfo
 	redis       constrain.IRedis
-	callbacks   []constrain.IMappingCallback
+	callback    constrain.IMappingCallback
 }
 
 func (m *customizeService) Call(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -62,7 +62,7 @@ func (m *customizeService) Call(srv interface{}, ctx context.Context, dec func(i
 	logger = logger.With(zap.String("Path", tool.UUID()))
 	defer logger.Sync()
 
-	currentContext := contexext.New(ctx, m.server.MicroServer.Name, uid, serverTransportStream.Method(), m.redis, nil, "", logger, "")
+	currentContext := contexext.New(ctx, m.server.MicroServer.Name, uid, serverTransportStream.Method(), m.callback, m.redis, nil, "", logger, "")
 
 	var r *route.RouteInfo
 
@@ -75,9 +75,8 @@ func (m *customizeService) Call(srv interface{}, ctx context.Context, dec func(i
 		return nil, err
 	}
 
-	for index := range m.callbacks {
-		item := m.callbacks[index]
-		item.Before(currentContext, handle)
+	if m.callback != nil {
+		m.callback.Mapping(currentContext, handle)
 	}
 
 	if interceptor == nil {
@@ -112,7 +111,7 @@ type service struct {
 	etcdServer constrain.IEtcd
 	grpcServer *grpc.Server
 	option     Option
-	callbacks  []constrain.IMappingCallback
+	callback   constrain.IMappingCallback
 }
 
 func (m *service) Server() *grpc.Server {
@@ -176,7 +175,7 @@ func (m *service) Register(serviceDesc grpc.ServiceDesc, handlers []constrain.IG
 			serviceDesc: serviceDesc,
 			routes:      m.routes,
 			redis:       m.redis,
-			callbacks:   m.callbacks,
+			callback:    m.callback,
 		}
 		serviceDesc.HandlerType = (*iCustomizeService)(nil)
 		for i := 0; i < len(serviceDesc.Methods); i++ {
@@ -198,8 +197,8 @@ func (m *service) getRouteInfo(serverInfo *grpc.UnaryServerInfo) (constrain.IRou
 	return routeInfo, err
 }
 
-func (m *service) AddCallback(callbacks ...constrain.IMappingCallback) {
-	m.callbacks = append(m.callbacks, callbacks...)
+func (m *service) AddMapping(callback constrain.IMappingCallback) {
+	m.callback = callback
 }
 func (m *service) Listen() {
 

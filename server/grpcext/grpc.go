@@ -7,9 +7,10 @@ import (
 )
 
 type Register func(serviceDesc grpc.ServiceDesc, handlers []constrain.IGrpcHandler, withoutAuth ...bool)
+
 type IGrpc interface {
 	Register(serviceDesc grpc.ServiceDesc, handlers []constrain.IGrpcHandler, withoutAuth ...bool)
-	AddCallback(callbacks ...constrain.IMappingCallback)
+	AddMapping(callback constrain.IMappingCallback)
 	Server() *grpc.Server
 	Listen()
 }
