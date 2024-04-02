@@ -100,8 +100,11 @@ var Wechat = struct {
 	MessageNotify  wechat.MessageNotify
 }{}
 var Network = struct {
-	SMS network.SMS
-}{}
+	SMS    network.SMS
+	NewSMS func(oid dao.PrimaryKey) *network.SMS
+}{
+	NewSMS: network.NewSMS,
+}
 
 func init() {
 
