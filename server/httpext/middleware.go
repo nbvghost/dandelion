@@ -196,7 +196,7 @@ func (m *httpMiddleware) CreateContext(redisClient constrain.IRedis, etcdClient 
 		panic(err)
 	}
 
-	logger = logger.Named("HttpContext").With(zap.String("TraceID", TraceID))
+	logger = logger.Named("HttpContext").With(zap.String("TraceID", TraceID)).With(zap.String("DomainName", domainName))
 	//defer logger.Sync()
 
 	token := m.getToken(w, r)

@@ -2,14 +2,13 @@ package httpext
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/config"
-	"html/template"
+	"github.com/nbvghost/dandelion/library/result"
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/nbvghost/dandelion/library/result"
 
 	"go.uber.org/zap"
 
@@ -38,6 +37,7 @@ type httpServer struct {
 	notFoundViewRender constrain.IAfterViewRender
 	middlewares        []constrain.IMiddleware
 	defaultMiddleware  *httpMiddleware
+	errorHandler       ErrorHandler
 }
 
 func (m *httpServer) ApiErrorHandle(result constrain.IResultError) {
@@ -70,83 +70,6 @@ func (m *httpServer) Listen(microServerConfig *config.MicroServerConfig) error {
 	}
 	return srv.ListenAndServe()
 }
-func (m *httpServer) handleError(ctx constrain.IContext, customizeViewRender constrain.IAfterViewRender, w http.ResponseWriter, r *http.Request, err error) {
-	var bytes []byte
-	contextValue := contexext.FromContext(ctx)
-
-	if err != nil {
-		if contextValue.IsApi {
-			if m.errorHandleResult != nil {
-				m.errorHandleResult.Apply(ctx, err)
-				return
-			}
-			if ar, ok := err.(*result.ActionResult); ok {
-				w.Header().Set("Code", fmt.Sprintf("%d", ar.Code))
-			}
-
-			w.Header().Set("Content-Type", "application/json; charset=utf-8")
-			var e error
-			bytes, e = json.Marshal(result.NewError(err))
-			if e != nil {
-				log.Println(e)
-			}
-			w.Write(bytes)
-		} else {
-			/*w.WriteHeader(http.StatusNotFound)
-			d := map[string]interface{}{
-				"ErrorText": err.Error(),
-				"Stack":     fmt.Sprintf("%+v", errors.WithStack(err)),
-			}
-
-			if ar, ok := err.(*result.ActionResult); ok {
-				w.Header().Set("Code", fmt.Sprintf("%d", ar.Code))
-			}
-
-			viewResult := route.NewViewResult("404", d)
-			viewBaseValue := reflect.ValueOf(viewResult).Elem().FieldByName("ViewBase")
-			viewBase := viewBaseValue.Interface().(extends.ViewBase)
-
-			htmlMeta := extends.NewHtmlMeta(contextValue.Lang, contextValue.RequestUrl)
-			if viewBase.HtmlMetaCallback != nil {
-				if err = viewBase.HtmlMetaCallback(viewBase, htmlMeta); err != nil {
-					ctx.Logger().Error("render", zap.Error(err))
-				}
-			}
-			viewBase.HtmlMeta = htmlMeta
-			viewBaseValue.Set(reflect.ValueOf(viewBase))
-
-			if customizeViewRender == nil {
-				ctx.Logger().Error("render", zap.Error(errors.New("没找开视图渲染器")))
-				return
-			}
-
-			if err = customizeViewRender.Render(ctx, r, w, viewResult); err != nil {
-				ctx.Logger().Error("render", zap.Error(err))
-			}*/
-			http.Redirect(w, r, "/404", http.StatusPermanentRedirect)
-			return
-
-			/*vr := &viewRender{}
-			if err = vr.Render(ctx, r, w, viewResult); err != nil {
-				ctx.Logger().Error("render", zap.Error(err))
-			}*/
-
-			/*t, errTemplate := template.New("").Parse(html_404)
-			if errTemplate == nil {
-				d := map[string]interface{}{
-					"ErrorText": err.Error(),
-					"Mode":      environments.Release(),
-					"Stack":     string(debug.Stack()),
-				}
-				errTemplate = t.Execute(w, d)
-			}
-			if errTemplate != nil {
-				w.Header().Set("Content-Type", "text/html; charset=utf-8")
-				w.Write([]byte(errTemplate.Error()))
-			}*/
-		}
-	}
-}
 
 type Option interface {
 	apply(server *httpServer)
@@ -165,6 +88,8 @@ func (s *serverDesc) apply(server *httpServer) {
 /*func WithServerDesc(serverName string, ip string, port int) Option {
 	return &serverDesc{serverName: serverName, ip: ip, port: port}
 }*/
+
+type ErrorHandler func(ctx constrain.IContext, customizeViewRender constrain.IAfterViewRender, w http.ResponseWriter, r *http.Request, err error)
 
 type emptyOption struct {
 	applyFunc func(server *httpServer)
@@ -190,6 +115,11 @@ func (e *emptyOption) apply(server *httpServer) {
 		})
 	}
 */
+func WithErrorHandlerOption(errorHandler ErrorHandler) Option {
+	return newOption(func(server *httpServer) {
+		server.errorHandler = errorHandler
+	})
+}
 func WithBeforeViewRenderOption(beforeViewRender constrain.IBeforeViewRender) Option {
 	return newOption(func(server *httpServer) {
 		server.beforeViewRender = beforeViewRender
@@ -221,24 +151,23 @@ func (m *httpServer) handlerFunc(beforeViewRender constrain.IBeforeViewRender, v
 
 	defer func() {
 		var err error
-		if rerr := recover(); rerr != nil {
-			switch rerr.(type) {
+		if mErr := recover(); mErr != nil {
+			switch mErr.(type) {
 			case error:
-				err = rerr.(error)
+				err = mErr.(error)
 			default:
-				err = fmt.Errorf("%v", rerr)
+				err = fmt.Errorf("%v", mErr)
 			}
 			ctx.Logger().Error("http-server", zap.Error(err))
-			m.handleError(ctx, viewRender, ctxValue.Response, ctxValue.Request, err)
+			m.errorHandler(ctx, viewRender, ctxValue.Response, ctxValue.Request, err)
 		}
-
 	}()
 
 	for i := range m.middlewares {
 		middleware := m.middlewares[i]
 		if err := middleware.Handle(ctx, m.route, beforeViewRender, viewRender, ctxValue.Response, ctxValue.Request); err != nil {
 			ctx.Logger().Error("http-server", zap.Error(err))
-			m.handleError(ctx, viewRender, ctxValue.Response, ctxValue.Request, err)
+			m.errorHandler(ctx, viewRender, ctxValue.Response, ctxValue.Request, err)
 			return
 		}
 	}
@@ -247,7 +176,7 @@ func (m *httpServer) handlerFunc(beforeViewRender constrain.IBeforeViewRender, v
 	}*/
 	if err := m.defaultMiddleware.Handle(ctx, m.route, beforeViewRender, viewRender, ctxValue.Response, ctxValue.Request); err != nil {
 		ctx.Logger().Error("http-server", zap.Error(err))
-		m.handleError(ctx, viewRender, ctxValue.Response, ctxValue.Request, err)
+		m.errorHandler(ctx, viewRender, ctxValue.Response, ctxValue.Request, err)
 		return
 	}
 	return true, ctxValue
@@ -255,13 +184,33 @@ func (m *httpServer) handlerFunc(beforeViewRender constrain.IBeforeViewRender, v
 
 func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, engine *mux.Router, router *mux.Router, mRoute constrain.IRoute, ops ...Option) *httpServer {
 	s := &httpServer{router: router, redisClient: redisClient, etcdClient: etcdClient, route: mRoute, engine: engine, defaultMiddleware: &httpMiddleware{}}
+
+	s.errorHandler = func(ctx constrain.IContext, customizeViewRender constrain.IAfterViewRender, w http.ResponseWriter, r *http.Request, err error) {
+		contextValue := contexext.FromContext(ctx)
+		if contextValue.IsApi {
+			var ar *result.ActionResult
+			if errors.As(err, &ar) {
+				w.Header().Set("Code", fmt.Sprintf("%d", ar.Code))
+			}
+			w.Header().Set("Content-Type", "application/json; charset=utf-8")
+			var e error
+			bytes, e := json.Marshal(result.NewError(err))
+			if e != nil {
+				log.Println(e)
+			}
+			w.Write(bytes)
+		} else {
+			http.Redirect(w, r, "/404", http.StatusPermanentRedirect)
+		}
+	}
+
 	for i := range ops {
 		ops[i].apply(s)
 	}
 
 	if s.router != nil && s.route != nil {
 		router.NotFoundHandler = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-			if s.notFoundViewRender == nil {
+			/*if s.notFoundViewRender == nil {
 				if request.URL.Path == "/404" {
 					writer.WriteHeader(http.StatusNotFound)
 					t, _ := template.New("404").Parse("404")
@@ -272,6 +221,21 @@ func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, eng
 				} else {
 					http.Redirect(writer, request, "/404", http.StatusPermanentRedirect)
 				}
+			} else {
+				s.handlerFunc(s.beforeViewRender, s.notFoundViewRender, writer, request)
+			}*/
+			if s.notFoundViewRender == nil {
+				/*if request.URL.Path == "/404" {
+					writer.WriteHeader(http.StatusNotFound)
+					t, _ := template.New("404").Parse("404")
+					err := t.Execute(writer, nil)
+					if err != nil {
+						log.Println(err)
+					}
+				} else {
+					http.Redirect(writer, request, "/404", http.StatusPermanentRedirect)
+				}*/
+				s.handlerFunc(s.beforeViewRender, s.viewRender, writer, request)
 			} else {
 				s.handlerFunc(s.beforeViewRender, s.notFoundViewRender, writer, request)
 			}
