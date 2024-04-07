@@ -25,7 +25,7 @@ type TransfersService struct {
 	Wx      wechat.WxService
 }
 
-func (service TransfersService) UserTransfers(UserID dao.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
+func (m TransfersService) UserTransfers(UserID dao.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
 	Orm := db.Orm().Begin()
 
 	//var user model.User
@@ -63,13 +63,13 @@ func (service TransfersService) UserTransfers(UserID dao.PrimaryKey, ReUserName,
 	//DB *gorm.DB, UserID uint, Name, Detail string, Type int, Amount int64, TargetID uint,FromUserID uint
 	//err = service.Journal.AddUserJournal(Orm, user.ID, "提现", ReUserName+"提现", model.UserJournal_Type_TX, -int64(user.Amount), extends.KV{Key: "TransfersOrderNo", Value: transfers.OrderNo}, user.ID)
 	var userJournal *model.UserJournal
-	userJournal, err = service.Journal.AddUserJournal(Orm, user.ID, "提现", ReUserName+"提现", -int64(user.Amount), journal.NewDataTypeTransfers(transfers.OrderNo), user.ID)
+	userJournal, err = m.Journal.AddUserJournal(Orm, user.ID, "提现", ReUserName+"提现", -int64(user.Amount), journal.NewDataTypeTransfers(transfers.OrderNo), user.ID)
 	if err != nil {
 		Orm.Rollback()
 		return err
 	}
 
-	err = service.Wx.Transfers(transfers, []transferbatch.TransferDetailInput{{
+	err = m.Wx.Transfers(transfers, []transferbatch.TransferDetailInput{{
 		OutDetailNo:    core.String(fmt.Sprintf("UserJournal%d", userJournal.ID)),
 		TransferAmount: core.Int64(int64(transfers.Amount)),
 		TransferRemark: core.String("用户余额提现"),
@@ -85,7 +85,7 @@ func (service TransfersService) UserTransfers(UserID dao.PrimaryKey, ReUserName,
 	}
 
 }
-func (service TransfersService) StoreTransfers(StoreID dao.PrimaryKey, UserID dao.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
+func (m TransfersService) StoreTransfers(StoreID dao.PrimaryKey, UserID dao.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
 	Orm := db.Orm().Begin()
 
 	//var store model.Store
@@ -125,13 +125,13 @@ func (service TransfersService) StoreTransfers(StoreID dao.PrimaryKey, UserID da
 	}
 
 	var storeJournal *model.StoreJournal
-	storeJournal, err = service.Journal.AddStoreJournal(Orm, store.ID, "提现", ReUserName+"提现", play.StoreJournal_Type_TX, -int64(store.Amount), transfers.ID)
+	storeJournal, err = m.Journal.AddStoreJournal(Orm, store.ID, "提现", ReUserName+"提现", play.StoreJournal_Type_TX, -int64(store.Amount), transfers.ID)
 	if err != nil {
 		Orm.Rollback()
 		return err
 	}
 
-	err = service.Wx.Transfers(transfers, []transferbatch.TransferDetailInput{{
+	err = m.Wx.Transfers(transfers, []transferbatch.TransferDetailInput{{
 		OutDetailNo:    core.String(fmt.Sprintf("StoreJournal%d", storeJournal.ID)),
 		TransferAmount: core.Int64(int64(transfers.Amount)),
 		TransferRemark: core.String("门店余额提现"),

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service/internal/company"
 	"github.com/nbvghost/dandelion/service/internal/configuration"
 	"github.com/nbvghost/dandelion/service/internal/content"
@@ -29,7 +30,7 @@ type AdminService struct {
 	WxService     wechat.WxService
 }
 
-func (service AdminService) AddItem(OID dao.PrimaryKey, item *model.Admin) (err error) {
+func (m AdminService) AddItem(OID dao.PrimaryKey, item *model.Admin) (err error) {
 	item.OID = OID
 	if strings.EqualFold(item.Account, "") {
 		return errors.New("账号不允许为空")
@@ -44,7 +45,7 @@ func (service AdminService) AddItem(OID dao.PrimaryKey, item *model.Admin) (err 
 	return dao.Create(db.Orm(), item)
 }
 
-func (service AdminService) GetItem(context constrain.IContext, ID dao.PrimaryKey) (r constrain.IResult, err error) {
+func (m AdminService) GetItem(context constrain.IContext, ID dao.PrimaryKey) (r constrain.IResult, err error) {
 
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ID"])
@@ -52,18 +53,18 @@ func (service AdminService) GetItem(context constrain.IContext, ID dao.PrimaryKe
 	item := dao.GetByPrimaryKey(db.Orm(), &model.Admin{}, dao.PrimaryKey(ID))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", item)}, err
 }
-func (service AdminService) ListItem(context constrain.IContext, admin *model.Admin) (r constrain.IResult, err error) {
+func (m AdminService) ListItem(context constrain.IContext, admin *model.Admin) (r constrain.IResult, err error) {
 	//admin := context.Session.Attributes.Get(play.SessionAdmin).(*model.Admin)
 	dts := &model.Datatables{}
 	/*err = util.RequestBodyToJSON(context.Request.Body, dts)
 	if err != nil {
 		return nil, err
 	}*/
-	draw, recordsTotal, recordsFiltered, list := service.DatatablesListOrder(db.Orm(), dts, &[]model.Admin{}, admin.OID, "")
+	draw, recordsTotal, recordsFiltered, list := m.DatatablesListOrder(db.Orm(), dts, &[]model.Admin{}, admin.OID, "")
 	return &result.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}, nil
 }
 
-func (service AdminService) DeleteItem(context constrain.IContext, ID dao.PrimaryKey) (r constrain.IResult, err error) {
+func (m AdminService) DeleteItem(context constrain.IContext, ID dao.PrimaryKey) (r constrain.IResult, err error) {
 	//ID := object.ParseUint(context.PathParams["ID"])
 
 	Orm := db.Orm()
@@ -78,7 +79,7 @@ func (service AdminService) DeleteItem(context constrain.IContext, ID dao.Primar
 	err = dao.DeleteByPrimaryKey(Orm, item, dao.PrimaryKey(ID))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}, err
 }
-func (service AdminService) ChangeAuthority(context constrain.IContext, admin *model.Admin, ID dao.PrimaryKey) (r constrain.IResult, err error) {
+func (m AdminService) ChangeAuthority(context constrain.IContext, admin *model.Admin, ID dao.PrimaryKey) (r constrain.IResult, err error) {
 	Orm := db.Orm()
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ID"])
@@ -135,12 +136,12 @@ func (service AdminService) ChangeAuthority(context constrain.IContext, admin *m
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
 }*/
 
-func (service AdminService) DelAdmin(ID uint) error {
+func (m AdminService) DelAdmin(ID uint) error {
 	Orm := db.Orm()
 	err := Orm.Delete(model.Admin{}, "ID=?", ID).Error
 	return err
 }
-func (service AdminService) FindAdmin() []model.Admin {
+func (m AdminService) FindAdmin() []model.Admin {
 	Orm := db.Orm()
 	var list []model.Admin
 
@@ -154,7 +155,7 @@ Account
 PassWord
 Domain
 */
-func (service AdminService) InitOrganizationInfo(account string) (admin *model.Admin, err error) {
+func (m AdminService) InitOrganizationInfo(account string) (admin *model.Admin, err error) {
 	//Orm := singleton.Orm()
 
 	/*mDomain := util.ParseDomain(domain)
@@ -178,9 +179,9 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 		return nil, errors.Errorf("域名：" + mDomain + "已经被占用。")
 	}*/
 
-	admin = service.FindAdminByAccount(tx, account)
+	admin = m.FindAdminByAccount(tx, account)
 
-	shop := service.Organization.GetOrganization(admin.ID).(*model.Organization)
+	shop := m.Organization.GetOrganization(admin.ID).(*model.Organization)
 	if shop.IsZero() {
 		shop.Name = ""
 		shop.Expire = time.Now().Add((365 * 1) * 24 * time.Hour)
@@ -293,18 +294,18 @@ func (service AdminService) InitOrganizationInfo(account string) (admin *model.A
 			return nil, err
 		}
 	}
-	err = service.Content.AddContentConfig(tx, shop)
+	err = repository.ContentConfigDao.AddContentConfig(tx, shop)
 	if err != nil {
 		return nil, err
 	}
 
-	err = service.WxService.InitWechatConfig(tx, shop.ID)
+	err = m.WxService.InitWechatConfig(tx, shop.ID)
 	if err != nil {
 		return nil, err
 	}
 	return admin, err
 }
-func (service AdminService) GetAdmin(ID dao.PrimaryKey) *model.Admin {
+func (m AdminService) GetAdmin(ID dao.PrimaryKey) *model.Admin {
 	Orm := db.Orm()
 	admin := &model.Admin{}
 	err := Orm.Where(`"ID"=?`, ID).First(admin).Error //SelectOne(user, "select * from User where Email=?", Email)
@@ -313,17 +314,17 @@ func (service AdminService) GetAdmin(ID dao.PrimaryKey) *model.Admin {
 	}
 	return admin
 }
-func (service AdminService) FindAdminByID(Orm *gorm.DB, ID dao.PrimaryKey) model.Admin {
+func (m AdminService) FindAdminByID(Orm *gorm.DB, ID dao.PrimaryKey) model.Admin {
 	manager := model.Admin{}
 	Orm.Where(map[string]interface{}{"ID": ID}).First(&manager) //SelectOne(user, "select * from User where Email=?", Email)
 	return manager
 }
-func (service AdminService) FindAdminByAccount(Orm *gorm.DB, Account string) *model.Admin {
+func (m AdminService) FindAdminByAccount(Orm *gorm.DB, Account string) *model.Admin {
 	manager := &model.Admin{}
 	Orm.Where(map[string]interface{}{"Account": Account}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)
 	return manager
 }
-func (service AdminService) FindAdminByAccountAndPassWord(Orm *gorm.DB, Account string, PassWord string) *model.Admin {
+func (m AdminService) FindAdminByAccountAndPassWord(Orm *gorm.DB, Account string, PassWord string) *model.Admin {
 	manager := &model.Admin{}
 	Orm.Where(map[string]interface{}{"Account": Account, "PassWord": PassWord}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)
 	return manager

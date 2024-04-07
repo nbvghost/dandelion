@@ -22,7 +22,7 @@ type MessageNotify struct {
 }
 
 // 新用户加入，绑定上下级关系
-func (service MessageNotify) NewUserJoinNotify(NewUser *model.User, notifyUser *model.User) *result.ActionResult {
+func (m MessageNotify) NewUserJoinNotify(NewUser *model.User, notifyUser *model.User) *result.ActionResult {
 
 	as := &result.ActionResult{}
 
@@ -70,7 +70,7 @@ func (service MessageNotify) NewUserJoinNotify(NewUser *model.User, notifyUser *
 }
 
 // 发货通知
-func (service MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []dao.IEntity, wxConfig *model.WechatConfig) *result.ActionResult {
+func (m MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []dao.IEntity, wxConfig *model.WechatConfig) *result.ActionResult {
 
 	if Order.ID == 0 {
 		return &result.ActionResult{Code: result.Fail, Message: "找不到订单", Data: nil}
@@ -106,7 +106,7 @@ func (service MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []dao.
 
 	weapp_template_msg_data["data"] = data_data
 
-	as = service.SendWXMessage(weapp_template_msg_data, wxConfig)
+	as = m.SendWXMessage(weapp_template_msg_data, wxConfig)
 
 	return as
 }
@@ -115,7 +115,7 @@ func (service MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []dao.
 /*
 @slUser 收入的用户
 */
-func (service MessageNotify) INComeNotify(slUser *model.User, itemName string, timeText string, typeText string) *result.ActionResult {
+func (m MessageNotify) INComeNotify(slUser *model.User, itemName string, timeText string, typeText string) *result.ActionResult {
 	//
 	var as = &result.ActionResult{Code: result.Fail}
 
@@ -164,7 +164,7 @@ func (service MessageNotify) INComeNotify(slUser *model.User, itemName string, t
 }
 
 // 新订单
-func (service MessageNotify) NewOrderNotify(Order model.Orders, ogs []model.OrdersGoods, wxConfig *model.WechatConfig) *result.ActionResult {
+func (m MessageNotify) NewOrderNotify(Order model.Orders, ogs []model.OrdersGoods, wxConfig *model.WechatConfig) *result.ActionResult {
 
 	if Order.ID == 0 {
 		return &result.ActionResult{Code: result.Fail, Message: "找不到订单", Data: nil}
@@ -214,11 +214,11 @@ func (service MessageNotify) NewOrderNotify(Order model.Orders, ogs []model.Orde
 
 	weapp_template_msg_data["data"] = data_data
 
-	as = service.SendWXMessage(weapp_template_msg_data, wxConfig)
+	as = m.SendWXMessage(weapp_template_msg_data, wxConfig)
 
 	return as
 }
-func (service MessageNotify) SendUniformMessage(sendData map[string]interface{}, wxConfig *model.WechatConfig) (*result.ActionResult, int) {
+func (m MessageNotify) SendUniformMessage(sendData map[string]interface{}, wxConfig *model.WechatConfig) (*result.ActionResult, int) {
 
 	//gzh := model.MiniWeb()
 	//xcx := service.MiniProgram()
@@ -226,7 +226,7 @@ func (service MessageNotify) SendUniformMessage(sendData map[string]interface{},
 	b, err := json.Marshal(sendData)
 	log.Println(err)
 
-	access_token := service.WxService.GetAccessToken(wxConfig)
+	access_token := m.WxService.GetAccessToken(wxConfig)
 	strReader := strings.NewReader(string(b))
 	respones, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/uniform_send?access_token="+access_token, "application/json", strReader)
 	log.Println(err)
@@ -248,13 +248,13 @@ func (service MessageNotify) SendUniformMessage(sendData map[string]interface{},
 	return &result.ActionResult{Code: result.Fail, Message: mapData["errmsg"].(string), Data: nil}, int(mapData["errcode"].(float64))
 
 }
-func (service MessageNotify) SendWXMessage(sendData map[string]interface{}, wxConfig *model.WechatConfig) *result.ActionResult {
+func (m MessageNotify) SendWXMessage(sendData map[string]interface{}, wxConfig *model.WechatConfig) *result.ActionResult {
 	b, err := json.Marshal(sendData)
 	log.Println(err)
 
 	//WxConfig := service.MiniProgram()
 
-	access_token := service.WxService.GetAccessToken(wxConfig)
+	access_token := m.WxService.GetAccessToken(wxConfig)
 	strReader := strings.NewReader(string(b))
 	respones, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token="+access_token, "application/json", strReader)
 	log.Println(err)

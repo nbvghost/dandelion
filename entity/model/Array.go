@@ -6,7 +6,7 @@ import (
 )
 
 type ITableType interface {
-	~*Specification | ~*GoodsAttributes
+	~*Specification | ~*GoodsAttributes | ~*GoodsSkuLabel | ~*GoodsSkuLabelData
 }
 
 type Array[T ITableType] []T

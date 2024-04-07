@@ -35,20 +35,20 @@ type UserService struct {
 	Journal journal.JournalService
 }
 
-func (service UserService) Login(oid dao.PrimaryKey, account string) (user *model.User) {
-	if user = service.GetByPhone(db.Orm(), oid, account); user.IsZero() {
-		user = service.GetByEmail(db.Orm(), oid, account)
+func (m UserService) Login(oid dao.PrimaryKey, account string) (user *model.User) {
+	if user = m.GetByPhone(db.Orm(), oid, account); user.IsZero() {
+		user = m.GetByEmail(db.Orm(), oid, account)
 	}
 	return user
 }
-func (service UserService) UpdateLoginStatus(userID dao.PrimaryKey) error {
+func (m UserService) UpdateLoginStatus(userID dao.PrimaryKey) error {
 
 	return dao.UpdateByPrimaryKey(db.Orm(), &model.User{}, userID, map[string]interface{}{"LastLoginAt": time.Now()}) //repository.User.UpdateByID(userID, map[string]interface{}{"LastLoginAt": time.Now()}).Err
 
 }
-func (service UserService) AddUser(oid dao.PrimaryKey, name, email, password string) error {
+func (m UserService) AddUser(oid dao.PrimaryKey, name, email, password string) error {
 
-	hasUser := service.GetByEmail(db.Orm(), oid, email)
+	hasUser := m.GetByEmail(db.Orm(), oid, email)
 	if hasUser.IsZero() == false {
 		return errors.New("record is exist")
 	}
@@ -58,7 +58,7 @@ func (service UserService) AddUser(oid dao.PrimaryKey, name, email, password str
 	return err
 
 }
-func (service UserService) Situation(StartTime, EndTime int64) interface{} {
+func (m UserService) Situation(StartTime, EndTime int64) interface{} {
 
 	st := time.Unix(StartTime/1000, 0)
 	st = time.Date(st.Year(), st.Month(), st.Day(), 0, 0, 0, 0, st.Location())
@@ -81,7 +81,7 @@ func (service UserService) Situation(StartTime, EndTime int64) interface{} {
 	return result
 }
 
-func (service UserService) FindUserByIDs(IDs []uint) []model.User {
+func (m UserService) FindUserByIDs(IDs []uint) []model.User {
 	var users []model.User
 	if len(IDs) == 0 {
 		return users
@@ -90,7 +90,7 @@ func (service UserService) FindUserByIDs(IDs []uint) []model.User {
 	log.Println(err)
 	return users
 }
-func (service UserService) LeveAll6(Orm *gorm.DB, OneSuperiorID dao.PrimaryKey) string {
+func (m UserService) LeveAll6(Orm *gorm.DB, OneSuperiorID dao.PrimaryKey) string {
 	//Orm := singleton.Orm()
 	var leveIDs []string
 
@@ -120,7 +120,7 @@ func (service UserService) LeveAll6(Orm *gorm.DB, OneSuperiorID dao.PrimaryKey) 
 
 	return strings.Join(leveIDs, ",")
 }
-func (service UserService) Leve1(UserID dao.PrimaryKey) []uint {
+func (m UserService) Leve1(UserID dao.PrimaryKey) []uint {
 	Orm := db.Orm()
 	var levea []uint
 	if UserID <= 0 {
@@ -129,7 +129,7 @@ func (service UserService) Leve1(UserID dao.PrimaryKey) []uint {
 	Orm.Model(&model.User{}).Where(`"SuperiorID"=?`, UserID).Pluck(`"ID"`, &levea)
 	return levea
 }
-func (service UserService) Leve2(Leve1IDs []uint) []uint {
+func (m UserService) Leve2(Leve1IDs []uint) []uint {
 	Orm := db.Orm()
 	var levea []uint
 	if len(Leve1IDs) <= 0 {
@@ -138,7 +138,7 @@ func (service UserService) Leve2(Leve1IDs []uint) []uint {
 	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve1IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
-func (service UserService) Leve3(Leve2IDs []uint) []uint {
+func (m UserService) Leve3(Leve2IDs []uint) []uint {
 	Orm := db.Orm()
 	var levea []uint
 	if len(Leve2IDs) <= 0 {
@@ -147,7 +147,7 @@ func (service UserService) Leve3(Leve2IDs []uint) []uint {
 	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve2IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
-func (service UserService) Leve4(Leve3IDs []uint) []uint {
+func (m UserService) Leve4(Leve3IDs []uint) []uint {
 	Orm := db.Orm()
 	var levea []uint
 	if len(Leve3IDs) <= 0 {
@@ -156,7 +156,7 @@ func (service UserService) Leve4(Leve3IDs []uint) []uint {
 	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve3IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
-func (service UserService) Leve5(Leve4IDs []uint) []uint {
+func (m UserService) Leve5(Leve4IDs []uint) []uint {
 	Orm := db.Orm()
 	var levea []uint
 	if len(Leve4IDs) <= 0 {
@@ -165,7 +165,7 @@ func (service UserService) Leve5(Leve4IDs []uint) []uint {
 	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve4IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
-func (service UserService) Leve6(Leve5IDs []uint) []uint {
+func (m UserService) Leve6(Leve5IDs []uint) []uint {
 	Orm := db.Orm()
 	var levea []uint
 	if len(Leve5IDs) <= 0 {
@@ -184,18 +184,18 @@ const (
 	UserInfoKeyBrokerageLeve6 model.UserInfoKey = "BrokerageLeve6"
 )
 
-func (service UserService) GetUserInfo(UserID dao.PrimaryKey) *UserInfoValue {
+func (m UserService) GetUserInfo(UserID dao.PrimaryKey) *UserInfoValue {
 	Orm := db.Orm()
 	//.First(&user, 10)
-	m := make(map[model.UserInfoKey]string)
+	sourceData := make(map[model.UserInfoKey]string)
 	oldD := make(map[model.UserInfoKey]string)
 	var userInfo []*model.UserInfo
 	Orm.Where(`"UserID"=?`, UserID).Find(&userInfo)
 	for _, v := range userInfo {
-		m[v.Key] = v.Value
+		sourceData[v.Key] = v.Value
 		oldD[v.Key] = v.Value
 	}
-	return &UserInfoValue{UserID: UserID, SourceData: m, OldData: oldD}
+	return &UserInfoValue{UserID: UserID, SourceData: sourceData, OldData: oldD}
 }
 
 type UserInfoValue struct {
@@ -316,7 +316,7 @@ func (m *UserInfoValue) GetState() UserInfoKeyStateType {
 	return UserInfoKeyStateType(m.SourceData[model.UserInfoKeyState])
 }
 
-func (service UserService) UserAction(context constrain.IContext) (r constrain.IResult, err error) {
+func (m UserService) UserAction(context constrain.IContext) (r constrain.IResult, err error) {
 	/*company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	Orm := db.Orm()
 	action := context.Request.URL.Query().Get("action")
@@ -331,27 +331,27 @@ func (service UserService) UserAction(context constrain.IContext) (r constrain.I
 	//return &result.JsonResult{Data: result.ActionResult{Code: result.Fail, Message: "", Data: nil}}, nil
 	return result.NewData(nil), nil
 }
-func (service UserService) GetByPhone(Orm *gorm.DB, oid dao.PrimaryKey, Tel string) *model.User {
+func (m UserService) GetByPhone(Orm *gorm.DB, oid dao.PrimaryKey, Tel string) *model.User {
 	user := &model.User{}
 	Orm.Where(`"Phone"=? and "OID"=?`, Tel, oid).First(user) //SelectOne(user, "select * from User where Tel=?", Tel)
 	return user
 }
 
-func (service UserService) GetByEmail(Orm *gorm.DB, oid dao.PrimaryKey, email string) *model.User {
+func (m UserService) GetByEmail(Orm *gorm.DB, oid dao.PrimaryKey, email string) *model.User {
 	user := &model.User{}
 	Orm.Where(`"Email"=? and "OID"=?`, email, oid).First(user) //SelectOne(user, "select * from User where Tel=?", Tel)
 	return user
 }
 
-func (service UserService) FindUserByOpenID(Orm *gorm.DB, OID dao.PrimaryKey, OpenID string) *model.User {
+func (m UserService) FindUserByOpenID(Orm *gorm.DB, OID dao.PrimaryKey, OpenID string) *model.User {
 	user := &model.User{}
 	//CompanyOpenID := user.GetCompanyOpenID(CompanyID, OpenID)
 	Orm.Where(`"OpenID"=? and "OID"=?`, OpenID, OID).First(user) //SelectOne(user, "select * from User where Tel=?", Tel)
 	return user
 }
-func (service UserService) AddUserByOpenID(Orm *gorm.DB, OID dao.PrimaryKey, OpenID string) (*model.User, error) {
+func (m UserService) AddUserByOpenID(Orm *gorm.DB, OID dao.PrimaryKey, OpenID string) (*model.User, error) {
 	//Orm := singleton.Orm()
-	user := service.FindUserByOpenID(Orm, OID, OpenID)
+	user := m.FindUserByOpenID(Orm, OID, OpenID)
 	if user.IsZero() {
 		user.OID = OID
 		user.OpenID = OpenID

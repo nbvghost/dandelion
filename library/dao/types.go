@@ -26,10 +26,14 @@ func NewFromString(v string) PrimaryKey {
 
 // var _ IEntity = (*Entity)(nil)
 type IEntity interface {
-	TableName() string
+	ITable
 	IsZero() bool
 	Primary() PrimaryKey
 	PrimaryName() string
+}
+
+type ITable interface {
+	TableName() string
 }
 
 type Entity struct {

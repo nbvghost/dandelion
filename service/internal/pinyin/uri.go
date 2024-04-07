@@ -2,7 +2,7 @@ package pinyin
 
 import (
 	"fmt"
-	"github.com/nbvghost/dandelion/domain/cache"
+	"github.com/nbvghost/dandelion/service/internal/cache"
 	"regexp"
 	"strings"
 )
@@ -18,10 +18,6 @@ var gRegexp = regexp.MustCompile("-+")
 
 //var enRegexp = regexp.MustCompile("[a-zA-Z\u4E00-\u9FA5\u9FA6-\u9FFF]+")
 
-func Eat() error {
-
-	return nil
-}
 func (Service) AutoDetectUri(s string) string {
 
 	var ll []string
@@ -32,7 +28,7 @@ func (Service) AutoDetectUri(s string) string {
 			if enRegexp.MatchString(word) {
 				ll = append(ll, word)
 			} else {
-				py := cache.Cache.GetPinyin(word)
+				py := (&cache.ChinesePinyinCache{}).GetPinyin(word)
 				if len(py) == 0 {
 					ll = append(ll, fmt.Sprintf("-%x-", word[:]))
 				} else {

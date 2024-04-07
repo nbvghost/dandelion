@@ -2,6 +2,7 @@ package content
 
 import (
 	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service/internal/company"
 	"github.com/nbvghost/dandelion/service/internal/journal"
 	"github.com/nbvghost/dandelion/service/internal/pinyin"
@@ -20,7 +21,7 @@ type ContentService struct {
 
 func (service ContentService) GetTitle(orm *gorm.DB, OID dao.PrimaryKey) string {
 	organization := service.OrganizationService.GetOrganization(OID).(*model.Organization)
-	contentConfig := service.GetContentConfig(db.Orm(), organization.Primary())
+	contentConfig := repository.ContentConfigDao.GetContentConfig(db.Orm(), organization.Primary())
 	title := contentConfig.Name
 	if len(title) == 0 {
 		title = organization.Name

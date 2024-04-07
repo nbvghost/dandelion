@@ -10,7 +10,7 @@ import (
 )
 
 // CancelOk 后台或者客服调用的接口
-func (service OrdersService) CancelOk(context context.Context, OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) (string, error) {
+func (m OrdersService) CancelOk(context context.Context, OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) (string, error) {
 	Orm := db.Orm()
 
 	//var orders model.Orders
@@ -24,7 +24,7 @@ func (service OrdersService) CancelOk(context context.Context, OrdersID dao.Prim
 
 		if orders.IsPay == model.OrdersIsPayPayed {
 			var err error
-			err = service.Wx.Refund(context, orders, nil, "用户取消", wxConfig)
+			err = m.Wx.Refund(context, orders, nil, "用户取消", wxConfig)
 			if err != nil {
 				return "", err
 			}

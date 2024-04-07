@@ -2,8 +2,8 @@ package service
 
 import (
 	"fmt"
-	"github.com/nbvghost/dandelion/domain/cache"
 	"github.com/nbvghost/dandelion/library/db"
+	"golang.org/x/sync/errgroup"
 	"log"
 
 	"github.com/nbvghost/dandelion/constrain"
@@ -23,8 +23,6 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 	if err != nil {
 		return err
 	}
-
-	cache.Init()
 
 	if flagEnv.DisableMigratorAndCreateTable {
 		return nil
@@ -232,6 +230,27 @@ $Goods$ LANGUAGE plpgsql;`
 		go func() {
 			RebuildFullTextSearch()
 		}()
+	}
+
+	group := &errgroup.Group{}
+	group.Go(func() error {
+		var cacheList []model.Pinyin
+		db.Orm().Model(model.Pinyin{}).Find(&cacheList)
+		for _, v := range cacheList {
+			Cache.ChinesePinyinCache.Pinyin[v.Word] = v.Pinyin
+		}
+
+		var languageList []model.Language
+		db.Orm().Model(model.Language{}).Where(`"CodeBiadu"<>''`).Find(&languageList)
+		for index, v := range languageList {
+			Cache.LanguageCache.ShowLanguage = append(Cache.LanguageCache.ShowLanguage, languageList[index])
+			Cache.LanguageCodeCache.LangBaiduCode[v.Code6391] = v.CodeBiadu
+		}
+		return nil
+	})
+	err = group.Wait()
+	if err != nil {
+		return err
 	}
 
 	return nil

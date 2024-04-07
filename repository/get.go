@@ -6,3 +6,5 @@ var ContentDao = internal.ContentDao{}
 var ContentItemDao = internal.ContentItemDao{}
 var ContentSubTypeDao = internal.ContentSubTypeDao{}
 var ContentTypeDao = internal.ContentTypeDao{}
+var DNSDao = internal.DNSDao{}
+var ContentConfigDao = internal.ContentConfigDao{}

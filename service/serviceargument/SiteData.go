@@ -24,6 +24,7 @@ type SiteData[T ListType] struct {
 	Organization    model.Organization
 	Item            T
 	TypeNameMap     map[dao.PrimaryKey]extends.Menus
+	Options         Options
 }
 
 func (m *SiteData[T]) ListFirst() T {

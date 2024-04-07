@@ -9,6 +9,7 @@ import (
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service/internal/activity"
 	"github.com/nbvghost/dandelion/service/internal/admin"
+	"github.com/nbvghost/dandelion/service/internal/cache"
 	"github.com/nbvghost/dandelion/service/internal/catch"
 	"github.com/nbvghost/dandelion/service/internal/company"
 	"github.com/nbvghost/dandelion/service/internal/configuration"
@@ -47,7 +48,6 @@ var Activity = struct {
 var Admin = admin.AdminService{}
 var Catch = catch.SpiderService{}
 var Company = struct {
-	DNS          company.DNSService
 	Organization company.OrganizationService
 	Store        company.StoreService
 }{}
@@ -61,16 +61,16 @@ var File = struct {
 	Html file.HtmlService
 }{}
 var Goods = struct {
-	Goods          goods.GoodsService
-	Attributes     goods.AttributesService
-	GoodsType      goods.GoodsTypeService
-	SKU            goods.SKUService
-	Sort           goods.SortService
-	Specification  goods.SpecificationService
-	Tag            goods.TagService
-	ProductOptions func(ctx constrain.IContext, oid dao.PrimaryKey) (*serviceargument.Options, error)
+	Goods         goods.GoodsService
+	Attributes    goods.AttributesService
+	GoodsType     goods.GoodsTypeService
+	SKU           goods.SKUService
+	Sort          goods.SortService
+	Specification goods.SpecificationService
+	Tag           goods.TagService
+	//ProductOptions func(ctx constrain.IContext, oid dao.PrimaryKey) (*serviceargument.Options, error)
 }{
-	ProductOptions: goods.ProductOptions,
+	//ProductOptions: goods.ProductOptions,
 }
 
 var Journal = struct {
@@ -105,6 +105,17 @@ var Network = struct {
 	NewSMS func(oid dao.PrimaryKey) *network.SMS
 }{
 	NewSMS: network.NewSMS,
+}
+
+var Cache = struct {
+	ChinesePinyinCache cache.ChinesePinyinCache
+	LanguageCache      cache.LanguageCache
+	LanguageCodeCache  cache.LanguageCodeCache
+	RedisCache         cache.RedisCache
+}{
+	ChinesePinyinCache: cache.ChinesePinyinCache{Pinyin: make(map[string]string)},
+	LanguageCache:      cache.LanguageCache{ShowLanguage: make([]model.Language, 0)},
+	LanguageCodeCache:  cache.LanguageCodeCache{LangBaiduCode: make(map[string]string)},
 }
 
 func init() {
@@ -163,7 +174,7 @@ func GetSiteData[T serviceargument.ListType](context constrain.IContext, OID dao
 	}
 
 	organization := Company.Organization.GetOrganization(OID).(*model.Organization)
-	contentConfig := Content.GetContentConfig(db.Orm(), OID)
+	contentConfig := repository.ContentConfigDao.GetContentConfig(db.Orm(), OID)
 
 	menusPage := allMenusData.ListMenusByType(model.ContentTypePage)
 	moduleContentData = serviceargument.SiteData[T]{

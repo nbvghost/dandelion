@@ -115,12 +115,39 @@ func (service SKUService) SkuLabelByGoodsID(orm *gorm.DB, goodsID dao.PrimaryKey
 	}
 	return skuLabelList
 }
-func (service SKUService) SkuLabelByOID(orm *gorm.DB, oid dao.PrimaryKey) []extends.SkuLabel {
-	goodsSkuLabelDataMap := make(map[dao.PrimaryKey][]*model.GoodsSkuLabelData)
-	{
+
+/*
+	func (service SKUService) SkuLabelByOID(orm *gorm.DB, oid dao.PrimaryKey) []extends.SkuLabel {
 		goodsSkuLabelData := dao.Find(orm, &model.GoodsSkuLabelData{}).Where(`"OID"=?`, oid).List()
-		for i := range goodsSkuLabelData {
-			item := goodsSkuLabelData[i].(*model.GoodsSkuLabelData)
+		goodsSkuLabel := dao.Find(orm, &model.GoodsSkuLabel{}).Where(`"OID"=? and "Abel"=?`, oid, true).Order(`"Image" desc`).List()
+
+		goodsSkuLabelDataMap := make(map[dao.PrimaryKey][]*model.GoodsSkuLabelData)
+		{
+
+			for i := range goodsSkuLabelData {
+				item := goodsSkuLabelData[i].(*model.GoodsSkuLabelData)
+				if _, ok := goodsSkuLabelDataMap[item.GoodsSkuLabelID]; !ok {
+					goodsSkuLabelDataMap[item.GoodsSkuLabelID] = make([]*model.GoodsSkuLabelData, 0)
+				}
+				goodsSkuLabelDataMap[item.GoodsSkuLabelID] = append(goodsSkuLabelDataMap[item.GoodsSkuLabelID], item)
+			}
+		}
+
+
+		skuLabelList := make([]extends.SkuLabel, len(goodsSkuLabel))
+		for i := range goodsSkuLabel {
+			item := goodsSkuLabel[i].(*model.GoodsSkuLabel)
+			skuLabelList[i].Label = item
+			skuLabelList[i].Data = goodsSkuLabelDataMap[item.ID]
+		}
+		return skuLabelList
+	}
+*/
+func (service SKUService) SkuLabel(goodsSkuLabelList []*model.GoodsSkuLabel, goodsSkuLabelDataList []*model.GoodsSkuLabelData) []extends.SkuLabel {
+	goodsSkuLabelDataMap := make(map[dao.PrimaryKey][]*model.GoodsSkuLabelData)
+	for i := range goodsSkuLabelDataList {
+		item := goodsSkuLabelDataList[i]
+		if item != nil {
 			if _, ok := goodsSkuLabelDataMap[item.GoodsSkuLabelID]; !ok {
 				goodsSkuLabelDataMap[item.GoodsSkuLabelID] = make([]*model.GoodsSkuLabelData, 0)
 			}
@@ -128,12 +155,14 @@ func (service SKUService) SkuLabelByOID(orm *gorm.DB, oid dao.PrimaryKey) []exte
 		}
 	}
 
-	goodsSkuLabel := dao.Find(orm, &model.GoodsSkuLabel{}).Where(`"OID"=? and "Abel"=?`, oid, true).Order(`"Image" desc`).List()
-	skuLabelList := make([]extends.SkuLabel, len(goodsSkuLabel))
-	for i := range goodsSkuLabel {
-		item := goodsSkuLabel[i].(*model.GoodsSkuLabel)
-		skuLabelList[i].Label = item
-		skuLabelList[i].Data = goodsSkuLabelDataMap[item.ID]
+	skuLabelList := make([]extends.SkuLabel, len(goodsSkuLabelList))
+	for i := range goodsSkuLabelList {
+		item := goodsSkuLabelList[i]
+		if item != nil {
+			skuLabelList[i].Label = item
+			skuLabelList[i].Data = goodsSkuLabelDataMap[item.ID]
+		}
+
 	}
 	return skuLabelList
 }

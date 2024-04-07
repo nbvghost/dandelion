@@ -41,7 +41,7 @@ type Catch1688Service struct {
 	//URLS         []string
 }
 
-func (service *Catch1688Service) Run() {
+func (m *Catch1688Service) Run() {
 
 	//service.URLS = append(service.URLS, GGoodsType{URL:"https://detail.1688.com/offer/565805587556.html?sk=consign"})
 	//service.URLS = append(service.URLS, GGoodsType{URL:"https://detail.1688.com/offer/594644186430.html?sk=consign"})
@@ -63,7 +63,7 @@ func (service *Catch1688Service) Run() {
 
 			//URLS = append(URLS, "https://detail.1688.com/offer/562482031336.html?sk=consign")
 			for index := range URLS.Catch {
-				service.URLCatch(URLS.Catch[index])
+				m.URLCatch(URLS.Catch[index])
 				time.Sleep(60 * time.Second)
 			}
 
@@ -88,7 +88,7 @@ func (service *Catch1688Service) Run() {
 
 							b, err := ioutil.ReadAll(f)
 							if err == nil {
-								service.Catch(string(b), fl[i].Name(), false)
+								m.Catch(string(b), fl[i].Name(), false)
 							}
 						}
 
@@ -104,7 +104,7 @@ func (service *Catch1688Service) Run() {
 	}()
 }
 
-func (service *Catch1688Service) getGoodsType(content string) (map[string]interface{}, map[string]interface{}) {
+func (m *Catch1688Service) getGoodsType(content string) (map[string]interface{}, map[string]interface{}) {
 
 	goodsType := make(map[string]interface{})
 	goodsInfo := make(map[string]interface{})
@@ -164,16 +164,16 @@ func (service *Catch1688Service) getGoodsType(content string) (map[string]interf
 
 	return goodsType, goodsInfo
 }
-func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
+func (m *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 	//b, err := ioutil.ReadAll(res.Body)
 
 	addPriceRotia := 0.3
 	brokerageRotia := 0.1
 	expresstePrice := 500
 
-	haveAdmin := service.Admin.FindAdminByAccount(db.Orm(), "admin")
+	haveAdmin := m.Admin.FindAdminByAccount(db.Orm(), "admin")
 	//邮件模板
-	express := service.ExpressTemplate.GetExpressTemplateByOID(haveAdmin.OID)
+	express := m.ExpressTemplate.GetExpressTemplateByOID(haveAdmin.OID)
 	if express.ID == 0 {
 		log.Println("没有创建快递模板无法添加产品")
 		return
@@ -181,7 +181,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 
 	//content_item := service.URLS[i]
 
-	_havg := service.Goods.FindGoodsLikeMark(Mark)
+	_havg := m.Goods.FindGoodsLikeMark(Mark)
 	if _havg.ID > 0 {
 		return
 	}
@@ -212,7 +212,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 		goods.Title = title
 	})
 
-	_goods := service.Goods.FindGoodsByTitle(goods.Title)
+	_goods := m.Goods.FindGoodsByTitle(goods.Title)
 	if _goods.ID != 0 {
 		return
 	}
@@ -223,7 +223,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 	docHtml, err := doc.Html()
 	log.Println(err)
 
-	goodsType, goodsInfo := service.getGoodsType(docHtml)
+	goodsType, goodsInfo := m.getGoodsType(docHtml)
 	log.Println(goodsType, goodsInfo)
 
 	totlStock := uint(0)
@@ -318,7 +318,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 	categoryA := categoryList[0].(map[string]interface{})
 	categoryB := categoryList[1].(map[string]interface{})
 
-	gt, gtc := service.GoodsTypeService.AddGoodsTypeByNameByChild(categoryA["name"].(string), categoryB["name"].(string))
+	gt, gtc := m.GoodsTypeService.AddGoodsTypeByNameByChild(categoryA["name"].(string), categoryB["name"].(string))
 	goods.GoodsTypeID = gt.ID
 	goods.GoodsTypeChildID = gtc.ID
 
@@ -465,7 +465,7 @@ func (service *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 		dao.Create(db.Orm(), &(specifications[s]))
 	}
 }
-func (service *Catch1688Service) URLCatch(URL string) {
+func (m *Catch1688Service) URLCatch(URL string) {
 
 	res, err := http.Get(URL)
 	if err != nil {
@@ -480,6 +480,6 @@ func (service *Catch1688Service) URLCatch(URL string) {
 
 	b, err := ioutil.ReadAll(res.Body)
 	log.Println(err)
-	service.Catch(string(b), URL, true)
+	m.Catch(string(b), URL, true)
 
 }

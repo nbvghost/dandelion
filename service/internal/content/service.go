@@ -11,8 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
-
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/tag"
 	"github.com/nbvghost/dandelion/entity/extends"
@@ -253,14 +251,14 @@ func (service ContentService) ChangeContentConfig(OID dao.PrimaryKey, fieldName,
 	case "FaviconIco":
 		changeMap["FaviconIco"] = fieldValue
 	case "SocialAccount":
-		var socialAccount sqltype.Array[*sqltype.SocialAccount]//extends.SocialAccountList
+		var socialAccount sqltype.Array[*sqltype.SocialAccount] //extends.SocialAccountList
 		err := json.Unmarshal([]byte(fieldValue), &socialAccount)
 		if err != nil {
 			return err
 		}
 		changeMap["SocialAccount"] = socialAccount
 	case "CustomerService":
-		var customerService sqltype.Array[*sqltype.CustomerService]//extends.CustomerServiceList
+		var customerService sqltype.Array[*sqltype.CustomerService] //extends.CustomerServiceList
 		err := json.Unmarshal([]byte(fieldValue), &customerService)
 		if err != nil {
 			return err
@@ -270,7 +268,7 @@ func (service ContentService) ChangeContentConfig(OID dao.PrimaryKey, fieldName,
 		EnableHTMLCache, _ := strconv.ParseBool(fieldValue)
 		changeMap["EnableHTMLCache"] = EnableHTMLCache
 	case "FocusPicture":
-		var focusPicture sqltype.Array[*sqltype.FocusPicture]//sqltype.FocusPictureList
+		var focusPicture sqltype.Array[*sqltype.FocusPicture] //sqltype.FocusPictureList
 		err := json.Unmarshal([]byte(fieldValue), &focusPicture)
 		if err != nil {
 			return err
@@ -281,22 +279,6 @@ func (service ContentService) ChangeContentConfig(OID dao.PrimaryKey, fieldName,
 	Orm := db.Orm()
 	err := Orm.Model(&model.ContentConfig{}).Where(map[string]interface{}{"OID": OID}).Updates(changeMap).Error
 	return err
-}
-
-func (service ContentService) AddContentConfig(db *gorm.DB, company *model.Organization) error {
-	Orm := db
-	item := service.GetContentConfig(db, company.ID)
-	if (&item).IsZero() {
-		err := Orm.Create(&model.ContentConfig{OID: company.ID, Name: company.Name}).Error
-		return err
-	}
-	return nil
-}
-
-func (service ContentService) GetContentConfig(orm *gorm.DB, OID dao.PrimaryKey) model.ContentConfig {
-	var contentConfig model.ContentConfig
-	orm.Model(&model.ContentConfig{}).Where(map[string]interface{}{"OID": OID}).First(&contentConfig)
-	return contentConfig
 }
 
 //-----------------------------------------Content----------------------------------------------------------
