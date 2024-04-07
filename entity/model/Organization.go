@@ -29,7 +29,7 @@ type Organization struct {
 	Categories   string              `gorm:"column:Categories"`                     //门店的类型
 	Longitude    float64             `gorm:"column:Longitude"`                      //地理位置
 	Latitude     float64             `gorm:"column:Latitude"`                       //地理位置
-	Photos       sqltype.StringArray `gorm:"column:Photos;type:JSON"`               //店的图片
+	Photos       sqltype.Array[string]       `gorm:"column:Photos;type:JSON"`               //店的图片
 	Special      sqltype.ObjectArray `gorm:"column:Special;type:JSON;default:'[]'"` //特色
 	Opentime     string              `gorm:"column:Opentime"`                       //营业时间
 	Avgprice     int                 `gorm:"column:Avgprice"`                       //每人平均消费

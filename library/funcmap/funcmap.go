@@ -255,7 +255,7 @@ func (fo *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 func NewFuncMap() ITemplateFunc {
 	fm := &templateFuncMap{}
 	fm.funcMap = make(template.FuncMap)
-	fm.funcMap["IncludeHTML"] = fm.includeHTML
+	fm.funcMap["Include"] = fm.include
 	fm.funcMap["Split"] = fm.splitFunc
 	fm.funcMap["FromJSONToMap"] = fm.fromJSONToMap
 	fm.funcMap["FromJSONToArray"] = fm.fromJSONToArray
@@ -477,16 +477,16 @@ func (fo *templateFuncMap) splitFunc(source string, sep string) []string {
 
 	return strings.Split(source, sep)
 }
-func (fo *templateFuncMap) includeHTML(url string, params interface{}) template.HTML {
+func (fo *templateFuncMap) include(viewPath string, params interface{}) template.HTML {
 	//util.Trace(params)
 	//paramsMap := make(map[string]interface{})
 
 	b := bytes.NewBuffer(make([]byte, 0))
 	ww := bufio.NewWriter(b)
 
-	t, err := template.ParseFiles("view/" + url)
+	t, err := template.ParseFiles("view/" + viewPath + ".gohtml")
 	if os.IsNotExist(err) {
-		ww.WriteString("IncludeHTML:not found path in:" + url)
+		ww.WriteString("include:not found path in:" + viewPath)
 		t = template.New("static")
 	} else {
 		t.Execute(ww, params)

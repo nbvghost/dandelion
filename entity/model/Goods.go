@@ -2,11 +2,10 @@ package model
 
 import (
 	"errors"
+	"github.com/nbvghost/dandelion/entity/sqltype"
 	"runtime/debug"
 
 	"github.com/lib/pq"
-	"github.com/nbvghost/dandelion/entity/sqltype"
-
 	"gorm.io/gorm"
 
 	"github.com/nbvghost/dandelion/library/dao"
@@ -20,26 +19,26 @@ type GoodsAttribute struct {
 // 商品
 type Goods struct {
 	dao.Entity
-	OID               dao.PrimaryKey      `gorm:"column:OID;index"`               //
-	Uri               string              `gorm:"column:Uri"`                     //
-	Title             string              `gorm:"column:Title"`                   //
-	GoodsTypeID       dao.PrimaryKey      `gorm:"column:GoodsTypeID"`             //
-	GoodsTypeChildID  dao.PrimaryKey      `gorm:"column:GoodsTypeChildID"`        //
-	Price             uint                `gorm:"column:Price"`                   //
-	Stock             uint                `gorm:"column:Stock"`                   //
-	Hide              uint                `gorm:"column:Hide"`                    //
-	Images            sqltype.StringArray `gorm:"column:Images;type:JSON;"`       //json array
-	Videos            sqltype.StringArray `gorm:"column:Videos;type:JSON;"`       //json array
-	Summary           string              `gorm:"column:Summary;type:text"`       //
-	Introduce         string              `gorm:"column:Introduce;type:text"`     //
-	Pictures          sqltype.StringArray `gorm:"column:Pictures;type:JSON"`      //json array
-	Params            string              `gorm:"column:Params"`                  //json array
-	ExpressTemplateID dao.PrimaryKey      `gorm:"column:ExpressTemplateID"`       //
-	CountSale         uint                `gorm:"column:CountSale"`               //销售量
-	CountView         uint                `gorm:"column:CountView"`               //查看数量
-	OrderMinNum       int                 `gorm:"column:OrderMinNum"`             //最小订购数量
-	Tags              pq.StringArray      `gorm:"column:Tags;type:text[]"`        //
-	IsRichText        bool                `gorm:"column:IsRichText;type:boolean"` //指明Introduce字段是否使用rich text编辑
+	OID               dao.PrimaryKey        `gorm:"column:OID;index"`               //
+	Uri               string                `gorm:"column:Uri"`                     //
+	Title             string                `gorm:"column:Title"`                   //
+	GoodsTypeID       dao.PrimaryKey        `gorm:"column:GoodsTypeID"`             //
+	GoodsTypeChildID  dao.PrimaryKey        `gorm:"column:GoodsTypeChildID"`        //
+	Price             uint                  `gorm:"column:Price"`                   //
+	Stock             uint                  `gorm:"column:Stock"`                   //
+	Hide              uint                  `gorm:"column:Hide"`                    //
+	Images            sqltype.Array[string] `gorm:"column:Images;type:JSON;"`       //json array
+	Videos            sqltype.Array[string] `gorm:"column:Videos;type:JSON;"`       //json array
+	Summary           string                `gorm:"column:Summary;type:text"`       //
+	Introduce         string                `gorm:"column:Introduce;type:text"`     //
+	Pictures          sqltype.Array[string] `gorm:"column:Pictures;type:JSON"`      //json array
+	Params            string                `gorm:"column:Params"`                  //json array
+	ExpressTemplateID dao.PrimaryKey        `gorm:"column:ExpressTemplateID"`       //
+	CountSale         uint                  `gorm:"column:CountSale"`               //销售量
+	CountView         uint                  `gorm:"column:CountView"`               //查看数量
+	OrderMinNum       int                   `gorm:"column:OrderMinNum"`             //最小订购数量
+	Tags              pq.StringArray        `gorm:"column:Tags;type:text[]"`        //
+	IsRichText        bool                  `gorm:"column:IsRichText;type:boolean"` //指明Introduce字段是否使用rich text编辑
 	//TimeSellID        uint `gorm:"column:TimeSellID"`                          //
 }
 

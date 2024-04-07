@@ -7,7 +7,7 @@ import (
 	"github.com/nbvghost/dandelion/service/internal/activity"
 	"github.com/nbvghost/dandelion/service/internal/express"
 	"github.com/nbvghost/dandelion/service/internal/pinyin"
-	"github.com/nbvghost/dandelion/service/mode"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 	"github.com/nbvghost/tool/object"
 	"gorm.io/gorm/clause"
 	"log"
@@ -37,38 +37,70 @@ type GoodsService struct {
 	ExpressTemplateService express.ExpressTemplateService
 }
 
-func (service GoodsService) PaginationGoods(OID, GoodsTypeID, GoodsTypeChildID dao.PrimaryKey, pageIndex int) (int, int, int, []*model.Goods) {
-	//pageIndex, pageSize, total, list, err :
-	if GoodsTypeID == 0 {
-		db := dao.Find(db.Orm(), &model.Goods{}).Where(`"OID"=?`, OID)
-		total := db.Limit(pageIndex, 18)
-		goodsList := db.List()
-		list := make([]*model.Goods, 0)
-		for i := range goodsList {
-			list = append(list, goodsList[i].(*model.Goods))
+func (service GoodsService) PaginationGoodsDetail(OID, GoodsTypeID, GoodsTypeChildID dao.PrimaryKey, filterOption []serviceargument.Option, pageIndex int) (int, int, int, []*extends.GoodsDetail) {
+	var pageSize = 20
+	orm := db.Orm().Model(&model.Goods{}).Where(`"Goods"."OID"=?`, OID)
+
+	if GoodsTypeID > 0 && GoodsTypeChildID == 0 {
+		orm.Where(`"Goods"."GoodsTypeID"=?`, GoodsTypeID)
+	}
+	if GoodsTypeID > 0 && GoodsTypeChildID > 0 {
+		orm.Where(`"Goods"."GoodsTypeID"=? and "Goods"."GoodsTypeChildID"=?`, GoodsTypeID, GoodsTypeChildID)
+	}
+
+	orm.Joins(`left join "Specification" on ("Goods"."ID" = "Specification"."GoodsID")`)
+	orm.Joins(`left join "GoodsAttributes" on ("Goods"."ID" = "GoodsAttributes"."GoodsID")`)
+	orm.Group(`"Goods"."ID"`)
+	orm.Select(`"Goods".*,json_agg("Specification") as "Specifications", json_agg("GoodsAttributes") as "GoodsAttributes"`)
+
+	for _, option := range filterOption {
+
+		/*select g."Name",g."Num",g."Label"
+			from (SELECT "Goods".*,
+				json_agg("Specification"."MarketPrice")::jsonb as "MarketPrice",
+				json_agg("Specification"."Weight")::jsonb      as "Weight",
+				json_agg("Specification"."Label")::jsonb      as "Label",
+				json_agg("Specification"."Num")::jsonb      as "Num",
+				json_agg(concat("GoodsAttributes"."Name", '-', "GoodsAttributes"."Value"))::jsonb                  as "Name"
+
+			FROM "Goods"
+			left join "Specification" on ("Goods"."ID" = "Specification"."GoodsID")
+			left join "GoodsAttributes" on ("Goods"."ID" = "GoodsAttributes"."GoodsID")
+			WHERE "Goods"."OID" = 1
+			GROUP BY "Goods"."ID") as g
+			where jsonb_path_exists(g."Label", '$[*] ? (@ == "红-小" || @ == "红-10")') and
+			jsonb_path_exists(g."Num", '$[*] ? (@ > 14 && @ < 16)') and
+			jsonb_path_exists(g."Name", '$[*] ? (@ == "dgh-ghfjgf")') and
+			jsonb_path_exists(g."MarketPrice", '$[*] ? (@ >= $min && @ <= $max)', '{"min": 0,"max": 5000000}')
+			and jsonb_path_exists(g."Weight", '$[*] ? (@ >= $min && @ <= $max)', '{"min": 0,"max": 5000000}');*/
+
+		//OptionsTypeAttribute     OptionsType = "att"
+		//OptionsTypeSpecification OptionsType = "spe"
+		//OptionsTypePackageNum    OptionsType = "pac"
+		//OptionsTypeWeight        OptionsType = "wei"
+		//OptionsTypePrice         OptionsType = "pri"
+
+		switch option.Type {
+		case serviceargument.OptionsTypeAttribute:
+		case serviceargument.OptionsTypeSpecification:
+		case serviceargument.OptionsTypePackageNum:
+		case serviceargument.OptionsTypeWeight:
+		case serviceargument.OptionsTypePrice:
 		}
-		return pageIndex, 18, int(total), list //repository.Goods.FindByOIDLimit(OID, params.NewLimit(pageIndex, 18))
+
+
 	}
-	if GoodsTypeChildID == 0 {
-		db := dao.Find(db.Orm(), &model.Goods{}).Where(`"OID"=? and "GoodsTypeID"=?`, OID, GoodsTypeID)
-		total := db.Limit(pageIndex, 20)
-		goodsList := db.List()
-		list := make([]*model.Goods, 0)
-		for i := range goodsList {
-			list = append(list, goodsList[i].(*model.Goods))
-		}
-		return pageIndex, 20, int(total), list
-		//return repository.Goods.FindByOIDAndGoodsTypeIDLimit(OID, GoodsTypeID, params.NewLimit(pageIndex, 18))
+
+	var total int64
+	orm.Count(&total)
+
+	if pageIndex < 0 {
+		pageIndex = 0
 	}
-	db := dao.Find(db.Orm(), &model.Goods{}).Where(`"OID"=? and "GoodsTypeID"=? and "GoodsTypeChildID"=?`, OID, GoodsTypeID, GoodsTypeChildID)
-	total := db.Limit(pageIndex, 20)
-	goodsList := db.List()
-	list := make([]*model.Goods, 0)
-	for i := range goodsList {
-		list = append(list, goodsList[i].(*model.Goods))
-	}
-	return pageIndex, 20, int(total), list
-	//return repository.Goods.FindByOIDAndGoodsTypeIDAndGoodsTypeChildIDLimit(OID, GoodsTypeID, GoodsTypeChildID, params.NewLimit(pageIndex, 20))
+	goodsList := make([]*extends.GoodsDetail, 0)
+
+	orm.Limit(pageSize).Offset(pageSize * pageIndex).Find(&goodsList)
+	return pageIndex, pageSize, int(total), goodsList
 }
 
 /*
@@ -394,7 +426,7 @@ func (service GoodsService) GetDiscounts(GoodsID, OID dao.PrimaryKey) []extends.
 	return discounts
 }
 
-func (service GoodsService) GoodsList(queryParam *mode.ListQueryParam, oid dao.PrimaryKey, orderBy clause.OrderByColumn, pageNo, pageSize int) *result.Pagination {
+func (service GoodsService) GoodsList(queryParam *serviceargument.ListQueryParam, oid dao.PrimaryKey, orderBy clause.OrderByColumn, pageNo, pageSize int) *result.Pagination {
 	Orm := db.Orm()
 	//var goodsList []model.Goods
 	//db := Orm.Model(&model.Goods{}).Order("CountSale desc").Limit(10)
@@ -441,14 +473,14 @@ func (service GoodsService) GoodsList(queryParam *mode.ListQueryParam, oid dao.P
 	}*/
 }
 
-func ProductOptions(ctx constrain.IContext, oid dao.PrimaryKey) (*mode.Options, error) {
+func ProductOptions(ctx constrain.IContext, oid dao.PrimaryKey) (*serviceargument.Options, error) {
 
-	var options = &mode.Options{}
+	var options = &serviceargument.Options{}
 	{
 		goodsList := dao.Find(db.Orm(), &model.GoodsAttributes{}).Where(`"OID"=?`, oid).List()
 		for i := range goodsList {
 			item := goodsList[i].(*model.GoodsAttributes)
-			options.AddAttributes(mode.OptionsTypeAttribute, item.ID, item.Name, item.Value)
+			options.AddAttributes(serviceargument.OptionsTypeAttribute, item.Name, item.Value)
 		}
 	}
 
@@ -458,7 +490,7 @@ func ProductOptions(ctx constrain.IContext, oid dao.PrimaryKey) (*mode.Options, 
 			item := skuList[i]
 			for i2 := range item.Data {
 				itemData := item.Data[i2]
-				options.AddAttributes(mode.OptionsTypeSpecification, itemData.ID, item.Label.Label, itemData.Label)
+				options.AddAttributes(serviceargument.OptionsTypeSpecification, item.Label.Label, itemData.Label)
 			}
 		}
 	}
@@ -473,8 +505,12 @@ func ProductOptions(ctx constrain.IContext, oid dao.PrimaryKey) (*mode.Options, 
 		if !ok {
 			return nil, errors.New("error data type")
 		}
-		for _, u := range sList {
-			options.AddAttributes(mode.OptionsTypePackageNum, 0, "packing number", object.ParseString(u))
+		for i, u := range sList {
+			if i == 0 {
+				options.AddAttributes(serviceargument.OptionsTypePackageNum, "Packing quantity", "0-"+object.ParseString(u))
+			} else {
+				options.AddAttributes(serviceargument.OptionsTypePackageNum, "Packing quantity", object.ParseString(sList[i-1])+"-"+object.ParseString(u))
+			}
 		}
 	}
 
@@ -487,8 +523,12 @@ func ProductOptions(ctx constrain.IContext, oid dao.PrimaryKey) (*mode.Options, 
 		if !ok {
 			return nil, errors.New("error data type")
 		}
-		for _, u := range weightList {
-			options.AddAttributes(mode.OptionsTypeWeight, 0, "weight", object.ParseString(u))
+		for i, u := range weightList {
+			if i == 0 {
+				options.AddAttributes(serviceargument.OptionsTypeWeight, "Weight", "0-"+object.ParseString(u))
+			} else {
+				options.AddAttributes(serviceargument.OptionsTypeWeight, "Weight", object.ParseString(weightList[i-1])+"-"+object.ParseString(u))
+			}
 		}
 	}
 	{
@@ -500,16 +540,20 @@ func ProductOptions(ctx constrain.IContext, oid dao.PrimaryKey) (*mode.Options, 
 		if !ok {
 			return nil, errors.New("error data type")
 		}
-		for _, u := range priceList {
-			options.AddAttributes(mode.OptionsTypePrice, 0, "price", object.ParseString(u))
+		for i, u := range priceList {
+			if i == 0 {
+				options.AddAttributes(serviceargument.OptionsTypePrice, "Price", "0-"+object.ParseString(u))
+			} else {
+				options.AddAttributes(serviceargument.OptionsTypePrice, "Price", object.ParseString(priceList[i-1])+"-"+object.ParseString(u))
+			}
 		}
 	}
-	var attributes []mode.Option
+	/*var attributes []serviceargument.Option
 	for i := 0; i < len(options.Attributes); i++ {
 		if len(options.Attributes[i].Value) > 1 {
 			attributes = append(attributes, options.Attributes[i])
 		}
 	}
-	options.Attributes = attributes
+	options.Attributes = attributes*/
 	return options, nil
 }

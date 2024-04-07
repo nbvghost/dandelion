@@ -6,7 +6,7 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service"
-	"github.com/nbvghost/dandelion/service/mode"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 )
 
 type GoodsTrendingList struct {
@@ -20,7 +20,7 @@ func (m *GoodsTrendingList) Handle(ctx constrain.IContext) (constrain.IResult, e
 	//index, _ := strconv.Atoi(context.Request.URL.Query().Get("index"))
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 
-	params := &mode.ListQueryParam{}
+	params := &serviceargument.ListQueryParam{}
 	orderBy := &extends.Order{}
 
 	pagination := service.Goods.Goods.GoodsList(params, m.User.OID, orderBy.OrderByColumn(`"CountSale"+"CountView"`, true), m.Get.Index+1, 10)

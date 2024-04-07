@@ -6,7 +6,7 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service"
-	"github.com/nbvghost/dandelion/service/mode"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 	"strings"
 )
 
@@ -28,7 +28,7 @@ func (m *List) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 		}
 	}
 
-	params := &mode.ListOrdersQueryParam{
+	params := &serviceargument.ListOrdersQueryParam{
 		UserID: m.User.ID,
 		Status: StatusList,
 	}

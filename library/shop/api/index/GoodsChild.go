@@ -7,7 +7,7 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service"
-	"github.com/nbvghost/dandelion/service/mode"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 )
 
 type GoodsChild struct {
@@ -28,7 +28,7 @@ func (m *GoodsChild) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//GoodsTypeID       uint  `gorm:"column:GoodsTypeID"`
 	//GoodsTypeChildID  uint  `gorm:"column:GoodsTypeChildID"`
 
-	params := &mode.ListQueryParam{}
+	params := &serviceargument.ListQueryParam{}
 	if m.Get.GoodsTypeChildID == 0 {
 		//sqlWhere = fmt.Sprintf(`"GoodsTypeID"=%v`, m.Get.GoodsTypeID)
 		params.GoodsTypeID = m.Get.GoodsTypeID

@@ -1,4 +1,4 @@
-package mode
+package serviceargument
 
 import (
 	"github.com/nbvghost/dandelion/entity/model"

@@ -253,14 +253,14 @@ func (service ContentService) ChangeContentConfig(OID dao.PrimaryKey, fieldName,
 	case "FaviconIco":
 		changeMap["FaviconIco"] = fieldValue
 	case "SocialAccount":
-		var socialAccount sqltype.SocialAccountList
+		var socialAccount sqltype.Array[*sqltype.SocialAccount]//extends.SocialAccountList
 		err := json.Unmarshal([]byte(fieldValue), &socialAccount)
 		if err != nil {
 			return err
 		}
 		changeMap["SocialAccount"] = socialAccount
 	case "CustomerService":
-		var customerService sqltype.CustomerServiceList
+		var customerService sqltype.Array[*sqltype.CustomerService]//extends.CustomerServiceList
 		err := json.Unmarshal([]byte(fieldValue), &customerService)
 		if err != nil {
 			return err
@@ -270,7 +270,7 @@ func (service ContentService) ChangeContentConfig(OID dao.PrimaryKey, fieldName,
 		EnableHTMLCache, _ := strconv.ParseBool(fieldValue)
 		changeMap["EnableHTMLCache"] = EnableHTMLCache
 	case "FocusPicture":
-		var focusPicture sqltype.FocusPictureList
+		var focusPicture sqltype.Array[*sqltype.FocusPicture]//sqltype.FocusPictureList
 		err := json.Unmarshal([]byte(fieldValue), &focusPicture)
 		if err != nil {
 			return err

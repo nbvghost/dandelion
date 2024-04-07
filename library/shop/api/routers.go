@@ -21,9 +21,11 @@ import (
 func Register(route constrain.IRoute) {
 	route.RegisterRoute("account/mini_program_login", &account.MiniProgramLogin{})
 	route.RegisterRoute("account/qrcode", &account.MiniprogramQRcode{})
-
 	route.RegisterRoute("account/get_login_user", &account.GetLoginUser{})
 	route.RegisterRoute("account/get_login_user_phone", &account.GetLoginUserPhone{})
+	route.RegisterRoute("account/config", &account.Config{})
+	route.RegisterRoute("account/captcha", &account.Captcha{})
+	route.RegisterRoute("account/reset-password", &account.ResetPassword{})
 
 	route.RegisterRoute("wx/callback", &wx.Callback{})
 	route.RegisterRoute("wx/notify/{OID}", &wx.Notify{})
@@ -39,7 +41,6 @@ func Register(route constrain.IRoute) {
 	route.RegisterRoute("user/info/sharekey", &user.InfoSharekey{})
 	route.RegisterRoute("user/transfers", &user.Transfers{})
 	route.RegisterRoute("user/update", &user.Update{})
-	//route.RegisterRoute("user/config", &user.Config{})
 	route.RegisterRoute("user/upload-avatar", &user.UploadAvatar{})
 	route.RegisterRoute("user/user", &user.User{})
 	route.RegisterRoute("user/address", &user.Address{})

@@ -1,6 +1,10 @@
-package mode
+package serviceargument
 
-import "github.com/nbvghost/dandelion/entity/model"
+import (
+	"github.com/nbvghost/dandelion/entity/extends"
+	"github.com/nbvghost/dandelion/entity/model"
+)
+
 
 type Paging struct {
 	Index   int
@@ -8,7 +12,7 @@ type Paging struct {
 }
 
 type ListType interface {
-	~*model.Content | ~*model.FullTextSearch | ~*model.Goods | ~*model.ContentItem
+	~*model.Content | ~*model.FullTextSearch | ~*model.Goods | ~*model.ContentItem | ~*extends.GoodsDetail
 }
 type Pagination[T ListType] struct {
 	PageIndex int

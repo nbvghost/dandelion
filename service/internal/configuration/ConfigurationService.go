@@ -69,6 +69,23 @@ func (m ConfigurationService) GetAdvertConfiguration(oid dao.PrimaryKey) []Adver
 	return h
 }
 
+type EmailSTMP struct {
+	EmailSTMPFrom     string
+	EmailSTMPHost     string
+	EmailSTMPPort     string
+	EmailSTMPPassword string
+}
+
+func (m ConfigurationService) GetEmailSTMP(oid dao.PrimaryKey) *EmailSTMP {
+	cs := m.GetConfigurations(oid, model.ConfigurationKeyEmailSTMPFrom, model.ConfigurationKeyEmailSTMPHost, model.ConfigurationKeyEmailSTMPPort, model.ConfigurationKeyEmailSTMPPassword)
+	return &EmailSTMP{
+		EmailSTMPFrom:     cs[model.ConfigurationKeyEmailSTMPFrom],
+		EmailSTMPHost:     cs[model.ConfigurationKeyEmailSTMPHost],
+		EmailSTMPPort:     cs[model.ConfigurationKeyEmailSTMPPort],
+		EmailSTMPPassword: cs[model.ConfigurationKeyEmailSTMPPassword],
+	}
+}
+
 func (m ConfigurationService) GetPopConfiguration(oid dao.PrimaryKey) []Pop {
 	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyPop)
 	var h []Pop

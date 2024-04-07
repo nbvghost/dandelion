@@ -133,6 +133,11 @@ const (
 	ConfigurationKeyAliyunAccessKeyID     ConfigurationKey = "AliyunAccessKeyID"
 	ConfigurationKeyAliyunAccessKeySecret ConfigurationKey = "AliyunAccessKeySecret"
 	ConfigurationKeyAliyunSMSSignName     ConfigurationKey = "AliyunSMSSignName"
+
+	ConfigurationKeyEmailSTMPFrom     ConfigurationKey = "EmailSTMPFrom"
+	ConfigurationKeyEmailSTMPHost     ConfigurationKey = "EmailSTMPHost"
+	ConfigurationKeyEmailSTMPPort     ConfigurationKey = "EmailSTMPPort"
+	ConfigurationKeyEmailSTMPPassword ConfigurationKey = "EmailSTMPPassword"
 )
 
 type Configuration struct {

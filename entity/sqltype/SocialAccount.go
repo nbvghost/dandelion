@@ -8,8 +8,8 @@ import (
 )
 
 type SocialAccount struct {
-	Type    SocialType
-	Hide    bool
+	Type SocialType
+	Hide bool
 	Account string
 }
 
@@ -31,7 +31,7 @@ func (j *SocialAccount) Value() (driver.Value, error) {
 
 	return json.Marshal(j)
 }
-
+/*
 type SocialAccountList []SocialAccount
 
 // 实现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb
@@ -51,4 +51,4 @@ func (j SocialAccountList) Value() (driver.Value, error) {
 	}
 
 	return json.Marshal(j)
-}
+}*/

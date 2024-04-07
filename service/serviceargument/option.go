@@ -1,8 +1,7 @@
-package mode
+package serviceargument
 
 import (
 	"fmt"
-	"github.com/nbvghost/dandelion/library/dao"
 	"strings"
 )
 
@@ -12,25 +11,24 @@ func (m OptionsType) String() string {
 	return string(m)
 }
 func NewOptionsType(v string) OptionsType {
-	return OptionsType(strings.ToUpper(v))
+	return OptionsType(v)
 }
 
 const (
-	OptionsTypeAttribute     OptionsType = "ATTRIBUTE"
-	OptionsTypeSpecification OptionsType = "SPECIFICATION"
-	OptionsTypePackageNum    OptionsType = "PACKAGE_NUM"
-	OptionsTypeWeight        OptionsType = "WEIGHT"
-	OptionsTypePrice         OptionsType = "PRICE"
+	OptionsTypeAttribute     OptionsType = "att"
+	OptionsTypeSpecification OptionsType = "spe"
+	OptionsTypePackageNum    OptionsType = "pac"
+	OptionsTypeWeight        OptionsType = "wei"
+	OptionsTypePrice         OptionsType = "pri"
 )
 
 type OptionValue struct {
-	ID    dao.PrimaryKey
 	Value string
 	Count int
 }
 
-func (m OptionValue) Key(Type OptionsType) string {
-	return fmt.Sprintf("%s-%d", Type, m.ID)
+func (m OptionValue) GetKey(Type OptionsType,key string) string {
+	return fmt.Sprintf("%s-%s-%s", Type, key,m.Value)
 }
 
 type Option struct {
@@ -43,11 +41,11 @@ type Options struct {
 	Attributes []Option
 }
 
-func (m *Options) AddAttributes(optionsType OptionsType, id dao.PrimaryKey, key, value string) {
+func (m *Options) AddAttributes(optionsType OptionsType, key, value string) {
 	var has bool
 	for i := 0; i < len(m.Attributes); i++ {
 		item := m.Attributes[i]
-		if strings.EqualFold(item.Key, key) {
+		if strings.EqualFold(string(item.Type), string(optionsType)) && strings.EqualFold(item.Key, key) {
 			var hasOptionValue bool
 			for ii := range item.Value {
 				optionValue := item.Value[ii]
@@ -58,7 +56,7 @@ func (m *Options) AddAttributes(optionsType OptionsType, id dao.PrimaryKey, key,
 				}
 			}
 			if !hasOptionValue {
-				m.Attributes[i].Value = append(m.Attributes[i].Value, OptionValue{ID: id, Value: value, Count: 1})
+				m.Attributes[i].Value = append(m.Attributes[i].Value, OptionValue{Value: value, Count: 1})
 			}
 			has = true
 			break
@@ -68,7 +66,7 @@ func (m *Options) AddAttributes(optionsType OptionsType, id dao.PrimaryKey, key,
 		m.Attributes = append(m.Attributes, Option{
 			Type:  optionsType,
 			Key:   key,
-			Value: []OptionValue{{ID: id, Value: value, Count: 1}},
+			Value: []OptionValue{{Value: value, Count: 1}},
 		})
 	}
 }

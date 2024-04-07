@@ -6,7 +6,31 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 )
 
-type StringArray []string
+type IMetaType interface {
+	int64 | dao.PrimaryKey | string | ~*CustomerService | ~*CustomizeField | ~*FocusPicture | ~*Route | ~*SocialAccount
+}
+
+type Array[T IMetaType] []T
+
+// Scan 实现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb
+func (j *Array[T]) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		bytes = []byte("[]")
+	}
+	err := json.Unmarshal(bytes, &j)
+	return err
+}
+
+// Value 实现 driver.Valuer 接口，Value 返回 json value
+func (j *Array[T]) Value() (driver.Value, error) {
+	if j == nil {
+		return nil, nil
+	}
+	return json.Marshal(j)
+}
+
+/*type StringArray []string
 
 // 实现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb
 func (j *StringArray) Scan(value interface{}) error {
@@ -25,13 +49,14 @@ func (j StringArray) Value() (driver.Value, error) {
 	}
 
 	return json.Marshal(j)
-}
+}*/
 
-type Number interface {
+/*type Number interface {
 	int64 | dao.PrimaryKey
-}
+}*/
 
-type PrimaryKeyArray []dao.PrimaryKey
+/*type PrimaryKeyArray extends.Array[dao.PrimaryKey]
+//type PrimaryKeyArray []dao.PrimaryKey
 
 // Scan 实现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb
 func (j *PrimaryKeyArray) Scan(value interface{}) error {
@@ -49,7 +74,7 @@ func (j PrimaryKeyArray) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return json.Marshal(j)
-}
+}*/
 
 /*type InterfaceArray []interface{}
 

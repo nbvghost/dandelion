@@ -29,7 +29,7 @@ import (
 	"github.com/nbvghost/dandelion/service/internal/task"
 	"github.com/nbvghost/dandelion/service/internal/user"
 	"github.com/nbvghost/dandelion/service/internal/wechat"
-	"github.com/nbvghost/dandelion/service/mode"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 )
 
 var Content = content.ContentService{}
@@ -68,7 +68,7 @@ var Goods = struct {
 	Sort           goods.SortService
 	Specification  goods.SpecificationService
 	Tag            goods.TagService
-	ProductOptions func(ctx constrain.IContext, oid dao.PrimaryKey) (*mode.Options, error)
+	ProductOptions func(ctx constrain.IContext, oid dao.PrimaryKey) (*serviceargument.Options, error)
 }{
 	ProductOptions: goods.ProductOptions,
 }
@@ -101,6 +101,7 @@ var Wechat = struct {
 }{}
 var Network = struct {
 	SMS    network.SMS
+	Email  network.Email
 	NewSMS func(oid dao.PrimaryKey) *network.SMS
 }{
 	NewSMS: network.NewSMS,
@@ -110,14 +111,14 @@ func init() {
 
 }
 
-func GetSiteData[T mode.ListType](context constrain.IContext, OID dao.PrimaryKey) mode.SiteData[T] {
+func GetSiteData[T serviceargument.ListType](context constrain.IContext, OID dao.PrimaryKey) serviceargument.SiteData[T] {
 
-	var moduleContentData mode.SiteData[T]
+	var moduleContentData serviceargument.SiteData[T]
 
 	var item model.ContentItem
 	var subItem = model.ContentSubType{Uri: "all"}
 
-	currentMenuData := mode.NewMenusData(item, subItem)
+	currentMenuData := serviceargument.NewMenusData(item, subItem)
 
 	menusData := Site.FindShowMenus(OID)
 	for _, v := range menusData.List {
@@ -165,14 +166,14 @@ func GetSiteData[T mode.ListType](context constrain.IContext, OID dao.PrimaryKey
 	contentConfig := Content.GetContentConfig(db.Orm(), OID)
 
 	menusPage := allMenusData.ListMenusByType(model.ContentTypePage)
-	moduleContentData = mode.SiteData[T]{
+	moduleContentData = serviceargument.SiteData[T]{
 		AllMenusData:    allMenusData,
 		MenusData:       menusData,
 		PageMenus:       menusPage,
 		CurrentMenuData: currentMenuData,
 		ContentItem:     item,
 		ContentSubType:  subItem,
-		Pagination:      mode.Pagination[T]{},
+		Pagination:      serviceargument.Pagination[T]{},
 		Tags:            tags,
 		Navigations:     navigations,
 		Organization:    *organization,

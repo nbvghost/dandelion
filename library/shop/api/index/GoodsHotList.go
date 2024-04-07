@@ -6,7 +6,7 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service"
-	"github.com/nbvghost/dandelion/service/mode"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 )
 
 type GoodsHotList struct {
@@ -20,7 +20,7 @@ func (m *GoodsHotList) Handle(ctx constrain.IContext) (constrain.IResult, error)
 	//index, _ := strconv.Atoi(context.Request.URL.Query().Get("index"))
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 
-	params := &mode.ListQueryParam{}
+	params := &serviceargument.ListQueryParam{}
 	orderBy := &extends.Order{}
 
 	//`"Hide"=?`, 0,

@@ -141,7 +141,7 @@ BEGIN
             "Title"=NEW."Title",
             "Content"=NEW."Introduce",
 			"Uri"=NEW."Uri",
-            "Picture"=json_array_element(NEW."Images",0),
+            "Picture"=json_array_element_text(NEW."Images",0),
             "Index"=setweight(to_tsvector('english', coalesce(NEW."Title", '')),'A') || setweight(to_tsvector('english', coalesce(NEW."Introduce", '')),'B')
         where "TID" = NEW."ID"
           and "Type" = 'product';
@@ -149,7 +149,7 @@ BEGIN
         INSERT INTO "FullTextSearch" ("ID", "CreatedAt", "UpdatedAt", "OID", "TID","Uri", "Title", "Content", "Picture",
                                       "Type", "Index")
         values (DEFAULT, NEW."CreatedAt", NEW."UpdatedAt", NEW."OID", NEW."ID",NEW."Uri", NEW."Title", NEW."Introduce",
-                json_array_element(NEW."Images",0), 'product',
+                json_array_element_text(NEW."Images",0), 'product',
                 setweight(to_tsvector('english', coalesce(NEW."Title", '')),'A') || setweight(to_tsvector('english', coalesce(NEW."Introduce", '')),'B'));
     END IF;
     RETURN NULL;

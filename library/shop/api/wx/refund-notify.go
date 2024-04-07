@@ -7,7 +7,7 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service"
-	"github.com/nbvghost/dandelion/service/mode"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/downloader"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/notify"
@@ -37,7 +37,7 @@ func (m *RefundNotify) handle(context constrain.IContext, OID dao.PrimaryKey) (r
 
 	certificateVisitor := downloader.MgrInstance().GetCertificateVisitor(wxConfig.MchID)
 
-	content := new(mode.RefundNotifyData)
+	content := new(serviceargument.RefundNotifyData)
 
 	handler, err := notify.NewRSANotifyHandler(wxConfig.MchAPIv3Key, verifiers.NewSHA256WithRSAVerifier(certificateVisitor))
 	if err != nil {

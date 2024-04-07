@@ -35,9 +35,9 @@ type UserService struct {
 	Journal journal.JournalService
 }
 
-func (service UserService) Login(account string) (user *model.User) {
-	if user = service.GetByPhone(db.Orm(), account); user.IsZero() {
-		user = service.GetByEmail(db.Orm(), account)
+func (service UserService) Login(oid dao.PrimaryKey, account string) (user *model.User) {
+	if user = service.GetByPhone(db.Orm(), oid, account); user.IsZero() {
+		user = service.GetByEmail(db.Orm(), oid, account)
 	}
 	return user
 }
@@ -46,9 +46,9 @@ func (service UserService) UpdateLoginStatus(userID dao.PrimaryKey) error {
 	return dao.UpdateByPrimaryKey(db.Orm(), &model.User{}, userID, map[string]interface{}{"LastLoginAt": time.Now()}) //repository.User.UpdateByID(userID, map[string]interface{}{"LastLoginAt": time.Now()}).Err
 
 }
-func (service UserService) AddUser(name, email, password string) error {
+func (service UserService) AddUser(oid dao.PrimaryKey, name, email, password string) error {
 
-	hasUser := service.GetByEmail(db.Orm(), email)
+	hasUser := service.GetByEmail(db.Orm(), oid, email)
 	if hasUser.IsZero() == false {
 		return errors.New("record is exist")
 	}
@@ -331,15 +331,15 @@ func (service UserService) UserAction(context constrain.IContext) (r constrain.I
 	//return &result.JsonResult{Data: result.ActionResult{Code: result.Fail, Message: "", Data: nil}}, nil
 	return result.NewData(nil), nil
 }
-func (service UserService) GetByPhone(Orm *gorm.DB, Tel string) *model.User {
+func (service UserService) GetByPhone(Orm *gorm.DB, oid dao.PrimaryKey, Tel string) *model.User {
 	user := &model.User{}
-	Orm.Where(`"Phone"=?`, Tel).First(user) //SelectOne(user, "select * from User where Tel=?", Tel)
+	Orm.Where(`"Phone"=? and "OID"=?`, Tel, oid).First(user) //SelectOne(user, "select * from User where Tel=?", Tel)
 	return user
 }
 
-func (service UserService) GetByEmail(Orm *gorm.DB, email string) *model.User {
+func (service UserService) GetByEmail(Orm *gorm.DB, oid dao.PrimaryKey, email string) *model.User {
 	user := &model.User{}
-	Orm.Where(`"Email"=?`, email).First(user) //SelectOne(user, "select * from User where Tel=?", Tel)
+	Orm.Where(`"Email"=? and "OID"=?`, email, oid).First(user) //SelectOne(user, "select * from User where Tel=?", Tel)
 	return user
 }
 

@@ -14,7 +14,7 @@ import (
 	"github.com/nbvghost/dandelion/service/internal/journal"
 	"github.com/nbvghost/dandelion/service/internal/user"
 	"github.com/nbvghost/dandelion/service/internal/wechat"
-	"github.com/nbvghost/dandelion/service/mode"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 	"gorm.io/gorm/clause"
 	"log"
 	"math"
@@ -742,7 +742,7 @@ GROUP BY cr."No"
 	return packs
 }
 
-func (service OrdersService) ListOrders(queryParam *mode.ListOrdersQueryParam, oid dao.PrimaryKey, fieldOrder clause.OrderByColumn, pageNo int, pageSize int) (*result.Pagination, error) {
+func (service OrdersService) ListOrders(queryParam *serviceargument.ListOrdersQueryParam, oid dao.PrimaryKey, fieldOrder clause.OrderByColumn, pageNo int, pageSize int) (*result.Pagination, error) {
 	if pageSize <= 0 {
 		pageSize = 10
 	}
@@ -1305,7 +1305,7 @@ type GoodsSkuData struct {
 	SkuLabelDataMap map[dao.PrimaryKey]*model.GoodsSkuLabelData
 }
 
-func (service OrdersService) goodsSkuData(tx *gorm.DB, goodsID dao.PrimaryKey, specificationLabelIndex sqltype.PrimaryKeyArray) *GoodsSkuData {
+func (service OrdersService) goodsSkuData(tx *gorm.DB, goodsID dao.PrimaryKey, specificationLabelIndex sqltype.Array[dao.PrimaryKey]) *GoodsSkuData {
 
 	goodsSkuLabelMap := make(map[dao.PrimaryKey]*model.GoodsSkuLabel)
 	{

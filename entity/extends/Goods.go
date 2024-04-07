@@ -34,3 +34,16 @@ func (m *GoodsRating) Value() uint {
 	}
 	return v
 }
+
+type GoodsDetail struct {
+	model.Goods
+	Specifications  model.Array[*model.Specification]   `gorm:"column:Specifications;embedded"`
+	GoodsAttributes model.Array[*model.GoodsAttributes] `gorm:"column:GoodsAttributes;embedded"`
+}
+
+type GoodsInfoPagination struct {
+	List  []GoodsInfo
+	Total int
+	Index int
+	Size  int
+}
