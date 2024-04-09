@@ -1,4 +1,4 @@
-package etcd
+package constrain
 
 import (
 	"github.com/nbvghost/dandelion/constrain/key"

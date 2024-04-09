@@ -7,7 +7,6 @@ import (
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
-	"github.com/nbvghost/dandelion/entity/etcd"
 	"log"
 )
 
@@ -41,7 +40,7 @@ func (m *adminServer) RegisterPostgresql(dsn string, serverName string) error {
 	return nil
 }
 
-func (m *adminServer) RegisterDNS(dns []etcd.ServerDNS) error {
+func (m *adminServer) RegisterDNS(dns []constrain.ServerDNS) error {
 	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]key.MicroServer{}}
 	if err := copyServer.parseDNS(dns, true); err != nil {
 		return err
@@ -63,11 +62,11 @@ func (m *adminServer) RegisterDNS(dns []etcd.ServerDNS) error {
 	return nil
 }
 
-func (m *adminServer) AddDNS(newDNS []etcd.ServerDNS) error {
+func (m *adminServer) AddDNS(newDNS []constrain.ServerDNS) error {
 	etcdKey := "dns"
 	ctx := context.TODO()
 
-	var hasDns []etcd.ServerDNS
+	var hasDns []constrain.ServerDNS
 
 	client := m.server.getClient()
 

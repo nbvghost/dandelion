@@ -1,7 +1,6 @@
 package constrain
 
 import (
-	"github.com/nbvghost/dandelion/entity/etcd"
 	"google.golang.org/grpc"
 
 	"github.com/nbvghost/dandelion/config"
@@ -22,6 +21,6 @@ type IEtcd interface {
 type IEtcdAdmin interface {
 	RegisterRedis(config config.RedisOptions) error
 	RegisterPostgresql(dsn string, serverName string) error
-	RegisterDNS(dns []etcd.ServerDNS) error
-	AddDNS(newDNS []etcd.ServerDNS) error
+	RegisterDNS(dns []ServerDNS) error
+	AddDNS(newDNS []ServerDNS) error
 }

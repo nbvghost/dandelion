@@ -18,7 +18,6 @@ import (
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
-	"github.com/nbvghost/dandelion/entity/etcd"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/pkg/errors"
 
@@ -66,7 +65,7 @@ func (m *server) ObtainRedis() (*config.RedisOptions, error) {
 	return &op, nil
 }
 
-func (m *server) parseDNS(dns []etcd.ServerDNS, check bool) error {
+func (m *server) parseDNS(dns []constrain.ServerDNS, check bool) error {
 	defer m.dnsLocker.Unlock()
 	m.dnsLocker.Lock()
 
@@ -122,7 +121,7 @@ func (m *server) GetDNSLocalName(domainName string) (key.MicroServer, error) {
 	return v, nil
 }
 func (m *server) watch() {
-	var dns []etcd.ServerDNS
+	var dns []constrain.ServerDNS
 	var err error
 	var resp *clientv3.GetResponse
 
