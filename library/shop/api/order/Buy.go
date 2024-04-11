@@ -30,7 +30,7 @@ func (m *Buy) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	//SpecificationID := object.ParseUint(context.Request.FormValue("SpecificationID"))
 	//Quantity := object.ParseUint(context.Request.FormValue("Quantity"))
 
-	var list []*extends.OrdersGoods
+	var list []*extends.OrdersGoodsMix
 	for _, goodsSpecification := range m.Post.List {
 		goods, err := service.Order.Orders.CreateOrdersGoods(ctx, m.User.ID, goodsSpecification.GoodsID, goodsSpecification.SpecificationID, goodsSpecification.Quantity)
 		if err != nil {

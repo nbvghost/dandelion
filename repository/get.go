@@ -8,3 +8,4 @@ var ContentSubTypeDao = internal.ContentSubTypeDao{}
 var ContentTypeDao = internal.ContentTypeDao{}
 var DNSDao = internal.DNSDao{}
 var ContentConfigDao = internal.ContentConfigDao{}
+var OrdersDao = internal.OrdersDao{}

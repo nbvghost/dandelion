@@ -9,6 +9,7 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
+	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service"
 )
 
@@ -24,7 +25,7 @@ type InfoOrders struct {
 }
 
 func (m *InfoOrders) Handle(ctx constrain.IContext) (constrain.IResult, error) {
-	orders := service.Order.Orders.GetOrdersByOrderNo(m.Get.OrderNo)
+	orders := repository.OrdersDao.GetOrdersByOrderNo(m.Get.OrderNo)
 	var address model.Address
 	if err := json.Unmarshal([]byte(orders.Address), &address); err != nil {
 		return nil, err
@@ -40,7 +41,7 @@ func (m *InfoOrders) HandlePut(ctx constrain.IContext) (constrain.IResult, error
 	if len(m.Put.OrderNo) == 0 {
 		return nil, errors.New("the parameter is invalid")
 	}
-	orders := service.Order.Orders.GetOrdersByOrderNo(m.Put.OrderNo)
+	orders := repository.OrdersDao.GetOrdersByOrderNo(m.Put.OrderNo)
 	if orders.ID == 0 {
 		return nil, errors.New("order data does not exist")
 	}

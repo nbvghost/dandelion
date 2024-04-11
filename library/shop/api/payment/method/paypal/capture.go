@@ -2,15 +2,16 @@ package paypal
 
 import (
 	"errors"
+	"time"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal/network"
-	"github.com/nbvghost/dandelion/service"
+	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/tool/object"
-	"time"
 )
 
 type Capture struct {
@@ -31,7 +32,7 @@ func (m *Capture) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 	if len(capture.PurchaseUnits) == 0 {
 		return nil, errors.New("payment failed,invalid order")
 	}
-	mOrder := service.Order.Orders.GetOrdersByOrderNo(capture.PurchaseUnits[0].ReferenceId)
+	mOrder := repository.OrdersDao.GetOrdersByOrderNo(capture.PurchaseUnits[0].ReferenceId)
 	if mOrder.IsZero() {
 		return nil, errors.New("unable to confirm order, confirmation order failed")
 	}

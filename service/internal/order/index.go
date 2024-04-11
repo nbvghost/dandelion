@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service/internal/activity"
 	"github.com/nbvghost/dandelion/service/internal/company"
 	"github.com/nbvghost/dandelion/service/internal/configuration"
@@ -64,13 +65,13 @@ func (m OrdersService) FindShoppingCartListDetails(oid dao.PrimaryKey, userID da
 	list := m.ShoppingCart.FindShoppingCartByUserID(userID)
 
 	shoppingCartList := make([]*model.ShoppingCart, 0)
-	orderGoodsList := make([]*extends.OrdersGoods, 0)
+	orderGoodsList := make([]*extends.OrdersGoodsMix, 0)
 	for i := range list {
 		item := list[i].(*model.ShoppingCart)
 		shoppingCartList = append(shoppingCartList, item)
 		orderGoods, err := m.createOrdersGoods(item.GoodsID, item.SpecificationID, item.Quantity)
 		if err != nil {
-			orderGoodsList = append(orderGoodsList, &extends.OrdersGoods{ElementStatus: extends.ElementStatus{IsError: true, Error: err.Error()}})
+			orderGoodsList = append(orderGoodsList, &extends.OrdersGoodsMix{ElementStatus: extends.ElementStatus{IsError: true, Error: err.Error()}})
 		} else {
 			orderGoodsList = append(orderGoodsList, orderGoods)
 		}
@@ -227,11 +228,11 @@ func (m OrdersService) OrdersStockManager(db *gorm.DB, orders *model.Orders, isM
 			//减
 			//UpdateColumn("quantity", gorm.Expr("quantity - ?", 1))
 			//db.Model(&product).Updates(map[string]interface{}{"price": gorm.Expr("price * ? + ?", 2, 100)})
-			err := dao.UpdateByPrimaryKey(db, &model.Specification{}, specification.ID, map[string]interface{}{"Stock": gorm.Expr(`"Stock" - ?`, value.Quantity)})
+			err := dao.UpdateBy(db, &model.Specification{}, map[string]interface{}{"Stock": gorm.Expr(`"Stock" - ?`, value.Quantity)},`"ID"=? and "Stock">=?`,specification.ID,value.Quantity)
 			if err != nil {
 				return err
 			}
-			err = dao.UpdateByPrimaryKey(db, &model.Goods{}, g.ID, map[string]interface{}{"Stock": gorm.Expr(`"Stock" - ?`, value.Quantity)})
+			err = dao.UpdateBy(db, &model.Goods{}, map[string]interface{}{"Stock": gorm.Expr(`"Stock" - ?`, value.Quantity)},`"ID"=? and "Stock">=?`,g.ID,value.Quantity)
 			if err != nil {
 				return err
 			}
@@ -643,30 +644,14 @@ func (m OrdersService) GetOrdersPackageByOrderNo(OrderNo string) model.OrdersPac
 	Orm.Where(&model.OrdersPackage{OrderNo: OrderNo}).First(&orders)
 	return orders
 }
-func (m OrdersService) GetOrdersByOrderNo(OrderNo string) model.Orders {
-	Orm := db.Orm()
-	var orders model.Orders
-	Orm.Where(map[string]any{"OrderNo": OrderNo}).First(&orders)
-	return orders
-}
-func (m OrdersService) GetOrdersByOrdersPackageNo(OrdersPackageNo string) []model.Orders {
-	Orm := db.Orm()
-	var orders []model.Orders
-	Orm.Where(&model.Orders{OrdersPackageNo: OrdersPackageNo}).Find(&orders)
-	return orders
-}
+
 func (m OrdersService) GetSupplyOrdersByOrderNo(OrderNo string) model.SupplyOrders {
 	Orm := db.Orm()
 	var orders model.SupplyOrders
 	Orm.Where(&model.SupplyOrders{OrderNo: OrderNo}).First(&orders)
 	return orders
 }
-func (m OrdersService) GetOrdersByID(ID dao.PrimaryKey) model.Orders {
-	Orm := db.Orm()
-	var orders model.Orders
-	Orm.First(&orders, ID)
-	return orders
-}
+
 func (m OrdersService) ListOrdersStatusCount(UserID dao.PrimaryKey, Status []string) (TotalRecords int64) {
 	Orm := db.Orm()
 	var orders []model.Orders
@@ -855,7 +840,7 @@ func (m OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transac
 				return "", err
 			}
 
-			OrderList := m.GetOrdersByOrdersPackageNo(ordersPackage.OrderNo)
+			OrderList := repository.OrdersDao.GetOrdersByOrdersPackageNo(ordersPackage.OrderNo)
 
 			for index := range OrderList {
 				//orders := service.GetOrdersByOrderNo(value)
@@ -875,7 +860,7 @@ func (m OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transac
 	} else if strings.EqualFold(attach, play.OrdersTypeGoods) { //商品订单
 		//orders.PayMoney == total_fee.
 		tx := db.Orm().Begin()
-		orders := m.GetOrdersByOrderNo(outTradeNo)
+		orders := repository.OrdersDao.GetOrdersByOrderNo(outTradeNo)
 		if orders.PayMoney == totalFee {
 			su, msg := m.ProcessingOrders(tx, orders, transactionId, payTime)
 			if su == false {
@@ -960,7 +945,7 @@ func (m OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, GoodsID,
 		ordersGoods.Discounts = []extends.Discount{favoured}
 	}
 
-	ogs := make([]*extends.OrdersGoods, 0)
+	ogs := make([]*extends.OrdersGoodsMix, 0)
 	ogs = append(ogs, ordersGoods)
 	//Session.Attributes.Put(gweb.AttributesKey(string(play.SessionConfirmOrders)), &ogs)
 	ctx.Redis().Set(ctx, redis.NewConfirmOrders(ctx.UID()), &ogs, 24*time.Hour)
@@ -969,7 +954,7 @@ func (m OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, GoodsID,
 }
 
 // CreateOrdersGoods 从商品外直接购买，生成OrdersGoods，添加到 play.SessionConfirmOrders
-func (m OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, GoodsID, SpecificationID dao.PrimaryKey, Quantity uint) ([]*extends.OrdersGoods, error) {
+func (m OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, GoodsID, SpecificationID dao.PrimaryKey, Quantity uint) ([]*extends.OrdersGoodsMix, error) {
 	Orm := db.Orm()
 	//var goods model.Goods
 	//var specification model.Specification
@@ -998,7 +983,7 @@ func (m OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, GoodsID
 		return nil, err
 	}
 
-	ogs := make([]*extends.OrdersGoods, 0)
+	ogs := make([]*extends.OrdersGoodsMix, 0)
 	ogs = append(ogs, ordersGoods)
 	//Session.Attributes.Put(gweb.AttributesKey(string(play.SessionConfirmOrders)), &ogs)
 	//ctx.Redis().Set(ctx, redis.NewConfirmOrders(ctx.UID()), &ogs, 24*time.Hour)
@@ -1020,8 +1005,8 @@ func (m OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, GoodsID
 	ctx.Redis().Set(ctx, redis.NewConfirmOrders(ctx.UID()), &ogs, 24*time.Hour)
 	return nil
 }*/
-func (m OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*extends.OrdersGoods, error) {
-	ordersGoods := &extends.OrdersGoods{}
+func (m OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*extends.OrdersGoodsMix, error) {
+	ordersGoods := &extends.OrdersGoodsMix{}
 
 	var g model.Goods
 	var specification model.Specification
@@ -1072,8 +1057,8 @@ func (m OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*extends.Ord
 	ordersGoods.SkuLabelDataMap = goodsSkuData.SkuLabelDataMap
 	return ordersGoods, nil
 }
-func (m OrdersService) createOrdersGoods(goodsID dao.PrimaryKey, specificationID dao.PrimaryKey, quantity uint) (*extends.OrdersGoods, error) {
-	ordersGoods := &extends.OrdersGoods{}
+func (m OrdersService) createOrdersGoods(goodsID dao.PrimaryKey, specificationID dao.PrimaryKey, quantity uint) (*extends.OrdersGoodsMix, error) {
+	ordersGoods := &extends.OrdersGoodsMix{}
 	//var goods model.Goods
 	//var specification model.Specification
 	//var timesell model.TimeSell
@@ -1226,7 +1211,7 @@ func (m OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list []exten
 func (m OrdersService) ChangeOrdersPayMoney(PayMoney float64, OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) (Success result.ActionResultCode, Message string) {
 	tx := db.Orm().Begin()
 
-	orders := m.GetOrdersByID(OrdersID)
+	orders := repository.OrdersDao.GetOrdersByID(OrdersID)
 
 	if strings.EqualFold(orders.PrepayID, "") == false {
 
@@ -1250,7 +1235,7 @@ func (m OrdersService) ChangeOrdersPayMoney(PayMoney float64, OrdersID dao.Prima
 }
 
 func (m OrdersService) AnalyseOrdersGoodsListByOrders(orders *model.Orders, address *model.Address) (*extends.ConfirmOrdersGoods, error) {
-	orderGoodsList := make([]*extends.OrdersGoods, 0)
+	orderGoodsList := make([]*extends.OrdersGoodsMix, 0)
 	ordersGoodsList, _ := m.FindOrdersGoodsByOrdersID(db.Orm(), orders.ID)
 	for i := 0; i < len(ordersGoodsList); i++ {
 		ordersGoods, err := m.ConvertOrdersGoods(ordersGoodsList[i].(*model.OrdersGoods))
@@ -1264,7 +1249,7 @@ func (m OrdersService) AnalyseOrdersGoodsListByOrders(orders *model.Orders, addr
 }
 
 // AnalyseOrdersGoodsList 订单分析，
-func (m OrdersService) AnalyseOrdersGoodsList(oid dao.PrimaryKey, addressee *model.Address, orderGoods []*extends.OrdersGoods) (*extends.ConfirmOrdersGoods, error) {
+func (m OrdersService) AnalyseOrdersGoodsList(oid dao.PrimaryKey, addressee *model.Address, orderGoods []*extends.OrdersGoodsMix) (*extends.ConfirmOrdersGoods, error) {
 
 	/*oslist := make(map[dao.PrimaryKey][]*extends.OrdersGoods)
 	for index, v := range orderGoods {
@@ -1344,7 +1329,7 @@ func (m OrdersService) goodsSkuData(tx *gorm.DB, goodsID dao.PrimaryKey, specifi
 }
 
 // 订单分析，
-func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, list []*extends.OrdersGoods) (*extends.AnalyseResult, error) {
+func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, list []*extends.OrdersGoodsMix) (*extends.AnalyseResult, error) {
 
 	analyseResult := &extends.AnalyseResult{}
 

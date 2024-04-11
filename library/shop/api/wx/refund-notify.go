@@ -6,6 +6,7 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
+	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/dandelion/service/serviceargument"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
@@ -56,7 +57,7 @@ func (m *RefundNotify) handle(context constrain.IContext, OID dao.PrimaryKey) (r
 	log.Println(content)
 
 	if strings.EqualFold(content.RefundStatus, "SUCCESS") || strings.EqualFold(content.RefundStatus, "CLOSED") {
-		orders := service.Order.Orders.GetOrdersByOrderNo(content.OutTradeNo)
+		orders := repository.OrdersDao.GetOrdersByOrderNo(content.OutTradeNo)
 		if orders.IsZero() {
 			return result.NewJsonResult(map[string]any{"code": "FAIL", "message": "订单不存在"}).WithStatusCode(http.StatusBadRequest), nil
 		}

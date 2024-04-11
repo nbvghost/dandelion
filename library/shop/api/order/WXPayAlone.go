@@ -2,6 +2,7 @@ package order
 
 import (
 	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service"
 	"log"
 	"strings"
@@ -34,7 +35,7 @@ func (m *WXPayAlone) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	ip := util.GetIP(contextValue.Request)
 
 	//package
-	orders := service.Order.Orders.GetOrdersByOrderNo(m.Get.OrderNo)
+	orders := repository.OrdersDao.GetOrdersByOrderNo(m.Get.OrderNo)
 	if strings.EqualFold(orders.PrepayID, "") == false {
 
 		outData, err := service.Wechat.Wx.GetWXAConfig(orders.PrepayID, WxConfig)

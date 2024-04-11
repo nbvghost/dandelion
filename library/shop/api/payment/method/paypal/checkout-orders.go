@@ -9,6 +9,7 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal/network"
+	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service"
 	"regexp"
 	"strconv"
@@ -31,7 +32,7 @@ func (m *CheckoutOrders) Handle(ctx constrain.IContext) (constrain.IResult, erro
 	panic("implement me")
 }
 func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
-	orders := service.Order.Orders.GetOrdersByOrderNo(m.Post.OrderNo)
+	orders := repository.OrdersDao.GetOrdersByOrderNo(m.Post.OrderNo)
 	if orders.ID == 0 {
 		return nil, errors.New("no order found")
 	}

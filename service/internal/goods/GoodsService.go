@@ -126,7 +126,7 @@ func (m GoodsService) goodsOptions(list []*extends.GoodsDetail) *serviceargument
 			//goodsList := dao.Find(db.Orm(), &model.GoodsAttributes{}).Where(`"OID"=?`, oid).List()
 			for i := range detail.GoodsAttributes {
 				item := detail.GoodsAttributes[i]
-				if item!=nil{
+				if item != nil {
 					options.AddAttributes(serviceargument.OptionsTypeAttribute, item.Name, item.Name, item.Value)
 				}
 			}
@@ -147,7 +147,7 @@ func (m GoodsService) goodsOptions(list []*extends.GoodsDetail) *serviceargument
 		weightList := make([]int, 0)
 		marketPriceList := make([]int, 0)
 		for _, spec := range detail.Specification {
-			if spec!=nil{
+			if spec != nil {
 				numList = append(numList, int(spec.Num))
 				weightList = append(weightList, int(spec.Weight))
 				weightList = append(weightList, int(spec.MarketPrice))
@@ -323,7 +323,12 @@ func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Go
 	return err
 }
 
-func (m GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsInfo, error) {
+func (m GoodsService) Rating(goodsID dao.PrimaryKey) *extends.GoodsRating {
+	var goodsRating extends.GoodsRating
+	db.Orm().Model(&model.GoodsReview{}).Where(`"GoodsID"=?`, goodsID).Select(`SUM("Rating") as "Rating",COUNT("ID") as "RatingCount"`).Scan(&goodsRating)
+	return &goodsRating
+}
+func (m GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsMix, error) {
 	Orm := db.Orm()
 
 	//Orm := singleton.Orm()
@@ -335,15 +340,13 @@ func (m GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsInfo, erro
 	//vipdiscountConf := service.Configuration.GetConfiguration(play.ConfigurationKey_VIPDiscount)
 	//VIPDiscount, _ := strconv.ParseUint(vipdiscountConf.V, 10, 64)
 	timeSell := m.TimeSell.GetTimeSellByGoodsID(goods.ID, goods.OID)
-	goodsInfo := extends.GoodsInfo{}
+	goodsInfo := extends.GoodsMix{}
 	goodsInfo.Goods = *goods
 	goodsInfo.GoodsType = m.GoodsTypeService.GetGoodsType(goods.GoodsTypeID)
 	goodsInfo.GoodsTypeChild = m.GoodsTypeService.GetGoodsTypeChild(goods.GoodsTypeChildID)
 	goodsInfo.Discounts = make([]extends.Discount, 0)
 
-	var goodsRating extends.GoodsRating
-	db.Orm().Model(&model.GoodsReview{}).Where(`"GoodsID"=?`, goods.ID).Select(`SUM("Rating") as "Rating",COUNT("ID") as "RatingCount"`).Scan(&goodsRating)
-	goodsInfo.Rating = goodsRating
+	goodsInfo.Rating = *m.Rating(goods.ID)
 
 	if timeSell.IsEnable() {
 		//Favoured:=uint(util.Rounding45(float64(goods.Price)*(float64(timeSell.Discount)/float64(100)), 2))
@@ -385,12 +388,12 @@ func (m GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsInfo, erro
 
 	return &goodsInfo, nil
 }
-func (m GoodsService) GetGoodsInfoList(goodsList []model.Goods) []extends.GoodsInfo {
+func (m GoodsService) GetGoodsInfoList(goodsList []model.Goods) []extends.GoodsMix {
 
-	var results = make([]extends.GoodsInfo, 0)
+	var results = make([]extends.GoodsMix, 0)
 
 	for _, value := range goodsList {
-		goodsInfo := extends.GoodsInfo{}
+		goodsInfo := extends.GoodsMix{}
 		goodsInfo.Goods = value
 		goodsInfo.Discounts = m.GetDiscounts(value.ID, value.OID)
 		goodsInfo.GoodsType = m.GoodsTypeService.GetGoodsType(value.GoodsTypeID)
@@ -400,7 +403,7 @@ func (m GoodsService) GetGoodsInfoList(goodsList []model.Goods) []extends.GoodsI
 
 	return results
 }
-func (m GoodsService) GetGoods(DB *gorm.DB, context constrain.IContext, ID dao.PrimaryKey) (*extends.GoodsInfo, error) {
+func (m GoodsService) GetGoods(DB *gorm.DB, context constrain.IContext, ID dao.PrimaryKey) (*extends.GoodsMix, error) {
 	Orm := db.Orm()
 	//var goods model.Goods
 	goods := dao.GetByPrimaryKey(Orm, &model.Goods{}, ID).(*model.Goods)

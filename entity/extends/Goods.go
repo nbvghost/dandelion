@@ -4,7 +4,7 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 )
 
-type GoodsInfo struct {
+type GoodsMix struct {
 	Goods          model.Goods
 	Specifications []*model.Specification
 	Attributes     []GoodsAttributes
@@ -43,8 +43,8 @@ type GoodsDetail struct {
 	GoodsSkuLabelData model.Array[*model.GoodsSkuLabelData] `gorm:"column:GoodsSkuLabelData"`
 }
 
-type GoodsInfoPagination struct {
-	List  []GoodsInfo
+type GoodsMixPagination struct {
+	List  []GoodsMix
 	Total int
 	Index int
 	Size  int

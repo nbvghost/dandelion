@@ -9,13 +9,13 @@ import (
 	"gorm.io/gorm"
 )
 
-func UpdateBy(tx *gorm.DB, model IEntity, value interface{}, query interface{}, args ...interface{}) error {
-	return tx.Model(model).Where(query, args...).Updates(value).Error
+func UpdateBy(tx *gorm.DB, model IEntity, updateValue interface{}, query interface{}, args ...interface{}) error {
+	return tx.Model(model).Where(query, args...).Updates(updateValue).Error
 }
 
-func UpdateByPrimaryKey(tx *gorm.DB, model IEntity, id PrimaryKey, value any) error {
+func UpdateByPrimaryKey(tx *gorm.DB, model IEntity, id PrimaryKey, updateValue any) error {
 	var item = reflect.New(reflect.TypeOf(model).Elem()).Interface().(IEntity)
-	return tx.Model(model).Where(fmt.Sprintf(`"%s"=?`, item.PrimaryName()), id).Updates(value).Error
+	return tx.Model(model).Where(fmt.Sprintf(`"%s"=?`, item.PrimaryName()), id).Updates(updateValue).Error
 }
 
 func GetByPrimaryKey(tx *gorm.DB, model IEntity, id PrimaryKey) IEntity {

@@ -23,7 +23,7 @@ type ConfirmList struct {
 func (m *ConfirmList) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 
-	ogs := make([]*extends.OrdersGoods, 0)
+	ogs := make([]*extends.OrdersGoodsMix, 0)
 
 	confirmOrdersJson, err := ctx.Redis().Get(ctx, redis.NewConfirmOrders(ctx.UID()))
 	if err == nil {

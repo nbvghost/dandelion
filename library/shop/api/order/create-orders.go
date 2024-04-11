@@ -29,7 +29,7 @@ type CreateOrders struct {
 }
 
 func (m *CreateOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
-	list := make([]*extends.OrdersGoods, 0)
+	list := make([]*extends.OrdersGoodsMix, 0)
 	for _, goodsSpecification := range m.Post.List {
 		goods, err := service.Order.Orders.CreateOrdersGoods(ctx, m.User.ID, goodsSpecification.GoodsID, goodsSpecification.SpecificationID, goodsSpecification.Quantity)
 		if err != nil {

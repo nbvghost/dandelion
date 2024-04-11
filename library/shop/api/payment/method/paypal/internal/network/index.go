@@ -4,17 +4,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/constrain/key"
-	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/service"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/constrain/key"
+	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type Amount struct {
@@ -264,9 +265,11 @@ type CheckoutOrdersRequest struct {
 	//PaymentSource CheckoutOrdersPaymentSource `json:"payment_source,omitempty"`
 }
 type CheckoutOrdersResponse struct {
-	Id     string `json:"id"`
-	Status string `json:"status"`
-	Links  []Link `json:"links"`
+	Name    string `json:"name"`
+	Message string `json:"message"`
+	Id      string `json:"id"`
+	Status  string `json:"status"`
+	Links   []Link `json:"links"`
 }
 
 func CheckoutOrders(ctx constrain.IContext, oid dao.PrimaryKey, request *CheckoutOrdersRequest) (*CheckoutOrdersResponse, error) {

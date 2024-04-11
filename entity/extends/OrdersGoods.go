@@ -6,7 +6,7 @@ import (
 )
 
 type OrdersGoodsInfo struct {
-	OrdersGoods *OrdersGoods
+	OrdersGoods *OrdersGoodsMix
 	Discounts   []Discount
 }
 
@@ -29,7 +29,7 @@ type ConfirmOrdersGoods struct {
 	TotalAmount      uint
 }
 
-type OrdersGoods struct {
+type OrdersGoodsMix struct {
 	OID             dao.PrimaryKey                              //
 	OrdersGoodsNo   string                                      //
 	Status          model.OrdersGoodsStatus                     //OGAskRefund，OGRefundNo，OGRefundOk，OGRefundInfo，OGRefundComplete
