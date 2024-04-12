@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net/http"
-	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -194,8 +193,8 @@ func (m *service) RegisterRoute(pathTemplate string, handler constrain.IHandler)
 		pathTemplate = "/api/"
 		//pathTemplate = filepath.ToSlash(filepath.Join("/", "api", "/"))
 	} else {
-		//pathTemplate = "/api/" + pathTemplate
-		pathTemplate = filepath.ToSlash(filepath.Join("/", "api", strings.Trim(pathTemplate, "/")))
+		pathTemplate = "/api/" + strings.TrimLeft(pathTemplate,"/")
+		//pathTemplate = filepath.ToSlash(filepath.Join("/", "api", strings.Trim(pathTemplate, "/")))
 	}
 	if _, ok := m.Routes[pathTemplate]; ok {
 		panic(errors.New(fmt.Sprintf("存在相同的路由:%s", pathTemplate)))
@@ -217,9 +216,9 @@ func (m *service) RegisterRoute(pathTemplate string, handler constrain.IHandler)
 func (m *service) RegisterView(pathTemplate string, handler constrain.IViewHandler) {
 
 	if strings.EqualFold(pathTemplate, "*") {
-		pathTemplate = "/"
+		pathTemplate = ""
 	} else {
-		pathTemplate = filepath.ToSlash(filepath.Join("/", strings.Trim(pathTemplate, "/")))
+		pathTemplate = "/" + strings.TrimLeft(pathTemplate,"/")
 	}
 	if _, ok := m.ViewRoutes[pathTemplate]; ok {
 		panic(errors.New(fmt.Sprintf("存在相同的路由:%s", pathTemplate)))
