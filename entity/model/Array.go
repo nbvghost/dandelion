@@ -22,9 +22,9 @@ func (j *Array[T]) Scan(value interface{}) error {
 }
 
 // Value 实现 driver.Valuer 接口，Value 返回 json value
-func (j *Array[T]) Value() (driver.Value, error) {
+func (j Array[T]) Value() (driver.Value, error) {
 	if j == nil {
-		return nil, nil
+		return "[]", nil
 	}
 	return json.Marshal(j)
 }

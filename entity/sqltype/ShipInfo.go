@@ -25,10 +25,7 @@ func (j *ShipInfo) Scan(value interface{}) error {
 }
 
 // Value 实现 driver.Valuer 接口，Value 返回 json value
-func (j *ShipInfo) Value() (driver.Value, error) {
-	if j == nil {
-		j = &ShipInfo{}
-	}
+func (j ShipInfo) Value() (driver.Value, error) {
 	return json.Marshal(j)
 }
 
@@ -63,9 +60,9 @@ func (j *RefundInfo) Scan(value interface{}) error {
 }
 
 // Value 实现 driver.Valuer 接口，Value 返回 json value
-func (j *RefundInfo) Value() (driver.Value, error) {
-	if j == nil {
+func (j RefundInfo) Value() (driver.Value, error) {
+	/*if j == nil {
 		j = &RefundInfo{}
-	}
+	}*/
 	return json.Marshal(j)
 }
