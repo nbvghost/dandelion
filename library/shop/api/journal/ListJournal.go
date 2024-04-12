@@ -9,7 +9,7 @@ import (
 )
 
 type ListJournal struct {
-	User        *model.User `mapping:""`
+	User *model.User `mapping:""`
 }
 
 func (g *ListJournal) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {

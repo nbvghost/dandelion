@@ -8,7 +8,7 @@ import (
 )
 
 type Message struct {
-	Get           struct {
+	Get struct {
 		OID       dao.PrimaryKey `uri:"OID"`
 		Signature string         `form:"signature"`
 		Timestamp string         `form:"timestamp"`

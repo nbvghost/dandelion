@@ -9,8 +9,8 @@ import (
 )
 
 type GoodsInfo struct {
-	User            *model.User `mapping:""`
-	Get             struct {
+	User *model.User `mapping:""`
+	Get  struct {
 		GoodsID  dao.PrimaryKey `form:"goods-id"`
 		Index    int            `form:"index"`
 		PageSize int            `form:"page-size"`

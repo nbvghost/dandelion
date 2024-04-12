@@ -18,7 +18,7 @@ import (
 )
 
 type Notify struct {
-	Get           struct {
+	Get struct {
 		OID dao.PrimaryKey `uri:"OID"`
 	} `method:"Get"`
 	Post struct {

@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type ContentConfigDao struct {}
+type ContentConfigDao struct{}
 
 func (m ContentConfigDao) AddContentConfig(db *gorm.DB, company *model.Organization) error {
 	Orm := db

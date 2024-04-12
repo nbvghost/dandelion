@@ -77,10 +77,12 @@ func (m *mapping) Mapping(context constrain.IContext, handler interface{}) error
 	return nil
 }
 
-/*func (m *mapping) ViewAfter(context constrain.IContext, r constrain.IViewResult) error {
-	m.Before(context, r)
-	return nil
-}*/
+/*
+	func (m *mapping) ViewAfter(context constrain.IContext, r constrain.IViewResult) error {
+		m.Before(context, r)
+		return nil
+	}
+*/
 func (m *mapping) AddMapping(mapping constrain.IMapping) constrain.IMappingCallback {
 	if err := m.register(mapping); err != nil {
 		panic(err)

@@ -201,7 +201,7 @@ func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, eng
 			}
 			w.Write(bytes)
 		} else {
-			err = customizeViewRender.Render(ctx, r, w, route.NewViewResult("404",map[string]any{"Error":err.Error()}))
+			err = customizeViewRender.Render(ctx, r, w, route.NewViewResult("404", map[string]any{"Error": err.Error()}))
 			if err != nil {
 				ctx.Logger().With(zap.NamedError("ErrorHandler", err))
 			}

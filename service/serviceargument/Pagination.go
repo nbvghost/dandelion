@@ -5,7 +5,6 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 )
 
-
 type Paging struct {
 	Index   int
 	Disable bool

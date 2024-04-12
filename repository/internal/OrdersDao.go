@@ -6,7 +6,8 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 )
 
-type OrdersDao struct {}
+type OrdersDao struct{}
+
 func (m OrdersDao) GetOrdersByOrderNo(OrderNo string) model.Orders {
 	Orm := db.Orm()
 	var orders model.Orders

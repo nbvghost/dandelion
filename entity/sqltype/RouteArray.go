@@ -5,6 +5,7 @@ type Route struct {
 	Permissions []string //拥有的权限['edit', 'add', 'delete']
 	Children    []Route
 }
+
 /*type RouteArray []Route
 
 // Scan 实现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb

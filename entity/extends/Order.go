@@ -17,13 +17,13 @@ type Order struct {
 	Method     OrderMethod
 }
 
-func (m *Order) OrderByColumn(defaultField string,defaultDesc bool) clause.OrderByColumn {
+func (m *Order) OrderByColumn(defaultField string, defaultDesc bool) clause.OrderByColumn {
 	var desc = false
 	if m.SortMethod() == OrderMethodDESC {
 		desc = true
 	}
-	if strings.EqualFold(m.SortField(),""){
-		return  clause.OrderByColumn{Column: clause.Column{Name:defaultField}, Desc: defaultDesc}
+	if strings.EqualFold(m.SortField(), "") {
+		return clause.OrderByColumn{Column: clause.Column{Name: defaultField}, Desc: defaultDesc}
 	}
 	return clause.OrderByColumn{Column: clause.Column{Name: m.SortField()}, Desc: desc}
 }

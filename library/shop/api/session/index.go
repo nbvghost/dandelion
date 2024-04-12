@@ -7,7 +7,7 @@ import (
 )
 
 type Index struct {
-	Get                 struct{} `method:"get"`
+	Get struct{} `method:"get"`
 }
 
 func (m *Index) Handle(context constrain.IContext) (constrain.IResult, error) {

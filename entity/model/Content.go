@@ -23,10 +23,10 @@ type ContentItem struct {
 	Image         string          `gorm:"column:Image"`        //主类图片
 	Badge         string          `gorm:"column:Badge"`        //徽章
 	//Hide            bool                         `gorm:"column:Hide"`
-	ShowAtMenu      bool                           `gorm:"column:ShowAtMenu"`
-	ShowAtHome      bool                           `gorm:"column:ShowAtHome"`
+	ShowAtMenu      bool                                   `gorm:"column:ShowAtMenu"`
+	ShowAtHome      bool                                   `gorm:"column:ShowAtHome"`
 	CustomizeFields sqltype.Array[*sqltype.CustomizeField] `gorm:"column:CustomizeFields;type:JSON"`
-	Config          string                         `gorm:"column:Config;type:JSON"`
+	Config          string                                 `gorm:"column:Config;type:JSON"`
 }
 
 func (ContentItem) TableName() string {

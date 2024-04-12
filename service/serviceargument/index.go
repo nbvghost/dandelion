@@ -17,7 +17,6 @@ type ListOrdersQueryParam struct {
 	StartDate, EndDate time.Time
 }
 
-
 type RefundNotifyData struct {
 	Mchid         string    `json:"mchid"`
 	OutTradeNo    string    `json:"out_trade_no"`

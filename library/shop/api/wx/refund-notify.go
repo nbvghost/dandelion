@@ -18,7 +18,7 @@ import (
 )
 
 type RefundNotify struct {
-	Get           struct {
+	Get struct {
 		OID dao.PrimaryKey `uri:"OID"`
 	} `method:"Get"`
 	Post struct {

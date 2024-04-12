@@ -10,8 +10,8 @@ import (
 )
 
 type Goods struct {
-	User            *model.User `mapping:""`
-	Get             struct {
+	User *model.User `mapping:""`
+	Get  struct {
 		Index    int `form:"index"`
 		PageSize int `form:"page-size"`
 	} `method:"get"`

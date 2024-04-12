@@ -8,7 +8,7 @@ import (
 )
 
 type ListLeve struct {
-	User           *model.User `mapping:""`
+	User *model.User `mapping:""`
 }
 
 func (controller *ListLeve) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {

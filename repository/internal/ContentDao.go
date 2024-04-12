@@ -11,8 +11,6 @@ import (
 
 type ContentDao struct{}
 
-
-
 func (ContentDao) GetContentByID(ID dao.PrimaryKey) *model.Content {
 	article := dao.GetByPrimaryKey(db.Orm(), &model.Content{}, ID).(*model.Content) //SelectOne(user, "select * from User where Email=?", Email)
 	//service.ChangeMap(singleton.Orm(), ID, &model.Article{}, map[string]interface{}{"Look": article.Look + 1})

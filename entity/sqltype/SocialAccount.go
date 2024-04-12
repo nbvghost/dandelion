@@ -8,8 +8,8 @@ import (
 )
 
 type SocialAccount struct {
-	Type SocialType
-	Hide bool
+	Type    SocialType
+	Hide    bool
 	Account string
 }
 
@@ -31,6 +31,7 @@ func (j *SocialAccount) Value() (driver.Value, error) {
 
 	return json.Marshal(j)
 }
+
 /*
 type SocialAccountList []SocialAccount
 
