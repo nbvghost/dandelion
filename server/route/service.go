@@ -84,7 +84,7 @@ func (m *service) RegisterInterceptors(prefixPath string, excluded []string, int
 	}
 	m.interceptors[prefixPath] = scopeInterceptor{
 		Interceptors: interceptors,
-		ExcludedPath: append(excluded,"/404"),
+		ExcludedPath: append(excluded, "/404"),
 	}
 }
 func (m *service) CheckRoute(isApi bool, route string) (*RouteInfo, bool) {
@@ -193,7 +193,7 @@ func (m *service) RegisterRoute(pathTemplate string, handler constrain.IHandler)
 		pathTemplate = "/api/"
 		//pathTemplate = filepath.ToSlash(filepath.Join("/", "api", "/"))
 	} else {
-		pathTemplate = "/api/" + strings.TrimLeft(pathTemplate,"/")
+		pathTemplate = "/api/" + strings.TrimLeft(pathTemplate, "/")
 		//pathTemplate = filepath.ToSlash(filepath.Join("/", "api", strings.Trim(pathTemplate, "/")))
 	}
 	if _, ok := m.Routes[pathTemplate]; ok {
@@ -218,7 +218,7 @@ func (m *service) RegisterView(pathTemplate string, handler constrain.IViewHandl
 	if strings.EqualFold(pathTemplate, "*") {
 		pathTemplate = ""
 	} else {
-		pathTemplate = "/" + strings.TrimLeft(pathTemplate,"/")
+		pathTemplate = "/" + strings.TrimLeft(pathTemplate, "/")
 	}
 	if _, ok := m.ViewRoutes[pathTemplate]; ok {
 		panic(errors.New(fmt.Sprintf("存在相同的路由:%s", pathTemplate)))
