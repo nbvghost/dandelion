@@ -31,15 +31,15 @@ func (v *DefaultViewRender) Render(context constrain.IContext, request *http.Req
 	if len(viewName) > 0 {
 		dir, _ := filepath.Split(context.Route())
 		if dir == "/" {
-			fileByte, err = ioutil.ReadFile(fmt.Sprintf("%s/%s.html", v.ViewDir, viewName))
+			fileByte, err = ioutil.ReadFile(fmt.Sprintf("%s/%s.gohtml", v.ViewDir, viewName))
 			if err != nil {
 				fileByte = []byte(err.Error())
 				err = nil
 			}
 		} else {
-			fileByte, err = ioutil.ReadFile(fmt.Sprintf("%s%s%s.html", v.ViewDir, dir, viewName))
+			fileByte, err = ioutil.ReadFile(fmt.Sprintf("%s%s%s.gohtml", v.ViewDir, dir, viewName))
 			if err != nil {
-				fileByte, err = ioutil.ReadFile(fmt.Sprintf("%s/404.html", v.ViewDir))
+				fileByte, err = ioutil.ReadFile(fmt.Sprintf("%s/404.gohtml", v.ViewDir))
 			}
 		}
 	} else {
@@ -48,10 +48,10 @@ func (v *DefaultViewRender) Render(context constrain.IContext, request *http.Req
 		if len(ext) > 0 {
 			fileByte, err = ioutil.ReadFile(fmt.Sprintf("%s/%s", v.ViewDir, path))
 		} else {
-			fileByte, err = ioutil.ReadFile(fmt.Sprintf("%s/%s.html", v.ViewDir, path))
+			fileByte, err = ioutil.ReadFile(fmt.Sprintf("%s/%s.gohtml", v.ViewDir, path))
 			if err != nil {
 				if _, ok := err.(*fs.PathError); ok {
-					fileByte, err = ioutil.ReadFile(fmt.Sprintf("%s/%s.html", v.ViewDir, "index"))
+					fileByte, err = ioutil.ReadFile(fmt.Sprintf("%s/%s.gohtml", v.ViewDir, "index"))
 				}
 			}
 		}
@@ -85,7 +85,9 @@ func (v *DefaultViewRender) Render(context constrain.IContext, request *http.Req
 		"Data":  viewData,
 	})
 	if err != nil {
-		return err
+		//return err
+		writer.WriteHeader(http.StatusNotFound)
+		writer.Write([]byte(err.Error()))
 	}
 	return nil
 }

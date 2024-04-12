@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"reflect"
 	"strings"
 
@@ -59,12 +60,16 @@ type service struct {
 	Routes     map[string]*RouteInfo
 	ViewRoutes map[string]*RouteInfo
 
+	base string
 	//redis           constrain.IRedis
 	mappingCallback constrain.IMappingCallback
 	interceptors    map[string]scopeInterceptor
 	router          *mux.Router
 }
 
+func (m *service) GetBase() string {
+	return m.base
+}
 func (m *service) GetMappingCallback() constrain.IMappingCallback {
 	return m.mappingCallback
 }
@@ -82,9 +87,19 @@ func (m *service) RegisterInterceptors(prefixPath string, excluded []string, int
 	if len(prefixPath) == 0 {
 		panic(errors.Errorf("prefixPath 不能为空"))
 	}
+
+	prefixPath = filepath.ToSlash(filepath.Join("/", m.base, prefixPath))
+
+	excludedPaths := make([]string, 0)
+	for _, s := range excluded {
+		excludedPaths = append(excludedPaths, filepath.ToSlash(filepath.Join("/", m.base, s)))
+	}
+
+	excludedPaths = append(excludedPaths, filepath.ToSlash(filepath.Join("/", m.base, "404")))
+
 	m.interceptors[prefixPath] = scopeInterceptor{
 		Interceptors: interceptors,
-		ExcludedPath: excluded,
+		ExcludedPath: excludedPaths,
 	}
 }
 func (m *service) CheckRoute(isApi bool, route string) (*RouteInfo, bool) {
@@ -122,7 +137,7 @@ func (m *service) CreateHandle(isApi bool, r *http.Request) (constrain.IRouteInf
 
 	routeInfo, ok := m.CheckRoute(isApi, pathTemplate)
 	if !ok {
-		return nil, errors.Errorf("没有找到路由映射:%s   =>   %s", r.URL.String(), pathTemplate)
+		return nil, errors.Errorf("No path found %s", r.URL.String())
 	}
 	//apiHandler := reflect.New(routeInfo.GetHandlerType()).Interface()
 	//return apiHandler, routeInfo.GetWithoutAuth(), nil
@@ -188,10 +203,14 @@ func (m *service) ExecuteInterceptors(context constrain.IContext, routeHandler a
 }
 
 func (m *service) RegisterRoute(pathTemplate string, handler constrain.IHandler) {
+	base := strings.Trim(m.base, "/")
+
 	if strings.EqualFold(pathTemplate, "*") {
-		pathTemplate = "/api/"
+		//pathTemplate = "/api/"
+		pathTemplate = filepath.ToSlash(filepath.Join("/", base, "api", "/"))
 	} else {
-		pathTemplate = "/api/" + pathTemplate
+		//pathTemplate = "/api/" + pathTemplate
+		pathTemplate = filepath.ToSlash(filepath.Join("/", base, "api", strings.Trim(pathTemplate, "/")))
 	}
 	if _, ok := m.Routes[pathTemplate]; ok {
 		panic(errors.New(fmt.Sprintf("存在相同的路由:%s", pathTemplate)))
@@ -211,10 +230,12 @@ func (m *service) RegisterRoute(pathTemplate string, handler constrain.IHandler)
 
 // RegisterView path 为 * 号时，匹配所有没有定义的路由
 func (m *service) RegisterView(pathTemplate string, handler constrain.IViewHandler) {
+	base := strings.Trim(m.base, "/")
+
 	if strings.EqualFold(pathTemplate, "*") {
-		pathTemplate = ""
+		pathTemplate = filepath.ToSlash(filepath.Join("/", base, "/"))
 	} else {
-		pathTemplate = "/" + pathTemplate
+		pathTemplate = filepath.ToSlash(filepath.Join("/", base, strings.Trim(pathTemplate, "/")))
 	}
 	if _, ok := m.ViewRoutes[pathTemplate]; ok {
 		panic(errors.New(fmt.Sprintf("存在相同的路由:%s", pathTemplate)))
@@ -233,6 +254,6 @@ func (m *service) RegisterView(pathTemplate string, handler constrain.IViewHandl
 	//gobext.Register(result)
 }
 
-func New(router *mux.Router, mappingCallback constrain.IMappingCallback) constrain.IRoute {
-	return &service{router: router, Routes: map[string]*RouteInfo{}, ViewRoutes: map[string]*RouteInfo{}, mappingCallback: mappingCallback, interceptors: make(map[string]scopeInterceptor)}
+func New(router *mux.Router, base string, mappingCallback constrain.IMappingCallback) constrain.IRoute {
+	return &service{router: router, base: strings.Trim(base, "/"), Routes: map[string]*RouteInfo{}, ViewRoutes: map[string]*RouteInfo{}, mappingCallback: mappingCallback, interceptors: make(map[string]scopeInterceptor)}
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/library/result"
+	"github.com/nbvghost/dandelion/server/route"
 	"log"
 	"net/http"
 	"time"
@@ -200,7 +201,10 @@ func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, eng
 			}
 			w.Write(bytes)
 		} else {
-			http.Redirect(w, r, "/404", http.StatusPermanentRedirect)
+			err = customizeViewRender.Render(ctx, r, w, route.NewViewResult("404",map[string]any{"Error":err.Error()}))
+			if err != nil {
+				ctx.Logger().With(zap.NamedError("ErrorHandler", err))
+			}
 		}
 	}
 

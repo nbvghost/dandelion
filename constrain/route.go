@@ -13,6 +13,7 @@ type IRoute interface {
 	RegisterRoute(path string, handler IHandler)
 	RegisterView(path string, handler IViewHandler)
 	GetMappingCallback() IMappingCallback
+	GetBase() string
 	CreateHandle(isApi bool, r *http.Request) (IRouteInfo, error)
 	ExecuteInterceptors(context IContext, routeHandler any) error
 	RegisterInterceptors(prefixPath string, excludedPath []string, interceptors ...IInterceptor)

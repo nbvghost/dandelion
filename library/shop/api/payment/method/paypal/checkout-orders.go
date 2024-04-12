@@ -3,6 +3,10 @@ package paypal
 import (
 	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -11,9 +15,6 @@ import (
 	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal/network"
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service"
-	"regexp"
-	"strconv"
-	"strings"
 )
 
 var nameReg = regexp.MustCompile(`\s+`)

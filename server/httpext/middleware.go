@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -223,7 +224,7 @@ func (m *httpMiddleware) CreateContext(redisClient constrain.IRedis, etcdClient 
 	}
 
 	{
-		var apiPath = "/api/"
+		var apiPath = filepath.ToSlash(filepath.Join("/" ,router.GetBase(), "/api/"))+"/"
 		var requestUrlPath = r.URL.Path
 		if len(requestUrlPath) >= len(apiPath) && strings.EqualFold(requestUrlPath[0:len(apiPath)], apiPath) {
 			contextValue.IsApi = true

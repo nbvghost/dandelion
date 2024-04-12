@@ -5,6 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+	"math"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service/internal/activity"
@@ -17,11 +23,6 @@ import (
 	"github.com/nbvghost/dandelion/service/internal/wechat"
 	"github.com/nbvghost/dandelion/service/serviceargument"
 	"gorm.io/gorm/clause"
-	"log"
-	"math"
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity"
@@ -228,11 +229,11 @@ func (m OrdersService) OrdersStockManager(db *gorm.DB, orders *model.Orders, isM
 			//减
 			//UpdateColumn("quantity", gorm.Expr("quantity - ?", 1))
 			//db.Model(&product).Updates(map[string]interface{}{"price": gorm.Expr("price * ? + ?", 2, 100)})
-			err := dao.UpdateBy(db, &model.Specification{}, map[string]interface{}{"Stock": gorm.Expr(`"Stock" - ?`, value.Quantity)},`"ID"=? and "Stock">=?`,specification.ID,value.Quantity)
+			err := dao.UpdateBy(db, &model.Specification{}, map[string]interface{}{"Stock": gorm.Expr(`"Stock" - ?`, value.Quantity)}, `"ID"=? and "Stock">=?`, specification.ID, value.Quantity)
 			if err != nil {
 				return err
 			}
-			err = dao.UpdateBy(db, &model.Goods{}, map[string]interface{}{"Stock": gorm.Expr(`"Stock" - ?`, value.Quantity)},`"ID"=? and "Stock">=?`,g.ID,value.Quantity)
+			err = dao.UpdateBy(db, &model.Goods{}, map[string]interface{}{"Stock": gorm.Expr(`"Stock" - ?`, value.Quantity)}, `"ID"=? and "Stock">=?`, g.ID, value.Quantity)
 			if err != nil {
 				return err
 			}
@@ -1244,8 +1245,11 @@ func (m OrdersService) AnalyseOrdersGoodsListByOrders(orders *model.Orders, addr
 		}
 		orderGoodsList = append(orderGoodsList, ordersGoods)
 	}
-	list, err := m.AnalyseOrdersGoodsList(orders.OID, address, orderGoodsList)
-	return list, err
+	confirmOrdersGoods, err := m.AnalyseOrdersGoodsList(orders.OID, address, orderGoodsList)
+	if err != nil {
+		return nil, err
+	}
+	return confirmOrdersGoods, err
 }
 
 // AnalyseOrdersGoodsList 订单分析，

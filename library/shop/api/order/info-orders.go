@@ -3,6 +3,7 @@ package order
 import (
 	"encoding/json"
 	"errors"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -31,7 +32,10 @@ func (m *InfoOrders) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 		return nil, err
 	}
 	confirmOrdersGoods, err := service.Order.Orders.AnalyseOrdersGoodsListByOrders(&orders, &address)
-	return result.NewData(confirmOrdersGoods), err
+	if err != nil {
+		return nil, err
+	}
+	return result.NewData(map[string]any{"ConfirmOrdersGoods": confirmOrdersGoods, "Orders": orders}), err
 }
 func (m *InfoOrders) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
 	address := dao.GetByPrimaryKey(db.Orm(), &model.Address{}, m.Put.AddressID).(*model.Address)
