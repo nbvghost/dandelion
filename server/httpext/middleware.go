@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"reflect"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -32,8 +31,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var ParamsCheck = regexp.MustCompile("^[\u4e00-\u9fa5_\\-%(`。？！，、；：“”‘’（）《》【】~)\\sa-zA-Z0-9]{0,30}$")
-var ParamsCheckError = errors.New("The url parameters are not formatted correctly")
+
 
 type httpMiddleware struct {
 	context    constrain.IContext
@@ -54,16 +52,6 @@ func (m *httpMiddleware) filterFlags(content string) string {
 	return content
 }
 func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contextValue *contexext.ContextValue) error {
-	//对所有的url 做判断
-	query := contextValue.Request.URL.Query()
-	for s := range query {
-		if !ParamsCheck.MatchString(query.Get(s)) {
-			//[一-龥_\-%\sa-zA-Z0-9]{1,30}
-			//允许中文 - _ 空格 a-z A-Z 0-9,长度不超过30
-			return ParamsCheckError
-		}
-	}
-
 	v := reflect.ValueOf(apiHandler)
 	t := reflect.TypeOf(apiHandler).Elem()
 	num := t.NumField()
