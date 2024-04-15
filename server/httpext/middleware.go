@@ -32,7 +32,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var ParamsCheck = regexp.MustCompile("^[\u4e00-\u9fa5_\\-%()\\sa-zA-Z0-9]{0,30}$")
+var ParamsCheck = regexp.MustCompile("^[\u4e00-\u9fa5_\\-%(`。？！，、；：“”‘’（）《》【】~)\\sa-zA-Z0-9]{0,30}$")
 var ParamsCheckError = errors.New("The url parameters are not formatted correctly")
 
 type httpMiddleware struct {
