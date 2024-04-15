@@ -5,9 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -30,6 +32,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+var ParamsCheck = regexp.MustCompile("^[\u4e00-\u9fa5_\\-%\\sa-zA-Z0-9]{1,30}$")
+
 type httpMiddleware struct {
 	context    constrain.IContext
 	serverName string
@@ -49,6 +53,16 @@ func (m *httpMiddleware) filterFlags(content string) string {
 	return content
 }
 func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contextValue *contexext.ContextValue) error {
+	//对所有的url 做判断
+	query := contextValue.Request.URL.Query()
+	for s := range query {
+		if !ParamsCheck.MatchString(query.Get(s)) {
+			//[一-龥_\-%\sa-zA-Z0-9]{1,30}
+			//允许中文 - _ 空格 a-z A-Z 0-9,长度不超过30
+			return errors.New("The url parameters are not formatted correctly")
+		}
+	}
+
 	v := reflect.ValueOf(apiHandler)
 	t := reflect.TypeOf(apiHandler).Elem()
 	num := t.NumField()
@@ -67,7 +81,7 @@ func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contex
 		vv = v.Elem()
 	}
 
-	body, err := ioutil.ReadAll(contextValue.Request.Body)
+	body, err := io.ReadAll(contextValue.Request.Body)
 	if err != nil {
 		return err
 	}
@@ -97,8 +111,8 @@ func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contex
 	if err != nil {
 		ctx.Logger().With(zap.Error(err))
 		return err
-
 	}
+
 	err = binding.Header.Bind(contextValue.Request, vv.Addr().Interface())
 	if err != nil {
 		ctx.Logger().With(zap.Error(err))
