@@ -6,7 +6,6 @@ import (
 	"golang.org/x/sync/errgroup"
 	"log"
 
-	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/environments"
@@ -18,16 +17,12 @@ var flagEnv = struct {
 	DisableMigratorAndCreateTable bool
 }{}
 
-func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
-	err := db.Connect(etcd, dbName)
-	if err != nil {
-		return err
-	}
-
+func Init(app key.MicroServer) error {
 	if flagEnv.DisableMigratorAndCreateTable {
 		return nil
 	}
 
+	var err error
 	_database := db.Orm()
 
 	models := make([]model.IDataBaseFace, 0)

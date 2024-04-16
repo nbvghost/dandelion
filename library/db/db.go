@@ -15,7 +15,6 @@ var instance struct {
 
 func Orm() *gorm.DB {
 	if instance.pq == nil {
-
 		panic(errors.New("请初化数据库"))
 	}
 	return instance.pq.Orm()
@@ -26,20 +25,12 @@ func ConnectWithout(dsn string) error {
 	return nil
 }
 func Connect(etcd constrain.IEtcd, dbName string) error {
-	d, err := NewDB(etcd, dbName)
-	if err != nil {
-		return err
-	}
-	instance.pq = d
-	return nil
-}
-
-func NewDB(etcd constrain.IEtcd, dbName string) (postgres.IPostgres, error) {
 	var err error
 	var dsn string
 	if dsn, err = etcd.ObtainPostgresql(dbName); err != nil {
-		return nil, err
+		return err
 	}
 	pq := postgres.New(dsn)
-	return pq, nil
+	instance.pq = pq
+	return nil
 }

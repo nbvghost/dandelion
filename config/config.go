@@ -3,6 +3,7 @@ package config
 import (
 	"crypto/tls"
 	"fmt"
+	"os"
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -148,4 +149,12 @@ type PostgresqlConfig struct {
 
 func (m *PostgresqlConfig) GetDSN() string {
 	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s", m.Host, m.User, m.Password, m.DBName, m.Port, m.SSLMode, m.TimeZone)
+}
+
+func GetENV(key, defaultValue string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return value
 }

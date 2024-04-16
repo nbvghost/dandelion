@@ -58,7 +58,8 @@ func (m *Address) HandleDelete(context constrain.IContext) (constrain.IResult, e
 		return nil, err
 	}
 
-	addressList := dao.Find(db.Orm(), &model.Address{}).Where(where.String()).List()
+	w,vs:=where.Text()
+	addressList := dao.Find(db.Orm(), &model.Address{}).Where(w,vs...).List()
 	return result.NewData(map[string]any{"AddressList": addressList}), nil
 }
 
@@ -68,7 +69,8 @@ func (m *Address) Handle(context constrain.IContext) (r constrain.IResult, err e
 	if m.Get.ID > 0 {
 		where.Eq(`"ID"`, m.Get.ID)
 	}
-	addressList := dao.Find(db.Orm(), &model.Address{}).Where(where.String()).List()
+	w,vs:=where.Text()
+	addressList := dao.Find(db.Orm(), &model.Address{}).Where(w,vs...).List()
 	return result.NewData(map[string]any{"AddressList": addressList}), nil
 }
 
