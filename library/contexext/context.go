@@ -3,9 +3,7 @@ package contexext
 import (
 	"context"
 	"errors"
-	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/environments"
 	"log"
 	"net/http"
 	"net/url"
@@ -110,19 +108,6 @@ func (m *handlerContext) Logger() *zap.Logger {
 func (m *handlerContext) SelectOutsideServer(appName key.MicroServer) (string, error) {
 	return m.etcd.SelectOutsideServer(appName)
 }*/
-
-func (m *handlerContext) SelectInsideServer(appName config.MicroServer) (string, error) {
-	if environments.Release() {
-		return appName.Name, nil
-	}
-	return appName.GetAddress()
-}
-func (m *handlerContext) SelectOutsideServer(appName config.MicroServer) (string, error) {
-	if environments.Release() {
-		return config.GetENV(appName.Name, appName.Name), nil
-	}
-	return appName.Name, nil
-}
 
 func (m *handlerContext) Token() string {
 	return m.token

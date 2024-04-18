@@ -69,7 +69,7 @@ func (m *ResetPassword) sendEmail(ctx constrain.IContext, u *model.User) error {
 
 	host := util.GetHost(contextValue.Request)
 
-	ossHost, err := ctx.SelectOutsideServer(config.MicroServerOSS)
+	ossHost, err := config.MicroServerOSS.SelectOutsideServer() //ctx.SelectOutsideServer(config.MicroServerOSS)
 	if err != nil {
 		return err
 	}

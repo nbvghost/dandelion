@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/library/util"
+	"log"
 	"os"
 	"time"
 
@@ -51,12 +52,24 @@ func (m *MicroServerConfig) Register() error {
 	if err != nil {
 		return err
 	}
-	err = os.WriteFile(fileName, []byte(fmt.Sprintf("%s:%d", m.IP, m.Port)), os.ModePerm)
+
+	address := fmt.Sprintf("%s:%d", m.IP, m.Port)
+
+	_, err = os.Stat(fileName)
+	if err == nil {
+		err = os.Remove(fileName)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = writeLock(fileName, []byte(address))
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
 func NewMicroServerConfig(microServerKey MicroServer, port int, ip string) *MicroServerConfig {
 	return &MicroServerConfig{
 		MicroServer: microServerKey,
@@ -192,7 +205,8 @@ func (m *PostgresqlConfig) GetDSN() string {
 func GetENV(key, defaultValue string) string {
 	value := os.Getenv(key)
 	if value == "" {
-		return defaultValue
+		value = defaultValue
 	}
+	log.Println(fmt.Sprintf("env %s %s", key, value))
 	return value
 }

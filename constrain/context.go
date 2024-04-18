@@ -2,7 +2,6 @@ package constrain
 
 import (
 	"context"
-	"github.com/nbvghost/dandelion/config"
 	"go.uber.org/zap"
 	"sync"
 
@@ -23,8 +22,6 @@ type IContext interface {
 	Redis() IRedis
 	UID() dao.PrimaryKey
 	AppName() string
-	SelectInsideServer(appName config.MicroServer) (string, error)
-	SelectOutsideServer(appName config.MicroServer) (string, error)
 	Route() string
 	Token() string
 	Logger() *zap.Logger
