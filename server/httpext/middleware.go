@@ -31,8 +31,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-
-
 type httpMiddleware struct {
 	context    constrain.IContext
 	serverName string
@@ -168,7 +166,7 @@ func (m *httpMiddleware) getToken(w http.ResponseWriter, r *http.Request) string
 	return token
 }
 
-func (m *httpMiddleware) CreateContext(redisClient constrain.IRedis, etcdClient constrain.IEtcd, router constrain.IRoute, w http.ResponseWriter, r *http.Request) constrain.IContext {
+func (m *httpMiddleware) CreateContext(redisClient constrain.IRedis, router constrain.IRoute, w http.ResponseWriter, r *http.Request) constrain.IContext {
 	var lang string
 	domainPrefix, domainName := util.ParseDomain(r.Host)
 	if len(domainPrefix) >= 1 {
@@ -235,7 +233,7 @@ func (m *httpMiddleware) CreateContext(redisClient constrain.IRedis, etcdClient 
 
 	logger = logger.With(zap.String("Path", r.URL.String()))
 
-	ctx := contexext.New(contexext.NewContext(parentCtx, contextValue), m.serverName, session.ID, r.URL.Path, mappingCallback, redisClient, etcdClient, session.Token, logger, key.Mode(mode))
+	ctx := contexext.New(contexext.NewContext(parentCtx, contextValue), m.serverName, session.ID, r.URL.Path, mappingCallback, redisClient, session.Token, logger, key.Mode(mode))
 	return ctx
 }
 func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute, beforeViewRender constrain.IBeforeViewRender, afterViewRender constrain.IAfterViewRender, w http.ResponseWriter, r *http.Request) error {

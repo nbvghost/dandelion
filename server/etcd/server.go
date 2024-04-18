@@ -17,7 +17,6 @@ import (
 
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/pkg/errors"
 
@@ -29,11 +28,16 @@ type server struct {
 	client          *clientv3.Client
 	resolverBuilder resolver.Builder
 
-	dnsDomainToServer map[string]key.MicroServer
+	dnsDomainToServer map[string]config.MicroServer
 	dnsServerToDomain map[string][]string
 	dnsLocker         sync.RWMutex
 	//serverMap         map[key.MicroServer][]serviceobject.ServerDesc
 	//serverLocker      sync.RWMutex
+}
+
+func (m *server) GetDNSLocalName(domainName string) (config.MicroServer, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (m *server) Close() error {
@@ -69,7 +73,7 @@ func (m *server) parseDNS(dns []constrain.ServerDNS, check bool) error {
 	defer m.dnsLocker.Unlock()
 	m.dnsLocker.Lock()
 
-	m.dnsDomainToServer = map[string]key.MicroServer{}
+	m.dnsDomainToServer = map[string]config.MicroServer{}
 	m.dnsServerToDomain = map[string][]string{}
 	for _, v := range dns {
 		if check {
@@ -97,8 +101,40 @@ func (m *server) parseDNS(dns []constrain.ServerDNS, check bool) error {
 	return nil
 }
 
+/*
+	func (m *server) SelectInsideServer(appName key.MicroServer) (string, error) {
+		ctx := context.TODO()
+		client := m.getClient()
+		if appName.ServerType != key.ServerTypeHttp {
+			return "", errors.Errorf("服务不是http服务:%s", appName)
+		}
+
+		serverKey := fmt.Sprintf("%s/%s/%s/", "server", appName.ServerType, appName.Name)
+
+		resp, err := client.Get(ctx, serverKey, clientv3.WithPrefix())
+		if err != nil {
+			return "", err
+		}
+		if len(resp.Kvs) == 0 {
+			return "", errors.Errorf("没有可以用的服务节点:%s", appName)
+		}
+		v := resp.Kvs[random.Intn(len(resp.Kvs))]
+		var serverDesc config.MicroServerConfig
+		if err = json.Unmarshal(v.Value, &serverDesc); err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%s:%d", serverDesc.IP, serverDesc.Port), nil
+	}
+*/
+func (m *server) SelectInsideServer(appName config.MicroServer) (string, error) {
+	return appName.Name, nil
+}
+func (m *server) SelectOutsideServer(appName config.MicroServer) (string, error) {
+	return config.GetENV(appName.Name, appName.Name), nil
+}
+
 // GetDNSName 对外服务地址
-func (m *server) GetDNSName(localName key.MicroServer) (string, error) {
+/*func (m *server) GetDNSName(localName key.MicroServer) (string, error) {
 	m.dnsLocker.RLock()
 	defer m.dnsLocker.RUnlock()
 	list, ok := m.dnsServerToDomain[string(localName.Name)]
@@ -106,20 +142,8 @@ func (m *server) GetDNSName(localName key.MicroServer) (string, error) {
 		return "", errors.Errorf("dns:在获取%s服务时找不到服务地址", localName)
 	}
 	return list[0], nil
-}
-func (m *server) GetDNSLocalName(domainName string) (key.MicroServer, error) {
-	m.dnsLocker.RLock()
-	defer m.dnsLocker.RUnlock()
-	domainName = strings.Split(domainName, ":")[0]
-	v, ok := m.dnsDomainToServer[domainName]
-	if !ok {
-		v, ok = m.dnsDomainToServer[fmt.Sprintf("*.%s", domainName)]
-	}
-	if !ok {
-		return key.MicroServer{}, errors.Errorf("dns:没有找到(%s)的服务节点", domainName)
-	}
-	return v, nil
-}
+}*/
+
 func (m *server) watch() {
 	var dns []constrain.ServerDNS
 	var err error
@@ -331,8 +355,8 @@ func (m *server) Register(desc *config.MicroServerConfig) (*config.MicroServerCo
 var random = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 // SelectInsideGrpcServer  服务间通信通过这个方法获取
-func (m *server) SelectInsideGrpcServer(appName key.MicroServer) (*grpc.ClientConn, error) {
-	if appName.ServerType != key.ServerTypeGrpc {
+func (m *server) SelectInsideGrpcServer(appName config.MicroServer) (*grpc.ClientConn, error) {
+	if appName.ServerType != config.ServerTypeGrpc {
 		return nil, errors.Errorf("服务不是grpc服务:%s", appName)
 	}
 	ctx := context.TODO()
@@ -347,30 +371,6 @@ func (m *server) SelectInsideGrpcServer(appName key.MicroServer) (*grpc.ClientCo
 	}
 	return d, nil
 }
-func (m *server) SelectInsideServer(appName key.MicroServer) (string, error) {
-	ctx := context.TODO()
-	client := m.getClient()
-	if appName.ServerType != key.ServerTypeHttp {
-		return "", errors.Errorf("服务不是http服务:%s", appName)
-	}
-
-	serverKey := fmt.Sprintf("%s/%s/%s/", "server", appName.ServerType, appName.Name)
-
-	resp, err := client.Get(ctx, serverKey, clientv3.WithPrefix())
-	if err != nil {
-		return "", err
-	}
-	if len(resp.Kvs) == 0 {
-		return "", errors.Errorf("没有可以用的服务节点:%s", appName)
-	}
-	v := resp.Kvs[random.Intn(len(resp.Kvs))]
-	var serverDesc config.MicroServerConfig
-	if err = json.Unmarshal(v.Value, &serverDesc); err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%s:%d", serverDesc.IP, serverDesc.Port), nil
-}
-
 func NewServer(config clientv3.Config) constrain.IEtcd {
 	client, err := clientv3.New(config)
 	if err != nil {
@@ -386,8 +386,8 @@ func NewServer(config clientv3.Config) constrain.IEtcd {
 
 	s := &server{etcd: config,
 		client:            client,
-		dnsServerToDomain: map[string][]string{},
-		dnsDomainToServer: map[string]key.MicroServer{},
+		//dnsServerToDomain: map[string][]string{},
+		//dnsDomainToServer: map[string]config.MicroServer{},
 		//serverMap:         map[key.MicroServer][]serviceobject.ServerDesc{},
 		resolverBuilder: r,
 	}

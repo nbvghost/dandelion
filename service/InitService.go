@@ -2,11 +2,11 @@ package service
 
 import (
 	"fmt"
+	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/library/db"
 	"golang.org/x/sync/errgroup"
 	"log"
 
-	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/environments"
 	"github.com/nbvghost/dandelion/library/util"
@@ -17,7 +17,7 @@ var flagEnv = struct {
 	DisableMigratorAndCreateTable bool
 }{}
 
-func Init(app key.MicroServer) error {
+func Init(app config.MicroServer) error {
 	if flagEnv.DisableMigratorAndCreateTable {
 		return nil
 	}

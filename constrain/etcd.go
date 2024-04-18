@@ -4,16 +4,16 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/nbvghost/dandelion/config"
-	"github.com/nbvghost/dandelion/constrain/key"
 )
 
 type IEtcd interface {
 	Close() error
 	Register(desc *config.MicroServerConfig) (*config.MicroServerConfig, error)
-	SelectInsideServer(appName key.MicroServer) (string, error)
-	SelectInsideGrpcServer(appName key.MicroServer) (*grpc.ClientConn, error)
-	GetDNSName(localName key.MicroServer) (string, error)
-	GetDNSLocalName(domainName string) (key.MicroServer, error)
+	SelectInsideServer(appName config.MicroServer) (string, error)
+	SelectOutsideServer(appName config.MicroServer) (string, error)
+	SelectInsideGrpcServer(appName config.MicroServer) (*grpc.ClientConn, error)
+	//GetDNSName(localName key.MicroServer) (string, error)
+	//GetDNSLocalName(domainName string) (config.MicroServer, error)
 	ObtainRedis() (*config.RedisOptions, error)
 	ObtainPostgresql(serverName string) (string, error)
 }

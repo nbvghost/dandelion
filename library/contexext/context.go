@@ -3,7 +3,9 @@ package contexext
 import (
 	"context"
 	"errors"
+	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/environments"
 	"log"
 	"net/http"
 	"net/url"
@@ -20,7 +22,6 @@ type handlerContext struct {
 	uid       dao.PrimaryKey
 	parent    context.Context
 	redis     constrain.IRedis
-	etcd      constrain.IEtcd
 	mode      key.Mode
 	logger    *zap.Logger
 	appName   string
@@ -98,18 +99,31 @@ func (m *handlerContext) Context() context.Context {
 func (m *handlerContext) Redis() constrain.IRedis {
 	return m.redis
 }
-func (m *handlerContext) Etcd() constrain.IEtcd {
-	return m.etcd
-}
+
 func (m *handlerContext) Logger() *zap.Logger {
 	return m.logger
 }
-func (m *handlerContext) SelectInsideServer(appName key.MicroServer) (string, error) {
+
+/*func (m *handlerContext) SelectInsideServer(appName key.MicroServer) (string, error) {
 	return m.etcd.SelectInsideServer(appName)
 }
-func (m *handlerContext) GetDNSName(localName key.MicroServer) (string, error) {
-	return m.etcd.GetDNSName(localName)
+func (m *handlerContext) SelectOutsideServer(appName key.MicroServer) (string, error) {
+	return m.etcd.SelectOutsideServer(appName)
+}*/
+
+func (m *handlerContext) SelectInsideServer(appName config.MicroServer) (string, error) {
+	if environments.Release() {
+		return appName.Name, nil
+	}
+	return appName.GetAddress()
 }
+func (m *handlerContext) SelectOutsideServer(appName config.MicroServer) (string, error) {
+	if environments.Release() {
+		return config.GetENV(appName.Name, appName.Name), nil
+	}
+	return appName.Name, nil
+}
+
 func (m *handlerContext) Token() string {
 	return m.token
 }
@@ -122,6 +136,6 @@ func (m *handlerContext) Destroy() {
 		return true
 	})
 }
-func New(parent context.Context, appName, uid string, route string, mapping constrain.IMappingCallback, redis constrain.IRedis, etcd constrain.IEtcd, token string, logger *zap.Logger, mode key.Mode) constrain.IContext {
-	return &handlerContext{parent: parent, uid: dao.NewFromString(uid), mapping: mapping, route: route, redis: redis, etcd: etcd, appName: appName, token: token, logger: logger, mode: mode, syncCache: &sync.Map{}}
+func New(parent context.Context, appName, uid string, route string, mapping constrain.IMappingCallback, redis constrain.IRedis, token string, logger *zap.Logger, mode key.Mode) constrain.IContext {
+	return &handlerContext{parent: parent, uid: dao.NewFromString(uid), mapping: mapping, route: route, redis: redis, appName: appName, token: token, logger: logger, mode: mode, syncCache: &sync.Map{}}
 }

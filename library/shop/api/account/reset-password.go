@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/db"
@@ -69,7 +69,7 @@ func (m *ResetPassword) sendEmail(ctx constrain.IContext, u *model.User) error {
 
 	host := util.GetHost(contextValue.Request)
 
-	ossHost, err := ctx.GetDNSName(key.MicroServerOSS)
+	ossHost, err := ctx.SelectOutsideServer(config.MicroServerOSS)
 	if err != nil {
 		return err
 	}

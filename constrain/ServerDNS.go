@@ -1,10 +1,10 @@
 package constrain
 
 import (
-	"github.com/nbvghost/dandelion/constrain/key"
+	"github.com/nbvghost/dandelion/config"
 )
 
 type ServerDNS struct {
 	DomainName string
-	LocalName  key.MicroServer //用于etcd服务发现
+	LocalName  config.MicroServer //用于etcd服务发现
 }

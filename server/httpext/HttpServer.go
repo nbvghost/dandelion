@@ -30,7 +30,6 @@ type httpServer struct {
 	engine             *mux.Router
 	route              constrain.IRoute
 	redisClient        constrain.IRedis
-	etcdClient         constrain.IEtcd
 	errorHandleResult  constrain.IResultError
 	router             *mux.Router
 	beforeViewRender   constrain.IBeforeViewRender
@@ -51,16 +50,15 @@ func (m *httpServer) ApiErrorHandle(result constrain.IResultError) {
 	}
 */
 func (m *httpServer) Listen(microServerConfig *config.MicroServerConfig) error {
-	if m.etcdClient != nil {
-		//if microServerConfig.Port == 0 {
-		var err error
-		microServerConfig, err = m.etcdClient.Register(microServerConfig)
-		if err != nil {
-			return err
-		}
-		//}
+	if err := microServerConfig.Register(); err != nil {
+		return err
 	}
-
+	defer func() {
+		err := microServerConfig.UnRegister()
+		if err != nil {
+			log.Fatalln(err)
+		}
+	}()
 	listenAddr := fmt.Sprintf("%s:%d", microServerConfig.IP, microServerConfig.Port)
 	log.Printf("HttpServer Listen:%s", listenAddr)
 	srv := &http.Server{
@@ -145,7 +143,7 @@ func (m *httpServer) handlerFunc(beforeViewRender constrain.IBeforeViewRender, v
 		ctx = request.Context().(constrain.IContext)
 		ctxValue = contexext.FromContext(ctx)
 	} else {
-		ctx = m.defaultMiddleware.CreateContext(m.redisClient, m.etcdClient, m.route, response, request) //CreateContext(m.redisClient, m.etcdClient, m.route, response, request)
+		ctx = m.defaultMiddleware.CreateContext(m.redisClient, m.route, response, request) //CreateContext(m.redisClient, m.etcdClient, m.route, response, request)
 		ctxValue = contexext.FromContext(ctx)
 		ctxValue.Request = request.WithContext(ctx)
 	}
@@ -183,8 +181,8 @@ func (m *httpServer) handlerFunc(beforeViewRender constrain.IBeforeViewRender, v
 	return true, ctxValue
 }
 
-func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, engine *mux.Router, router *mux.Router, mRoute constrain.IRoute, ops ...Option) *httpServer {
-	s := &httpServer{router: router, redisClient: redisClient, etcdClient: etcdClient, route: mRoute, engine: engine, defaultMiddleware: &httpMiddleware{}}
+func NewHttpServer(redisClient constrain.IRedis, engine *mux.Router, router *mux.Router, mRoute constrain.IRoute, ops ...Option) *httpServer {
+	s := &httpServer{router: router, redisClient: redisClient, route: mRoute, engine: engine, defaultMiddleware: &httpMiddleware{}}
 
 	s.errorHandler = func(ctx constrain.IContext, customizeViewRender constrain.IAfterViewRender, w http.ResponseWriter, r *http.Request, err error) {
 		contextValue := contexext.FromContext(ctx)

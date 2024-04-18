@@ -2,6 +2,7 @@ package constrain
 
 import (
 	"context"
+	"github.com/nbvghost/dandelion/config"
 	"go.uber.org/zap"
 	"sync"
 
@@ -20,11 +21,10 @@ type IMappingCallback interface {
 type IContext interface {
 	context.Context
 	Redis() IRedis
-	Etcd() IEtcd
 	UID() dao.PrimaryKey
 	AppName() string
-	SelectInsideServer(appName key.MicroServer) (string, error)
-	GetDNSName(localName key.MicroServer) (string, error)
+	SelectInsideServer(appName config.MicroServer) (string, error)
+	SelectOutsideServer(appName config.MicroServer) (string, error)
 	Route() string
 	Token() string
 	Logger() *zap.Logger

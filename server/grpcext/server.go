@@ -62,7 +62,7 @@ func (m *customizeService) Call(srv interface{}, ctx context.Context, dec func(i
 	logger = logger.With(zap.String("Path", tool.UUID()))
 	defer logger.Sync()
 
-	currentContext := contexext.New(ctx, m.server.MicroServer.Name, uid, serverTransportStream.Method(), m.callback, m.redis, nil, "", logger, "")
+	currentContext := contexext.New(ctx, m.server.MicroServer.Name, uid, serverTransportStream.Method(), m.callback, m.redis,  "", logger, "")
 
 	var r *route.RouteInfo
 

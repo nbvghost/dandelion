@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/constrain/key"
 	"log"
 )
 
@@ -41,7 +40,7 @@ func (m *adminServer) RegisterPostgresql(dsn string, serverName string) error {
 }
 
 func (m *adminServer) RegisterDNS(dns []constrain.ServerDNS) error {
-	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]key.MicroServer{}}
+	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]config.MicroServer{}}
 	if err := copyServer.parseDNS(dns, true); err != nil {
 		return err
 	}
@@ -83,7 +82,7 @@ func (m *adminServer) AddDNS(newDNS []constrain.ServerDNS) error {
 
 	hasDns = append(hasDns, newDNS...)
 
-	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]key.MicroServer{}}
+	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]config.MicroServer{}}
 	if err := copyServer.parseDNS(hasDns, true); err != nil {
 		return err
 	}

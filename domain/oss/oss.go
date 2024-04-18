@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/dandelion/config"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"time"
 
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/util"
@@ -25,14 +25,14 @@ type Upload struct {
 }
 
 func Url(context constrain.IContext) (string, error) {
-	ossHost, err := context.GetDNSName(key.MicroServerOSS)
+	ossHost, err := context.SelectOutsideServer(config.MicroServerOSS)
 	if err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("//%s/assets", ossHost), nil
 }
 func ReadUrl(context constrain.IContext, path string) (string, error) {
-	ossHost, err := context.GetDNSName(key.MicroServerOSS)
+	ossHost, err := context.SelectOutsideServer(config.MicroServerOSS)
 	if err != nil {
 		return "", err
 	}
@@ -40,7 +40,7 @@ func ReadUrl(context constrain.IContext, path string) (string, error) {
 	return fmt.Sprintf("%s://%s/assets%s", util.GetScheme(contextValue.Request), ossHost, path), nil
 }
 func WriteUrl(context constrain.IContext) (string, error) {
-	ossHost, err := context.SelectInsideServer(key.MicroServerOSS)
+	ossHost, err := context.SelectInsideServer(config.MicroServerOSS)
 	if err != nil {
 		return "", err
 	}
