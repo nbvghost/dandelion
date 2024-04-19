@@ -2,11 +2,7 @@ package config
 
 import (
 	"crypto/tls"
-	"errors"
 	"fmt"
-	"github.com/nbvghost/dandelion/library/util"
-	"log"
-	"os"
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -21,7 +17,7 @@ type MicroServerConfig struct {
 	Addr        string
 }
 
-func (m *MicroServerConfig) UnRegister() error {
+/*func (m *MicroServerConfig) UnRegister() error {
 	fileName, err := m.MicroServer.getFileName()
 	if err != nil {
 		return err
@@ -32,8 +28,8 @@ func (m *MicroServerConfig) UnRegister() error {
 		return err
 	}
 	return nil
-}
-func (m *MicroServerConfig) Register() error {
+}*/
+/*func (m *MicroServerConfig) Register() error {
 	var err error
 	if m.IP == "" {
 		m.IP = util.NetworkIP()
@@ -68,7 +64,7 @@ func (m *MicroServerConfig) Register() error {
 		return err
 	}
 	return nil
-}
+}*/
 
 func NewMicroServerConfig(microServerKey MicroServer, port int, ip string) *MicroServerConfig {
 	return &MicroServerConfig{
@@ -200,19 +196,4 @@ type PostgresqlConfig struct {
 
 func (m *PostgresqlConfig) GetDSN() string {
 	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s", m.Host, m.User, m.Password, m.DBName, m.Port, m.SSLMode, m.TimeZone)
-}
-
-var envMap = map[string]string{}
-
-func GetENV(key, defaultValue string) string {
-	if v, ok := envMap[key]; ok {
-		return v
-	}
-	value := os.Getenv(key)
-	if value == "" {
-		value = defaultValue
-	}
-	log.Println(fmt.Sprintf("env %s %s", key, value))
-	envMap[key] = value
-	return value
 }

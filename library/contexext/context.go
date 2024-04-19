@@ -20,6 +20,7 @@ type handlerContext struct {
 	uid       dao.PrimaryKey
 	parent    context.Context
 	redis     constrain.IRedis
+	etcd      constrain.IEtcd
 	mode      key.Mode
 	logger    *zap.Logger
 	appName   string
@@ -63,11 +64,12 @@ func FromContext(ctx context.Context) *ContextValue {
 	v, _ := m.(*ContextValue)
 	return v
 }
-
+func (m *handlerContext) Etcd() constrain.IEtcd {
+	return m.etcd
+}
 func (m *handlerContext) Deadline() (deadline time.Time, ok bool) {
 	return m.parent.Deadline()
 }
-
 func (m *handlerContext) Done() <-chan struct{} {
 	return m.parent.Done()
 }
@@ -77,11 +79,9 @@ func (m *handlerContext) SyncCache() *sync.Map {
 func (m *handlerContext) Err() error {
 	return m.parent.Err()
 }
-
 func (m *handlerContext) Value(key interface{}) interface{} {
 	return m.parent.Value(key)
 }
-
 func (m *handlerContext) Route() string {
 	return m.route
 }
@@ -97,7 +97,6 @@ func (m *handlerContext) Context() context.Context {
 func (m *handlerContext) Redis() constrain.IRedis {
 	return m.redis
 }
-
 func (m *handlerContext) Logger() *zap.Logger {
 	return m.logger
 }
@@ -121,6 +120,6 @@ func (m *handlerContext) Destroy() {
 		return true
 	})
 }
-func New(parent context.Context, appName, uid string, route string, mapping constrain.IMappingCallback, redis constrain.IRedis, token string, logger *zap.Logger, mode key.Mode) constrain.IContext {
-	return &handlerContext{parent: parent, uid: dao.NewFromString(uid), mapping: mapping, route: route, redis: redis, appName: appName, token: token, logger: logger, mode: mode, syncCache: &sync.Map{}}
+func New(parent context.Context, appName, uid string, route string, mapping constrain.IMappingCallback, etcd constrain.IEtcd, redis constrain.IRedis, token string, logger *zap.Logger, mode key.Mode) constrain.IContext {
+	return &handlerContext{parent: parent, uid: dao.NewFromString(uid), mapping: mapping, route: route, etcd: etcd, redis: redis, appName: appName, token: token, logger: logger, mode: mode, syncCache: &sync.Map{}}
 }

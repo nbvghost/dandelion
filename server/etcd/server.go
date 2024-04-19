@@ -11,8 +11,6 @@ import (
 	"time"
 
 	etcdResolver "go.etcd.io/etcd/client/v3/naming/resolver"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/resolver"
 
 	"github.com/nbvghost/dandelion/config"
@@ -35,9 +33,18 @@ type server struct {
 	//serverLocker      sync.RWMutex
 }
 
-func (m *server) GetDNSLocalName(domainName string) (config.MicroServer, error) {
-	//TODO implement me
-	panic("implement me")
+func (m *server) GetMicroServer(domainName string) (config.MicroServer, error) {
+	m.dnsLocker.RLock()
+	defer m.dnsLocker.RUnlock()
+	domainName = strings.Split(domainName, ":")[0]
+	v, ok := m.dnsDomainToServer[domainName]
+	if !ok {
+		v, ok = m.dnsDomainToServer[fmt.Sprintf("*.%s", domainName)]
+	}
+	if !ok {
+		return config.MicroServer{}, errors.Errorf("dns:没有找到(%s)的服务节点", domainName)
+	}
+	return v, nil
 }
 
 func (m *server) Close() error {
@@ -82,7 +89,7 @@ func (m *server) parseDNS(dns []constrain.ServerDNS, check bool) error {
 			}
 		}
 		m.dnsDomainToServer[v.DomainName] = v.LocalName
-		list := m.dnsServerToDomain[string(v.LocalName.Name)]
+		list := m.dnsServerToDomain[v.LocalName.Name]
 		if check {
 			var has bool
 			for _, n := range list {
@@ -96,52 +103,50 @@ func (m *server) parseDNS(dns []constrain.ServerDNS, check bool) error {
 			}
 		}
 		list = append(list, v.DomainName)
-		m.dnsServerToDomain[string(v.LocalName.Name)] = list
+		m.dnsServerToDomain[v.LocalName.Name] = list
 	}
 	return nil
 }
 
-/*
-	func (m *server) SelectInsideServer(appName key.MicroServer) (string, error) {
-		ctx := context.TODO()
-		client := m.getClient()
-		if appName.ServerType != key.ServerTypeHttp {
-			return "", errors.Errorf("服务不是http服务:%s", appName)
-		}
-
-		serverKey := fmt.Sprintf("%s/%s/%s/", "server", appName.ServerType, appName.Name)
-
-		resp, err := client.Get(ctx, serverKey, clientv3.WithPrefix())
-		if err != nil {
-			return "", err
-		}
-		if len(resp.Kvs) == 0 {
-			return "", errors.Errorf("没有可以用的服务节点:%s", appName)
-		}
-		v := resp.Kvs[random.Intn(len(resp.Kvs))]
-		var serverDesc config.MicroServerConfig
-		if err = json.Unmarshal(v.Value, &serverDesc); err != nil {
-			return "", err
-		}
-		return fmt.Sprintf("%s:%d", serverDesc.IP, serverDesc.Port), nil
-	}
-*/
-func (m *server) SelectInsideServer(appName config.MicroServer) (string, error) {
-	return appName.Name, nil
-}
-func (m *server) SelectOutsideServer(appName config.MicroServer) (string, error) {
-	return config.GetENV(appName.Name, appName.Name), nil
-}
-
-// GetDNSName 对外服务地址
-/*func (m *server) GetDNSName(localName key.MicroServer) (string, error) {
+// SelectOutsideServer 对外服务地址
+func (m *server) SelectOutsideServer(localName config.MicroServer) (string, error) {
 	m.dnsLocker.RLock()
 	defer m.dnsLocker.RUnlock()
-	list, ok := m.dnsServerToDomain[string(localName.Name)]
+	list, ok := m.dnsServerToDomain[localName.Name]
 	if !ok || len(list) == 0 {
 		return "", errors.Errorf("dns:在获取%s服务时找不到服务地址", localName)
 	}
 	return list[0], nil
+}
+func (m *server) SelectInsideServer(appName config.MicroServer) (string, error) {
+	ctx := context.TODO()
+	client := m.getClient()
+	if appName.ServerType != config.ServerTypeHttp {
+		return "", errors.Errorf("服务不是http服务:%s", appName)
+	}
+
+	serverKey := fmt.Sprintf("%s/%s/%s/", "server", appName.ServerType, appName.Name)
+
+	resp, err := client.Get(ctx, serverKey, clientv3.WithPrefix())
+	if err != nil {
+		return "", err
+	}
+	if len(resp.Kvs) == 0 {
+		return "", errors.Errorf("没有可以用的服务节点:%s", appName)
+	}
+	v := resp.Kvs[random.Intn(len(resp.Kvs))]
+	var serverDesc config.MicroServerConfig
+	if err = json.Unmarshal(v.Value, &serverDesc); err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s:%d", serverDesc.IP, serverDesc.Port), nil
+}
+
+/*func (m *server) SelectInsideServer(appName config.MicroServer) (string, error) {
+	return appName.Name, nil
+}
+func (m *server) SelectOutsideServer(appName config.MicroServer) (string, error) {
+	return config.GetENV(appName.Name, appName.Name), nil
 }*/
 
 func (m *server) watch() {
@@ -301,7 +306,7 @@ func (m *server) Register(desc *config.MicroServerConfig) (*config.MicroServerCo
 	desc.Port = port
 	desc.Addr = fmt.Sprintf("%s:%d", ip, port)
 
-	etcdKey := fmt.Sprintf("%s/%s/%s/%s:%d", "server", desc.MicroServer.ServerType, desc.MicroServer.Name, ip, port)
+	etcdKey := fmt.Sprintf("%s/%s/%s/%s:%d", "server", desc.MicroServer.ServerType, desc.MicroServer.Name, desc.IP, desc.Port)
 
 	_, err = client.Get(ctx, etcdKey)
 	if err != nil {
@@ -355,7 +360,7 @@ func (m *server) Register(desc *config.MicroServerConfig) (*config.MicroServerCo
 var random = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 // SelectInsideGrpcServer  服务间通信通过这个方法获取
-func (m *server) SelectInsideGrpcServer(appName config.MicroServer) (*grpc.ClientConn, error) {
+/*func (m *server) SelectInsideGrpcServer(appName config.MicroServer) (*grpc.ClientConn, error) {
 	if appName.ServerType != config.ServerTypeGrpc {
 		return nil, errors.Errorf("服务不是grpc服务:%s", appName)
 	}
@@ -370,7 +375,7 @@ func (m *server) SelectInsideGrpcServer(appName config.MicroServer) (*grpc.Clien
 		return nil, err
 	}
 	return d, nil
-}
+}*/
 func NewServer(config clientv3.Config) constrain.IEtcd {
 	client, err := clientv3.New(config)
 	if err != nil {
@@ -385,7 +390,7 @@ func NewServer(config clientv3.Config) constrain.IEtcd {
 	resolver.Register(r)
 
 	s := &server{etcd: config,
-		client:            client,
+		client: client,
 		//dnsServerToDomain: map[string][]string{},
 		//dnsDomainToServer: map[string]config.MicroServer{},
 		//serverMap:         map[key.MicroServer][]serviceobject.ServerDesc{},

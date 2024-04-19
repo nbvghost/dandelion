@@ -2,10 +2,8 @@ package config
 
 import (
 	"fmt"
-	"github.com/nbvghost/dandelion/library/environments"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 type serverType string
@@ -21,26 +19,26 @@ type MicroServer struct {
 	ServerType serverType
 }
 
-func ParseMicroServer(domainName string) *MicroServer {
+/*func ParseMicroServer(domainName string) *MicroServer {
 	domainName = strings.Split(domainName, ":")[0]
 	return &MicroServer{
 		Name:       domainName,
 		ServerType: "http",
 	}
-}
-func (m MicroServer) SelectInsideServer() (string, error) {
+}*/
+/*func (m MicroServer) SelectInsideServer() (string, error) {
 	if environments.Release() {
-		return GetENV(m.Name, m.Name), nil
+		return environments.GetENV(m.Name, m.Name), nil
 	}
 	return m.GetAddress()
 }
 func (m MicroServer) SelectOutsideServer() (string, error) {
 	if environments.Release() {
-		return GetENV(m.Name, m.Name), nil
+		return environments.GetENV(m.Name, m.Name), nil
 	}
 	return m.Name, nil
-}
-func (m MicroServer) GetAddress() (string, error) {
+}*/
+/*func (m MicroServer) GetAddress() (string, error) {
 	filename, err := m.getFileName()
 	if err != nil {
 		return "", err
@@ -50,7 +48,7 @@ func (m MicroServer) GetAddress() (string, error) {
 		return "", err
 	}
 	return string(file), nil
-}
+}*/
 func (m MicroServer) getFileName() (string, error) {
 	dir, err := os.UserCacheDir()
 	if err != nil {

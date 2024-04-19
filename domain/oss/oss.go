@@ -25,14 +25,14 @@ type Upload struct {
 }
 
 func Url(context constrain.IContext) (string, error) {
-	ossHost, err := config.MicroServerOSS.SelectOutsideServer() //context.SelectOutsideServer(config.MicroServerOSS)
+	ossHost, err := context.Etcd().SelectOutsideServer(config.MicroServerOSS)
 	if err != nil {
 		return "", err
 	}
 	return fmt.Sprintf("//%s/assets", ossHost), nil
 }
 func ReadUrl(context constrain.IContext, path string) (string, error) {
-	ossHost, err := config.MicroServerOSS.SelectOutsideServer() //context.SelectOutsideServer(config.MicroServerOSS)
+	ossHost, err := context.Etcd().SelectOutsideServer(config.MicroServerOSS)
 	if err != nil {
 		return "", err
 	}
@@ -40,7 +40,7 @@ func ReadUrl(context constrain.IContext, path string) (string, error) {
 	return fmt.Sprintf("%s://%s/assets%s", util.GetScheme(contextValue.Request), ossHost, path), nil
 }
 func WriteUrl(context constrain.IContext) (string, error) {
-	ossHost, err := config.MicroServerOSS.SelectInsideServer() //context.SelectInsideServer(config.MicroServerOSS)
+	ossHost, err := context.Etcd().SelectInsideServer(config.MicroServerOSS)
 	if err != nil {
 		return "", err
 	}

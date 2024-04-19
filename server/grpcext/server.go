@@ -34,6 +34,7 @@ type customizeService struct {
 	server      config.MicroServerConfig
 	serviceDesc grpc.ServiceDesc
 	routes      map[string]*route.RouteInfo
+	etcd        constrain.IEtcd
 	redis       constrain.IRedis
 	callback    constrain.IMappingCallback
 }
@@ -62,7 +63,7 @@ func (m *customizeService) Call(srv interface{}, ctx context.Context, dec func(i
 	logger = logger.With(zap.String("Path", tool.UUID()))
 	defer logger.Sync()
 
-	currentContext := contexext.New(ctx, m.server.MicroServer.Name, uid, serverTransportStream.Method(), m.callback, m.redis,  "", logger, "")
+	currentContext := contexext.New(ctx, m.server.MicroServer.Name, uid, serverTransportStream.Method(), m.callback, m.etcd, m.redis, "", logger, "")
 
 	var r *route.RouteInfo
 
@@ -174,6 +175,7 @@ func (m *service) Register(serviceDesc grpc.ServiceDesc, handlers []constrain.IG
 			server:      m.server,
 			serviceDesc: serviceDesc,
 			routes:      m.routes,
+			etcd:        m.etcdServer,
 			redis:       m.redis,
 			callback:    m.callback,
 		}

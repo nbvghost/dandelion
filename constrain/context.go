@@ -20,6 +20,7 @@ type IMappingCallback interface {
 type IContext interface {
 	context.Context
 	Redis() IRedis
+	Etcd() IEtcd
 	UID() dao.PrimaryKey
 	AppName() string
 	Route() string

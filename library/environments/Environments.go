@@ -2,9 +2,10 @@ package environments
 
 import (
 	"flag"
-	"github.com/nbvghost/dandelion/config"
+	"fmt"
 	"log"
 	_ "net/http/pprof"
+	"os"
 	"strings"
 )
 
@@ -24,10 +25,10 @@ func init() {
 	flag.StringVar(&env.listenIP, "ip", "", "ip")
 	flag.IntVar(&env.listenPort, "port", 0, "port")
 
-	etcdEndpoints := config.GetENV("ETCD_ENDPOINTS", "127.0.0.1:23791,127.0.0.1:23792,127.0.0.1:23793")
+	etcdEndpoints := GetENV("ETCD_ENDPOINTS", "127.0.0.1:23791,127.0.0.1:23792,127.0.0.1:23793")
 	env.etcdEndpoints = strings.Split(etcdEndpoints, ",")
-	env.etcdUsername = config.GetENV("ETCD_USERNAME", "")
-	env.etcdPassword = config.GetENV("ETCD_PASSWORD", "")
+	env.etcdUsername = GetENV("ETCD_USERNAME", "")
+	env.etcdPassword = GetENV("ETCD_PASSWORD", "")
 }
 func Print() {
 	log.Println("FLAG release", env.release)
@@ -51,4 +52,19 @@ func EtcdUsername() string {
 }
 func EtcdPassword() string {
 	return env.etcdPassword
+}
+
+var envMap = map[string]string{}
+
+func GetENV(key, defaultValue string) string {
+	if v, ok := envMap[key]; ok {
+		return v
+	}
+	value := os.Getenv(key)
+	if value == "" {
+		value = defaultValue
+	}
+	log.Println(fmt.Sprintf("env %s %s", key, value))
+	envMap[key] = value
+	return value
 }
