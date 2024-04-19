@@ -28,29 +28,6 @@ func init() {
 	env.etcdEndpoints = strings.Split(etcdEndpoints, ",")
 	env.etcdUsername = config.GetENV("ETCD_USERNAME", "")
 	env.etcdPassword = config.GetENV("ETCD_PASSWORD", "")
-
-	/*etcdUsername, ok := os.LookupEnv("ETCD_USERNAME")
-	if !ok {
-		flag.StringVar(&env.etcdUsername, "etcd_username", "", "etcd_username")
-	} else {
-		env.etcdUsername = etcdUsername
-	}*/
-
-	/*etcdPassword, ok := os.LookupEnv("ETCD_PASSWORD")
-	if !ok {
-		flag.StringVar(&env.etcdPassword, "etcd_password", "", "etcd_password")
-	} else {
-		env.etcdPassword = etcdPassword
-	}*/
-
-	/*etcdEndpoints, ok := os.LookupEnv("ETCD_ENDPOINTS")
-	if !ok {
-		etcdEndpoints = "127.0.0.1:23791,127.0.0.1:23792,127.0.0.1:23793"
-	}*/
-	/*etcdEndpointList := strings.Split(etcdEndpoints, ",")
-	for _, v := range etcdEndpointList {
-		env.etcdEndpoints = append(env.etcdEndpoints, strings.TrimSpace(v))
-	}*/
 }
 func Print() {
 	log.Println("FLAG release", env.release)
