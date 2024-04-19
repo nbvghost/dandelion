@@ -202,11 +202,17 @@ func (m *PostgresqlConfig) GetDSN() string {
 	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s", m.Host, m.User, m.Password, m.DBName, m.Port, m.SSLMode, m.TimeZone)
 }
 
+var envMap = map[string]string{}
+
 func GetENV(key, defaultValue string) string {
+	if v, ok := envMap[key]; ok {
+		return v
+	}
 	value := os.Getenv(key)
 	if value == "" {
 		value = defaultValue
 	}
 	log.Println(fmt.Sprintf("env %s %s", key, value))
+	envMap[key] = value
 	return value
 }
