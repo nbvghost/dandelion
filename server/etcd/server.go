@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/dandelion/library/environments"
 	"log"
 	"math/rand"
 	"strings"
@@ -377,6 +378,12 @@ var random = rand.New(rand.NewSource(time.Now().UnixNano()))
 	return d, nil
 }*/
 func NewServer(config clientv3.Config) constrain.IEtcd {
+	log.Println("connetct to etcd server")
+	defer log.Println("success connetct to etcd server")
+	if !environments.EtcdAble() {
+		log.Println("use default etcd interface")
+		return NewDefaultEtcd()
+	}
 	client, err := clientv3.New(config)
 	if err != nil {
 		panic(err)

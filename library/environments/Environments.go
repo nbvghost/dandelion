@@ -15,6 +15,7 @@ type environments struct {
 	release       bool
 	listenIP      string
 	listenPort    int
+	etcdAble      bool
 	etcdEndpoints []string
 	etcdUsername  string
 	etcdPassword  string
@@ -29,6 +30,7 @@ func init() {
 	env.etcdEndpoints = strings.Split(etcdEndpoints, ",")
 	env.etcdUsername = GetENV("ETCD_USERNAME", "")
 	env.etcdPassword = GetENV("ETCD_PASSWORD", "")
+	env.etcdAble = GetENV("ETCD_ABLE", "true") == "true"
 }
 func Print() {
 	log.Println("FLAG release", env.release)
@@ -43,6 +45,9 @@ func Port() int {
 }
 func Release() bool {
 	return env.release
+}
+func EtcdAble() bool {
+	return env.etcdAble
 }
 func EtcdEndpoints() []string {
 	return env.etcdEndpoints
