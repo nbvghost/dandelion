@@ -98,7 +98,7 @@ func Init(app config.MicroServer) error {
 	models = append(models, model.Role{})
 
 	//set db session application name
-	_database.Exec(fmt.Sprintf("SET application_name='%s'", app))
+	_database.Exec(fmt.Sprintf("SET application_name='%s'", fmt.Sprintf("%s:%s", app.Name, app.ServerType)))
 
 	dbContentFunc := `CREATE OR REPLACE FUNCTION process_content_full_text_search() RETURNS TRIGGER AS
 $Content$

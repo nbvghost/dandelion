@@ -37,10 +37,10 @@ func (m *GoodsRating) Value() uint {
 
 type GoodsDetail struct {
 	model.Goods
-	Specification     model.Array[*model.Specification]     `gorm:"column:Specification"`
-	GoodsAttributes   model.Array[*model.GoodsAttributes]   `gorm:"column:GoodsAttributes"`
-	GoodsSkuLabel     model.Array[*model.GoodsSkuLabel]     `gorm:"column:GoodsSkuLabel"`
-	GoodsSkuLabelData model.Array[*model.GoodsSkuLabelData] `gorm:"column:GoodsSkuLabelData"`
+	Specification     model.Array[model.Specification]     `gorm:"column:Specification"`
+	GoodsAttributes   model.Array[model.GoodsAttributes]   `gorm:"column:GoodsAttributes"`
+	GoodsSkuLabel     model.Array[model.GoodsSkuLabel]     `gorm:"column:GoodsSkuLabel"`
+	GoodsSkuLabelData model.Array[model.GoodsSkuLabelData] `gorm:"column:GoodsSkuLabelData"`
 }
 
 type GoodsMixPagination struct {

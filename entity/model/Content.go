@@ -23,10 +23,10 @@ type ContentItem struct {
 	Image         string          `gorm:"column:Image"`        //主类图片
 	Badge         string          `gorm:"column:Badge"`        //徽章
 	//Hide            bool                         `gorm:"column:Hide"`
-	ShowAtMenu      bool                                   `gorm:"column:ShowAtMenu"`
-	ShowAtHome      bool                                   `gorm:"column:ShowAtHome"`
-	CustomizeFields sqltype.Array[*sqltype.CustomizeField] `gorm:"column:CustomizeFields;type:JSON"`
-	Config          string                                 `gorm:"column:Config;type:JSON"`
+	ShowAtMenu      bool                                  `gorm:"column:ShowAtMenu"`
+	ShowAtHome      bool                                  `gorm:"column:ShowAtHome"`
+	CustomizeFields sqltype.Array[sqltype.CustomizeField] `gorm:"column:CustomizeFields;type:JSON"`
+	Config          string                                `gorm:"column:Config;type:JSON"`
 }
 
 func (ContentItem) TableName() string {
@@ -112,16 +112,16 @@ func (Content) TableName() string {
 
 type ContentConfig struct {
 	dao.Entity
-	OID                 dao.PrimaryKey                          `gorm:"column:OID;unique"`
-	Name                string                                  `gorm:"column:Name"`
-	Logo                string                                  `gorm:"column:Logo"`
-	FaviconIco          string                                  `gorm:"column:FaviconIco"`
-	SocialAccount       sqltype.Array[*sqltype.SocialAccount]   `gorm:"column:SocialAccount;type:JSON"`
-	CustomerService     sqltype.Array[*sqltype.CustomerService] `gorm:"column:CustomerService;type:JSON"`
-	EnableHTMLCache     bool                                    `gorm:"column:EnableHTMLCache"`
-	EnableMultiLanguage bool                                    `gorm:"column:EnableMultiLanguage"`
-	FocusPicture        sqltype.Array[*sqltype.FocusPicture]    `gorm:"column:FocusPicture;type:JSON"`
-	TemplateConfig      string                                  `gorm:"column:TemplateConfig;type:JSON;default:'{}'"`
+	OID                 dao.PrimaryKey                         `gorm:"column:OID;unique"`
+	Name                string                                 `gorm:"column:Name"`
+	Logo                string                                 `gorm:"column:Logo"`
+	FaviconIco          string                                 `gorm:"column:FaviconIco"`
+	SocialAccount       sqltype.Array[sqltype.SocialAccount]   `gorm:"column:SocialAccount;type:JSON"`
+	CustomerService     sqltype.Array[sqltype.CustomerService] `gorm:"column:CustomerService;type:JSON"`
+	EnableHTMLCache     bool                                   `gorm:"column:EnableHTMLCache"`
+	EnableMultiLanguage bool                                   `gorm:"column:EnableMultiLanguage"`
+	FocusPicture        sqltype.Array[sqltype.FocusPicture]    `gorm:"column:FocusPicture;type:JSON"`
+	TemplateConfig      string                                 `gorm:"column:TemplateConfig;type:JSON;default:'{}'"`
 }
 
 func (ContentConfig) TableName() string {

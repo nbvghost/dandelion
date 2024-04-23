@@ -143,26 +143,21 @@ func (service SKUService) SkuLabelByGoodsID(orm *gorm.DB, goodsID dao.PrimaryKey
 		return skuLabelList
 	}
 */
-func (service SKUService) SkuLabel(goodsSkuLabelList []*model.GoodsSkuLabel, goodsSkuLabelDataList []*model.GoodsSkuLabelData) []extends.SkuLabel {
+func (service SKUService) SkuLabel(goodsSkuLabelList []model.GoodsSkuLabel, goodsSkuLabelDataList []model.GoodsSkuLabelData) []extends.SkuLabel {
 	goodsSkuLabelDataMap := make(map[dao.PrimaryKey][]*model.GoodsSkuLabelData)
 	for i := range goodsSkuLabelDataList {
 		item := goodsSkuLabelDataList[i]
-		if item != nil {
-			if _, ok := goodsSkuLabelDataMap[item.GoodsSkuLabelID]; !ok {
-				goodsSkuLabelDataMap[item.GoodsSkuLabelID] = make([]*model.GoodsSkuLabelData, 0)
-			}
-			goodsSkuLabelDataMap[item.GoodsSkuLabelID] = append(goodsSkuLabelDataMap[item.GoodsSkuLabelID], item)
+		if _, ok := goodsSkuLabelDataMap[item.GoodsSkuLabelID]; !ok {
+			goodsSkuLabelDataMap[item.GoodsSkuLabelID] = make([]*model.GoodsSkuLabelData, 0)
 		}
+		goodsSkuLabelDataMap[item.GoodsSkuLabelID] = append(goodsSkuLabelDataMap[item.GoodsSkuLabelID], &item)
 	}
 
 	skuLabelList := make([]extends.SkuLabel, len(goodsSkuLabelList))
 	for i := range goodsSkuLabelList {
 		item := goodsSkuLabelList[i]
-		if item != nil {
-			skuLabelList[i].Label = item
-			skuLabelList[i].Data = goodsSkuLabelDataMap[item.ID]
-		}
-
+		skuLabelList[i].Label = &item
+		skuLabelList[i].Data = goodsSkuLabelDataMap[item.ID]
 	}
 	return skuLabelList
 }

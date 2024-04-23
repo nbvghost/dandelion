@@ -126,9 +126,7 @@ func (m GoodsService) goodsOptions(list []*extends.GoodsDetail) *serviceargument
 			//goodsList := dao.Find(db.Orm(), &model.GoodsAttributes{}).Where(`"OID"=?`, oid).List()
 			for i := range detail.GoodsAttributes {
 				item := detail.GoodsAttributes[i]
-				if item != nil {
-					options.AddAttributes(serviceargument.OptionsTypeAttribute, item.Name, item.Name, item.Value)
-				}
+				options.AddAttributes(serviceargument.OptionsTypeAttribute, item.Name, item.Name, item.Value)
 			}
 		}
 
@@ -147,11 +145,9 @@ func (m GoodsService) goodsOptions(list []*extends.GoodsDetail) *serviceargument
 		weightList := make([]int, 0)
 		marketPriceList := make([]int, 0)
 		for _, spec := range detail.Specification {
-			if spec != nil {
-				numList = append(numList, int(spec.Num))
-				weightList = append(weightList, int(spec.Weight))
-				weightList = append(weightList, int(spec.MarketPrice))
-			}
+			numList = append(numList, int(spec.Num))
+			weightList = append(weightList, int(spec.Weight))
+			weightList = append(weightList, int(spec.MarketPrice))
 		}
 
 		sort.Ints(numList)

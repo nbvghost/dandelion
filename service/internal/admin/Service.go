@@ -9,6 +9,7 @@ import (
 	"github.com/nbvghost/dandelion/service/internal/configuration"
 	"github.com/nbvghost/dandelion/service/internal/content"
 	"github.com/nbvghost/dandelion/service/internal/wechat"
+	"github.com/nbvghost/tool/encryption"
 
 	"log"
 	"strings"
@@ -36,7 +37,8 @@ func (m AdminService) AddItem(OID dao.PrimaryKey, item *model.Admin) (err error)
 		return errors.New("账号不允许为空")
 	}
 
-	item.Account = strings.ToLower(item.Account)
+	item.Account = strings.TrimSpace(item.Account)
+	item.PassWord = strings.TrimSpace(item.PassWord)
 	//item.PassWord = encryption.Md5ByString(item.PassWord)
 
 	if strings.EqualFold(item.Account, "admin") || strings.EqualFold(item.Account, "manager") || strings.EqualFold(item.Account, "administrator") {
@@ -155,7 +157,7 @@ Account
 PassWord
 Domain
 */
-func (m AdminService) InitOrganizationInfo(account string) (admin *model.Admin, err error) {
+func (m AdminService) InitOrganizationInfo(account string,password string) (admin *model.Admin, err error) {
 	//Orm := singleton.Orm()
 
 	/*mDomain := util.ParseDomain(domain)
@@ -191,7 +193,8 @@ func (m AdminService) InitOrganizationInfo(account string) (admin *model.Admin, 
 	}
 
 	if admin.IsZero() {
-		admin.Account = strings.ToLower(account)
+		admin.Account = strings.TrimSpace(account)
+		admin.PassWord = encryption.Md5ByString(strings.TrimSpace(password))
 		//admin.PassWord = encryption.Md5ByString(PassWord)
 		//admin.OID = shop.ID
 		admin.Initiator = true

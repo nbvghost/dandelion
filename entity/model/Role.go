@@ -19,7 +19,7 @@ type Role struct {
 	Name   string                        `gorm:"column:Name"`
 	Status RoleStatus                    `gorm:"column:Status"`
 	Remark string                        `gorm:"column:Remark"`
-	Routes sqltype.Array[*sqltype.Route] `gorm:"column:Routes;type:JSON"`
+	Routes sqltype.Array[sqltype.Route] `gorm:"column:Routes;type:JSON"`
 }
 
 func (Role) TableName() string {
