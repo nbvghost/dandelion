@@ -37,5 +37,5 @@ func (m *List) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	return result.NewData(map[string]any{"List": list.List, "Total": list.Total, "Index": m.Get.Index}), nil
+	return result.NewData(list), nil
 }
