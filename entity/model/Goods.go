@@ -39,6 +39,7 @@ type Goods struct {
 	OrderMinNum       int                   `gorm:"column:OrderMinNum"`             //最小订购数量
 	Tags              pq.StringArray        `gorm:"column:Tags;type:text[]"`        //
 	IsRichText        bool                  `gorm:"column:IsRichText;type:boolean"` //指明Introduce字段是否使用rich text编辑
+	Source            string                `gorm:"column:Source"`                  //标记，数据来源
 	//TimeSellID        uint `gorm:"column:TimeSellID"`                          //
 }
 
@@ -72,6 +73,8 @@ type GoodsType struct {
 	Uri          string         `gorm:"column:Uri"`
 	Name         string         `gorm:"column:Name"`
 	Introduction string         `gorm:"column:Introduction"` //主类介绍
+	IsStickyTop  bool           `gorm:"column:IsStickyTop"`  //
+	Badge        string         `gorm:"column:Badge"`        //徽章
 	Image        string         `gorm:"column:Image"`
 }
 

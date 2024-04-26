@@ -196,7 +196,7 @@ func (b BaseDao) DatatablesListOrder(Orm *gorm.DB, params *Datatables, target in
 
 	}
 
-	if strings.EqualFold(where, "") == false {
+	if !strings.EqualFold(where, "") {
 		db = db.Where(where, whereValues...)
 	}
 

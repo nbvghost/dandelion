@@ -52,8 +52,7 @@ func (m OrdersGoods) GetSpecification() *Specification {
 	_ = json.Unmarshal([]byte(m.Specification), &specification)
 	return &specification
 }
-func (m OrdersGoods) AddError(err string) {
-
+func (m *OrdersGoods) AddError(err string) {
 	if strings.EqualFold(m.Error, "") {
 		m.Error = err
 	} else {

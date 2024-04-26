@@ -342,43 +342,45 @@ func (m GoodsTypeService) getGoodsTypeByUri(orm *gorm.DB, OID dao.PrimaryKey, ur
 	err := orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "Uri": uri}).First(&gt).Error
 	return gt, err
 }
-func (m GoodsTypeService) AddGoodsType(OID dao.PrimaryKey, name string) error {
+func (m GoodsTypeService) AddGoodsType(OID dao.PrimaryKey, goodsType *model.GoodsType) error {
 	orm := db.Orm()
-	gt, _ := m.getGoodsTypeByName(orm, OID, name)
+	gt, _ := m.getGoodsTypeByName(orm, OID, goodsType.Name)
 	if !gt.IsZero() {
-		return errors.Errorf("重复的名字:%s", name)
+		return errors.Errorf("重复的名字:%s", goodsType.Name)
 	}
 
-	uri := m.PinyinService.AutoDetectUri(name)
+	uri := m.PinyinService.AutoDetectUri(goodsType.Name)
 	gt, _ = m.getGoodsTypeByUri(orm, OID, uri)
 	if !gt.IsZero() {
 		gt.Uri = fmt.Sprintf("%s-%d", gt.Uri, time.Now().Unix())
 	}
 	gt.OID = OID
-	gt.Name = name
+	gt.Name = goodsType.Name
 	gt.Uri = uri
+	gt.Introduction = goodsType.Introduction
 	return orm.Model(model.GoodsType{}).Create(&gt).Error
 }
-func (m GoodsTypeService) ChangeGoodsType(OID, ID dao.PrimaryKey, name string) error {
+func (m GoodsTypeService) ChangeGoodsType(OID dao.PrimaryKey, goodsType *model.GoodsType) error {
 	orm := db.Orm()
-	gt, _ := m.getGoodsTypeByName(orm, OID, name)
-	if gt.ID == ID {
-		return nil
-	}
-	if !gt.IsZero() {
-		return errors.Errorf("重复的名字:%s", name)
+	gt, _ := m.getGoodsTypeByName(orm, OID, goodsType.Name)
+	if !gt.IsZero() && gt.ID != goodsType.ID {
+		return errors.Errorf("重复的名字:%s", goodsType.Name)
 	}
 
-	uri := m.PinyinService.AutoDetectUri(name)
+	uri := m.PinyinService.AutoDetectUri(goodsType.Name)
 	gt, _ = m.getGoodsTypeByUri(orm, OID, uri)
 	if !gt.IsZero() {
 		gt.Uri = fmt.Sprintf("%s-%d", gt.Uri, time.Now().Unix())
 	}
-	gt.Name = name
+	gt.Name = goodsType.Name
 	gt.Uri = uri
-	return orm.Model(model.GoodsType{}).Where(`"ID"=?`, ID).Updates(map[string]interface{}{
-		"Name": gt.Name,
-		"Uri":  gt.Uri,
+	return orm.Model(model.GoodsType{}).Where(`"ID"=?`, goodsType.ID).Updates(map[string]interface{}{
+		"Name":         gt.Name,
+		"Uri":          gt.Uri,
+		"Introduction": goodsType.Introduction,
+		"Badge":        goodsType.Badge,
+		"Image":        goodsType.Image,
+		"IsStickyTop":  goodsType.IsStickyTop,
 	}).Error
 }
 func (m GoodsTypeService) getGoodsTypeChildByName(orm *gorm.DB, OID, GoodsTypeID dao.PrimaryKey, name string) (model.GoodsTypeChild, error) {
@@ -444,4 +446,10 @@ func (m GoodsTypeService) ChangeGoodsTypeChild(OID, ID dao.PrimaryKey, name, ima
 		"Uri":   gt.Uri,
 		"Image": gt.Image,
 	}).Error
+}
+
+func (m GoodsTypeService) StickyTopGoodsTypeList(orm *gorm.DB, OID dao.PrimaryKey) []model.GoodsType {
+	var gt []model.GoodsType
+	orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "IsStickyTop": true}).Order(`"UpdatedAt" desc`).Find(&gt)
+	return gt
 }

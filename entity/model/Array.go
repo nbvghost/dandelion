@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/nbvghost/dandelion/entity/sqltype"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -68,7 +69,7 @@ func (m Array[T]) Value() (driver.Value, error) {
 }*/
 
 func (m Array[T]) String() string {
-	return fmt.Sprintf("%v", m)
+	return fmt.Sprintf("%#v", m)
 }
 
 // GormDataType gorm common data type
@@ -83,7 +84,7 @@ func (Array[T]) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 
 func (m Array[T]) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
 	if len(m) == 0 {
-		return gorm.Expr("?","[]")
+		return gorm.Expr("?", "[]")
 	}
 
 	b, err := json.Marshal(m)
