@@ -5,10 +5,10 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 )
 
-type OrdersGoodsInfo struct {
+/*type OrdersGoodsInfo struct {
 	OrdersGoods *OrdersGoodsMix
 	Discounts   []Discount
-}
+}*/
 
 // ElementStatus 由于要把列表中的每一项的状态告诉前端，增加这个结构给列表中的每项做标记
 type ElementStatus struct {
@@ -19,7 +19,7 @@ type ElementStatus struct {
 // ConfirmOrdersGoods 商家订单计算结构，
 type ConfirmOrdersGoods struct {
 	//Organization     *model.Organization //如果涉及多个商家的订单的话，则使用OrdersGoodsInfos[].OrdersGoods.OID来区分
-	OrdersGoodsInfos []OrdersGoodsInfo
+	OrdersGoodsInfos []*OrdersGoodsMix
 	FavouredPrice    uint //拼团价格
 	FullCutAll       uint
 	GoodsPrice       uint

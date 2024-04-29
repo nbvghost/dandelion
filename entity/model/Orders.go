@@ -23,7 +23,6 @@ const (
 	OrdersStatusCancelOk OrdersStatus = "CancelOk" // 订单已经取消
 	OrdersStatusDelete   OrdersStatus = "Delete"   // 删除
 	OrdersStatusClosed   OrdersStatus = "Closed"   // 已经关闭
-
 )
 
 type OrdersIsPay uint

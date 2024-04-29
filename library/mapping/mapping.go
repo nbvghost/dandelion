@@ -49,7 +49,7 @@ func (m *mapping) Mapping(context constrain.IContext, handler interface{}) error
 					instance = mp.Call(context)
 					if instance == nil {
 						//return errors.New("mapping的Call不能返回空的实例")
-						log.Printf("%v的Call返回空的数据", mp)
+						log.Printf("%#v的Call返回空的数据", mp)
 						instance = mp.Instance()
 					} else {
 						context.SyncCache().Store(cacheKey, instance)

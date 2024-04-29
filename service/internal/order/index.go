@@ -1144,7 +1144,7 @@ type GoodsSku struct {
 	GoodsSkuLabelData *model.GoodsSkuLabelData
 }
 
-func (m OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list []extends.OrdersGoodsInfo) error {
+func (m OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list []*extends.OrdersGoodsMix) error {
 	err := dao.Create(db, orders)
 	if err != nil {
 		return err
@@ -1155,31 +1155,31 @@ func (m OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list []exten
 		//value.OrdersGoods.Discounts = value.Discounts //util.StructToJSON((&value).Discounts)
 		//err = dao.Create(db, &((&value).OrdersGoods))
 		var goodsSkuList []GoodsSku
-		for ii := 0; ii < len(value.OrdersGoods.Specification.LabelIndex); ii++ {
-			labelID := value.OrdersGoods.Specification.LabelIndex[ii]
+		for ii := 0; ii < len(value.Specification.LabelIndex); ii++ {
+			labelID := value.Specification.LabelIndex[ii]
 
-			skuLabelData := value.OrdersGoods.SkuLabelDataMap[labelID]
-			skuLabel := value.OrdersGoods.SkuLabelMap[skuLabelData.GoodsSkuLabelID]
+			skuLabelData := value.SkuLabelDataMap[labelID]
+			skuLabel := value.SkuLabelMap[skuLabelData.GoodsSkuLabelID]
 			goodsSkuList = append(goodsSkuList, GoodsSku{
 				GoodsSkuLabel:     skuLabel,
 				GoodsSkuLabelData: skuLabelData,
 			})
 		}
 		err = dao.Create(db, &model.OrdersGoods{
-			OID:            value.OrdersGoods.OID,
-			OrdersGoodsNo:  value.OrdersGoods.OrdersGoodsNo,
-			Status:         value.OrdersGoods.Status,
-			RefundInfo:     value.OrdersGoods.RefundInfo,
+			OID:            value.OID,
+			OrdersGoodsNo:  value.OrdersGoodsNo,
+			Status:         value.Status,
+			RefundInfo:     value.RefundInfo,
 			OrdersID:       orders.ID,
-			Image:          value.OrdersGoods.Image,
-			Goods:          util.StructToJSON(value.OrdersGoods.Goods),
-			Specification:  util.StructToJSON(value.OrdersGoods.Specification),
+			Image:          value.Image,
+			Goods:          util.StructToJSON(value.Goods),
+			Specification:  util.StructToJSON(value.Specification),
 			GoodsSkus:      util.StructToJSON(goodsSkuList),
 			Discounts:      util.StructToJSON(value.Discounts),
-			Quantity:       value.OrdersGoods.Quantity,
-			CostPrice:      value.OrdersGoods.CostPrice,
-			SellPrice:      value.OrdersGoods.SellPrice,
-			TotalBrokerage: value.OrdersGoods.TotalBrokerage,
+			Quantity:       value.Quantity,
+			CostPrice:      value.CostPrice,
+			SellPrice:      value.SellPrice,
+			TotalBrokerage: value.TotalBrokerage,
 			//Error:          value.OrdersGoods,
 		})
 		if err != nil {
@@ -1196,7 +1196,7 @@ func (m OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list []exten
 		if err != nil {
 			return err
 		}*/
-		err = m.ShoppingCart.DeleteByUserIDAndGoodsIDAndSpecificationID(db, orders.UserID, value.OrdersGoods.Goods.ID, value.OrdersGoods.Specification.ID)
+		err = m.ShoppingCart.DeleteByUserIDAndGoodsIDAndSpecificationID(db, orders.UserID, value.Goods.ID, value.Specification.ID)
 		if err != nil {
 			return err
 		}
@@ -1345,7 +1345,7 @@ func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, li
 	FullCutPrice := uint(0)
 	//FavouredPrice := uint(0)
 
-	oggs := make([]extends.OrdersGoodsInfo, 0)
+	oggs := make([]*extends.OrdersGoodsMix, 0)
 
 	expresstemplateMap := make(map[dao.PrimaryKey]model.ExpressTemplateNMW)
 
@@ -1358,13 +1358,14 @@ func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, li
 		//util.JSONToStruct(value.Goods, &goods)
 		//util.JSONToStruct(value.Specification, &specification)
 
-		ogs := extends.OrdersGoodsInfo{}
+
 
 		if value.ElementStatus.IsError {
-			ogs.OrdersGoods = value
-			oggs = append(oggs, ogs)
+			oggs = append(oggs, value)
 			continue
 		}
+
+		var ogs *extends.OrdersGoodsMix = value
 
 		goodsSkuData := m.goodsSkuData(Orm, value.Goods.ID, value.Specification.LabelIndex)
 		value.SkuImages = goodsSkuData.SkuImages
@@ -1421,8 +1422,6 @@ func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, li
 			analyseResult.GoodsPrice = analyseResult.GoodsPrice + Price
 			FullCutPrice = FullCutPrice + Price
 		}
-
-		ogs.OrdersGoods = value
 		oggs = append(oggs, ogs)
 		//ogss=append(ogss,ogs)
 
