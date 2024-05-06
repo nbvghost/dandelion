@@ -3,6 +3,7 @@ package paypal
 import (
 	"errors"
 	"fmt"
+	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal"
 	"regexp"
 	"strconv"
 	"strings"
@@ -12,7 +13,6 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal/network"
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service"
 )
@@ -37,10 +37,10 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 	if orders.ID == 0 {
 		return nil, errors.New("no order found")
 	}
-	var orderDetails *network.OrderDetailsResponse
+	var orderDetails *internal.OrderDetailsResponse
 	if len(orders.PrepayID) > 0 {
 		var err error
-		orderDetails, err = network.OrderDetails(ctx, m.User.OID, orders.PrepayID)
+		orderDetails, err = internal.OrderDetails(ctx, m.User.OID, orders.PrepayID)
 		if err != nil {
 			return nil, err
 		}
@@ -51,7 +51,7 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 		return nil, errors.New("地址不能为空")
 	}
 
-	name := &network.Name{}
+	name := &internal.Name{}
 	{
 		names := nameReg.Split(address.Name, -1)
 		if len(names) >= 2 {
@@ -60,7 +60,7 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 		}
 	}
 
-	shippingAddress := &network.Address{}
+	shippingAddress := &internal.Address{}
 	shippingAddress.SetAddress(address)
 
 	confirmOrdersGoods, err := service.Order.Orders.AnalyseOrdersGoodsListByOrders(&orders, address)
@@ -68,28 +68,28 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 		return nil, err
 	}
 
-	unit := network.CheckoutOrdersUnit{
+	unit := internal.CheckoutOrdersUnit{
 		ReferenceId: orders.OrderNo, //fmt.Sprintf("%d-%d", info.OrdersGoods.Goods.ID, info.OrdersGoods.Specification.ID),
 		Description: m.Post.AdditionalInformation,
-		Amount: network.Amount{
+		Amount: internal.Amount{
 			CurrencyCode: "USD",
 			Value:        strconv.FormatFloat(float64(confirmOrdersGoods.TotalAmount)/100.0, 'f', 2, 64),
 		},
-		Shipping: &network.Shipping{
-			Name:    &network.Name{FullName: name.GetFullName()},
+		Shipping: &internal.Shipping{
+			Name:    &internal.Name{FullName: name.GetFullName()},
 			Type:    "SHIPPING",
 			Address: shippingAddress,
 		},
 	}
 
 	if orderDetails != nil && len(orderDetails.Id) > 0 {
-		err = network.UpdateOrder(ctx, m.User.OID, &network.UpdateOrderRequest{
+		err = internal.UpdateOrder(ctx, m.User.OID, &internal.UpdateOrderRequest{
 			Id: orderDetails.Id,
-			ChangeList: []network.UpdateOrderChange{
+			ChangeList: []internal.UpdateOrderChange{
 				{
 					Op:    "replace",
 					Path:  fmt.Sprintf("/purchase_units/@reference_id=='%s'/shipping/name", orders.OrderNo),
-					Value: &network.Name{FullName: name.GetFullName()},
+					Value: &internal.Name{FullName: name.GetFullName()},
 				},
 				{
 					Op:    "replace",
@@ -103,9 +103,9 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 		}
 		return result.NewData(orderDetails), err
 	} else {
-		checkoutOrders, err := network.CheckoutOrders(ctx, m.User.OID, &network.CheckoutOrdersRequest{
+		checkoutOrders, err := internal.CheckoutOrders(ctx, m.User.OID, &internal.CheckoutOrdersRequest{
 			Intent:        "CAPTURE",
-			PurchaseUnits: []network.CheckoutOrdersUnit{unit},
+			PurchaseUnits: []internal.CheckoutOrdersUnit{unit},
 		})
 		if err != nil {
 			return nil, err

@@ -19,6 +19,7 @@ import (
 type MessageNotify struct {
 	WxService           WxService
 	OrganizationService company.OrganizationService
+	AccessTokenService  AccessTokenService
 }
 
 // 新用户加入，绑定上下级关系
@@ -93,9 +94,9 @@ func (m MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []dao.IEntit
 	var Titles = ""
 	for i := range ogs {
 		value := ogs[i].(*model.OrdersGoods)
-		var goods model.Goods
-		json.Unmarshal([]byte(value.Goods), &goods)
-		Titles += goods.Title
+		//var goods model.Goods
+		//json.Unmarshal([]byte(value.Goods), &goods)
+		Titles += value.Goods.Title
 	}
 	if len(Titles) > 48 {
 		Titles = Titles[:48] + "等"
@@ -202,9 +203,9 @@ func (m MessageNotify) NewOrderNotify(Order model.Orders, ogs []model.OrdersGood
 
 	var Titles = ""
 	for _, value := range ogs {
-		var goods model.Goods
-		json.Unmarshal([]byte(value.Goods), &goods)
-		Titles += goods.Title
+		//var goods model.Goods
+		//json.Unmarshal([]byte(value.Goods), &goods)
+		Titles += value.Goods.Title
 	}
 	if len(Titles) > 48 {
 		Titles = Titles[:48] + "等"
@@ -226,7 +227,7 @@ func (m MessageNotify) SendUniformMessage(sendData map[string]interface{}, wxCon
 	b, err := json.Marshal(sendData)
 	log.Println(err)
 
-	access_token := m.WxService.GetAccessToken(wxConfig)
+	access_token := m.AccessTokenService.GetAccessToken(wxConfig)
 	strReader := strings.NewReader(string(b))
 	respones, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/uniform_send?access_token="+access_token, "application/json", strReader)
 	log.Println(err)
@@ -254,7 +255,7 @@ func (m MessageNotify) SendWXMessage(sendData map[string]interface{}, wxConfig *
 
 	//WxConfig := service.MiniProgram()
 
-	access_token := m.WxService.GetAccessToken(wxConfig)
+	access_token := m.AccessTokenService.GetAccessToken(wxConfig)
 	strReader := strings.NewReader(string(b))
 	respones, err := http.Post("https://api.weixin.qq.com/cgi-bin/message/wxopen/template/send?access_token="+access_token, "application/json", strReader)
 	log.Println(err)

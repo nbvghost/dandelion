@@ -1,17 +1,17 @@
 package task
 
 import (
-	"context"
+	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/service/internal/task/job"
 	"golang.org/x/sync/errgroup"
 	"log"
 	"time"
 )
 
-func Start() {
+func Start(context constrain.IContext) {
 	group := errgroup.Group{}
 	group.Go(func() error {
-		t := job.NewQueryOrdersTask(context.TODO())
+		t := job.NewQueryOrdersTask(context)
 		ticker := time.NewTicker(time.Minute * 5)
 		for range ticker.C {
 			log.Println("NewQueryOrdersTask[* 5 0]")
@@ -23,7 +23,7 @@ func Start() {
 		return nil
 	})
 	group.Go(func() error {
-		t := job.NewQueryExpressCompanyTask(context.TODO())
+		t := job.NewQueryExpressCompanyTask(context)
 		log.Println("NewQueryExpressCompanyTask")
 		err := t.Run()
 		if err != nil {
@@ -41,7 +41,7 @@ func Start() {
 	})
 
 	group.Go(func() error {
-		t := job.NewQuerySupplyOrdersTask(context.TODO())
+		t := job.NewQuerySupplyOrdersTask(context)
 		log.Println("NewQuerySupplyOrdersTask")
 		err := t.Run()
 		if err != nil {
@@ -59,7 +59,7 @@ func Start() {
 	})
 
 	group.Go(func() error {
-		t := job.NewQueryTransfersTask(context.TODO())
+		t := job.NewQueryTransfersTask(context)
 		log.Println("NewQueryTransfersTask")
 		err := t.Run()
 		if err != nil {

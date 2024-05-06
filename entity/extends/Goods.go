@@ -2,13 +2,14 @@ package extends
 
 import (
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/entity/sqltype"
 )
 
 type GoodsMix struct {
 	Goods          model.Goods
 	Specifications []*model.Specification
 	Attributes     []GoodsAttributes
-	Discounts      []Discount
+	Discounts      []sqltype.Discount
 	GoodsType      model.GoodsType
 	GoodsTypeChild model.GoodsTypeChild
 	SkuLabels      []SkuLabel

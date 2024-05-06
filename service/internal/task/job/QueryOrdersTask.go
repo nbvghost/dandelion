@@ -1,8 +1,8 @@
 package job
 
 import (
-	"context"
 	"fmt"
+	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/order"
 	"github.com/nbvghost/dandelion/service/internal/wechat"
@@ -17,6 +17,7 @@ import (
 type QueryOrdersTask struct {
 	OrdersService order.OrdersService
 	WxService     wechat.WxService
+	context       constrain.IContext
 }
 
 func (m *QueryOrdersTask) Run() error {
@@ -36,7 +37,7 @@ func (m *QueryOrdersTask) Run() error {
 
 		for ii := range ordersList {
 			orders := ordersList[ii].(*model.Orders)
-			err := m.OrdersService.QueryOrdersTask(config, orders)
+			err := m.OrdersService.QueryOrdersTask(m.context, orders)
 			if err != nil {
 				log.Println(errors.WithMessage(err, fmt.Sprintf("订单ID:%s", orders.ID)))
 			}
@@ -45,6 +46,6 @@ func (m *QueryOrdersTask) Run() error {
 	return nil
 }
 
-func NewQueryOrdersTask(context context.Context) Job {
-	return &QueryOrdersTask{}
+func NewQueryOrdersTask(context constrain.IContext) Job {
+	return &QueryOrdersTask{context: context}
 }

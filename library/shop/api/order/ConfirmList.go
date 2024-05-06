@@ -2,7 +2,6 @@ package order
 
 import (
 	"encoding/json"
-	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/service"
 	"log"
 
@@ -23,7 +22,7 @@ type ConfirmList struct {
 func (m *ConfirmList) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 
-	ogs := make([]*extends.OrdersGoodsMix, 0)
+	ogs := make([]*model.OrdersGoods, 0)
 
 	confirmOrdersJson, err := ctx.Redis().Get(ctx, redis.NewConfirmOrders(ctx.UID()))
 	if err == nil {

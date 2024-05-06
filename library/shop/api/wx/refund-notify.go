@@ -4,7 +4,6 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service"
@@ -34,7 +33,7 @@ func (m *RefundNotify) HandlePost(context constrain.IContext) (r constrain.IResu
 }
 
 func (m *RefundNotify) handle(context constrain.IContext, OID dao.PrimaryKey) (r constrain.IResult, err error) {
-	wxConfig := service.Wechat.Wx.MiniProgramByOID(db.Orm(), OID)
+	wxConfig := service.Payment.NewWechat(context,OID).GetConfig()//service.Wechat.Wx.MiniProgramByOID(db.Orm(), OID)
 
 	certificateVisitor := downloader.MgrInstance().GetCertificateVisitor(wxConfig.MchID)
 

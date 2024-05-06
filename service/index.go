@@ -22,6 +22,9 @@ import (
 	"github.com/nbvghost/dandelion/service/internal/manager"
 	"github.com/nbvghost/dandelion/service/internal/network"
 	"github.com/nbvghost/dandelion/service/internal/order"
+	"github.com/nbvghost/dandelion/service/internal/payment"
+	"github.com/nbvghost/dandelion/service/internal/payment/paypal"
+	"github.com/nbvghost/dandelion/service/internal/payment/wechatpay"
 	"github.com/nbvghost/dandelion/service/internal/pinyin"
 	"github.com/nbvghost/dandelion/service/internal/question"
 	"github.com/nbvghost/dandelion/service/internal/search"
@@ -94,11 +97,24 @@ var Site = site.Service{}
 var SMS = sms.Service{}
 var Task = task.TimeTaskService{}
 var User = user.UserService{}
+
 var Wechat = struct {
-	Wx             wechat.WxService
+	//Wx             wechatpay.WxService
+	AccessToken    wechat.AccessTokenService
 	WXQRCodeParams wechat.WXQRCodeParamsService
 	MessageNotify  wechat.MessageNotify
 }{}
+
+var Payment = struct {
+	NewWechat  func(ctx constrain.IContext, oid dao.PrimaryKey) *wechatpay.Service
+	NewPaypal  func(ctx constrain.IContext, oid dao.PrimaryKey) *paypal.Service
+	NewPayment func(ctx constrain.IContext, oid dao.PrimaryKey, payMethod model.OrdersPayMethod) payment.IPayment
+}{
+	NewWechat:  payment.NewWechat,
+	NewPaypal:  payment.NewPaypal,
+	NewPayment: payment.NewPayment,
+}
+
 var Network = struct {
 	SMS    network.SMS
 	Email  network.Email

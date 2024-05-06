@@ -90,11 +90,11 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 		}
 		//CardItem
 
-		var goods model.Goods
-		err = util.JSONToStruct(ordersGoods.Goods, &goods)
+		var goods model.Goods = ordersGoods.Goods
+		/*err = util.JSONToStruct(ordersGoods.Goods, &goods)
 		if err != nil {
 			return err
-		}
+		}*/
 
 		go func() {
 			//var _goods model.Goods
@@ -104,11 +104,11 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 			}
 		}()
 
-		var specification model.Specification
-		err = util.JSONToStruct(ordersGoods.Specification, &specification)
+		var specification model.Specification = ordersGoods.Specification
+		/*err = util.JSONToStruct(ordersGoods.Specification, &specification)
 		if err != nil {
 			return err
-		}
+		}*/
 
 		if orders.PostType == 1 {
 			//邮寄订单，给利润给
@@ -147,7 +147,7 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 
 				var ogsList []*model.OrdersGoods
 				for i := range ogs {
-					value := ogs[i].(*model.OrdersGoods)
+					value := ogs[i]
 					//var specification model.Specification
 					//util.JSONToStruct(value.Specification, &specification)
 					ogsList = append(ogsList, value)

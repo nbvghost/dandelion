@@ -31,7 +31,7 @@ func (g *MiniprogramQRcode) HandlePost(ctx constrain.IContext) (constrain.IResul
 func (g *MiniprogramQRcode) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
 	user := dao.GetByPrimaryKey(db.Orm(), entity.User, g.Get.UserID).(*model.User)
-	wechatConfig := service.Wechat.Wx.MiniProgramByOID(db.Orm(), user.OID)
+	//wechatConfig := service.Wechat.Wx.MiniProgramByOID(db.Orm(), user.OID)
 
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*entity.Organization)
@@ -50,7 +50,9 @@ func (g *MiniprogramQRcode) Handle(ctx constrain.IContext) (constrain.IResult, e
 		MyShareKey = service.Wechat.WXQRCodeParams.EncodeShareKey(g.Get.UserID, uint(g.Get.ProductID))
 	}
 
-	accessToken := service.Wechat.Wx.GetAccessToken(wechatConfig)
+	wechat := service.Payment.NewWechat(ctx,user.OID)
+
+	accessToken := service.Wechat.AccessToken.GetAccessToken(wechat.GetConfig())
 
 	postData := make(map[string]interface{})
 	//results := make(map[string]interface{})

@@ -18,7 +18,7 @@ import (
 
 type WXPayPackage struct {
 	User         *model.User         `mapping:""`
-	WechatConfig *model.WechatConfig `mapping:""`
+	//WechatConfig *model.WechatConfig `mapping:""`
 	Get          struct {
 		OrderNo string `form:"OrderNo"`
 	} `method:"get"`
@@ -32,11 +32,13 @@ func (m *WXPayPackage) Handle(ctx constrain.IContext) (constrain.IResult, error)
 
 	ip := util.GetIP(contextValue.Request)
 
+	wechat := service.Payment.NewWechat(ctx,m.User.OID)
+
 	//package
 	orders := service.Order.Orders.GetOrdersPackageByOrderNo(m.Get.OrderNo)
 	if strings.EqualFold(orders.PrepayID, "") == false {
 
-		outData, err := service.Wechat.Wx.GetWXAConfig(orders.PrepayID, m.WechatConfig)
+		outData, err := wechat.GetWXAConfig(orders.PrepayID)
 		if err != nil {
 			return nil, err
 		}
@@ -44,17 +46,17 @@ func (m *WXPayPackage) Handle(ctx constrain.IContext) (constrain.IResult, error)
 
 	}
 
-	Success, Message, Result := service.Wechat.Wx.MPOrder(ctx, orders.OrderNo, "购物", "商品消费", []model.OrdersGoods{}, m.User.OpenID, ip, orders.TotalPayMoney, play.OrdersTypeGoodsPackage, m.WechatConfig)
-	if Success != result.Success {
-		return &result.JsonResult{Data: &result.ActionResult{Code: Success, Message: Message, Data: Result}}, nil
+	r, err := wechat.MPOrder(orders.OrderNo, "购物", "商品消费", []model.OrdersGoods{}, m.User.OpenID, ip, orders.TotalPayMoney, play.OrdersTypeGoodsPackage)
+	if err != nil {
+		return result.NewError(err), nil //&result.JsonResult{Data: &result.ActionResult{Code: Success, Message: Message, Data: Result}}, nil
 	}
 
-	outData, err := service.Wechat.Wx.GetWXAConfig(*Result.PrepayId, m.WechatConfig)
+	outData, err := wechat.GetWXAConfig(r.PrepayId)
 	if err != nil {
 		return nil, err
 	}
 
-	err = dao.UpdateByPrimaryKey(db.Orm(), entity.OrdersPackage, orders.ID, map[string]interface{}{"PrepayID": *Result.PrepayId})
+	err = dao.UpdateByPrimaryKey(db.Orm(), entity.OrdersPackage, orders.ID, map[string]interface{}{"PrepayID": r.PrepayId})
 	if err != nil {
 		log.Println(err)
 	}

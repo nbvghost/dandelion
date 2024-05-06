@@ -2,6 +2,7 @@ package paypal
 
 import (
 	"errors"
+	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal"
 	"time"
 
 	"github.com/nbvghost/dandelion/constrain"
@@ -9,7 +10,6 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal/network"
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/tool/object"
 )
@@ -25,7 +25,7 @@ func (m *Capture) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	return nil, nil
 }
 func (m *Capture) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
-	capture, err := network.Capture(ctx, m.User.OID, &network.CaptureRequest{PaypalOrderID: m.Post.PaypalOrderID})
+	capture, err := internal.Capture(ctx, m.User.OID, &internal.CaptureRequest{PaypalOrderID: m.Post.PaypalOrderID})
 	if err != nil {
 		return nil, err
 	}

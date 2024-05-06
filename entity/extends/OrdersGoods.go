@@ -2,8 +2,13 @@ package extends
 
 import (
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/dao"
 )
+
+type OrdersDetail struct {
+	Orders          model.Orders
+	User            model.User
+	OrdersGoodsList []*model.OrdersGoods
+}
 
 /*type OrdersGoodsInfo struct {
 	OrdersGoods *OrdersGoodsMix
@@ -19,7 +24,7 @@ type ElementStatus struct {
 // ConfirmOrdersGoods 商家订单计算结构，
 type ConfirmOrdersGoods struct {
 	//Organization     *model.Organization //如果涉及多个商家的订单的话，则使用OrdersGoodsInfos[].OrdersGoods.OID来区分
-	OrdersGoodsInfos []*OrdersGoodsMix
+	OrdersGoodsInfos []*model.OrdersGoods
 	FavouredPrice    uint //拼团价格
 	FullCutAll       uint
 	GoodsPrice       uint
@@ -29,7 +34,7 @@ type ConfirmOrdersGoods struct {
 	TotalAmount      uint
 }
 
-type OrdersGoodsMix struct {
+/*type OrdersGoodsMix struct {
 	OID             dao.PrimaryKey                              //
 	OrdersGoodsNo   string                                      //
 	Status          model.OrdersGoodsStatus                     //OGAskRefund，OGRefundNo，OGRefundOk，OGRefundInfo，OGRefundComplete
@@ -47,4 +52,4 @@ type OrdersGoodsMix struct {
 	SkuLabelMap     map[dao.PrimaryKey]*model.GoodsSkuLabel     //
 	SkuLabelDataMap map[dao.PrimaryKey]*model.GoodsSkuLabelData //
 	ElementStatus   ElementStatus
-}
+}*/

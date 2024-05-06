@@ -3,6 +3,7 @@ package goods
 import (
 	"fmt"
 	"github.com/lib/pq"
+	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/activity"
 	"github.com/nbvghost/dandelion/service/internal/express"
@@ -340,17 +341,17 @@ func (m GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsMix, error
 	goodsInfo.Goods = *goods
 	goodsInfo.GoodsType = m.GoodsTypeService.GetGoodsType(goods.GoodsTypeID)
 	goodsInfo.GoodsTypeChild = m.GoodsTypeService.GetGoodsTypeChild(goods.GoodsTypeChildID)
-	goodsInfo.Discounts = make([]extends.Discount, 0)
+	goodsInfo.Discounts = make([]sqltype.Discount, 0)
 
 	goodsInfo.Rating = *m.Rating(goods.ID)
 
 	if timeSell.IsEnable() {
 		//Favoured:=uint(util.Rounding45(float64(goods.Price)*(float64(timeSell.Discount)/float64(100)), 2))
-		goodsInfo.Discounts = append(goodsInfo.Discounts, extends.Discount{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint(timeSell.Discount)})
+		goodsInfo.Discounts = append(goodsInfo.Discounts, sqltype.Discount{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint(timeSell.Discount)})
 	} else {
 		collage := m.Collage.GetCollageByGoodsID(goods.ID, goods.OID)
 		if collage.ID != 0 && collage.TotalNum > 0 {
-			goodsInfo.Discounts = append(goodsInfo.Discounts, extends.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint(collage.Discount)})
+			goodsInfo.Discounts = append(goodsInfo.Discounts, sqltype.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint(collage.Discount)})
 		}
 
 	}
@@ -528,16 +529,16 @@ func (m GoodsService) AllList() []model.Goods {
 	return result
 
 }
-func (m GoodsService) GetDiscounts(GoodsID, OID dao.PrimaryKey) []extends.Discount {
-	discounts := make([]extends.Discount, 0)
+func (m GoodsService) GetDiscounts(GoodsID, OID dao.PrimaryKey) []sqltype.Discount {
+	discounts := make([]sqltype.Discount, 0)
 	timeSell := m.TimeSell.GetTimeSellByGoodsID(GoodsID, OID)
 	if timeSell.IsEnable() {
 		//Favoured:=uint(util.Rounding45(float64(value.Price)*(float64(timeSell.Discount)/float64(100)), 2))
-		discounts = append(discounts, extends.Discount{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: extends.DiscountTypeNameTimeSell, Discount: uint(timeSell.Discount)})
+		discounts = append(discounts, sqltype.Discount{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: sqltype.DiscountTypeNameTimeSell, Discount: uint(timeSell.Discount)})
 	} else {
 		collage := m.Collage.GetCollageByGoodsID(GoodsID, OID)
 		if collage.ID != 0 && collage.TotalNum > 0 {
-			discounts = append(discounts, extends.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: extends.DiscountTypeNameCollage, Discount: uint(collage.Discount)})
+			discounts = append(discounts, sqltype.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: sqltype.DiscountTypeNameCollage, Discount: uint(collage.Discount)})
 		}
 	}
 	return discounts

@@ -56,9 +56,13 @@ type WxService struct {
 	//Orders       order.OrdersService
 	Organization company.OrganizationService
 	FileService  file.FileService
+
+	Config *model.WechatConfig
+	OID dao.PrimaryKey
+	AccessTokenService AccessTokenService
 }
 
-var accessTokenMap = make(map[string]*AccessToken)
+
 var ticketMap = make(map[string]*Ticket) //&Ticket{}
 
 var verifyCache = &struct {
@@ -87,7 +91,7 @@ func NewClient(config *model.WechatConfig) (*core.Client, error) {
 	}
 	client, err := core.NewClient(ctx, opts...)
 	if err != nil {
-		return nil, fmt.Errorf("new wechat pay client err:%s", err)
+		return nil, fmt.Errorf("new wechatpay pay client err:%s", err)
 	}
 
 	// 发送请求，以下载微信支付平台证书为例
@@ -95,7 +99,7 @@ func NewClient(config *model.WechatConfig) (*core.Client, error) {
 	/*svc := certificates.CertificatesApiService{Client: client}
 	resp, result, err := svc.DownloadCertificates(ctx)
 	if err != nil {
-		log.Fatalf("new wechat pay client err:%s", err)
+		log.Fatalf("new wechatpay pay client err:%s", err)
 		return nil, err
 	}
 	log.Printf("status=%d resp=%s", result.Response.StatusCode, resp)*/
@@ -105,17 +109,20 @@ func NewClient(config *model.WechatConfig) (*core.Client, error) {
 /*
 小程序
 */
-func (service WxService) MiniProgramByAppId(db *gorm.DB, appId string) *model.WechatConfig {
+/*func (service WxService) MiniProgramByAppId(db *gorm.DB, appId string) *model.WechatConfig {
 	var wc model.WechatConfig
 	db.Model(model.WechatConfig{}).Where(`"AppID"=?`, appId).Take(&wc)
 	return &wc
+}*/
+func (m WxService) getConfig() *model.WechatConfig {
+	if m.Config==nil{
+		m.Config = &model.WechatConfig{}
+		db.Orm().Model(model.WechatConfig{}).Where(`"OID"=?`, m.OID).Take(m.Config)
+		return m.Config
+	}
+	return m.Config
 }
-func (service WxService) MiniProgramByOID(db *gorm.DB, OID dao.PrimaryKey) *model.WechatConfig {
-	var wc model.WechatConfig
-	db.Model(model.WechatConfig{}).Where(`"OID"=?`, OID).Take(&wc)
-	return &wc
-}
-func (service WxService) MiniProgram(db *gorm.DB) []dao.IEntity {
+func (m WxService) MiniProgram(db *gorm.DB) []dao.IEntity {
 	//var wc []model.WechatConfig
 	//db.Model(model.WechatConfig{}).Where(`"OID"=?`, OID).Take(&wc)
 	return dao.Find(db, entity.WechatConfig).List()
@@ -126,7 +133,7 @@ type DeliveryInfo struct {
 	DeliveryName string `json:"delivery_name"`
 }
 
-func (service WxService) GetTraceWaybill(context constrain.IContext, ordersID dao.PrimaryKey) (string, error) {
+func (m WxService) GetTraceWaybill(context constrain.IContext, ordersID dao.PrimaryKey) (string, error) {
 	//trace_waybill
 	////https://api.weixin.qq.com/cgi-bin/express/delivery/open_msg/trace_waybill?access_token=XXX
 
@@ -141,7 +148,7 @@ func (service WxService) GetTraceWaybill(context constrain.IContext, ordersID da
 		return "", err
 	}
 
-	wxConfig := service.MiniProgramByOID(db.Orm(), orders.OID)
+	wxConfig := m.getConfig()
 
 	ossUrl, err := oss.Url(context)
 	if err != nil {
@@ -159,7 +166,7 @@ func (service WxService) GetTraceWaybill(context constrain.IContext, ordersID da
 		for i := range ordersGoodsList {
 			item := ordersGoodsList[i].(*model.OrdersGoods)
 
-			goods := item.GetGoods()
+			goods := item.Goods
 
 			detailList = append(detailList, map[string]any{
 				"goods_name":    goods.Title,
@@ -183,7 +190,7 @@ func (service WxService) GetTraceWaybill(context constrain.IContext, ordersID da
 			return "", err
 		}
 
-		url := "https://api.weixin.qq.com/cgi-bin/express/delivery/open_msg/trace_waybill?access_token=" + service.GetAccessToken(wxConfig)
+		url := "https://api.weixin.qq.com/cgi-bin/express/delivery/open_msg/trace_waybill?access_token=" + m.AccessTokenService.GetAccessToken(wxConfig)
 		resp, err := http.Post(url, "application/json", bytes.NewBuffer(marshal))
 		if err != nil {
 			return "", err
@@ -204,7 +211,7 @@ func (service WxService) GetTraceWaybill(context constrain.IContext, ordersID da
 	}
 	return r.WaybillToken, nil
 }
-func (service WxService) GetDeliveryList(accessToken string) ([]DeliveryInfo, error) {
+func (m WxService) GetDeliveryList(accessToken string) ([]DeliveryInfo, error) {
 	url := "https://api.weixin.qq.com/cgi-bin/express/delivery/open_msg/get_delivery_list?access_token=" + accessToken
 
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer([]byte(`{}`)))
@@ -227,47 +234,9 @@ func (service WxService) GetDeliveryList(accessToken string) ([]DeliveryInfo, er
 	}
 	return list.DeliveryList, nil
 }
-func (service WxService) GetAccessToken(WxConfig *model.WechatConfig) string {
 
-	if accessTokenMap[WxConfig.AppID] != nil && (time.Now().Unix()-accessTokenMap[WxConfig.AppID].Update) < accessTokenMap[WxConfig.AppID].Expires_in {
 
-		return accessTokenMap[WxConfig.AppID].Access_token
-	}
-
-	//WxConfig := model.GetWxConfig(WxConfigID)
-
-	url := "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=" + WxConfig.AppID + "&secret=" + WxConfig.AppSecret
-
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Println(err)
-		return ""
-	}
-
-	b, err := ioutil.ReadAll(resp.Body)
-	defer resp.Body.Close()
-
-	d := make(map[string]interface{})
-
-	err = json.Unmarshal(b, &d)
-	if err != nil {
-		log.Println(err)
-		return ""
-	}
-	//fmt.Println(string(b))
-	//fmt.Println(d)
-	if d["access_token"] == nil {
-		return ""
-	}
-	at := &AccessToken{}
-	at.Access_token = d["access_token"].(string)
-	at.Expires_in = int64(d["expires_in"].(float64))
-	at.Update = time.Now().Unix()
-	accessTokenMap[WxConfig.AppID] = at
-	return accessTokenMap[WxConfig.AppID].Access_token
-}
-
-func (service WxService) GetWXAConfig(prepay_id string, WxConfig *model.WechatConfig) (map[string]string, error) {
+func (m WxService) GetWXAConfig(prepay_id string, WxConfig *model.WechatConfig) (map[string]string, error) {
 
 	rsaCryptoUtilCertificate, err := utils.LoadPrivateKey(WxConfig.PrivateKey)
 	if err != nil {
@@ -297,7 +266,7 @@ func (service WxService) GetWXAConfig(prepay_id string, WxConfig *model.WechatCo
 	outData["paySign"] = paySign
 	return outData, nil
 }
-func (service WxService) SignatureVerification(dataMap util.Map, wxConfig MiniApp) bool {
+func (m WxService) SignatureVerification(dataMap util.Map, wxConfig MiniApp) bool {
 
 	//appid := dataMap["appid"]
 	//mch_id := dataMap["mch_id"]
@@ -324,38 +293,9 @@ func (service WxService) SignatureVerification(dataMap util.Map, wxConfig MiniAp
 
 }
 
-func (service WxService) MiniProgramInfo(Code, AppID, AppSecret string) (err error, OpenID, SessionKey string) {
 
-	resp, err := http.Get("https://api.weixin.qq.com/sns/jscode2session?appid=" + AppID + "&secret=" + AppSecret + "&js_code=" + Code + "&grant_type=authorization_code")
-	if err == nil {
-		b, _ := ioutil.ReadAll(resp.Body)
 
-		readData := make(map[string]interface{})
-
-		fmt.Println(string(b))
-		json.Unmarshal(b, &readData)
-
-		if readData["openid"] != nil && readData["session_key"] != nil {
-
-			OpenID := readData["openid"].(string)
-			SessionKey := readData["session_key"].(string)
-
-			return nil, OpenID, SessionKey
-		} else {
-			if readData["errmsg"] != nil {
-				return errors.New("登陆失败:" + readData["errmsg"].(string)), "", ""
-			} else {
-				return errors.New("登陆失败"), "", ""
-			}
-		}
-
-	} else {
-		return errors.New("登陆失败:" + err.Error()), "", ""
-	}
-
-}
-
-func (service WxService) Order(ctx context.Context, OrderNo string, title, description string, detail, openid string, IP string, Money uint, attach string, wxConfig *model.WechatConfig) (Success result.ActionResultCode, Message string, wxResult *jsapi.PrepayWithRequestPaymentResponse) {
+func (m WxService) Order(ctx context.Context, OrderNo string, title, description string, detail, openid string, IP string, Money uint, attach string, wxConfig *model.WechatConfig) (Success result.ActionResultCode, Message string, wxResult *jsapi.PrepayWithRequestPaymentResponse) {
 	client, err := NewClient(wxConfig)
 	if err != nil {
 		return result.Fail, err.Error(), nil
@@ -421,7 +361,7 @@ func (service WxService) Order(ctx context.Context, OrderNo string, title, descr
 
 	return result.Success, "下单成功", resp
 }
-func (service WxService) MPOrder(ctx context.Context, OrderNo string, title, description string, ogs []model.OrdersGoods, openid string, IP string, Money uint, attach string, wxConfig *model.WechatConfig) (Success result.ActionResultCode, Message string, wxResult *jsapi.PrepayWithRequestPaymentResponse) {
+func (m WxService) MPOrder(ctx context.Context, OrderNo string, title, description string, ogs []model.OrdersGoods, openid string, IP string, Money uint, attach string, wxConfig *model.WechatConfig) (Success result.ActionResultCode, Message string, wxResult *jsapi.PrepayWithRequestPaymentResponse) {
 
 	CostGoodsPrice := uint(0)
 
@@ -430,13 +370,13 @@ func (service WxService) MPOrder(ctx context.Context, OrderNo string, title, des
 		goodsObj := make(map[string]interface{})
 		goodsObj["goods_id"] = value.OrdersGoodsNo
 
-		var goods model.Goods
+		/*var goods model.Goods
 		json.Unmarshal([]byte(value.Goods), &goods)
 
 		var specification model.Specification
-		json.Unmarshal([]byte(value.Specification), &specification)
+		json.Unmarshal([]byte(value.Specification), &specification)*/
 
-		goodsObj["goods_name"] = goods.Title + "-" + specification.Label
+		goodsObj["goods_name"] = value.Goods.Title + "-" + value.Specification.Label
 		goodsObj["quantity"] = value.Quantity
 		goodsObj["price"] = value.SellPrice
 		goods_detail = append(goods_detail, goodsObj)
@@ -458,7 +398,7 @@ func (service WxService) MPOrder(ctx context.Context, OrderNo string, title, des
 
 	//WxConfig := service.MiniProgram()
 
-	return service.Order(ctx, OrderNo, title, description, string(detailB), openid, IP, Money, attach, wxConfig)
+	return m.Order(ctx, OrderNo, title, description, string(detailB), openid, IP, Money, attach, wxConfig)
 }
 
 // func (self WxService) GetWxConfig(DB *gorm.DB, CompanyID uint) *WxConfig {
@@ -493,7 +433,7 @@ func (service WxService) MPOrder(ctx context.Context, OrderNo string, title, des
 	log.Println(err)
 	return wx
 }*/
-func (service WxService) MWQRCodeTemp(OID uint, UserID uint, qrtype, params string, wxConfig *model.WechatConfig) *result.ActionResult {
+func (m WxService) MWQRCodeTemp(OID uint, UserID uint, qrtype, params string, wxConfig *model.WechatConfig) *result.ActionResult {
 
 	//user := context.Session.Attributes.Get(play.SessionUser).(*model.User)
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
@@ -502,7 +442,7 @@ func (service WxService) MWQRCodeTemp(OID uint, UserID uint, qrtype, params stri
 	//Page := context.Request.URL.Query().Get("Page")
 	//MyShareKey := tool.Hashids{}.Encode(user.ID)
 
-	access_token := service.GetAccessToken(wxConfig)
+	access_token := m.AccessTokenService.GetAccessToken(wxConfig)
 
 	postData := make(map[string]interface{})
 	//results := make(map[string]interface{})
@@ -525,13 +465,13 @@ func (service WxService) MWQRCodeTemp(OID uint, UserID uint, qrtype, params stri
 	}
 	//fmt.Println(string(b))
 	defer resp.Body.Close()
-	path, err := service.FileService.WriteTempFile(b, "image/png")
+	path, err := m.FileService.WriteTempFile(b, "image/png")
 	return &result.ActionResult{Code: result.Success, Message: "", Data: path}
 
 }
 
 // 订单查询
-func (service WxService) OrderQuery(ctx context.Context, OrderNo string, wxConfig *model.WechatConfig) (*payments.Transaction, error) {
+func (m WxService) OrderQuery(ctx context.Context, OrderNo string, wxConfig *model.WechatConfig) (*payments.Transaction, error) {
 	client, err := NewClient(wxConfig)
 	if err != nil {
 		return nil, err
@@ -551,7 +491,7 @@ func (service WxService) OrderQuery(ctx context.Context, OrderNo string, wxConfi
 }
 
 // GetTransfersInfo 查询提现接口
-func (service WxService) GetTransfersInfo(transfers *model.Transfers, wxConfig *model.WechatConfig) (*transferbatch.TransferBatchGet, error) {
+func (m WxService) GetTransfersInfo(transfers *model.Transfers, wxConfig *model.WechatConfig) (*transferbatch.TransferBatchGet, error) {
 	mchPrivateKey, err := utils.LoadPrivateKey(wxConfig.PrivateKey)
 	if err != nil {
 		log.Printf("load merchant private key error:%s", err)
@@ -565,7 +505,7 @@ func (service WxService) GetTransfersInfo(transfers *model.Transfers, wxConfig *
 	}
 	client, err := core.NewClient(ctx, opts...)
 	if err != nil {
-		log.Printf("new wechat pay client err:%s", err)
+		log.Printf("new wechatpay pay client err:%s", err)
 		return nil, err
 	}
 	svc := transferbatch.TransferBatchApiService{Client: client}
@@ -593,7 +533,7 @@ func (service WxService) GetTransfersInfo(transfers *model.Transfers, wxConfig *
 }
 
 // Transfers 提现
-func (service WxService) Transfers(transfers model.Transfers, transferDetailInputs []transferbatch.TransferDetailInput, wxConfig *model.WechatConfig) error {
+func (m WxService) Transfers(transfers model.Transfers, transferDetailInputs []transferbatch.TransferDetailInput, wxConfig *model.WechatConfig) error {
 	// 使用 utils 提供的函数从本地文件中加载商户私钥，商户私钥会用来生成请求的签名
 	mchPrivateKey, err := utils.LoadPrivateKey(wxConfig.PrivateKey)
 	if err != nil {
@@ -608,7 +548,7 @@ func (service WxService) Transfers(transfers model.Transfers, transferDetailInpu
 	}
 	client, err := core.NewClient(ctx, opts...)
 	if err != nil {
-		log.Printf("new wechat pay client err:%s", err)
+		log.Printf("new wechatpay pay client err:%s", err)
 		return err
 	}
 
@@ -650,7 +590,7 @@ func (service WxService) Transfers(transfers model.Transfers, transferDetailInpu
 }
 
 // 关闭订单
-func (service WxService) CloseOrder(OrderNo string, OID dao.PrimaryKey, wxConfig *model.WechatConfig) (Success bool, Message string) {
+func (m WxService) CloseOrder(OrderNo string, OID dao.PrimaryKey, wxConfig *model.WechatConfig) (Success bool, Message string) {
 
 	//WxConfig := service.MiniProgram()
 
@@ -709,9 +649,9 @@ func (service WxService) CloseOrder(OrderNo string, OID dao.PrimaryKey, wxConfig
 }
 
 // Refund 退款-订单内的所有的商品/订单内某个商品
-func (service WxService) Refund(ctx context.Context, order *model.Orders, ordersGoods *model.OrdersGoods, reason string, wxConfig *model.WechatConfig) error {
+func (m WxService) Refund(ctx context.Context, order *model.Orders, ordersGoods *model.OrdersGoods, reason string) error {
 
-	client, err := NewClient(wxConfig)
+	client, err := NewClient(m.getConfig())
 	if err != nil {
 		return err
 	}
@@ -730,7 +670,7 @@ func (service WxService) Refund(ctx context.Context, order *model.Orders, orders
 			OutTradeNo:   core.String(order.OrderNo),
 			OutRefundNo:  core.String(order.OrderNo),
 			Reason:       core.String(reason),
-			NotifyUrl:    core.String(wxConfig.RefundNotifyUrl),
+			NotifyUrl:    core.String(m.getConfig().RefundNotifyUrl),
 			FundsAccount: refunddomestic.REQFUNDSACCOUNT_AVAILABLE.Ptr(),
 			Amount: &refunddomestic.AmountReq{
 				Refund:   core.Int64(int64(order.PayMoney)),
@@ -749,8 +689,8 @@ func (service WxService) Refund(ctx context.Context, order *model.Orders, orders
 		//outMap["refund_fee"] = strconv.Itoa(int(order.PayMoney))
 		//outMap["total_fee"] = strconv.Itoa(int(ordersPackage.TotalPayMoney))
 
-		goods := ordersGoods.GetGoods()
-		specification := ordersGoods.GetSpecification()
+		goods := ordersGoods.Goods
+		specification := ordersGoods.Specification
 
 		refundAmount := ordersGoods.SellPrice * ordersGoods.Quantity
 
@@ -758,7 +698,7 @@ func (service WxService) Refund(ctx context.Context, order *model.Orders, orders
 			OutTradeNo:   core.String(order.OrderNo),
 			OutRefundNo:  core.String(ordersGoods.OrdersGoodsNo),
 			Reason:       core.String(reason),
-			NotifyUrl:    core.String(wxConfig.RefundNotifyUrl),
+			NotifyUrl:    core.String(m.getConfig().RefundNotifyUrl),
 			FundsAccount: refunddomestic.REQFUNDSACCOUNT_AVAILABLE.Ptr(),
 			Amount: &refunddomestic.AmountReq{
 				Refund:   core.Int64(int64(refundAmount)),
@@ -902,7 +842,7 @@ func (service WxService) Refund(ctx context.Context, order *model.Orders, orders
 		//return false, inData["err_code_des"]
 	}*/
 }
-func (service WxService) Decrypt(encryptedData, session_key, iv_text string) (bool, string) {
+func (m WxService) Decrypt(encryptedData, session_key, iv_text string) (bool, string) {
 	bkey, err := base64.StdEncoding.DecodeString(session_key)
 
 	//aesKey := Base64.decodeBase64(encodingAesKey + "=");
@@ -923,7 +863,7 @@ func (service WxService) Decrypt(encryptedData, session_key, iv_text string) (bo
 	return true, string(plantText[:(length - unpadding)])
 }
 
-func (service WxService) getSHA1(token, timestamp, nonce, encrypt string) string {
+func (m WxService) getSHA1(token, timestamp, nonce, encrypt string) string {
 
 	array := []string{timestamp, nonce, encrypt, token}
 	sb := ""
@@ -939,14 +879,14 @@ func (service WxService) getSHA1(token, timestamp, nonce, encrypt string) string
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-func (service WxService) MwGetTicket(WxConfig *model.WechatConfig) string {
+func (m WxService) MwGetTicket(WxConfig *model.WechatConfig) string {
 
 	if ticketMap[WxConfig.AppID] != nil && (time.Now().Unix()-ticketMap[WxConfig.AppID].Update) < ticketMap[WxConfig.AppID].Expires_in {
 
 		return ticketMap[WxConfig.AppID].Ticket
 	}
 
-	url := "http://api.weixin.qq.com/cgi-bin/ticket/getticket?type=jsapi&access_token=" + service.GetAccessToken(WxConfig)
+	url := "http://api.weixin.qq.com/cgi-bin/ticket/getticket?type=jsapi&access_token=" + m.AccessTokenService.GetAccessToken(WxConfig)
 
 	resp, err := http.Get(url)
 	log.Println(err)
@@ -972,9 +912,9 @@ func (service WxService) MwGetTicket(WxConfig *model.WechatConfig) string {
 	}
 
 }
-func (service WxService) MwGetWXJSConfig(url string, OID dao.PrimaryKey) map[string]interface{} {
+func (m WxService) MwGetWXJSConfig(url string, OID dao.PrimaryKey) map[string]interface{} {
 
-	wxConfig := service.MiniProgramByOID(db.Orm(), OID)
+	wxConfig := m.getConfig()
 
 	appId := wxConfig.AppID
 	timestamp := time.Now().Unix()
@@ -982,7 +922,7 @@ func (service WxService) MwGetWXJSConfig(url string, OID dao.PrimaryKey) map[str
 	//chooseWXPay
 	list := &collections.ListString{}
 	list.Append("noncestr=" + nonceStr)
-	list.Append("jsapi_ticket=" + service.MwGetTicket(wxConfig))
+	list.Append("jsapi_ticket=" + m.MwGetTicket(wxConfig))
 	list.Append("timestamp=" + strconv.FormatInt(timestamp, 10))
 
 	_url := strings.Split(url, "#")[0]
@@ -998,13 +938,13 @@ func (service WxService) MwGetWXJSConfig(url string, OID dao.PrimaryKey) map[str
 
 	return results
 }
-func (service WxService) GetWechatConfig(tx *gorm.DB, OID dao.PrimaryKey) model.WechatConfig {
+func (m WxService) GetWechatConfig(tx *gorm.DB, OID dao.PrimaryKey) model.WechatConfig {
 	var contentConfig model.WechatConfig
 	tx.Model(&model.WechatConfig{}).Where(map[string]interface{}{"OID": OID}).First(&contentConfig)
 	return contentConfig
 }
-func (service WxService) InitWechatConfig(tx *gorm.DB, OID dao.PrimaryKey) error {
-	item := service.GetWechatConfig(tx, OID)
+func (m WxService) InitWechatConfig(tx *gorm.DB, OID dao.PrimaryKey) error {
+	item := m.GetWechatConfig(tx, OID)
 	if !item.IsZero() {
 		return nil //fmt.Errorf("已经存在Wechat配制文件")
 	}

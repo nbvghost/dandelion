@@ -12,14 +12,15 @@ import (
 )
 
 type QueryExpressCompanyTask struct {
-	WxService wechat.WxService
+	WxService          wechat.WxService
+	AccessTokenService wechat.AccessTokenService
 }
 
 func (m *QueryExpressCompanyTask) Run() error {
 	wxConfigList := m.WxService.MiniProgram(db.Orm())
 	for _, config := range wxConfigList {
 		Orm := db.Orm()
-		deliverys, err := m.WxService.GetDeliveryList(m.WxService.GetAccessToken(config.(*model.WechatConfig)))
+		deliverys, err := m.WxService.GetDeliveryList(m.AccessTokenService.GetAccessToken(config.(*model.WechatConfig)))
 		if err != nil {
 			log.Println(err)
 			continue

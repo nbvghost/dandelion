@@ -3,7 +3,6 @@ package order
 import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
-	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
@@ -18,11 +17,8 @@ type GetOrder struct {
 }
 
 func (m *GetOrder) Handle(ctx constrain.IContext) (constrain.IResult, error) {
-	pack := struct {
-		Orders          model.Orders
-		OrdersGoodsList []*extends.OrdersGoodsMix
-		CollageUsers    []model.User
-	}{}
+	pack := extends.OrdersDetail{}
+
 	pack.Orders = repository.OrdersDao.GetOrdersByID(m.Get.ID)
 
 	ordersGoodsList, err := service.Order.Orders.FindOrdersGoodsByOrdersID(db.Orm(), pack.Orders.ID)
@@ -30,7 +26,7 @@ func (m *GetOrder) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 		return nil, err
 	}
 	for i := 0; i < len(ordersGoodsList); i++ {
-		goods, err := service.Order.Orders.ConvertOrdersGoods(ordersGoodsList[i].(*model.OrdersGoods))
+		goods, err := service.Order.Orders.ConvertOrdersGoods(ordersGoodsList[i])
 		if err != nil {
 			return nil, err
 		}

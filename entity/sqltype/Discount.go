@@ -1,4 +1,4 @@
-package extends
+package sqltype
 
 type DiscountTypeName string
 

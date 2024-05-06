@@ -1,7 +1,6 @@
 package wx
 
 import (
-	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service"
 	"log"
 	"net/http"
@@ -34,7 +33,7 @@ func (m *Notify) HandlePost(context constrain.IContext) (r constrain.IResult, er
 }
 
 func (m *Notify) handle(context constrain.IContext, OID dao.PrimaryKey) (r constrain.IResult, err error) {
-	wxConfig := service.Wechat.Wx.MiniProgramByOID(db.Orm(), OID)
+	wxConfig := service.Payment.NewWechat(context,OID).GetConfig() //service.Wechat.Wx.MiniProgramByOID(db.Orm(), OID)
 
 	certificateVisitor := downloader.MgrInstance().GetCertificateVisitor(wxConfig.MchID)
 

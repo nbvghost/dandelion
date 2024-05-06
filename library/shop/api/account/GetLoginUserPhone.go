@@ -23,13 +23,14 @@ type GetLoginUserPhone struct {
 		encryptedData string
 		Code          string
 	} `method:"Post"`
+
 }
 
 func (g *GetLoginUserPhone) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	return nil, nil
 }
 func (g *GetLoginUserPhone) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
-	accessToken := service.Wechat.Wx.GetAccessToken(g.WechatConfig)
+	accessToken := service.Wechat.AccessToken.GetAccessToken(g.WechatConfig)
 
 	body, err := json.Marshal(map[string]any{"code": g.Post.Code})
 	if err != nil {

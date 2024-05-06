@@ -37,7 +37,7 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 
 	wxa := g.WechatConfig
 
-	err, OpenID, SessionKey := service.Wechat.Wx.MiniProgramInfo(g.Post.Code, wxa.AppID, wxa.AppSecret)
+	err, OpenID, SessionKey := service.Wechat.AccessToken.MiniProgramInfo(g.Post.Code, wxa.AppID, wxa.AppSecret)
 	fmt.Println(err, OpenID, SessionKey)
 
 	if err == nil {

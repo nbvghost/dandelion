@@ -96,6 +96,7 @@ func Init(app config.MicroServer) error {
 	models = append(models, model.CustomizeFieldGroup{})
 	models = append(models, model.CustomizeField{})
 	models = append(models, model.Role{})
+	models = append(models, model.OrdersGoodsRefund{})
 
 	//set db session application name
 	_database.Exec(fmt.Sprintf("SET application_name='%s'", fmt.Sprintf("%s:%s", app.Name, app.ServerType)))

@@ -8,7 +8,7 @@ const (
 	SocialTypeLinkedin  SocialType = "linkedin"
 	SocialTypeInstagram SocialType = "instagram"
 	SocialTypeSkype     SocialType = "skype"
-	SocialTypeWechat    SocialType = "wechat"
+	SocialTypeWechat    SocialType = "wechatpay"
 	SocialTypeQq        SocialType = "qq"
 	SocialTypeEmail     SocialType = "email"
 	SocialTypePhone     SocialType = "phone"

@@ -13,8 +13,13 @@ import (
 	"gorm.io/gorm/schema"
 )
 
+type GoodsSku struct {
+	GoodsSkuLabel     *GoodsSkuLabel
+	GoodsSkuLabelData *GoodsSkuLabelData
+}
+
 type ITableType interface {
-	Specification | GoodsAttributes | GoodsSkuLabel | GoodsSkuLabelData
+	Specification | GoodsAttributes | GoodsSkuLabel | GoodsSkuLabelData | GoodsSku
 }
 
 type Array[T ITableType] []T

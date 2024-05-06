@@ -13,7 +13,7 @@ import (
 )
 
 type IMetaType interface {
-	int64 | dao.PrimaryKey | string | CustomerService | CustomizeField | FocusPicture | Route | SocialAccount
+	int64 | dao.PrimaryKey | string | CustomerService | CustomizeField | FocusPicture | Route | SocialAccount | Discount
 }
 
 type Array[T IMetaType] []T
@@ -83,7 +83,7 @@ func (Array[T]) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 
 func (m Array[T]) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
 	if len(m) == 0 {
-		return gorm.Expr("?","[]")
+		return gorm.Expr("?", "[]")
 	}
 
 	b, err := json.Marshal(m)

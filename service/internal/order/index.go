@@ -1,10 +1,10 @@
 package order
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/nbvghost/dandelion/service/internal/payment"
 	"log"
 	"math"
 	"strconv"
@@ -48,7 +48,6 @@ type OrdersService struct {
 	Settlement      activity.SettlementService
 	ExpressTemplate express.ExpressTemplateService
 	FullCut         activity.FullCutService
-	Wx              wechat.WxService
 	MessageNotify   wechat.MessageNotify
 	Journal         journal.JournalService
 	CardItem        activity.CardItemService
@@ -66,13 +65,13 @@ func (m OrdersService) FindShoppingCartListDetails(oid dao.PrimaryKey, userID da
 	list := m.ShoppingCart.FindShoppingCartByUserID(userID)
 
 	shoppingCartList := make([]*model.ShoppingCart, 0)
-	orderGoodsList := make([]*extends.OrdersGoodsMix, 0)
+	orderGoodsList := make([]*model.OrdersGoods, 0)
 	for i := range list {
 		item := list[i].(*model.ShoppingCart)
 		shoppingCartList = append(shoppingCartList, item)
 		orderGoods, err := m.createOrdersGoods(item.GoodsID, item.SpecificationID, item.Quantity)
 		if err != nil {
-			orderGoodsList = append(orderGoodsList, &extends.OrdersGoodsMix{ElementStatus: extends.ElementStatus{IsError: true, Error: err.Error()}})
+			orderGoodsList = append(orderGoodsList, &model.OrdersGoods{Error: err.Error()})
 		} else {
 			orderGoodsList = append(orderGoodsList, orderGoods)
 		}
@@ -146,7 +145,7 @@ func (m OrdersService) FirstSettlementUserBrokerage(tx *gorm.DB, orders model.Or
 	ogs, err := m.FindOrdersGoodsByOrdersID(tx, orders.ID)
 	var Brokerage uint
 	for i := range ogs {
-		value := ogs[i].(*model.OrdersGoods)
+		value := ogs[i]
 		//var specification model.Specification
 		//util.JSONToStruct(value.Specification, &specification)
 		//Brokerage = Brokerage + value.TotalBrokerage
@@ -217,13 +216,13 @@ func (m OrdersService) OrdersStockManager(db *gorm.DB, orders *model.Orders, isM
 
 	list, _ := m.FindOrdersGoodsByOrdersID(db, orders.ID)
 	for i := range list {
-		value := list[i].(*model.OrdersGoods)
-		var specification model.Specification
+		value := list[i]
+		var specification model.Specification = value.Specification
 		//service.Get(Orm, value.SpecificationID, &specification)
-		util.JSONToStruct(value.Specification, &specification)
-		var g model.Goods
+		//util.JSONToStruct(value.Specification, &specification)
+		var g model.Goods = value.Goods
 		//service.Get(Orm, value.GoodsID, &goods)
-		util.JSONToStruct(value.Goods, &g)
+		//util.JSONToStruct(value.Goods, &g)
 
 		if isMinus {
 			//减
@@ -271,165 +270,6 @@ func (m OrdersService) Situation(StartTime, EndTime int64) interface{} {
 	Orm.Table("Orders").Select(`SUM("PayMoney") as "TotalMoney",COUNT("ID") as "TotalCount"`).Where(`"CreatedAt">=?`, st).Where(`"CreatedAt"<?`, et).Where(map[string]interface{}{"IsPay": 1}).Find(&result)
 	//fmt.Println(result)
 	return result
-}
-func (m OrdersService) RefundShip(OrdersID dao.PrimaryKey, ShipKey, ShipName, ShipNo string) (error, string) {
-	Orm := db.Orm()
-
-	//var ordersGoods model.OrdersGoods
-	orders := dao.GetByPrimaryKey(Orm, &model.Orders{}, OrdersID).(*model.Orders)
-
-	orders.RefundInfo.ShipInfo.No = ShipNo
-	orders.RefundInfo.ShipInfo.Name = ShipName
-	orders.RefundInfo.ShipInfo.Key = ShipKey
-	orders.RefundInfo.Status = sqltype.RefundStatusRefundShip
-
-	err := dao.UpdateByPrimaryKey(Orm, &model.Orders{}, orders.ID, map[string]interface{}{"RefundInfo": orders.RefundInfo})
-	if err != nil {
-		return err, ""
-	}
-	return nil, "快递信息填写成功"
-}
-
-// RefundComplete 后台执行的退款
-func (m OrdersService) RefundComplete(OrdersID dao.PrimaryKey, RefundType uint, wxConfig *model.WechatConfig) (string, error) {
-	tx := db.Orm().Begin()
-
-	//var ordersGoods model.OrdersGoods
-	//ordersGoods := dao.GetByPrimaryKey(tx, entity.OrdersGoods, OrdersGoodsID).(*model.OrdersGoods)
-
-	//var orders model.Orders
-	orders := dao.GetByPrimaryKey(tx, entity.Orders, OrdersID).(*model.Orders)
-	if orders.IsZero() {
-		tx.Rollback()
-		return "", errors.New("找不到订单数据")
-	}
-
-	//ordersPackage := service.GetOrdersPackageByOrderNo(orders.OrdersPackageNo)
-
-	//RefundPrice := int64(ordersGoods.SellPrice) - int64(math.Floor(((float64(ordersGoods.SellPrice)*float64(ordersGoods.Quantity))/float64(orders.GoodsMoney)*float64(orders.DiscountMoney))+0.5))
-	/*RefundPrice := ordersGoods.SellPrice * uint(ordersGoods.Quantity)
-	if RefundPrice < 0 {
-		RefundPrice = 0
-	}*/
-	//var RefundInfo model.RefundInfo
-	//util.JSONToStruct(ordersGoods.RefundInfo, &RefundInfo)
-	//RefundInfo.RefundPrice = RefundPrice
-	orders.RefundInfo.Status = sqltype.RefundStatusRefundComplete
-	err := dao.UpdateByPrimaryKey(tx, &model.Orders{}, orders.ID, map[string]interface{}{"RefundInfo": orders.RefundInfo})
-	if err != nil {
-		tx.Rollback()
-		return "", err
-	}
-
-	err = m.Wx.Refund(context.TODO(), orders, nil, "用户申请退款", wxConfig)
-	if err != nil {
-		tx.Rollback()
-		return "", err
-	}
-	//扣除佣金
-	err = m.AfterSettlementUserBrokerage(tx, orders)
-	if err != nil {
-		tx.Rollback()
-		return "", err
-	}
-	/*ogs, err := service.FindOrdersGoodsByOrdersID(tx, orders.OrdersID)
-	if err != nil {
-		tx.Rollback()
-		return "", err
-	}
-	haveRefunc := false
-	//totalBrokerage := uint(0)
-	for i := range ogs {
-		value := ogs[i].(*model.OrdersGoods)
-		//totalBrokerage = totalBrokerage + (value.TotalBrokerage * uint(value.Quantity))
-		if !(value.Status == model.OrdersGoodsStatusOGRefundComplete) && !(value.Status == model.OrdersGoodsStatusOGNone) {
-			haveRefunc = true
-			break
-		}
-	}
-
-	if haveRefunc == false {
-		//orders 所有的子单品订单，已经全部退款成功。改orders为完成
-
-		//err := dao.UpdateByPrimaryKey(tx, orders.ID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusOrderOk})
-		err = dao.UpdateByPrimaryKey(tx, &model.Orders{}, orders.ID, map[string]interface{}{"Status": model.OrdersStatusRefundOk})
-		if err != nil {
-			tx.Rollback()
-			return "", err
-		}
-		//扣除佣金
-		err = service.AfterSettlementUserBrokerage(tx, orders)
-		if err != nil {
-			tx.Rollback()
-			return "", err
-		}
-	}*/
-
-	tx.Commit()
-
-	//err := dao.UpdateByPrimaryKey(Orm, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"Status": model.OrdersStatusOGRefundOk})
-	return "已经同意,并已退款", nil
-}
-func (m OrdersService) RefundAgree(OrdersID dao.PrimaryKey) (error, string) {
-	Orm := db.Orm()
-	orders := dao.GetByPrimaryKey(Orm, entity.Orders, OrdersID).(*model.Orders)
-	orders.RefundInfo.Status = sqltype.RefundStatusRefundAgree
-	err := dao.UpdateByPrimaryKey(Orm, entity.Orders, OrdersID, map[string]interface{}{"RefundInfo": orders.RefundInfo})
-	return err, "已经同意"
-}
-func (m OrdersService) RefundReject(OrdersID dao.PrimaryKey) (error, string) {
-	//Orm := db.Orm()
-	//err := dao.UpdateByPrimaryKey(Orm, entity.OrdersGoods, OrdersGoodsID, map[string]interface{}{"Status": model.OrdersGoodsStatusOGRefundNo})
-	Orm := db.Orm()
-	orders := dao.GetByPrimaryKey(Orm, entity.Orders, OrdersID).(*model.Orders)
-	orders.RefundInfo.Status = sqltype.RefundStatusRefundReject
-	err := dao.UpdateByPrimaryKey(Orm, entity.Orders, OrdersID, map[string]interface{}{"RefundInfo": orders.RefundInfo})
-	return err, "已经拒绝"
-}
-func (m OrdersService) AskRefund(OrdersID dao.PrimaryKey, HasGoods bool, Reason string) (error, string) {
-	tx := db.Orm().Begin()
-
-	//var ordersGoods model.OrdersGoods
-	//ordersGoods := dao.GetByPrimaryKey(tx, entity.OrdersGoods, OrdersID).(*model.OrdersGoods)
-
-	//var orders model.Orders
-	orders := dao.GetByPrimaryKey(tx, entity.Orders, OrdersID).(*model.Orders)
-	if orders.ID == 0 {
-		tx.Rollback()
-		return errors.New("订单不存在"), ""
-	}
-
-	orders.RefundInfo.HasGoods = HasGoods
-	orders.RefundInfo.Reason = Reason
-	orders.RefundInfo.AskTime = time.Now()
-	orders.RefundInfo.Status = sqltype.RefundStatusRefund
-	//下单状态,如果订单状态为，已经发货状态或正在退款中
-	if (orders.Status == model.OrdersStatusDeliver) || (orders.Status == model.OrdersStatusRefund) {
-		var err error
-		if orders.Status == model.OrdersStatusDeliver {
-			err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusRefund, "RefundInfo": orders.RefundInfo})
-		} else {
-			err = dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusRefund, "RefundInfo": orders.RefundInfo})
-		}
-
-		if err != nil {
-			tx.Rollback()
-			return err, ""
-		}
-		tx.Commit()
-		return nil, "已经申请，等待商家确认"
-
-		/*err := dao.UpdateByPrimaryKey(tx, entity.OrdersGoods, OrdersGoodsID, map[string]interface{}{"RefundInfo": util.StructToJSON(&RefundInfo), "Status": model.OrdersGoodsStatusOGAskRefund})
-		if err != nil {
-			tx.Rollback()
-			return err, ""
-		} else {
-
-		}*/
-
-	}
-	tx.Rollback()
-	return errors.New("不允许申请退款"), ""
 }
 
 /*
@@ -496,7 +336,7 @@ func (m OrdersService) TakeDeliver(OrdersID dao.PrimaryKey) error {
 
 		var ogsList []*model.OrdersGoods
 		for i := range ogs {
-			value := ogs[i].(*model.OrdersGoods)
+			value := ogs[i]
 			//var specification model.Specification
 			//util.JSONToStruct(value.Specification, &specification)
 			//Brokerage = Brokerage + value.TotalBrokerage
@@ -518,10 +358,10 @@ func (m OrdersService) TakeDeliver(OrdersID dao.PrimaryKey) error {
 			return err
 		} else {
 			tx.Commit()
-			go func(ogs []dao.IEntity) {
+			go func(ogs []*model.OrdersGoods) {
 				for i := range ogs {
-					value := ogs[i].(*model.OrdersGoods)
-					_goods := value.GetGoods()
+					value := ogs[i]
+					_goods := value.Goods
 					if _goods.ID != 0 {
 						err = dao.UpdateByPrimaryKey(db.Orm(), entity.Goods, _goods.ID, &model.Goods{CountSale: _goods.CountSale + uint(value.Quantity)})
 						if err != nil {
@@ -539,12 +379,12 @@ func (m OrdersService) TakeDeliver(OrdersID dao.PrimaryKey) error {
 }
 
 // 检查订单状态
-func (m OrdersService) AnalysisOrdersStatus(OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) error {
+func (m OrdersService) AnalysisOrdersStatus(context constrain.IContext, ordersID dao.PrimaryKey, oid dao.PrimaryKey) error {
 
 	Orm := db.Orm()
 
 	//var orders model.Orders
-	orders := dao.GetByPrimaryKey(Orm, entity.Orders, OrdersID).(*model.Orders)
+	orders := dao.GetByPrimaryKey(Orm, entity.Orders, ordersID).(*model.Orders)
 	if orders.ID == 0 {
 		//return errors.New("订单不存在"), ""
 		return nil
@@ -570,7 +410,7 @@ func (m OrdersService) AnalysisOrdersStatus(OrdersID dao.PrimaryKey, wxConfig *m
 			//dao.UpdateByPrimaryKey(Orm, orders.ID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusOrderOk, "ReceiptTime": time.Now()})
 			//管理商品库存
 			//service.Goods.OrdersStockManager(orders, false)
-			err := m.TakeDeliver(OrdersID)
+			err := m.TakeDeliver(ordersID)
 			if err != nil {
 				return err
 			}
@@ -579,7 +419,7 @@ func (m OrdersService) AnalysisOrdersStatus(OrdersID dao.PrimaryKey, wxConfig *m
 	} else if orders.Status == model.OrdersStatusCancel {
 		if time.Now().Unix() >= orders.UpdatedAt.Add(5*time.Hour*24).Unix() {
 			//订单已经支付，用户申请了取消订单，超过5天，自动取消
-			_, err := m.CancelOk(context.TODO(), OrdersID, wxConfig)
+			_, err := m.CancelOk(context, ordersID)
 			if err != nil {
 				return err
 			}
@@ -764,13 +604,14 @@ func (m OrdersService) ListOrders(queryParam *serviceargument.ListOrdersQueryPar
 
 	db = db.Count(&recordsTotal).Limit(pageSize).Offset(pageSize * pageIndex).Order(fieldOrder).Find(&orders)
 
-	results := make([]interface{}, 0)
+	results := make([]extends.OrdersDetail, 0)
 	for _, value := range orders {
-		pack := struct {
+		/*	pack := struct {
 			Orders          model.Orders
 			User            model.User
-			OrdersGoodsList []dao.IEntity //[]model.OrdersGoods
-		}{}
+			OrdersGoodsList []*model.OrdersGoods //[]model.OrdersGoods
+		}{}*/
+		pack := extends.OrdersDetail{}
 
 		pack.Orders = value
 
@@ -942,11 +783,11 @@ func (m OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, GoodsID,
 	collage := m.Collage.GetCollageByGoodsID(goods.ID, goods.OID)
 	if collage.ID != 0 && collage.TotalNum > 0 {
 
-		favoured := extends.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint(collage.Discount)}
-		ordersGoods.Discounts = []extends.Discount{favoured}
+		favoured := sqltype.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint(collage.Discount)}
+		ordersGoods.Discounts = []sqltype.Discount{favoured}
 	}
 
-	ogs := make([]*extends.OrdersGoodsMix, 0)
+	ogs := make([]*model.OrdersGoods, 0)
 	ogs = append(ogs, ordersGoods)
 	//Session.Attributes.Put(gweb.AttributesKey(string(play.SessionConfirmOrders)), &ogs)
 	ctx.Redis().Set(ctx, redis.NewConfirmOrders(ctx.UID()), &ogs, 24*time.Hour)
@@ -955,7 +796,7 @@ func (m OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, GoodsID,
 }
 
 // CreateOrdersGoods 从商品外直接购买，生成OrdersGoods，添加到 play.SessionConfirmOrders
-func (m OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, GoodsID, SpecificationID dao.PrimaryKey, Quantity uint) ([]*extends.OrdersGoodsMix, error) {
+func (m OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, GoodsID, SpecificationID dao.PrimaryKey, Quantity uint) ([]*model.OrdersGoods, error) {
 	Orm := db.Orm()
 	//var goods model.Goods
 	//var specification model.Specification
@@ -984,7 +825,7 @@ func (m OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, GoodsID
 		return nil, err
 	}
 
-	ogs := make([]*extends.OrdersGoodsMix, 0)
+	ogs := make([]*model.OrdersGoods, 0)
 	ogs = append(ogs, ordersGoods)
 	//Session.Attributes.Put(gweb.AttributesKey(string(play.SessionConfirmOrders)), &ogs)
 	//ctx.Redis().Set(ctx, redis.NewConfirmOrders(ctx.UID()), &ogs, 24*time.Hour)
@@ -1006,25 +847,12 @@ func (m OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, GoodsID
 	ctx.Redis().Set(ctx, redis.NewConfirmOrders(ctx.UID()), &ogs, 24*time.Hour)
 	return nil
 }*/
-func (m OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*extends.OrdersGoodsMix, error) {
-	ordersGoods := &extends.OrdersGoodsMix{}
-
-	var g model.Goods
-	var specification model.Specification
-	var discountList []extends.Discount
-
-	err := util.JSONToStruct(data.Goods, &g)
-	if err != nil {
-		return nil, err
-	}
-	err = util.JSONToStruct(data.Specification, &specification)
-	if err != nil {
-		return nil, err
-	}
-	err = util.JSONToStruct(data.Discounts, &discountList)
-	if err != nil {
-		return nil, err
-	}
+func (m OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*model.OrdersGoods, error) {
+	return data, nil
+	/*ordersGoods := &extends.OrdersGoodsMix{}
+	//var g model.Goods=data.Goods
+	//var specification model.Specification=data.Specification
+	//var discountList []sqltype.Discount = data.Discounts
 
 	if specification.GoodsID != g.ID {
 		return nil, errors.New("产品规格不匹配")
@@ -1044,7 +872,7 @@ func (m OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*extends.Ord
 	ordersGoods.Image = data.Image
 
 	ordersGoods.OrdersGoodsNo = data.OrdersGoodsNo
-	ordersGoods.Discounts = discountList
+	ordersGoods.Discounts = data.Discounts
 	ordersGoods.Status = data.Status
 	ordersGoods.RefundInfo = data.RefundInfo
 	ordersGoods.OrdersID = data.OrdersID
@@ -1056,10 +884,10 @@ func (m OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*extends.Ord
 	ordersGoods.SkuImages = goodsSkuData.SkuImages
 	ordersGoods.SkuLabelMap = goodsSkuData.SkuLabelMap
 	ordersGoods.SkuLabelDataMap = goodsSkuData.SkuLabelDataMap
-	return ordersGoods, nil
+	return ordersGoods, nil*/
 }
-func (m OrdersService) createOrdersGoods(goodsID dao.PrimaryKey, specificationID dao.PrimaryKey, quantity uint) (*extends.OrdersGoodsMix, error) {
-	ordersGoods := &extends.OrdersGoodsMix{}
+func (m OrdersService) createOrdersGoods(goodsID dao.PrimaryKey, specificationID dao.PrimaryKey, quantity uint) (*model.OrdersGoods, error) {
+	ordersGoods := &model.OrdersGoods{}
 	//var goods model.Goods
 	//var specification model.Specification
 	//var timesell model.TimeSell
@@ -1104,8 +932,8 @@ func (m OrdersService) createOrdersGoods(goodsID dao.PrimaryKey, specificationID
 		return nil, errors.New("库存不足")
 	}
 
-	ordersGoods.Specification = specification
-	ordersGoods.Goods = g
+	ordersGoods.Specification = *specification
+	ordersGoods.Goods = *g
 	ordersGoods.OID = g.OID
 	//ordersGoods.GoodsID = goods.ID
 	//ordersGoods.SpecificationID = specification.ID
@@ -1139,12 +967,7 @@ func (m OrdersService) createOrdersGoods(goodsID dao.PrimaryKey, specificationID
 	return ordersGoods, nil
 }
 
-type GoodsSku struct {
-	GoodsSkuLabel     *model.GoodsSkuLabel
-	GoodsSkuLabelData *model.GoodsSkuLabelData
-}
-
-func (m OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list []*extends.OrdersGoodsMix) error {
+func (m OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list []*model.OrdersGoods) error {
 	err := dao.Create(db, orders)
 	if err != nil {
 		return err
@@ -1154,28 +977,27 @@ func (m OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list []*exte
 		//value.OrdersGoods.OrdersID = orders.ID
 		//value.OrdersGoods.Discounts = value.Discounts //util.StructToJSON((&value).Discounts)
 		//err = dao.Create(db, &((&value).OrdersGoods))
-		var goodsSkuList []GoodsSku
+		/*var goodsSkuList []model.GoodsSku
 		for ii := 0; ii < len(value.Specification.LabelIndex); ii++ {
 			labelID := value.Specification.LabelIndex[ii]
-
 			skuLabelData := value.SkuLabelDataMap[labelID]
 			skuLabel := value.SkuLabelMap[skuLabelData.GoodsSkuLabelID]
-			goodsSkuList = append(goodsSkuList, GoodsSku{
+			goodsSkuList = append(goodsSkuList, model.GoodsSku{
 				GoodsSkuLabel:     skuLabel,
 				GoodsSkuLabelData: skuLabelData,
 			})
-		}
+		}*/
 		err = dao.Create(db, &model.OrdersGoods{
 			OID:            value.OID,
 			OrdersGoodsNo:  value.OrdersGoodsNo,
 			Status:         value.Status,
-			RefundInfo:     value.RefundInfo,
+			RefundID:       0,
 			OrdersID:       orders.ID,
 			Image:          value.Image,
-			Goods:          util.StructToJSON(value.Goods),
-			Specification:  util.StructToJSON(value.Specification),
-			GoodsSkus:      util.StructToJSON(goodsSkuList),
-			Discounts:      util.StructToJSON(value.Discounts),
+			Goods:          value.Goods,
+			Specification:  value.Specification,
+			GoodsSkus:      value.GoodsSkus,
+			Discounts:      value.Discounts,
 			Quantity:       value.Quantity,
 			CostPrice:      value.CostPrice,
 			SellPrice:      value.SellPrice,
@@ -1209,18 +1031,23 @@ func (m OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list []*exte
 	return nil
 
 }
-func (m OrdersService) ChangeOrdersPayMoney(PayMoney float64, OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) (Success result.ActionResultCode, Message string) {
+func (m OrdersService) ChangeOrdersPayMoney(context constrain.IContext, PayMoney float64, OrdersID dao.PrimaryKey, oid dao.PrimaryKey) (Success result.ActionResultCode, Message string) {
 	tx := db.Orm().Begin()
 
 	orders := repository.OrdersDao.GetOrdersByID(OrdersID)
+	pm := payment.NewPayment(context, oid, orders.PayMethod)
 
 	if strings.EqualFold(orders.PrepayID, "") == false {
-
-		success, message := m.Wx.CloseOrder(orders.OrderNo, orders.OID, wxConfig)
+		err := pm.CloseOrder(orders.OrderNo)
+		if err != nil {
+			tx.Rollback()
+			return result.Fail, err.Error()
+		}
+		/*success, message := pm.CloseOrder(orders.OrderNo)
 		if success == false {
 			tx.Rollback()
 			return result.Fail, message
-		}
+		}*/
 	}
 
 	err := dao.UpdateByPrimaryKey(tx, &model.Orders{}, OrdersID, map[string]interface{}{"PayMoney": uint(PayMoney * 100), "PrepayID": "", "OrderNo": tool.UUID()})
@@ -1236,10 +1063,10 @@ func (m OrdersService) ChangeOrdersPayMoney(PayMoney float64, OrdersID dao.Prima
 }
 
 func (m OrdersService) AnalyseOrdersGoodsListByOrders(orders *model.Orders, address *model.Address) (*extends.ConfirmOrdersGoods, error) {
-	orderGoodsList := make([]*extends.OrdersGoodsMix, 0)
+	orderGoodsList := make([]*model.OrdersGoods, 0)
 	ordersGoodsList, _ := m.FindOrdersGoodsByOrdersID(db.Orm(), orders.ID)
 	for i := 0; i < len(ordersGoodsList); i++ {
-		ordersGoods, err := m.ConvertOrdersGoods(ordersGoodsList[i].(*model.OrdersGoods))
+		ordersGoods, err := m.ConvertOrdersGoods(ordersGoodsList[i])
 		if err != nil {
 			return nil, err
 		}
@@ -1253,7 +1080,7 @@ func (m OrdersService) AnalyseOrdersGoodsListByOrders(orders *model.Orders, addr
 }
 
 // AnalyseOrdersGoodsList 订单分析，
-func (m OrdersService) AnalyseOrdersGoodsList(oid dao.PrimaryKey, addressee *model.Address, orderGoods []*extends.OrdersGoodsMix) (*extends.ConfirmOrdersGoods, error) {
+func (m OrdersService) AnalyseOrdersGoodsList(oid dao.PrimaryKey, addressee *model.Address, orderGoods []*model.OrdersGoods) (*extends.ConfirmOrdersGoods, error) {
 
 	/*oslist := make(map[dao.PrimaryKey][]*extends.OrdersGoods)
 	for index, v := range orderGoods {
@@ -1333,7 +1160,7 @@ func (m OrdersService) goodsSkuData(tx *gorm.DB, goodsID dao.PrimaryKey, specifi
 }
 
 // 订单分析，
-func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, list []*extends.OrdersGoodsMix) (*extends.AnalyseResult, error) {
+func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, list []*model.OrdersGoods) (*extends.AnalyseResult, error) {
 
 	analyseResult := &extends.AnalyseResult{}
 
@@ -1345,12 +1172,12 @@ func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, li
 	FullCutPrice := uint(0)
 	//FavouredPrice := uint(0)
 
-	oggs := make([]*extends.OrdersGoodsMix, 0)
+	oggs := make([]*model.OrdersGoods, 0)
 
 	expresstemplateMap := make(map[dao.PrimaryKey]model.ExpressTemplateNMW)
 
 	for index := range list {
-		value := list[index]
+		item := list[index]
 		//value.ID = 5445
 		//var goods model.Goods
 		//var specification model.Specification
@@ -1358,22 +1185,38 @@ func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, li
 		//util.JSONToStruct(value.Goods, &goods)
 		//util.JSONToStruct(value.Specification, &specification)
 
-
-
-		if value.ElementStatus.IsError {
+		/*if value.ElementStatus.IsError {
 			oggs = append(oggs, value)
+			continue
+		}*/
+
+		if len(item.Error) > 0 {
+			oggs = append(oggs, item)
 			continue
 		}
 
-		var ogs *extends.OrdersGoodsMix = value
+		var value = item
 
 		goodsSkuData := m.goodsSkuData(Orm, value.Goods.ID, value.Specification.LabelIndex)
-		value.SkuImages = goodsSkuData.SkuImages
-		value.SkuLabelMap = goodsSkuData.SkuLabelMap
-		value.SkuLabelDataMap = goodsSkuData.SkuLabelDataMap
+		//value.SkuImages = goodsSkuData.SkuImages
+		//value.SkuLabelMap = goodsSkuData.SkuLabelMap
+		//value.SkuLabelDataMap = goodsSkuData.SkuLabelDataMap
 
-		if len(value.SkuImages) > 0 {
-			value.Image = value.SkuImages[len(value.SkuImages)-1]
+		var goodsSkuList []model.GoodsSku
+		for ii := 0; ii < len(value.Specification.LabelIndex); ii++ {
+			labelID := value.Specification.LabelIndex[ii]
+			skuLabelData := goodsSkuData.SkuLabelDataMap[labelID]
+			skuLabel := goodsSkuData.SkuLabelMap[skuLabelData.GoodsSkuLabelID]
+			goodsSkuList = append(goodsSkuList, model.GoodsSku{
+				GoodsSkuLabel:     skuLabel,
+				GoodsSkuLabelData: skuLabelData,
+			})
+		}
+
+		value.GoodsSkus = goodsSkuList
+
+		if len(goodsSkuData.SkuImages) > 0 {
+			value.Image = goodsSkuData.SkuImages[len(goodsSkuData.SkuImages)-1]
 		} else {
 			if len(value.Goods.Images) > 0 {
 				value.Image = value.Goods.Images[0]
@@ -1404,7 +1247,7 @@ func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, li
 		if strings.EqualFold(value.Discounts, "") == false {
 			util.JSONToStruct(value.Discounts, &discounts)
 		}*/
-		ogs.Discounts = make([]extends.Discount, 0)
+
 		//计算价格以及优惠
 		if len(value.Discounts) > 0 {
 			for i := range value.Discounts {
@@ -1416,13 +1259,14 @@ func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, li
 
 				value.SellPrice = value.SellPrice - Favoured
 			}
-			ogs.Discounts = value.Discounts
+			//value.Discounts = make([]sqltype.Discount, 0)
+			//value.Discounts = value.Discounts
 
 		} else {
 			analyseResult.GoodsPrice = analyseResult.GoodsPrice + Price
 			FullCutPrice = FullCutPrice + Price
 		}
-		oggs = append(oggs, ogs)
+		oggs = append(oggs, value)
 		//ogss=append(ogss,ogs)
 
 		//计算快递费，重量要加上数量,先计算规格的重，再计算购买的重量
@@ -1614,11 +1458,13 @@ func (m OrdersService) GetOrdersGoodsByOrdersGoodsNo(tx *gorm.DB, ordersGoodsNo 
 	ogs := dao.GetBy(tx, &model.OrdersGoods{}, map[string]any{"OrdersGoodsNo": ordersGoodsNo}).(*model.OrdersGoods)
 	return ogs
 }
-func (m OrdersService) FindOrdersGoodsByOrdersID(DB *gorm.DB, OrdersID dao.PrimaryKey) ([]dao.IEntity, error) {
+func (m OrdersService) FindOrdersGoodsByOrdersID(DB *gorm.DB, OrdersID dao.PrimaryKey) ([]*model.OrdersGoods, error) {
 	//var ogs []model.OrdersGoods
 	//err := service.FindWhere(DB, &ogs, &model.OrdersGoods{OrdersID: OrdersID})
-	ogs := dao.Find(DB, &model.OrdersGoods{}).Where(`"OrdersID"=?`, OrdersID).List()
-	return ogs, nil
+	//ogs := dao.Find(DB, &model.OrdersGoods{}).Where(`"OrdersID"=?`, OrdersID).List()
+	var ordersGoodsList []*model.OrdersGoods
+	DB.Model(&model.OrdersGoods{}).Where(`"OrdersID"=?`, OrdersID).Find(&ordersGoodsList)
+	return ordersGoodsList, nil
 }
 func (m OrdersService) FindOrdersGoodsByCollageUser(CollageNo string) []model.User {
 	orm := db.Orm()
@@ -1630,10 +1476,11 @@ func (m OrdersService) FindOrdersGoodsByCollageUser(CollageNo string) []model.Us
 	return user
 }
 
-func (m OrdersService) QueryOrdersTask(wxConfig *model.WechatConfig, orders *model.Orders) error {
+func (m OrdersService) QueryOrdersTask(context constrain.IContext, orders *model.Orders) error {
+	pm := payment.NewPayment(context, orders.OID, orders.PayMethod)
 	//if orders.IsPay == 0 {
 	//当前状态为没有支付，去检测一下，订单状态。
-	transaction, err := m.Wx.OrderQuery(context.TODO(), orders.OrderNo, wxConfig)
+	transaction, err := pm.OrderQuery(orders.OrderNo)
 	if err != nil {
 		return err
 	}
@@ -1648,37 +1495,34 @@ func (m OrdersService) QueryOrdersTask(wxConfig *model.WechatConfig, orders *mod
 		* USERPAYING：用户支付中（仅付款码支付会返回）
 		* PAYERROR：支付失败（仅付款码支付会返回）
 	*/
-	switch *transaction.TradeState {
-	case "SUCCESS":
-		payTime, err := time.ParseInLocation("2006-01-02T15:04:05-07:00", *transaction.SuccessTime, time.Local)
+	switch transaction.State {
+	case serviceargument.OrderQueryState_SUCCESS:
+
+		_, err = m.OrderPaySuccess(uint(transaction.PayerTotalAmount), transaction.OutTradeNo, transaction.TransactionID, transaction.PayTime, transaction.Attach)
 		if err != nil {
 			return err
 		}
-		_, err = m.OrderPaySuccess(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, *transaction.TransactionId, payTime, *transaction.Attach)
-		if err != nil {
-			return err
-		}
-	case "REFUND":
+	case serviceargument.OrderQueryState_REFUND:
 		err = m.OrdersRefundSuccess(orders)
 		if err != nil {
 			return err
 		}
-	case "NOTPAY":
-	case "CLOSED":
+	case serviceargument.OrderQueryState_NOTPAY:
+	case serviceargument.OrderQueryState_CLOSED:
 		err = dao.UpdateByPrimaryKey(db.Orm(), entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusClosed})
 		if err != nil {
 			return err
 		}
-	case "REVOKED":
+	case serviceargument.OrderQueryState_REVOKED:
 		err = dao.UpdateByPrimaryKey(db.Orm(), entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusClosed})
 		if err != nil {
 			return err
 		}
-	case "USERPAYING":
-	case "PAYERROR":
+	case serviceargument.OrderQueryState_USERPAYING:
+	case serviceargument.OrderQueryState_PAYERROR:
 	}
 	//}
-	err = m.AnalysisOrdersStatus(orders.ID, wxConfig)
+	err = m.AnalysisOrdersStatus(context,orders.ID, orders.OID)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -1686,62 +1530,8 @@ func (m OrdersService) QueryOrdersTask(wxConfig *model.WechatConfig, orders *mod
 	return nil
 }
 
-/*
-{"mchid":"1652384025","out_trade_no":"a83f1d2f1c413d66322f27e7f8a699bf",
-"transaction_id":"4200001990202310130267337609","out_refund_no":"a83f1d2f1c413d66322f27e7f8a699bf",
-"refund_id":"50301007362023101326018445177","refund_status":"SUCCESS","success_time":"2023-10-13T15:31:43+08:00",
-"amount":{"total":3600,"refund":3600,"payer_total":3600,"payer_refund":3600},"user_received_account":"支付用户零钱"}
-
-OutTradeNo:   core.String(order.OrderNo),
-OutRefundNo:  core.String(ordersGoods.OrdersGoodsNo),
-*/
-func (m OrdersService) OrdersRefundSuccess(orders *model.Orders) error {
-	if orders.Status == model.OrdersStatusCancelOk {
-		//说明已经退款
-		return nil
-	}
-	if orders.Status == model.OrdersStatusClosed {
-		//关闭了，不处理
-		return nil
-	}
-	if orders.Status == model.OrdersStatusDelete {
-		//删除了，不处理
-		return nil
-	}
-	tx := db.Orm().Begin()
-
-	if orders.Status == model.OrdersStatusRefund {
-		orders.RefundInfo.Status = sqltype.RefundStatusRefundPay
-		err := dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusClosed, "RefundInfo": orders.RefundInfo})
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
-	} else {
-		err := dao.UpdateByPrimaryKey(tx, entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusCancelOk})
-		if err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
-
-	//管理商品库存
-	err := m.OrdersStockManager(tx, orders, false)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	err = m.AfterSettlementUserBrokerage(tx, orders)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-	tx.Commit()
-	return nil
-}
-
 // Cancel 申请取消
-func (m OrdersService) Cancel(ctx context.Context, OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) (string, error) {
+func (m OrdersService) Cancel(ctx constrain.IContext, OrdersID dao.PrimaryKey) (string, error) {
 	Orm := db.Orm()
 
 	//var orders model.Orders
@@ -1774,7 +1564,7 @@ func (m OrdersService) Cancel(ctx context.Context, OrdersID dao.PrimaryKey, wxCo
 				return "", err
 			}
 			//已经支付的订单，发起退款
-			_, err = m.CancelOk(ctx, orders.ID, wxConfig)
+			_, err = m.CancelOk(ctx, orders.ID)
 			if err != nil {
 				return "", err
 			}
