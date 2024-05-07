@@ -5,9 +5,19 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 )
 
-type Amount struct {
+type ItemTotal struct {
 	CurrencyCode string `json:"currency_code,omitempty"`
 	Value        string `json:"value,omitempty"`
+}
+
+type Breakdown struct {
+	ItemTotal ItemTotal `json:"item_total,omitempty"`
+}
+
+type Amount struct {
+	CurrencyCode string    `json:"currency_code,omitempty"`
+	Value        string    `json:"value,omitempty"`
+	Breakdown    Breakdown `json:"breakdown,omitempty"`
 }
 type Name struct {
 	GivenName string `json:"given_name,omitempty"` //名
@@ -24,11 +34,26 @@ type Shipping struct {
 	Type    string   `json:"type,omitempty"` //SHIPPING
 	Address *Address `json:"address,omitempty"`
 }
+type CheckoutOrdersUnitItemUnitAmount struct {
+	CurrencyCode string `json:"currency_code,omitempty"`
+	Value        string `json:"value,omitempty"`
+}
+type CheckoutOrdersUnitItem struct {
+	Name        string                           `json:"name,omitempty"`
+	Quantity    string                           `json:"quantity,omitempty"`
+	Description string                           `json:"description,omitempty"`
+	Sku         string                           `json:"sku,omitempty"`
+	Url         string                           `json:"url,omitempty"`
+	Category    string                           `json:"category,omitempty"` //DIGITAL_GOODS,PHYSICAL_GOODS,DONATION
+	ImageUrl    string                           `json:"image_url,omitempty"`
+	UnitAmount  CheckoutOrdersUnitItemUnitAmount `json:"unit_amount,omitempty"`
+}
 type CheckoutOrdersUnit struct {
-	ReferenceId string    `json:"reference_id,omitempty"`
-	Description string    `json:"description,omitempty"`
-	Amount      Amount    `json:"amount,omitempty"`
-	Shipping    *Shipping `json:"shipping,omitempty"`
+	ReferenceId string                   `json:"reference_id,omitempty"`
+	Description string                   `json:"description,omitempty"`
+	Amount      Amount                   `json:"amount,omitempty"`
+	Shipping    *Shipping                `json:"shipping,omitempty"`
+	Items       []CheckoutOrdersUnitItem `json:"items,omitempty"`
 }
 type Link struct {
 	Href   string `json:"href"`
@@ -87,7 +112,3 @@ type CheckoutOrdersCard struct {
 type CheckoutOrdersPaymentSource struct {
 	Card CheckoutOrdersCard `json:"card,omitempty"`
 }
-
-
-
-

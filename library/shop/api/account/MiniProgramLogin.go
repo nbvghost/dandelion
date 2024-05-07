@@ -2,8 +2,8 @@ package account
 
 import (
 	"fmt"
+	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/library/db"
-	"github.com/nbvghost/dandelion/library/shop/api/account/redisKey"
 	"github.com/nbvghost/dandelion/service"
 	"log"
 	"strconv"
@@ -112,7 +112,7 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 			log.Println(err)
 		}
 
-		err = ctx.Redis().Set(ctx, redisKey.NewMiniProgramKey(newUser.ID), SessionKey, time.Minute*10)
+		err = ctx.Redis().Set(ctx, key.NewMiniProgramRedisKey(newUser.ID), SessionKey, time.Minute*10)
 		if err != nil {
 			log.Println(err)
 		}

@@ -51,7 +51,8 @@ func (m *Capture) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 		PayMethod: model.OrdersPayMethodPaypal,
 		Status:    model.OrdersStatusPay,
 		//todo paypal如果改了收货地址，这里要改一下， Address:   capture.PurchaseUnits[0].Shipping.,
-		PayTime: time.Now(),
+		PayTime:       time.Now(),
+		TransactionID: capture.PurchaseUnits[0].Payments.Captures[0].Id,
 	}
 	err = dao.UpdateByPrimaryKey(db.Orm(), &model.Orders{}, mOrder.ID, changeOrder)
 	if err != nil {

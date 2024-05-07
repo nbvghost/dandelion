@@ -68,13 +68,51 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 		return nil, err
 	}
 
+	dns := repository.DNSDao.GetDefaultDNS(orders.OID)
+
+	items := make([]internal.CheckoutOrdersUnitItem, 0)
+	for i := range confirmOrdersGoods.OrdersGoodsInfos {
+		ordersGoods := confirmOrdersGoods.OrdersGoodsInfos[i]
+
+		/*imageOSS, err := oss.ReadUrl(ctx, ordersGoods.Image)
+		if err != nil {
+			return nil, err
+		}*/
+
+		title := ordersGoods.Goods.Title
+		if len(title) > 126 {
+			title = ordersGoods.Goods.Title[:126]
+		}
+		summary := ordersGoods.Goods.Summary
+		if len(summary) > 126 {
+			summary = ordersGoods.Goods.Summary[:126]
+		}
+
+		items = append(items, internal.CheckoutOrdersUnitItem{
+			Name:        title,
+			Quantity:    fmt.Sprintf("%d", ordersGoods.Quantity),
+			Description: summary,
+			Sku:         fmt.Sprintf("%d-%d", ordersGoods.Goods.ID, ordersGoods.Specification.ID),
+			Url:         "https://" + dns.Domain + "/product/detail/143",
+			Category:    "",
+			//ImageUrl:    imageOSS+"@300x300",
+			//ImageUrl: "https://oss.dev.com/assets/usokay.com/goods/143/image/c000af85aeaf74aeee732ec303da31ba.png",
+			UnitAmount: internal.CheckoutOrdersUnitItemUnitAmount{
+				CurrencyCode: "USD",
+				Value:        strconv.FormatFloat(float64(ordersGoods.SellPrice*ordersGoods.Quantity)/100.0, 'f', 2, 64),
+			},
+		})
+	}
+
 	unit := internal.CheckoutOrdersUnit{
 		ReferenceId: orders.OrderNo, //fmt.Sprintf("%d-%d", info.OrdersGoods.Goods.ID, info.OrdersGoods.Specification.ID),
 		Description: m.Post.AdditionalInformation,
 		Amount: internal.Amount{
 			CurrencyCode: "USD",
 			Value:        strconv.FormatFloat(float64(confirmOrdersGoods.TotalAmount)/100.0, 'f', 2, 64),
+			Breakdown:    internal.Breakdown{ItemTotal: internal.ItemTotal{CurrencyCode: "USD", Value: strconv.FormatFloat(float64(confirmOrdersGoods.TotalAmount)/100.0, 'f', 2, 64)}},
 		},
+		Items: items,
 		Shipping: &internal.Shipping{
 			Name:    &internal.Name{FullName: name.GetFullName()},
 			Type:    "SHIPPING",

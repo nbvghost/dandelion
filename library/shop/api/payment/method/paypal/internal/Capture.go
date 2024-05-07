@@ -89,5 +89,15 @@ func Capture(ctx constrain.IContext, oid dao.PrimaryKey, request *CaptureRequest
 	if err != nil {
 		return nil, err
 	}
+
+	switch response.Status {
+	case "CREATED":
+	case "SAVED":
+	case "APPROVED":
+	case "VOIDED":
+	case "COMPLETED":
+	case "PAYER_ACTION_REQUIRED":
+	}
+
 	return responseData, nil
 }
