@@ -3,6 +3,7 @@ package paypal
 import (
 	"errors"
 	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal"
+	"github.com/nbvghost/tool/object"
 	"time"
 
 	"github.com/nbvghost/dandelion/constrain"
@@ -11,7 +12,6 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/repository"
-	"github.com/nbvghost/tool/object"
 )
 
 type Capture struct {
@@ -36,15 +36,10 @@ func (m *Capture) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 	if mOrder.IsZero() {
 		return nil, errors.New("unable to confirm order, confirmation order failed")
 	}
+
 	if mOrder.PayMoney != object.ParseUint(object.ParseFloat(capture.PurchaseUnits[0].Payments.Captures[0].Amount.Value)*100) {
 		return nil, errors.New("the order could not be confirmed, and the payment amount did not match the order amount")
 	}
-
-	/*var address model.Address
-	err=util.JSONToStruct(mOrder.Address,&address)
-	if err != nil {
-		return nil, err
-	}*/
 
 	changeOrder := &model.Orders{
 		IsPay:     model.OrdersIsPayPayed,
@@ -58,5 +53,6 @@ func (m *Capture) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 	if err != nil {
 		return nil, err
 	}
+
 	return result.NewData(capture), nil
 }

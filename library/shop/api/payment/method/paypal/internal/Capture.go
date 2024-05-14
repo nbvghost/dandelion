@@ -7,6 +7,7 @@ import (
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/service"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 	"io"
 	"log"
 	"net/http"
@@ -32,18 +33,18 @@ type CaptureResponse struct {
 		Shipping    Shipping `json:"shipping"`
 		Payments    struct {
 			Captures []struct {
-				Id               string `json:"id"`
-				Status           string `json:"status"`
-				Amount           Amount `json:"amount"`
-				FinalCapture     bool   `json:"final_capture"`
+				Id               string                 `json:"id"`
+				Status           string                 `json:"status"`
+				Amount           serviceargument.Amount `json:"amount"`
+				FinalCapture     bool                   `json:"final_capture"`
 				SellerProtection struct {
 					Status            string   `json:"status"`
 					DisputeCategories []string `json:"dispute_categories"`
 				} `json:"-"`
 				SellerReceivableBreakdown struct {
-					GrossAmount Amount `json:"gross_amount"`
-					NetAmount   Amount `json:"net_amount"`
-					PaypalFee   Amount `json:"paypal_fee"`
+					GrossAmount serviceargument.Amount `json:"gross_amount"`
+					NetAmount   serviceargument.Amount `json:"net_amount"`
+					PaypalFee   serviceargument.Amount `json:"paypal_fee"`
 				} `json:"-"`
 				Links      []Link    `json:"links"`
 				CreateTime time.Time `json:"create_time"`
@@ -56,7 +57,7 @@ type CaptureResponse struct {
 }
 
 func Capture(ctx constrain.IContext, oid dao.PrimaryKey, request *CaptureRequest) (*CaptureResponse, error) {
-	pp:=service.Payment.NewPaypal(ctx,oid)
+	pp := service.Payment.NewPaypal(ctx, oid)
 	token, err := pp.GetAccessToken()
 	//token, err := generateAccessToken(ctx, oid)
 	if err != nil {

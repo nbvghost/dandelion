@@ -13,13 +13,14 @@ var _ IPayment = &wechatpay.Service{}
 var _ IPayment = &paypal.Service{}
 
 type IPayment interface {
-	Order(OrderNo string, title, description string, detail, openid string, IP string, Money uint, attach string) (*serviceargument.OrderResult, error)
-	OrderQuery(OrderNo string) (*serviceargument.OrderQuery, error)
+	Order(OrderNo string, title, description string, detail, openid string, IP string, Money uint, ordersType model.OrdersType) (*serviceargument.OrderResult, error)
+	OrderQuery(orders *model.Orders) (*serviceargument.OrderQueryResult, error)
+	Deliver(orders *model.Orders) error
 	CloseOrder(OrderNo string) error
 	Refund(order *model.Orders, ordersGoods *model.OrdersGoods, reason string) error
 }
 
-func NewPayment(ctx constrain.IContext, oid dao.PrimaryKey, payMethod model.OrdersPayMethod) IPayment {
+func NewPayment(ctx constrain.IWithoutSessionContext, oid dao.PrimaryKey, payMethod model.OrdersPayMethod) IPayment {
 	switch payMethod {
 	case model.OrdersPayMethodWechat:
 		return NewWechat(ctx, oid)
@@ -29,10 +30,10 @@ func NewPayment(ctx constrain.IContext, oid dao.PrimaryKey, payMethod model.Orde
 	return NewWechat(ctx, oid)
 }
 
-func NewWechat(ctx constrain.IContext, oid dao.PrimaryKey) *wechatpay.Service {
+func NewWechat(ctx constrain.IWithoutSessionContext, oid dao.PrimaryKey) *wechatpay.Service {
 	return &wechatpay.Service{Context: ctx, OID: oid}
 }
 
-func NewPaypal(ctx constrain.IContext, oid dao.PrimaryKey) *paypal.Service {
+func NewPaypal(ctx constrain.IWithoutSessionContext, oid dao.PrimaryKey) *paypal.Service {
 	return &paypal.Service{Context: ctx, OID: oid}
 }

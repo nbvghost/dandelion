@@ -71,7 +71,7 @@ func (m MessageNotify) NewUserJoinNotify(NewUser *model.User, notifyUser *model.
 }
 
 // 发货通知
-func (m MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []dao.IEntity, wxConfig *model.WechatConfig) *result.ActionResult {
+func (m MessageNotify) OrderDeliveryNotify(Order *model.Orders, OrdersGoods []dao.IEntity, OrdersShipping *model.OrdersShipping, wxConfig *model.WechatConfig) *result.ActionResult {
 
 	if Order.ID == 0 {
 		return &result.ActionResult{Code: result.Fail, Message: "找不到订单", Data: nil}
@@ -88,12 +88,12 @@ func (m MessageNotify) OrderDeliveryNotify(Order *model.Orders, ogs []dao.IEntit
 	weapp_template_msg_data["touser"] = notifyUser.OpenID
 
 	data_data := make(map[string]interface{})
-	data_data["keyword1"] = map[string]interface{}{"value": Order.ShipInfo.Name, "color": "#173177"}
-	data_data["keyword2"] = map[string]interface{}{"value": Order.ShipInfo.No, "color": "#173177"}
+	data_data["keyword1"] = map[string]interface{}{"value": OrdersShipping.Name, "color": "#173177"}
+	data_data["keyword2"] = map[string]interface{}{"value": OrdersShipping.No, "color": "#173177"}
 
 	var Titles = ""
-	for i := range ogs {
-		value := ogs[i].(*model.OrdersGoods)
+	for i := range OrdersGoods {
+		value := OrdersGoods[i].(*model.OrdersGoods)
 		//var goods model.Goods
 		//json.Unmarshal([]byte(value.Goods), &goods)
 		Titles += value.Goods.Title

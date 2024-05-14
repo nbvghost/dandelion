@@ -5,7 +5,6 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/payment"
@@ -21,10 +20,14 @@ func (m OrdersService) RefundShip(OrdersID dao.PrimaryKey, ShipKey, ShipName, Sh
 	if orders.RefundID > 0 {
 		err := dao.UpdateByPrimaryKey(Orm, &model.OrdersGoodsRefund{}, orders.RefundID, map[string]interface{}{
 			"Status": model.RefundStatusRefundShip,
-			"ShipInfo": sqltype.ShipInfo{
-				No:   ShipNo,
-				Name: ShipName,
-				Key:  ShipKey,
+			"ShipInfo": model.OrdersShipping{
+				OID:     orders.OID,
+				OrderNo: orders.OrderNo,
+				Title:   "",
+				Image:   "",
+				No:      ShipNo,
+				Name:    ShipName,
+				Key:     ShipKey,
 			},
 		})
 		if err != nil {
@@ -36,7 +39,7 @@ func (m OrdersService) RefundShip(OrdersID dao.PrimaryKey, ShipKey, ShipName, Sh
 }
 
 // RefundComplete 后台执行的退款
-func (m OrdersService) RefundComplete(context constrain.IContext,ordersID dao.PrimaryKey, refundType uint) (string, error) {
+func (m OrdersService) RefundComplete(context constrain.IContext, ordersID dao.PrimaryKey, refundType uint) (string, error) {
 	tx := db.Orm().Begin()
 
 	//var ordersGoods model.OrdersGoods
@@ -61,7 +64,7 @@ func (m OrdersService) RefundComplete(context constrain.IContext,ordersID dao.Pr
 	//RefundInfo.RefundPrice = RefundPrice
 	//orders.RefundInfo.Status = sqltype.RefundStatusRefundComplete
 
-	pm:=payment.NewPayment(context,orders.OID,orders.PayMethod)
+	pm := payment.NewPayment(context, orders.OID, orders.PayMethod)
 	err := dao.UpdateByPrimaryKey(tx, &model.OrdersGoodsRefund{}, orders.RefundID, map[string]interface{}{"Status": model.RefundStatusRefundComplete})
 	if err != nil {
 		tx.Rollback()
@@ -160,7 +163,7 @@ func (m OrdersService) AskRefund(OrdersID dao.PrimaryKey, OrdersGoodsID dao.Prim
 			OrdersID:      OrdersID,
 			OrdersGoodsID: OrdersGoodsID,
 			Status:        model.RefundStatusRefund,
-			ShipInfo:      sqltype.ShipInfo{},
+			ShipInfo:      model.OrdersShipping{},
 			HasGoods:      HasGoods,
 			Reason:        Reason,
 			ApplyAt:       time.Now(),

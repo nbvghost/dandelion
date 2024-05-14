@@ -379,7 +379,7 @@ func (m OrdersService) TakeDeliver(OrdersID dao.PrimaryKey) error {
 }
 
 // 检查订单状态
-func (m OrdersService) AnalysisOrdersStatus(context constrain.IContext, ordersID dao.PrimaryKey, oid dao.PrimaryKey) error {
+func (m OrdersService) AnalysisOrdersStatus(context constrain.IWithoutSessionContext, ordersID dao.PrimaryKey, oid dao.PrimaryKey) error {
 
 	Orm := db.Orm()
 
@@ -430,7 +430,7 @@ func (m OrdersService) AnalysisOrdersStatus(context constrain.IContext, ordersID
 }
 
 // 发货
-func (m OrdersService) Deliver(ShipID dao.PrimaryKey, ShipNo string, OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) error {
+func (m OrdersService) Deliver(ShipTitle, ShipKey, ShipNo string, OrdersID dao.PrimaryKey) error {
 	Orm := db.Orm().Begin()
 
 	//var orders model.Orders
@@ -444,22 +444,30 @@ func (m OrdersService) Deliver(ShipID dao.PrimaryKey, ShipNo string, OrdersID da
 		return errors.New("订单没有支付")
 	}
 
-	expressCompany := dao.GetByPrimaryKey(Orm, &model.ExpressCompany{}, ShipID).(*model.ExpressCompany)
+	expressCompany := dao.GetBy(Orm, &model.ExpressCompany{}, map[string]any{"Key": ShipKey}).(*model.ExpressCompany)
 	if expressCompany.IsZero() {
 		Orm.Rollback()
 		return errors.New("找不到快递信息")
 	}
 
-	orders.ShipInfo = sqltype.ShipInfo{
-		No:   ShipNo,
-		Name: expressCompany.Name,
-		Key:  expressCompany.Key,
+	shipping := &model.OrdersShipping{
+		OID:     orders.OID,
+		OrderNo: orders.OrderNo,
+		Title:   ShipTitle,
+		Image:   "",
+		No:      ShipNo,
+		Name:    expressCompany.Name,
+		Key:     expressCompany.Key,
+	}
+	err := dao.Create(Orm, shipping)
+	if err != nil {
+		Orm.Rollback()
+		return err
 	}
 
 	orders.DeliverTime = time.Now()
 	orders.Status = model.OrdersStatusDeliver
-
-	err := dao.UpdateByPrimaryKey(Orm, &model.Orders{}, OrdersID, &model.Orders{ShipInfo: orders.ShipInfo, DeliverTime: orders.DeliverTime, Status: orders.Status})
+	err = dao.UpdateByPrimaryKey(Orm, &model.Orders{}, OrdersID, &model.Orders{DeliverTime: orders.DeliverTime, Status: orders.Status})
 	if err != nil {
 		Orm.Rollback()
 		return err
@@ -615,6 +623,10 @@ func (m OrdersService) ListOrders(queryParam *serviceargument.ListOrdersQueryPar
 
 		pack.Orders = value
 
+		ordersShippingList := make([]*model.OrdersShipping, 0)
+		dao.Find(Orm, &model.OrdersShipping{}).Where(`"OrderNo"=?`, value.OrderNo).Result(&ordersShippingList)
+		pack.OrdersShippingList = ordersShippingList
+
 		pack.User = *(dao.GetByPrimaryKey(Orm, &model.User{}, value.UserID).(*model.User))
 
 		ogs, err := m.FindOrdersGoodsByOrdersID(Orm, value.ID)
@@ -630,7 +642,7 @@ func (m OrdersService) ListOrders(queryParam *serviceargument.ListOrdersQueryPar
 	return result.NewPagination(pageNo, pageSize, int(recordsTotal), results), nil
 }
 
-func (m OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transactionId string, payTime time.Time, attach string) (string, error) {
+func (m OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transactionId string, payTime time.Time, ordersType model.OrdersType) (string, error) {
 
 	//Orm := singleton.Orm()
 
@@ -639,7 +651,7 @@ func (m OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transac
 	//TimeEnd := result["time_end"]
 	//attach := result["attach"]
 
-	if strings.EqualFold(attach, play.OrdersTypeSupply) {
+	if ordersType == model.OrdersTypeSupply {
 		//充值的，目前只涉及到门店自主核销的时候，才需要用到充值
 		orders := m.GetSupplyOrdersByOrderNo(outTradeNo)
 		if orders.IsPay == 0 {
@@ -669,7 +681,7 @@ func (m OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transac
 			return "", errors.New("订单已经处理或过期")
 		}
 
-	} else if strings.EqualFold(attach, play.OrdersTypeGoodsPackage) { //合并商品订单
+	} else if ordersType == model.OrdersTypeGoodsPackage { //合并商品订单
 		tx := db.Orm().Begin()
 		ordersPackage := m.GetOrdersPackageByOrderNo(outTradeNo)
 		if ordersPackage.TotalPayMoney == totalFee {
@@ -699,7 +711,7 @@ func (m OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transac
 			return "", errors.New("金额不正确或订单不允许")
 		}
 
-	} else if strings.EqualFold(attach, play.OrdersTypeGoods) { //商品订单
+	} else if ordersType == model.OrdersTypeGoods { //商品订单
 		//orders.PayMoney == total_fee.
 		tx := db.Orm().Begin()
 		orders := repository.OrdersDao.GetOrdersByOrderNo(outTradeNo)
@@ -717,7 +729,7 @@ func (m OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transac
 		}
 
 	} else {
-		return "", fmt.Errorf("未实现的订单类型:%s", attach)
+		return "", fmt.Errorf("未实现的订单类型:%s", ordersType)
 	}
 
 }
@@ -1476,11 +1488,11 @@ func (m OrdersService) FindOrdersGoodsByCollageUser(CollageNo string) []model.Us
 	return user
 }
 
-func (m OrdersService) QueryOrdersTask(context constrain.IContext, orders *model.Orders) error {
+func (m OrdersService) QueryOrdersTask(context constrain.IWithoutSessionContext, orders *model.Orders) error {
 	pm := payment.NewPayment(context, orders.OID, orders.PayMethod)
 	//if orders.IsPay == 0 {
 	//当前状态为没有支付，去检测一下，订单状态。
-	transaction, err := pm.OrderQuery(orders.OrderNo)
+	transaction, err := pm.OrderQuery(orders)
 	if err != nil {
 		return err
 	}
@@ -1497,8 +1509,7 @@ func (m OrdersService) QueryOrdersTask(context constrain.IContext, orders *model
 	*/
 	switch transaction.State {
 	case serviceargument.OrderQueryState_SUCCESS:
-
-		_, err = m.OrderPaySuccess(uint(transaction.PayerTotalAmount), transaction.OutTradeNo, transaction.TransactionID, transaction.PayTime, transaction.Attach)
+		_, err = m.OrderPaySuccess(uint(transaction.PayerTotalAmount), transaction.OutTradeNo, transaction.TransactionID, transaction.PayTime, orders.Type)
 		if err != nil {
 			return err
 		}
@@ -1522,7 +1533,7 @@ func (m OrdersService) QueryOrdersTask(context constrain.IContext, orders *model
 	case serviceargument.OrderQueryState_PAYERROR:
 	}
 	//}
-	err = m.AnalysisOrdersStatus(context,orders.ID, orders.OID)
+	err = m.AnalysisOrdersStatus(context, orders.ID, orders.OID)
 	if err != nil {
 		log.Println(err)
 		return err

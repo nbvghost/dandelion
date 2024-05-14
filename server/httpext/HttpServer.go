@@ -7,6 +7,7 @@ import (
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/server/route"
+	"golang.org/x/sync/errgroup"
 	"log"
 	"net/http"
 	"time"
@@ -50,7 +51,7 @@ func (m *httpServer) ApiErrorHandle(result constrain.IResultError) {
 		m.middlewares = append(m.middlewares, middleware)
 	}
 */
-func (m *httpServer) Listen(microServerConfig *config.MicroServerConfig) error {
+func (m *httpServer) Listen(microServerConfig *config.MicroServerConfig, callbacks ...func() error) error {
 	/*if err := microServerConfig.Register(); err != nil {
 		return err
 	}
@@ -76,6 +77,22 @@ func (m *httpServer) Listen(microServerConfig *config.MicroServerConfig) error {
 		WriteTimeout: 3 * time.Minute,
 		ReadTimeout:  3 * time.Minute,
 	}
+
+	go func() {
+		errg := &errgroup.Group{}
+		if len(callbacks) > 0 {
+			for i := range callbacks {
+				errg.Go(func() error {
+					return callbacks[i]()
+				})
+			}
+		}
+		err := errg.Wait()
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+
 	return srv.ListenAndServe()
 }
 

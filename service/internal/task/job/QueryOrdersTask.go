@@ -17,7 +17,7 @@ import (
 type QueryOrdersTask struct {
 	OrdersService order.OrdersService
 	WxService     wechat.WxService
-	context       constrain.IContext
+	context       constrain.IWithoutSessionContext
 }
 
 func (m *QueryOrdersTask) Run() error {
@@ -28,10 +28,7 @@ func (m *QueryOrdersTask) Run() error {
 		//var ordersList []model.Orders
 		ordersList := dao.Find(Orm, entity.Orders).
 			Where(`"OID"=?`, config.OID).
-			Where(`"Status"<>?`, model.OrdersStatusOrderOk).
-			Where(`"Status"<>?`, model.OrdersStatusCancelOk).
-			Where(`"Status"<>?`, model.OrdersStatusDelete).
-			Where(`"Status"<>?`, model.OrdersStatusClosed).List()
+			Where(`"Status"=? or "Status"=? or "Status"=?`, model.OrdersStatusOrder, model.OrdersStatusRefund, model.OrdersStatusCancel).List()
 		//Where(`"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed).List()
 		//service.FindWhere(Orm, &ordersList, `"Status"<>? and "Status"<>? and "Status"<>? and "Status"<>?`, model.OrdersStatusOrderOk, model.OrdersStatusCancelOk, model.OrdersStatusDelete, model.OrdersStatusClosed)
 
@@ -46,6 +43,6 @@ func (m *QueryOrdersTask) Run() error {
 	return nil
 }
 
-func NewQueryOrdersTask(context constrain.IContext) Job {
+func NewQueryOrdersTask(context constrain.IWithoutSessionContext) Job {
 	return &QueryOrdersTask{context: context}
 }

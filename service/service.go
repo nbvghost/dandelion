@@ -95,7 +95,12 @@ var Question = question.QuestionService{}
 var Search = search.Service{}
 var Site = site.Service{}
 var SMS = sms.Service{}
-var Task = task.TimeTaskService{}
+var Task = struct {
+	task.TimeTaskService
+	Start func(context constrain.IWithoutSessionContext)
+}{
+	Start: task.Start,
+}
 var User = user.UserService{}
 
 var Wechat = struct {
@@ -106,9 +111,9 @@ var Wechat = struct {
 }{}
 
 var Payment = struct {
-	NewWechat  func(ctx constrain.IContext, oid dao.PrimaryKey) *wechatpay.Service
-	NewPaypal  func(ctx constrain.IContext, oid dao.PrimaryKey) *paypal.Service
-	NewPayment func(ctx constrain.IContext, oid dao.PrimaryKey, payMethod model.OrdersPayMethod) payment.IPayment
+	NewWechat  func(ctx constrain.IWithoutSessionContext, oid dao.PrimaryKey) *wechatpay.Service
+	NewPaypal  func(ctx constrain.IWithoutSessionContext, oid dao.PrimaryKey) *paypal.Service
+	NewPayment func(ctx constrain.IWithoutSessionContext, oid dao.PrimaryKey, payMethod model.OrdersPayMethod) payment.IPayment
 }{
 	NewWechat:  payment.NewWechat,
 	NewPaypal:  payment.NewPaypal,

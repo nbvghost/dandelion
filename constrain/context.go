@@ -17,18 +17,21 @@ type IMappingCallback interface {
 	AddMapping(mapping IMapping) IMappingCallback
 }
 
-type IContext interface {
+type IWithoutSessionContext interface {
 	context.Context
 	Redis() IRedis
 	Etcd() IEtcd
+	Logger() *zap.Logger
+	SyncCache() *sync.Map
+	Destroy()
+}
+type IContext interface {
+	IWithoutSessionContext
 	UID() dao.PrimaryKey
 	AppName() string
 	Route() string
 	Token() string
-	Logger() *zap.Logger
 	Mode() key.Mode
-	SyncCache() *sync.Map
-	Destroy()
 	Mapping(v interface{})
 	//DomainName() string
 	//SelectFileServer() string

@@ -3,8 +3,6 @@ package order
 import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service"
 )
 
 type ExpressInfo struct {
@@ -22,9 +20,11 @@ func (m *ExpressInfo) HandlePut(ctx constrain.IContext) (constrain.IResult, erro
 	//LogisticCode := context.Request.FormValue("LogisticCode")
 	//ShipperName := context.Request.FormValue("ShipperName")
 	//LogisticCode, ShipperName
-	Result, err := service.Express.ExpressTemplate.GetExpressInfo(ctx, m.Post.OrdersID)
 
-	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: Result}}, err
+	//todo 这里会有多个运输地址，需要前端传shipping ID 上来
+	//Result, err := service.Express.ExpressTemplate.GetExpressInfo(ctx, m.Post.OrdersID)
+	//return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: Result}}, err
+	return nil, nil
 }
 
 func (m *ExpressInfo) Handle(ctx constrain.IContext) (constrain.IResult, error) {

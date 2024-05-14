@@ -24,11 +24,12 @@ func (m *client) TryLock(parentCtx context.Context, key string, wait ...time.Dur
 
 	waitTime := time.Duration(0)
 	if len(wait) > 0 {
-		waitTime = wait[0]
+		waitTime = wait[0] + time.Minute
 	}
 
-	_ctx, ctxCancel := context.WithCancel(parentCtx)
+	//log.Println(context.WithoutCancel(parentCtx).Err())
 
+	_ctx, ctxCancel := context.WithCancel(context.WithoutCancel(parentCtx))
 	cancel := func() {
 		ctxCancel()
 		if err := m.getClient().Del(parentCtx, key).Err(); err != nil {
@@ -39,10 +40,11 @@ func (m *client) TryLock(parentCtx context.Context, key string, wait ...time.Dur
 
 	for time.Now().Sub(start) <= waitTime || waitTime == 0 {
 		ok := m.getClient().SetNX(_ctx, key, "lock", time.Minute)
+		log.Println("redis lock", ok.Val(), ok.Err(), ok)
 		if ok.Val() {
 			//获取锁成功
 			go func() {
-				t := time.NewTicker(time.Minute - (time.Second - 10))
+				t := time.NewTicker(time.Second * 10)
 				defer t.Stop()
 				for {
 					select {

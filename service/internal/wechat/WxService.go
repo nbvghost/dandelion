@@ -57,11 +57,10 @@ type WxService struct {
 	Organization company.OrganizationService
 	FileService  file.FileService
 
-	Config *model.WechatConfig
-	OID dao.PrimaryKey
+	Config             *model.WechatConfig
+	OID                dao.PrimaryKey
 	AccessTokenService AccessTokenService
 }
-
 
 var ticketMap = make(map[string]*Ticket) //&Ticket{}
 
@@ -115,7 +114,7 @@ func NewClient(config *model.WechatConfig) (*core.Client, error) {
 	return &wc
 }*/
 func (m WxService) getConfig() *model.WechatConfig {
-	if m.Config==nil{
+	if m.Config == nil {
 		m.Config = &model.WechatConfig{}
 		db.Orm().Model(model.WechatConfig{}).Where(`"OID"=?`, m.OID).Take(m.Config)
 		return m.Config
@@ -133,7 +132,7 @@ type DeliveryInfo struct {
 	DeliveryName string `json:"delivery_name"`
 }
 
-func (m WxService) GetTraceWaybill(context constrain.IContext, ordersID dao.PrimaryKey) (string, error) {
+func (m WxService) GetTraceWaybill(context constrain.IContext, ordersID dao.PrimaryKey, OrdersShipping *model.OrdersShipping) (string, error) {
 	//trace_waybill
 	////https://api.weixin.qq.com/cgi-bin/express/delivery/open_msg/trace_waybill?access_token=XXX
 
@@ -179,7 +178,7 @@ func (m WxService) GetTraceWaybill(context constrain.IContext, ordersID dao.Prim
 		marshal, err := json.Marshal(map[string]any{
 			"openid":            u.OpenID,
 			"receiver_phone":    address.Tel,
-			"waybill_id":        orders.ShipInfo.No,
+			"waybill_id":        OrdersShipping.No,
 			"trans_id":          orders.TransactionID,
 			"order_detail_path": fmt.Sprintf("/pages/order_info/order_info?ID=%d", orders.ID),
 			"goods_info": map[string]any{
@@ -234,7 +233,6 @@ func (m WxService) GetDeliveryList(accessToken string) ([]DeliveryInfo, error) {
 	}
 	return list.DeliveryList, nil
 }
-
 
 func (m WxService) GetWXAConfig(prepay_id string, WxConfig *model.WechatConfig) (map[string]string, error) {
 
@@ -292,8 +290,6 @@ func (m WxService) SignatureVerification(dataMap util.Map, wxConfig MiniApp) boo
 	}
 
 }
-
-
 
 func (m WxService) Order(ctx context.Context, OrderNo string, title, description string, detail, openid string, IP string, Money uint, attach string, wxConfig *model.WechatConfig) (Success result.ActionResultCode, Message string, wxResult *jsapi.PrepayWithRequestPaymentResponse) {
 	client, err := NewClient(wxConfig)

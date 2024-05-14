@@ -3,6 +3,7 @@ package dao
 import (
 	"fmt"
 	"github.com/pkg/errors"
+	"log"
 	"reflect"
 	"strings"
 
@@ -102,6 +103,18 @@ func (m *FindQuery) Group(column string) (any, error) {
 }
 func (m *FindQuery) Pluck(column string, dest interface{}) {
 	m.db.Pluck(column, dest)
+}
+func (m *FindQuery) Result(dest interface{}) {
+	if len(m.order) == 0 {
+		m.db.Order(fmt.Sprintf(`"%s" asc`, m.model.PrimaryName()))
+	}
+	v:=reflect.TypeOf(dest).Elem()
+	log.Println(v.Kind())
+	if v.Kind()==reflect.Slice{
+		m.db.Find(dest)
+	}else{
+		m.db.First(dest)
+	}
 }
 func (m *FindQuery) List() []IEntity {
 	var list = reflect.New(reflect.SliceOf(reflect.TypeOf(m.model)))

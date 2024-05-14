@@ -5,9 +5,10 @@ import (
 )
 
 type OrdersDetail struct {
-	Orders          model.Orders
-	User            model.User
-	OrdersGoodsList []*model.OrdersGoods
+	Orders             model.Orders
+	User               model.User
+	OrdersGoodsList    []*model.OrdersGoods
+	OrdersShippingList []*model.OrdersShipping
 }
 
 /*type OrdersGoodsInfo struct {

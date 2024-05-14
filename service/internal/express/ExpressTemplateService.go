@@ -13,8 +13,8 @@ type ExpressTemplateService struct {
 	WxService wechat.WxService
 }
 
-func (b ExpressTemplateService) GetExpressInfo(context constrain.IContext, OrdersID dao.PrimaryKey) (map[string]interface{}, error) {
-	waybill, err := b.WxService.GetTraceWaybill(context, OrdersID)
+func (b ExpressTemplateService) GetExpressInfo(context constrain.IContext, OrdersID dao.PrimaryKey, OrdersShipping *model.OrdersShipping) (map[string]interface{}, error) {
+	waybill, err := b.WxService.GetTraceWaybill(context, OrdersID, OrdersShipping)
 	if err != nil {
 		return nil, err
 	}

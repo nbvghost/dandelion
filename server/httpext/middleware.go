@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/dandelion/domain/logger"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -186,25 +187,19 @@ func (m *httpMiddleware) CreateContext(etcdClient constrain.IEtcd, redisClient c
 		TraceID = tool.UUID()
 	}
 
-	var err error
-	var logger *zap.Logger
-	if environments.Release() {
-		logger, err = zap.NewProduction()
-	} else {
-		logger, err = zap.NewDevelopment()
-	}
+	appLogger, err := logger.CreateLogger("HttpContext", TraceID)
 	if err != nil {
-		panic(err)
+		return nil
 	}
 
-	logger = logger.Named("HttpContext").With(zap.String("TraceID", TraceID)).With(zap.String("DomainName", domainName))
+	//logger = logger.Named("HttpContext").With(zap.String("TraceID", TraceID)).With(zap.String("DomainName", domainName))
 	//defer logger.Sync()
 
 	token := m.getToken(w, r)
 	var session Session
 	session, err = m.getSession(parentCtx, redisClient, token)
 	if err != nil {
-		logger.Error("getSession", zap.Error(err))
+		appLogger.Error("getSession", zap.Error(err))
 	}
 
 	var mappingCallback constrain.IMappingCallback
@@ -231,9 +226,9 @@ func (m *httpMiddleware) CreateContext(etcdClient constrain.IEtcd, redisClient c
 		}
 	}
 
-	logger = logger.With(zap.String("Path", r.URL.String()))
+	appLogger = appLogger.With(zap.String("Path", r.URL.String()))
 
-	ctx := contexext.New(contexext.NewContext(parentCtx, contextValue), m.serverName, session.ID, r.URL.Path, mappingCallback, etcdClient, redisClient, session.Token, logger, key.Mode(mode))
+	ctx := contexext.New(contexext.NewContext(parentCtx, contextValue), m.serverName, session.ID, r.URL.Path, mappingCallback, etcdClient, redisClient, session.Token, appLogger, key.Mode(mode))
 	return ctx
 }
 func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute, beforeViewRender constrain.IBeforeViewRender, afterViewRender constrain.IAfterViewRender, w http.ResponseWriter, r *http.Request) error {

@@ -23,7 +23,7 @@ const (
 	OrderQueryState_PAYERROR   OrderQueryState = "PAYERROR"   //PAYERROR：支付失败（仅付款码支付会返回）
 )
 
-type OrderQuery struct {
+type OrderQueryResult struct {
 	State            OrderQueryState
 	PayerTotalAmount int64
 	PayTime          time.Time
@@ -35,3 +35,6 @@ type OrderQuery struct {
 type OrderResult struct {
 	PrepayId string
 }
+
+
+

@@ -3,7 +3,9 @@ package paypal
 import (
 	"errors"
 	"fmt"
+	"github.com/nbvghost/dandelion/domain/oss"
 	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 	"regexp"
 	"strconv"
 	"strings"
@@ -28,6 +30,11 @@ type CheckoutOrders struct {
 	} `method:"post"`
 }
 
+var matchRegexp = regexp.MustCompile("^(https:)([/|.|\\w|\\s|-])*\\.(?:jpg|gif|png|jpeg|JPG|GIF|PNG|JPEG)")
+
+func matchImageUrl(url string) bool {
+	return matchRegexp.MatchString(url)
+}
 func (m *CheckoutOrders) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//TODO implement me
 	panic("implement me")
@@ -71,13 +78,17 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 	dns := repository.DNSDao.GetDefaultDNS(orders.OID)
 
 	items := make([]internal.CheckoutOrdersUnitItem, 0)
+
 	for i := range confirmOrdersGoods.OrdersGoodsInfos {
 		ordersGoods := confirmOrdersGoods.OrdersGoodsInfos[i]
 
-		/*imageOSS, err := oss.ReadUrl(ctx, ordersGoods.Image)
+		imageOSS, err := oss.ReadUrl(ctx, ordersGoods.Image)
 		if err != nil {
 			return nil, err
-		}*/
+		}
+		if matchImageUrl(imageOSS) == false {
+			imageOSS = ""
+		}
 
 		title := ordersGoods.Goods.Title
 		if len(title) > 126 {
@@ -88,62 +99,70 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 			summary = ordersGoods.Goods.Summary[:126]
 		}
 
+		amount := strconv.FormatFloat(float64(ordersGoods.SellPrice*ordersGoods.Quantity)/100.0, 'f', 2, 64)
+
 		items = append(items, internal.CheckoutOrdersUnitItem{
 			Name:        title,
 			Quantity:    fmt.Sprintf("%d", ordersGoods.Quantity),
 			Description: summary,
 			Sku:         fmt.Sprintf("%d-%d", ordersGoods.Goods.ID, ordersGoods.Specification.ID),
-			Url:         "https://" + dns.Domain + "/product/detail/143",
+			Url:         fmt.Sprintf("https://%s/product/detail/%d", dns.Domain, ordersGoods.Goods.ID),
 			Category:    "",
-			//ImageUrl:    imageOSS+"@300x300",
-			//ImageUrl: "https://oss.dev.com/assets/usokay.com/goods/143/image/c000af85aeaf74aeee732ec303da31ba.png",
+			ImageUrl:    imageOSS,
+			//ImageUrl: "https://oss.dev.com/assets/usokay.com/goods/143/image/c000af85aeaf74aeee732ec303da31ba.png@convert_from=webp",
 			UnitAmount: internal.CheckoutOrdersUnitItemUnitAmount{
 				CurrencyCode: "USD",
-				Value:        strconv.FormatFloat(float64(ordersGoods.SellPrice*ordersGoods.Quantity)/100.0, 'f', 2, 64),
+				Value:        amount,
 			},
 		})
-	}
 
-	unit := internal.CheckoutOrdersUnit{
-		ReferenceId: orders.OrderNo, //fmt.Sprintf("%d-%d", info.OrdersGoods.Goods.ID, info.OrdersGoods.Specification.ID),
-		Description: m.Post.AdditionalInformation,
-		Amount: internal.Amount{
-			CurrencyCode: "USD",
-			Value:        strconv.FormatFloat(float64(confirmOrdersGoods.TotalAmount)/100.0, 'f', 2, 64),
-			Breakdown:    internal.Breakdown{ItemTotal: internal.ItemTotal{CurrencyCode: "USD", Value: strconv.FormatFloat(float64(confirmOrdersGoods.TotalAmount)/100.0, 'f', 2, 64)}},
-		},
-		Items: items,
-		Shipping: &internal.Shipping{
-			Name:    &internal.Name{FullName: name.GetFullName()},
-			Type:    "SHIPPING",
-			Address: shippingAddress,
-		},
 	}
 
 	if orderDetails != nil && len(orderDetails.Id) > 0 {
+		uors := make([]internal.UpdateOrderChange, 0)
+
+		uors = append(uors, internal.UpdateOrderChange{
+			Op:    "replace",
+			Path:  fmt.Sprintf("/purchase_units/@reference_id=='%s'/shipping/name", orders.OrderNo),
+			Value: &internal.Name{FullName: name.GetFullName()},
+		})
+
+		uors = append(uors, internal.UpdateOrderChange{
+			Op:    "replace",
+			Path:  fmt.Sprintf("/purchase_units/@reference_id=='%s'/shipping/address", orders.OrderNo),
+			Value: shippingAddress,
+		})
+
 		err = internal.UpdateOrder(ctx, m.User.OID, &internal.UpdateOrderRequest{
-			Id: orderDetails.Id,
-			ChangeList: []internal.UpdateOrderChange{
-				{
-					Op:    "replace",
-					Path:  fmt.Sprintf("/purchase_units/@reference_id=='%s'/shipping/name", orders.OrderNo),
-					Value: &internal.Name{FullName: name.GetFullName()},
-				},
-				{
-					Op:    "replace",
-					Path:  fmt.Sprintf("/purchase_units/@reference_id=='%s'/shipping/address", orders.OrderNo),
-					Value: shippingAddress,
-				},
-			},
+			Id:         orderDetails.Id,
+			ChangeList: uors,
 		})
 		if err != nil {
 			return nil, err
 		}
 		return result.NewData(orderDetails), err
 	} else {
+		units := make([]internal.CheckoutOrdersUnit, 0)
+		amount := strconv.FormatFloat(float64(confirmOrdersGoods.TotalAmount)/100.0, 'f', 2, 64)
+		units = append(units, internal.CheckoutOrdersUnit{
+			ReferenceId: orders.OrderNo, //fmt.Sprintf("%d-%d", info.OrdersGoods.Goods.ID, info.OrdersGoods.Specification.ID),
+			Description: m.Post.AdditionalInformation,
+			Amount: serviceargument.Amount{
+				CurrencyCode: "USD",
+				Value:        amount,
+				Breakdown:    serviceargument.Breakdown{ItemTotal: serviceargument.ItemTotal{CurrencyCode: "USD", Value: amount}},
+			},
+			Items: items,
+			Shipping: &internal.Shipping{
+				Name:    &internal.Name{FullName: name.GetFullName()},
+				Type:    "SHIPPING",
+				Address: shippingAddress,
+			},
+		})
+		
 		checkoutOrders, err := internal.CheckoutOrders(ctx, m.User.OID, &internal.CheckoutOrdersRequest{
 			Intent:        "CAPTURE",
-			PurchaseUnits: []internal.CheckoutOrdersUnit{unit},
+			PurchaseUnits: units,
 		})
 		if err != nil {
 			return nil, err

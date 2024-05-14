@@ -29,9 +29,13 @@ import (
 )
 
 type Service struct {
-	OID    dao.PrimaryKey
-	config *model.WechatConfig
-	Context    constrain.IContext
+	OID     dao.PrimaryKey
+	config  *model.WechatConfig
+	Context constrain.IWithoutSessionContext
+}
+
+func (m *Service) Deliver(orders *model.Orders) error {
+	return nil
 }
 
 func (m *Service) CloseOrder(OrderNo string) error {
@@ -127,7 +131,7 @@ func (m *Service) GetConfig() *model.WechatConfig {
 	}
 	return m.config
 }
-func (m *Service) OrderQuery(OrderNo string) (*serviceargument.OrderQuery, error) {
+func (m *Service) OrderQuery(orders *model.Orders) (*serviceargument.OrderQueryResult, error) {
 	client, err := NewClient(m.GetConfig())
 	if err != nil {
 		return nil, err
@@ -136,7 +140,7 @@ func (m *Service) OrderQuery(OrderNo string) (*serviceargument.OrderQuery, error
 
 	resp, _, err := svc.QueryOrderByOutTradeNo(m.Context,
 		jsapi.QueryOrderByOutTradeNoRequest{
-			OutTradeNo: core.String(OrderNo),
+			OutTradeNo: core.String(orders.OrderNo),
 			Mchid:      core.String(m.GetConfig().MchID),
 		},
 	)
@@ -149,7 +153,7 @@ func (m *Service) OrderQuery(OrderNo string) (*serviceargument.OrderQuery, error
 		return nil, err
 	}
 
-	return &serviceargument.OrderQuery{
+	return &serviceargument.OrderQueryResult{
 		State:            serviceargument.OrderQueryState(*resp.TradeState),
 		PayerTotalAmount: *resp.Amount.PayerTotal,
 		PayTime:          payTime,
@@ -159,7 +163,7 @@ func (m *Service) OrderQuery(OrderNo string) (*serviceargument.OrderQuery, error
 	}, nil
 }
 
-func (m *Service) Order(OrderNo string, title, description string, detail, openid string, IP string, Money uint, attach string) (*serviceargument.OrderResult, error) {
+func (m *Service) Order(OrderNo string, title, description string, detail, openid string, IP string, Money uint, ordersType model.OrdersType) (*serviceargument.OrderResult, error) {
 
 	wxConfig := m.GetConfig()
 
@@ -175,7 +179,7 @@ func (m *Service) Order(OrderNo string, title, description string, detail, openi
 			Mchid:       core.String(wxConfig.MchID),
 			Description: core.String(title + "-" + description),
 			OutTradeNo:  core.String(OrderNo),
-			Attach:      core.String(attach),
+			Attach:      core.String(string(ordersType)),
 			NotifyUrl:   core.String(wxConfig.OrderNotifyUrl),
 			Amount: &jsapi.Amount{
 				Total:    core.Int64(int64(Money)),
@@ -321,7 +325,7 @@ func (m *Service) GetWXAConfig(prepay_id string) (map[string]string, error) {
 	outData["paySign"] = paySign
 	return outData, nil
 }
-func (m *Service) MPOrder(OrderNo string, title, description string, ogs []model.OrdersGoods, openid string, IP string, Money uint, attach string) (*serviceargument.OrderResult, error) {
+func (m *Service) MPOrder(OrderNo string, title, description string, ogs []model.OrdersGoods, openid string, IP string, Money uint, ordersType model.OrdersType) (*serviceargument.OrderResult, error) {
 
 	CostGoodsPrice := uint(0)
 
@@ -349,5 +353,5 @@ func (m *Service) MPOrder(OrderNo string, title, description string, ogs []model
 
 	detailB, _ := json.Marshal(&golgaldetail)
 
-	return m.Order(OrderNo, title, description, string(detailB), openid, IP, Money, attach)
+	return m.Order(OrderNo, title, description, string(detailB), openid, IP, Money, ordersType)
 }

@@ -9,3 +9,4 @@ var ContentTypeDao = internal.ContentTypeDao{}
 var DNSDao = internal.DNSDao{}
 var ContentConfigDao = internal.ContentConfigDao{}
 var OrdersDao = internal.OrdersDao{}
+var OrdersShippingDao = internal.OrdersShippingDao{}

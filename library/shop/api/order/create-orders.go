@@ -95,6 +95,8 @@ func (m *CreateOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 		//orders.OrdersPackageNo = op.OrderNo
 		//PayMoney = 100
 
+		orders.Type = model.OrdersTypeGoods
+
 		orders.PayMoney = PayMoney
 		//orders.PostType = sqltype.OrdersPostType(m.Post.PostType)
 		orders.Status = model.OrdersStatusOrder

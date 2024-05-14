@@ -12,7 +12,6 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
 )
@@ -34,7 +33,7 @@ func (m *WXPayAlone) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//WxConfig := m.WechatConfig
 	ip := util.GetIP(contextValue.Request)
 
-	wechat := service.Payment.NewWechat(ctx,m.User.OID)
+	wechat := service.Payment.NewWechat(ctx, m.User.OID)
 
 	//package
 	orders := repository.OrdersDao.GetOrdersByOrderNo(m.Get.OrderNo)
@@ -47,7 +46,7 @@ func (m *WXPayAlone) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 		return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "OK", Data: outData}}, nil
 	}
 
-	r, err := wechat.MPOrder(orders.OrderNo, "购物", "商品消费", []model.OrdersGoods{}, m.User.OpenID, ip, orders.PayMoney, play.OrdersTypeGoods)
+	r, err := wechat.MPOrder(orders.OrderNo, "购物", "商品消费", []model.OrdersGoods{}, m.User.OpenID, ip, orders.PayMoney, model.OrdersTypeGoods)
 	if err != nil {
 		return result.NewError(err), nil //&result.JsonResult{Data: &result.ActionResult{Code: Success, Message: err.Error(), Data: Result}}, nil
 	}

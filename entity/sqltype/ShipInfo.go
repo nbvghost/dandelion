@@ -1,10 +1,8 @@
 package sqltype
 
-type ShipInfo struct {
-	No   string //快递单号
-	Name string //快递
-	Key  string //快递编号
-}
+/*type ShipInfo struct {
+
+}*/
 
 /*type ShipInfo struct {
 	No   string //快递单号

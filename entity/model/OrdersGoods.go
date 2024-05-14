@@ -32,14 +32,14 @@ const (
 
 type OrdersGoodsRefund struct {
 	dao.Entity
-	OID           dao.PrimaryKey   `gorm:"column:OID"`
-	OrdersID      dao.PrimaryKey   `gorm:"column:OrdersID"`
-	OrdersGoodsID dao.PrimaryKey   `gorm:"column:OrdersGoodsID"`
-	Status        RefundStatus     `gorm:"column:Status"`
-	ShipInfo      sqltype.ShipInfo `gorm:"column:ShipInfo;serializer:json;type:json"`
-	HasGoods      bool             `gorm:"column:HasGoods"`
-	Reason        string           `gorm:"column:Reason"` //原因
-	ApplyAt       time.Time        `gorm:"column:ApplyAt"`
+	OID           dao.PrimaryKey `gorm:"column:OID"`
+	OrdersID      dao.PrimaryKey `gorm:"column:OrdersID"`
+	OrdersGoodsID dao.PrimaryKey `gorm:"column:OrdersGoodsID"`
+	Status        RefundStatus   `gorm:"column:Status"`
+	ShipInfo      OrdersShipping `gorm:"column:ShipInfo;serializer:json;type:json"`
+	HasGoods      bool           `gorm:"column:HasGoods"`
+	Reason        string         `gorm:"column:Reason"` //原因
+	ApplyAt       time.Time      `gorm:"column:ApplyAt"`
 }
 
 func (OrdersGoodsRefund) TableName() string {
@@ -49,13 +49,13 @@ func (OrdersGoodsRefund) TableName() string {
 type OrdersGoods struct {
 	dao.Entity
 	OID            dao.PrimaryKey                  `gorm:"column:OID"`
-	OrdersGoodsNo  string                          `gorm:"column:OrdersGoodsNo;unique"`          //
-	Status         OrdersGoodsStatus               `gorm:"column:Status"`                        //OGAskRefund，OGRefundNo，OGRefundOk，OGRefundInfo，OGRefundComplete
-	RefundID       dao.PrimaryKey                  `gorm:"column:RefundID"`                      //RefundInfo json 退款退货信息
-	OrdersID       dao.PrimaryKey                  `gorm:"column:OrdersID"`                      //
+	OrdersGoodsNo  string                          `gorm:"column:OrdersGoodsNo;unique"`                    //
+	Status         OrdersGoodsStatus               `gorm:"column:Status"`                                  //OGAskRefund，OGRefundNo，OGRefundOk，OGRefundInfo，OGRefundComplete
+	RefundID       dao.PrimaryKey                  `gorm:"column:RefundID"`                                //RefundInfo json 退款退货信息
+	OrdersID       dao.PrimaryKey                  `gorm:"column:OrdersID"`                                //
 	Goods          Goods                           `gorm:"column:Goods;serializer:json;type:json"`         //josn
 	Specification  Specification                   `gorm:"column:Specification;serializer:json;type:json"` //json
-	GoodsSkus      Array[GoodsSku]                 `gorm:"column:GoodsSkus;type:json"`           //json
+	GoodsSkus      Array[GoodsSku]                 `gorm:"column:GoodsSkus;type:json"`                     //json
 	Discounts      sqltype.Array[sqltype.Discount] `gorm:"column:Discounts;type:json"`
 	Quantity       uint                            `gorm:"column:Quantity"`       //数量
 	CostPrice      uint                            `gorm:"column:CostPrice"`      //单价-原价

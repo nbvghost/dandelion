@@ -45,7 +45,7 @@ func (m *Supply) HandlePost(context constrain.IContext) (constrain.IResult, erro
 
 	wechat := service.Payment.NewWechat(context,m.User.OID)
 
-	r,err := wechat.Order(supply.OrderNo, "门店", "充值", "", m.User.OpenID, ip, m.Post.PayMoney, play.OrdersTypeSupply)
+	r,err := wechat.Order(supply.OrderNo, "门店", "充值", "", m.User.OpenID, ip, m.Post.PayMoney, model.OrdersTypeSupply)
 	if err!=nil {
 		return result.NewError(err),nil//&result.JsonResult{Data: &result.ActionResult{Code: Success, Message: Message, Data: Result}}, nil
 	}

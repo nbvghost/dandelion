@@ -123,3 +123,45 @@ func (m *handlerContext) Destroy() {
 func New(parent context.Context, appName, uid string, route string, mapping constrain.IMappingCallback, etcd constrain.IEtcd, redis constrain.IRedis, token string, logger *zap.Logger, mode key.Mode) constrain.IContext {
 	return &handlerContext{parent: parent, uid: dao.NewFromString(uid), mapping: mapping, route: route, etcd: etcd, redis: redis, appName: appName, token: token, logger: logger, mode: mode, syncCache: &sync.Map{}}
 }
+
+type handlerWiteoutSessionContext struct {
+	parent    context.Context
+	redis     constrain.IRedis
+	etcd      constrain.IEtcd
+	logger    *zap.Logger
+	appName   string
+	syncCache *sync.Map
+}
+
+func (m *handlerWiteoutSessionContext) Err() error {
+	return m.parent.Err()
+}
+
+func (m *handlerWiteoutSessionContext) Value(key any) any {
+	return m.parent.Value(key)
+}
+
+func (m *handlerWiteoutSessionContext) Redis() constrain.IRedis { return m.redis }
+
+func (m *handlerWiteoutSessionContext) Etcd() constrain.IEtcd { return m.etcd }
+
+func (m *handlerWiteoutSessionContext) Logger() *zap.Logger { return m.logger }
+
+func (m *handlerWiteoutSessionContext) SyncCache() *sync.Map { return m.syncCache }
+
+func (m *handlerWiteoutSessionContext) Destroy() {
+	m.syncCache.Range(func(key, value any) bool {
+		m.syncCache.Delete(key)
+		return true
+	})
+}
+func (m *handlerWiteoutSessionContext) Deadline() (deadline time.Time, ok bool) {
+	return m.parent.Deadline()
+}
+func (m *handlerWiteoutSessionContext) Done() <-chan struct{} {
+	return m.parent.Done()
+}
+
+func NewWiteoutSession(parent context.Context, appName string, etcd constrain.IEtcd, redis constrain.IRedis, logger *zap.Logger) constrain.IWithoutSessionContext {
+	return &handlerWiteoutSessionContext{parent: parent, etcd: etcd, redis: redis, appName: appName, logger: logger, syncCache: &sync.Map{}}
+}

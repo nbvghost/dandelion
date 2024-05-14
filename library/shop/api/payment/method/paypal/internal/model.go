@@ -3,22 +3,10 @@ package internal
 import (
 	"fmt"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 )
 
-type ItemTotal struct {
-	CurrencyCode string `json:"currency_code,omitempty"`
-	Value        string `json:"value,omitempty"`
-}
 
-type Breakdown struct {
-	ItemTotal ItemTotal `json:"item_total,omitempty"`
-}
-
-type Amount struct {
-	CurrencyCode string    `json:"currency_code,omitempty"`
-	Value        string    `json:"value,omitempty"`
-	Breakdown    Breakdown `json:"breakdown,omitempty"`
-}
 type Name struct {
 	GivenName string `json:"given_name,omitempty"` //名
 	Surname   string `json:"surname,omitempty"`    //姓
@@ -51,7 +39,7 @@ type CheckoutOrdersUnitItem struct {
 type CheckoutOrdersUnit struct {
 	ReferenceId string                   `json:"reference_id,omitempty"`
 	Description string                   `json:"description,omitempty"`
-	Amount      Amount                   `json:"amount,omitempty"`
+	Amount      serviceargument.Amount                   `json:"amount,omitempty"`
 	Shipping    *Shipping                `json:"shipping,omitempty"`
 	Items       []CheckoutOrdersUnitItem `json:"items,omitempty"`
 }

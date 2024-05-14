@@ -49,7 +49,7 @@ func (m *QuerySupplyOrdersTask) work(wxConfig *model.WechatConfig) error {
 			if err != nil {
 				log.Println(err)
 			}
-			_, err = m.OrdersService.OrderPaySuccess(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, *transaction.TransactionId, payTime, *transaction.Attach)
+			_, err = m.OrdersService.OrderPaySuccess(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, *transaction.TransactionId, payTime, model.OrdersTypeSupply)
 			if err != nil {
 				log.Println(err)
 			}

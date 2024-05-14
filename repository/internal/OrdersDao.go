@@ -8,6 +8,13 @@ import (
 
 type OrdersDao struct{}
 
+func (m OrdersDao) GetOrdersByPrepayID(prepayID string) model.Orders {
+	Orm := db.Orm()
+	var orders model.Orders
+	Orm.Where(map[string]any{"PrepayID": prepayID}).First(&orders)
+	return orders
+}
+
 func (m OrdersDao) GetOrdersByOrderNo(OrderNo string) model.Orders {
 	Orm := db.Orm()
 	var orders model.Orders

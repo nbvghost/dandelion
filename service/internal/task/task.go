@@ -8,17 +8,21 @@ import (
 	"time"
 )
 
-func Start(context constrain.IContext) {
+func Start(context constrain.IWithoutSessionContext) {
 	group := errgroup.Group{}
 	group.Go(func() error {
 		t := job.NewQueryOrdersTask(context)
-		ticker := time.NewTicker(time.Minute * 5)
-		for range ticker.C {
+		run := func() {
 			log.Println("NewQueryOrdersTask[* 5 0]")
 			err := t.Run()
 			if err != nil {
 				log.Println(err)
 			}
+		}
+		run()
+		ticker := time.NewTicker(time.Minute * 5)
+		for range ticker.C {
+			run()
 		}
 		return nil
 	})
@@ -75,4 +79,8 @@ func Start(context constrain.IContext) {
 		}
 		return nil
 	})
+	err := group.Wait()
+	if err != nil {
+		log.Println(err)
+	}
 }
