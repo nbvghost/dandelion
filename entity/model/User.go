@@ -25,7 +25,7 @@ type User struct {
 	RankID      uint           `gorm:"column:RankID"`                //
 	SuperiorID  dao.PrimaryKey `gorm:"column:SuperiorID"`            //
 	RoleID      dao.PrimaryKey `gorm:"column:RoleID"`                //
-	//Subscribe   int              `gorm:"column:Subscribe"`             //move to UserInfo
+	//DeptID      dao.PrimaryKey `gorm:"column:DeptID"`                //部门ID
 }
 
 func (u User) TableName() string {

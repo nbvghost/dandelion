@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func Start(context constrain.IWithoutSessionContext) {
+func Start(context constrain.IServiceContext) {
 	group := errgroup.Group{}
 	group.Go(func() error {
 		t := job.NewQueryOrdersTask(context)

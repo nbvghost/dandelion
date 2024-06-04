@@ -190,7 +190,9 @@ type ImageBytesResult struct {
 func (r *ImageBytesResult) Apply(context constrain.IContext) {
 	v := contexext.FromContext(context)
 	//context.Response.Header().Add()
-	v.Response.Header().Set("Content-Type", r.ContentType)
+	if len(r.ContentType) > 0 {
+		v.Response.Header().Set("Content-Type", r.ContentType)
+	}
 	if len(r.Filename) > 0 {
 		v.Response.Header().Set("content-disposition", "attachment;filename="+url.QueryEscape(r.Filename))
 	}

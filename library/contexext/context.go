@@ -124,7 +124,7 @@ func New(parent context.Context, appName, uid string, route string, mapping cons
 	return &handlerContext{parent: parent, uid: dao.NewFromString(uid), mapping: mapping, route: route, etcd: etcd, redis: redis, appName: appName, token: token, logger: logger, mode: mode, syncCache: &sync.Map{}}
 }
 
-type handlerWiteoutSessionContext struct {
+type serviceContext struct {
 	parent    context.Context
 	redis     constrain.IRedis
 	etcd      constrain.IEtcd
@@ -133,35 +133,35 @@ type handlerWiteoutSessionContext struct {
 	syncCache *sync.Map
 }
 
-func (m *handlerWiteoutSessionContext) Err() error {
+func (m *serviceContext) Err() error {
 	return m.parent.Err()
 }
 
-func (m *handlerWiteoutSessionContext) Value(key any) any {
+func (m *serviceContext) Value(key any) any {
 	return m.parent.Value(key)
 }
 
-func (m *handlerWiteoutSessionContext) Redis() constrain.IRedis { return m.redis }
+func (m *serviceContext) Redis() constrain.IRedis { return m.redis }
 
-func (m *handlerWiteoutSessionContext) Etcd() constrain.IEtcd { return m.etcd }
+func (m *serviceContext) Etcd() constrain.IEtcd { return m.etcd }
 
-func (m *handlerWiteoutSessionContext) Logger() *zap.Logger { return m.logger }
+func (m *serviceContext) Logger() *zap.Logger { return m.logger }
 
-func (m *handlerWiteoutSessionContext) SyncCache() *sync.Map { return m.syncCache }
+func (m *serviceContext) SyncCache() *sync.Map { return m.syncCache }
 
-func (m *handlerWiteoutSessionContext) Destroy() {
+func (m *serviceContext) Destroy() {
 	m.syncCache.Range(func(key, value any) bool {
 		m.syncCache.Delete(key)
 		return true
 	})
 }
-func (m *handlerWiteoutSessionContext) Deadline() (deadline time.Time, ok bool) {
+func (m *serviceContext) Deadline() (deadline time.Time, ok bool) {
 	return m.parent.Deadline()
 }
-func (m *handlerWiteoutSessionContext) Done() <-chan struct{} {
+func (m *serviceContext) Done() <-chan struct{} {
 	return m.parent.Done()
 }
 
-func NewWiteoutSession(parent context.Context, appName string, etcd constrain.IEtcd, redis constrain.IRedis, logger *zap.Logger) constrain.IWithoutSessionContext {
-	return &handlerWiteoutSessionContext{parent: parent, etcd: etcd, redis: redis, appName: appName, logger: logger, syncCache: &sync.Map{}}
+func NewServiceContext(parent context.Context, appName string, etcd constrain.IEtcd, redis constrain.IRedis, logger *zap.Logger) constrain.IServiceContext {
+	return &serviceContext{parent: parent, etcd: etcd, redis: redis, appName: appName, logger: logger, syncCache: &sync.Map{}}
 }

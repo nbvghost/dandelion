@@ -17,7 +17,7 @@ type IMappingCallback interface {
 	AddMapping(mapping IMapping) IMappingCallback
 }
 
-type IWithoutSessionContext interface {
+type IServiceContext interface {
 	context.Context
 	Redis() IRedis
 	Etcd() IEtcd
@@ -26,7 +26,7 @@ type IWithoutSessionContext interface {
 	Destroy()
 }
 type IContext interface {
-	IWithoutSessionContext
+	IServiceContext
 	UID() dao.PrimaryKey
 	AppName() string
 	Route() string

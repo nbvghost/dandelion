@@ -272,7 +272,7 @@ func (m *server) ObtainPostgresql(serverName string) (string, error) {
 		return "", err
 	}
 	if len(resp.Kvs) == 0 {
-		return "", errors.Errorf("没有到Postgresql节点")
+		return "", errors.Errorf("没有到PostgreSQL数据库:%s", serverName)
 	}
 	return string(resp.Kvs[0].Value), err
 }

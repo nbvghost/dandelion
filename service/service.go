@@ -97,23 +97,23 @@ var Site = site.Service{}
 var SMS = sms.Service{}
 var Task = struct {
 	task.TimeTaskService
-	Start func(context constrain.IWithoutSessionContext)
+	Start func(context constrain.IServiceContext)
 }{
 	Start: task.Start,
 }
 var User = user.UserService{}
 
 var Wechat = struct {
-	//Wx             wechatpay.WxService
+	wechat.WxService
 	AccessToken    wechat.AccessTokenService
 	WXQRCodeParams wechat.WXQRCodeParamsService
 	MessageNotify  wechat.MessageNotify
 }{}
 
 var Payment = struct {
-	NewWechat  func(ctx constrain.IWithoutSessionContext, oid dao.PrimaryKey) *wechatpay.Service
-	NewPaypal  func(ctx constrain.IWithoutSessionContext, oid dao.PrimaryKey) *paypal.Service
-	NewPayment func(ctx constrain.IWithoutSessionContext, oid dao.PrimaryKey, payMethod model.OrdersPayMethod) payment.IPayment
+	NewWechat  func(ctx constrain.IServiceContext, oid dao.PrimaryKey) *wechatpay.Service
+	NewPaypal  func(ctx constrain.IServiceContext, oid dao.PrimaryKey) *paypal.Service
+	NewPayment func(ctx constrain.IServiceContext, oid dao.PrimaryKey, payMethod model.OrdersPayMethod) payment.IPayment
 }{
 	NewWechat:  payment.NewWechat,
 	NewPaypal:  payment.NewPaypal,
@@ -221,4 +221,8 @@ func GetSiteData[T serviceargument.ListType](context constrain.IContext, OID dao
 	moduleContentData.SiteAuthor = companyName
 
 	return moduleContentData
+}
+
+type UserInfoValue struct {
+	*user.UserInfoValue
 }

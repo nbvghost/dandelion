@@ -119,6 +119,7 @@ type ContentConfig struct {
 	SocialAccount       sqltype.Array[sqltype.SocialAccount]   `gorm:"column:SocialAccount;type:JSON"`
 	CustomerService     sqltype.Array[sqltype.CustomerService] `gorm:"column:CustomerService;type:JSON"`
 	EnableHTMLCache     bool                                   `gorm:"column:EnableHTMLCache"`
+	EnableUserCenter    bool                                   `gorm:"column:EnableUserCenter"`
 	EnableMultiLanguage bool                                   `gorm:"column:EnableMultiLanguage"`
 	FocusPicture        sqltype.Array[sqltype.FocusPicture]    `gorm:"column:FocusPicture;type:JSON"`
 	TemplateConfig      string                                 `gorm:"column:TemplateConfig;type:JSON;default:'{}'"`

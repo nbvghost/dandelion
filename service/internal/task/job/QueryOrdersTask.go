@@ -17,7 +17,7 @@ import (
 type QueryOrdersTask struct {
 	OrdersService order.OrdersService
 	WxService     wechat.WxService
-	context       constrain.IWithoutSessionContext
+	context       constrain.IServiceContext
 }
 
 func (m *QueryOrdersTask) Run() error {
@@ -43,6 +43,6 @@ func (m *QueryOrdersTask) Run() error {
 	return nil
 }
 
-func NewQueryOrdersTask(context constrain.IWithoutSessionContext) Job {
+func NewQueryOrdersTask(context constrain.IServiceContext) Job {
 	return &QueryOrdersTask{context: context}
 }

@@ -22,7 +22,7 @@ import (
 
 type Service struct {
 	OID           dao.PrimaryKey
-	Context       constrain.IWithoutSessionContext
+	Context       constrain.IServiceContext
 	configuration configuration.ConfigurationService
 }
 

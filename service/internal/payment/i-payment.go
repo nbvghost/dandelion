@@ -20,7 +20,7 @@ type IPayment interface {
 	Refund(order *model.Orders, ordersGoods *model.OrdersGoods, reason string) error
 }
 
-func NewPayment(ctx constrain.IWithoutSessionContext, oid dao.PrimaryKey, payMethod model.OrdersPayMethod) IPayment {
+func NewPayment(ctx constrain.IServiceContext, oid dao.PrimaryKey, payMethod model.OrdersPayMethod) IPayment {
 	switch payMethod {
 	case model.OrdersPayMethodWechat:
 		return NewWechat(ctx, oid)
@@ -30,10 +30,10 @@ func NewPayment(ctx constrain.IWithoutSessionContext, oid dao.PrimaryKey, payMet
 	return NewWechat(ctx, oid)
 }
 
-func NewWechat(ctx constrain.IWithoutSessionContext, oid dao.PrimaryKey) *wechatpay.Service {
+func NewWechat(ctx constrain.IServiceContext, oid dao.PrimaryKey) *wechatpay.Service {
 	return &wechatpay.Service{Context: ctx, OID: oid}
 }
 
-func NewPaypal(ctx constrain.IWithoutSessionContext, oid dao.PrimaryKey) *paypal.Service {
+func NewPaypal(ctx constrain.IServiceContext, oid dao.PrimaryKey) *paypal.Service {
 	return &paypal.Service{Context: ctx, OID: oid}
 }

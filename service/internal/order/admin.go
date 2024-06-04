@@ -12,7 +12,7 @@ import (
 
 // CancelOk 后台或者客服调用的接口
 // func (m OrdersService) CancelOk(context context.Context, OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) (string, error) {
-func (m OrdersService) CancelOk(context constrain.IWithoutSessionContext, OrdersID dao.PrimaryKey) (string, error) {
+func (m OrdersService) CancelOk(context constrain.IServiceContext, OrdersID dao.PrimaryKey) (string, error) {
 	Orm := db.Orm()
 
 	//var orders model.Orders

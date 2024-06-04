@@ -859,7 +859,7 @@ func (m WxService) Decrypt(encryptedData, session_key, iv_text string) (bool, st
 	return true, string(plantText[:(length - unpadding)])
 }
 
-func (m WxService) getSHA1(token, timestamp, nonce, encrypt string) string {
+func (m WxService) GetSHA1(token, timestamp, nonce, encrypt string) string {
 
 	array := []string{timestamp, nonce, encrypt, token}
 	sb := ""

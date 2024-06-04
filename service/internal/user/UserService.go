@@ -8,6 +8,7 @@ import (
 	"github.com/nbvghost/dandelion/service/internal/company"
 	"github.com/nbvghost/dandelion/service/internal/configuration"
 	"github.com/nbvghost/dandelion/service/internal/journal"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 	"github.com/nbvghost/tool/object"
 	"log"
 	"strconv"
@@ -175,15 +176,6 @@ func (m UserService) Leve6(Leve5IDs []uint) []uint {
 	return levea
 }
 
-const (
-	UserInfoKeyBrokerageLeve1 model.UserInfoKey = "BrokerageLeve1"
-	UserInfoKeyBrokerageLeve2 model.UserInfoKey = "BrokerageLeve2"
-	UserInfoKeyBrokerageLeve3 model.UserInfoKey = "BrokerageLeve3"
-	UserInfoKeyBrokerageLeve4 model.UserInfoKey = "BrokerageLeve4"
-	UserInfoKeyBrokerageLeve5 model.UserInfoKey = "BrokerageLeve5"
-	UserInfoKeyBrokerageLeve6 model.UserInfoKey = "BrokerageLeve6"
-)
-
 func (m UserService) GetUserInfo(UserID dao.PrimaryKey) *UserInfoValue {
 	Orm := db.Orm()
 	//.First(&user, 10)
@@ -255,12 +247,12 @@ func (m *UserInfoValue) GetDaySignCount() int {
 }
 func (m *UserInfoValue) GetBrokerageLeve() configuration.Brokerage {
 	return configuration.Brokerage{
-		Leve1: object.ParseFloat(m.SourceData[UserInfoKeyBrokerageLeve1]),
-		Leve2: object.ParseFloat(m.SourceData[UserInfoKeyBrokerageLeve2]),
-		Leve3: object.ParseFloat(m.SourceData[UserInfoKeyBrokerageLeve3]),
-		Leve4: object.ParseFloat(m.SourceData[UserInfoKeyBrokerageLeve4]),
-		Leve5: object.ParseFloat(m.SourceData[UserInfoKeyBrokerageLeve5]),
-		Leve6: object.ParseFloat(m.SourceData[UserInfoKeyBrokerageLeve6]),
+		Leve1: object.ParseFloat(m.SourceData[serviceargument.UserInfoKeyBrokerageLeve1]),
+		Leve2: object.ParseFloat(m.SourceData[serviceargument.UserInfoKeyBrokerageLeve2]),
+		Leve3: object.ParseFloat(m.SourceData[serviceargument.UserInfoKeyBrokerageLeve3]),
+		Leve4: object.ParseFloat(m.SourceData[serviceargument.UserInfoKeyBrokerageLeve4]),
+		Leve5: object.ParseFloat(m.SourceData[serviceargument.UserInfoKeyBrokerageLeve5]),
+		Leve6: object.ParseFloat(m.SourceData[serviceargument.UserInfoKeyBrokerageLeve6]),
 	}
 }
 
@@ -291,29 +283,24 @@ func (m *UserInfoValue) SetSubscribe(v bool) {
 }
 
 func (m *UserInfoValue) SetBrokerageLeve(v configuration.Brokerage) {
-	m.SourceData[UserInfoKeyBrokerageLeve1] = object.ParseString(v.Leve1)
-	m.SourceData[UserInfoKeyBrokerageLeve2] = object.ParseString(v.Leve2)
-	m.SourceData[UserInfoKeyBrokerageLeve3] = object.ParseString(v.Leve3)
-	m.SourceData[UserInfoKeyBrokerageLeve4] = object.ParseString(v.Leve4)
-	m.SourceData[UserInfoKeyBrokerageLeve5] = object.ParseString(v.Leve5)
-	m.SourceData[UserInfoKeyBrokerageLeve6] = object.ParseString(v.Leve6)
+	m.SourceData[serviceargument.UserInfoKeyBrokerageLeve1] = object.ParseString(v.Leve1)
+	m.SourceData[serviceargument.UserInfoKeyBrokerageLeve2] = object.ParseString(v.Leve2)
+	m.SourceData[serviceargument.UserInfoKeyBrokerageLeve3] = object.ParseString(v.Leve3)
+	m.SourceData[serviceargument.UserInfoKeyBrokerageLeve4] = object.ParseString(v.Leve4)
+	m.SourceData[serviceargument.UserInfoKeyBrokerageLeve5] = object.ParseString(v.Leve5)
+	m.SourceData[serviceargument.UserInfoKeyBrokerageLeve6] = object.ParseString(v.Leve6)
 }
 
-type UserInfoKeyStateType string
 
-const (
-	UserInfoKeyStateTypeNormal  UserInfoKeyStateType = ""        //
-	UserInfoKeyStateTypeClosure UserInfoKeyStateType = "closure" //封闭
-)
 
-func (m *UserInfoValue) SetState(v UserInfoKeyStateType) {
+func (m *UserInfoValue) SetState(v serviceargument.UserInfoKeyStateType) {
 	m.SourceData[model.UserInfoKeyState] = string(v)
 }
 func (m *UserInfoValue) SetAgent(v bool) {
 	m.SourceData[model.UserInfoKeyAgent] = strconv.FormatBool(v)
 }
-func (m *UserInfoValue) GetState() UserInfoKeyStateType {
-	return UserInfoKeyStateType(m.SourceData[model.UserInfoKeyState])
+func (m *UserInfoValue) GetState() serviceargument.UserInfoKeyStateType {
+	return serviceargument.UserInfoKeyStateType(m.SourceData[model.UserInfoKeyState])
 }
 
 func (m UserService) UserAction(context constrain.IContext) (r constrain.IResult, err error) {

@@ -31,7 +31,7 @@ import (
 type Service struct {
 	OID     dao.PrimaryKey
 	config  *model.WechatConfig
-	Context constrain.IWithoutSessionContext
+	Context constrain.IServiceContext
 }
 
 func (m *Service) Deliver(orders *model.Orders) error {

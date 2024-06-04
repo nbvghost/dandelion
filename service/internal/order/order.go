@@ -379,7 +379,7 @@ func (m OrdersService) TakeDeliver(OrdersID dao.PrimaryKey) error {
 }
 
 // 检查订单状态
-func (m OrdersService) AnalysisOrdersStatus(context constrain.IWithoutSessionContext, ordersID dao.PrimaryKey, oid dao.PrimaryKey) error {
+func (m OrdersService) AnalysisOrdersStatus(context constrain.IServiceContext, ordersID dao.PrimaryKey, oid dao.PrimaryKey) error {
 
 	Orm := db.Orm()
 
@@ -1488,7 +1488,7 @@ func (m OrdersService) FindOrdersGoodsByCollageUser(CollageNo string) []model.Us
 	return user
 }
 
-func (m OrdersService) QueryOrdersTask(context constrain.IWithoutSessionContext, orders *model.Orders) error {
+func (m OrdersService) QueryOrdersTask(context constrain.IServiceContext, orders *model.Orders) error {
 	pm := payment.NewPayment(context, orders.OID, orders.PayMethod)
 	//if orders.IsPay == 0 {
 	//当前状态为没有支付，去检测一下，订单状态。

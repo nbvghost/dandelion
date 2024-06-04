@@ -236,6 +236,10 @@ func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, eng
 		ops[i].apply(s)
 	}
 
+	if s.viewRender==nil{
+		s.viewRender = &DefaultViewRender{}
+	}
+
 	if s.router != nil && s.route != nil {
 		router.NotFoundHandler = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			/*if s.notFoundViewRender == nil {
