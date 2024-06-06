@@ -219,15 +219,26 @@ func (fo *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 					return []reflect.Value{reflect.ValueOf(err)}
 				}
 				//todo resultData["Query"] = fm.c.Query()
-				fileName := filepath.Join("view", contextValue.DomainName, "template", "widget", fmt.Sprintf("%s.%s", funcName, "gohtml"))
+
 				var b []byte
-				b, err = ioutil.ReadFile(fileName)
+
+				templateBytes, err := function.(IWidget).Template()
 				if err != nil {
-					b, err = embeds.ReadFile(fmt.Sprintf("template/%s.gohtml", funcName))
-					if err != nil {
-						return []reflect.Value{reflect.ValueOf(err)}
-					}
+					return []reflect.Value{reflect.ValueOf(err)}
 				}
+				if templateBytes == nil || len(templateBytes) == 0 {
+					fileName := filepath.Join("view", contextValue.DomainName, "template", "widget", fmt.Sprintf("%s.%s", funcName, "gohtml"))
+					b, err = ioutil.ReadFile(fileName)
+					if err != nil {
+						b, err = embeds.ReadFile(fmt.Sprintf("template/%s.gohtml", funcName))
+						if err != nil {
+							return []reflect.Value{reflect.ValueOf(err)}
+						}
+					}
+				} else {
+					b = templateBytes
+				}
+
 				var t *template.Template
 				t, err = template.New(funcName).Funcs(NewFuncMap().Build(context)).Parse(string(b))
 				if err != nil {

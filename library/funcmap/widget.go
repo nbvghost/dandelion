@@ -6,4 +6,5 @@ import (
 
 type IWidget interface {
 	Render(ctx constrain.IContext) (map[string]interface{}, error)
+	Template() ([]byte,error)
 }

@@ -1,0 +1,165 @@
+{{define "leaveMessageForm"}}
+    <form onsubmit="return submitLeaveMessage(this)">
+        <div class="modal-body">
+            <div class="mb-0">
+                <label for="recipient-name" class="col-form-label">Name:</label>
+                <input type="text" name="Name" placeholder="Name" class="form-control">
+            </div>
+            <div class="mb-0">
+                <label for="recipient-name" class="col-form-label">Email: <i
+                            class="text-danger">required</i>
+                </label>
+                <input type="email" name="Email" placeholder="Email (We will reply you via email in 24 hours)"
+                       required class="form-control">
+            </div>
+            <div class="mb-0">
+                <label for="recipient-name" class="col-form-label">Contact:</label>
+                <div class="d-flex justify-content-between">
+                    <label>
+                        <select style="width: 120px;" name="SocialType" required class="form-select">
+                            {{range $k,$v:=.SocialTypeList}}
+                                {{if eq $k 0}}
+                                    <option selected value="{{$v}}">{{$v}}</option>
+                                {{else}}
+                                    <option value="{{$v}}">{{$v}}</option>
+                                {{end}}
+                            {{end}}
+                        </select>
+                    </label>
+
+                    <input type="text" name="SocialAccount"
+                           placeholder="Phone/WhatsApp/WeChat ... ( Very important )" class="form-control">
+
+                </div>
+            </div>
+            <div class="mb-0">
+                <label class="col-form-label">Message:</label>
+                <textarea class="form-control" maxlength="500" placeholder="Your message" name="Content"></textarea>
+            </div>
+            <div class="leaveMessageModalAlert alert alert-primary d-none mt-3" role="alert"></div>
+        </div>
+        <div class="modal-footer">
+            {{if eq .StyleType "card"}}
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" id="leave-message-form-submit" class="btn btn-primary">Send message</button>
+            {{end}}
+            {{if eq .StyleType "button"}}
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" id="leave-message-form-submit" class="btn btn-primary">Send message</button>
+            {{end}}
+            {{if eq .StyleType "form"}}
+                <button type="submit" id="leave-message-form-submit" class="btn btn-primary">Send message</button>
+            {{end}}
+        </div>
+    </form>
+{{end}}
+
+{{if eq .StyleType "card"}}
+    {{$leaveMessageID:=UUID}}
+    <div class="card text-center border-0 animate" data-animate="animate__zoomIn">
+        <div class="card-body p-md-5 p-4">
+            <div class="py-md-1 py-1">
+                <h5 class="card-title animate" data-animate="animate__fadeInDown">Want to work with us? Let’s talk</h5>
+                <p class="card-text">We will reply you via email within 24 hours.(7*24为您服务)</p>
+                <button id="leaveMessageButton-{{$leaveMessageID}}"
+                        onclick="showLeaveMessageModal('{{$leaveMessageID}}')" data-animate="animate__fadeInDown"
+                        class="btn btn-primary animate">
+                    Leave a Message
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="leaveMessageModal-{{$leaveMessageID}}" tabindex="-1"
+         aria-labelledby="leaveMessageModalLabel-{{$leaveMessageID}}"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="leaveMessageModalLabel-{{$leaveMessageID}}">New message</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                {{template "leaveMessageForm" .}}
+            </div>
+        </div>
+    </div>
+{{else if eq .StyleType "form"}}
+    <style>
+        .card .modal-footer {
+            margin-top: 1rem;
+        }
+
+        .card .modal-footer > .btn {
+            margin-left: 0.5rem;
+        }
+
+        .leaveMessageModalAlert {
+            margin-top: 1rem;
+        }
+    </style>
+    {{template "leaveMessageForm" .}}
+{{else if eq .StyleType "button"}}
+    {{$leaveMessageID:=UUID}}
+    <button id="leaveMessageButton-{{$leaveMessageID}}"
+            onclick="showLeaveMessageModal('{{$leaveMessageID}}')" data-animate="animate__fadeInDown"
+            class="leaveMessageButton btn btn-primary animate">
+        Leave a Message
+    </button>
+    <div class="leaveMessageModal modal fade" id="leaveMessageModal-{{$leaveMessageID}}" tabindex="-1"
+         aria-labelledby="leaveMessageModalLabel-{{$leaveMessageID}}"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="leaveMessageModalLabel-{{$leaveMessageID}}">New message</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                {{template "leaveMessageForm" .}}
+            </div>
+        </div>
+    </div>
+{{end}}
+
+<script>
+
+    window.submitLeaveMessage = function (form) {
+        let leaveMessageForm = $(form);
+
+        let leaveMessageModalAlert = leaveMessageForm.find(".leaveMessageModalAlert");
+        leaveMessageModalAlert.removeAttr("class");
+        leaveMessageModalAlert.addClass("alert alert-warning d-none mt-3");
+
+        let leaveMessageFormData = leaveMessageForm.serializeObject();
+        leaveMessageFormData.From = window.location.href
+
+        $.ajax({
+            type: "POST",
+            url: "/api/leave-message",
+            data: leaveMessageFormData,
+            success: function (data, textStatus, jqXHR) {
+                //console.log(data, textStatus, jqXHR);
+                leaveMessageModalAlert.removeAttr("class");
+                if (data.Code === 0) {
+                    leaveMessageModalAlert.addClass("alert alert-warning d-block mt-3");
+                    leaveMessageModalAlert.text("Thanks for your inquiry,we will contact you within 24 hours");
+                } else {
+                    leaveMessageModalAlert.addClass("alert alert-danger d-block mt-3");
+                    leaveMessageModalAlert.text(data.Message);
+                }
+            }, //dataType: dataType
+        });
+        form.reset();
+        return false
+    }
+
+    window.showLeaveMessageModal = function (id) {
+        let modalElement = document.getElementById('leaveMessageModal-' + id);
+        modalElement.addEventListener('hidden.bs.modal', function (event) {
+            let leaveMessageModalAlert = $(modalElement).find(".leaveMessageModalAlert");
+            leaveMessageModalAlert.removeAttr("class");
+            leaveMessageModalAlert.addClass("alert alert-warning d-none mt-3");
+        })
+        let modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modal.show();
+    }
+
+</script>
