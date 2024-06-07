@@ -15,7 +15,6 @@ const (
 
 type LeaveMessage struct {
 	StyleType LeaveMessageStyleType `arg:""`
-	Style     string                `arg:""`
 }
 
 func (m *LeaveMessage) Render(ctx constrain.IContext) (map[string]any, error) {

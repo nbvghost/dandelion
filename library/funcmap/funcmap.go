@@ -204,11 +204,11 @@ func (fo *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 		contextValue := contexext.FromContext(context)
 		context.Mapping(function)
 
-		backCallFunc := reflect.MakeFunc(makeFuncType, func(args []reflect.Value) (results []reflect.Value) {
+		backCallFunc := reflect.MakeFunc(makeFuncType, func(args []reflect.Value) []reflect.Value {
 			for i := 0; i < len(args); i++ {
 				v.Field(argsIndex[i]).Set(args[i])
 			}
-			var result interface{}
+			var r interface{}
 			var err error
 
 			switch function.(type) {
@@ -248,12 +248,12 @@ func (fo *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 				if err = t.Execute(buffer, resultData); err != nil {
 					return []reflect.Value{reflect.ValueOf(err)}
 				}
-				result = template.HTML(buffer.Bytes())
+				r = template.HTML(buffer.Bytes())
 			case IFunc:
-				result = function.(IFunc).Call(context).Result()
+				r = function.(IFunc).Call(context).Result()
 			}
 
-			return []reflect.Value{reflect.ValueOf(result)}
+			return []reflect.Value{reflect.ValueOf(r)}
 		})
 		fo.funcMap[funcName] = backCallFunc.Interface()
 	}
@@ -324,10 +324,10 @@ func indexArg(index reflect.Value, cap int) (int, error) {
 	return int(x), nil
 }
 
-var r = rand.New(rand.NewSource(time.Now().UnixNano()))
+var render = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func (fo *templateFuncMap) random() int64 {
-	return r.Int63n(time.Now().UnixNano())
+	return render.Int63n(time.Now().UnixNano())
 }
 func (fo *templateFuncMap) uuid() string {
 	return tool.UUID()
