@@ -3,6 +3,7 @@ package order
 import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
+	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
@@ -32,6 +33,10 @@ func (m *GetOrder) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 		}
 		pack.OrdersGoodsList = append(pack.OrdersGoodsList, goods)
 	}
+
+	ordersShippingList := make([]*model.OrdersShipping, 0)
+	dao.Find(db.Orm(), &model.OrdersShipping{}).Where(`"OrderNo"=?`, pack.Orders.OrderNo).Result(&ordersShippingList)
+	pack.OrdersShippingList = ordersShippingList
 
 	//:todo ----
 	//og := pack.OrdersGoodsList[0]
