@@ -121,6 +121,7 @@ type ContentConfig struct {
 	EnableHTMLCache     bool                                   `gorm:"column:EnableHTMLCache"`
 	EnableUserCenter    bool                                   `gorm:"column:EnableUserCenter"`
 	EnableMultiLanguage bool                                   `gorm:"column:EnableMultiLanguage"`
+	DefaultLanguage     string                                 `gorm:"column:DefaultLanguage"`
 	FocusPicture        sqltype.Array[sqltype.FocusPicture]    `gorm:"column:FocusPicture;type:JSON"`
 	TemplateConfig      string                                 `gorm:"column:TemplateConfig;type:JSON;default:'{}'"`
 }

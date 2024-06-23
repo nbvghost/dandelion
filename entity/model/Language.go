@@ -16,6 +16,7 @@ type Language struct {
 	Code6392B   string `gorm:"column:Code6392B"`
 	Code6393    string `gorm:"column:Code6393"`
 	Hot         uint   `gorm:"column:Hot"`
+	Flag        string `gorm:"column:Flag"`
 }
 
 func (u Language) TableName() string {

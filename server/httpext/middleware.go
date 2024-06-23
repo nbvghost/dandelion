@@ -298,6 +298,11 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 	apiHandler = reflect.New(routeInfo.GetHandlerType()).Interface()
 
 	if ctxValue.IsApi {
+		err = router.ExecuteInterceptors(ctx, apiHandler)
+		if err != nil {
+			return err
+		}
+
 		if beforeViewRender != nil {
 			var canNext bool
 			err = beforeViewRender.Api(ctx, r, w, func() {
@@ -309,11 +314,6 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			if !canNext {
 				return nil
 			}
-		}
-
-		err = router.ExecuteInterceptors(ctx, apiHandler)
-		if err != nil {
-			return err
 		}
 
 		//注入路由mapping
@@ -389,6 +389,11 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 		returnResult.Apply(ctx)
 
 	} else {
+		err = router.ExecuteInterceptors(ctx, apiHandler)
+		if err != nil {
+			return err
+		}
+
 		if beforeViewRender != nil {
 			var canNext bool
 			err = beforeViewRender.View(ctx, r, w, func() {
@@ -400,11 +405,6 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			if !canNext {
 				return nil
 			}
-		}
-
-		err = router.ExecuteInterceptors(ctx, apiHandler)
-		if err != nil {
-			return err
 		}
 
 		//注入路由mapping

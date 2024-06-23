@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"reflect"
 	"sync"
@@ -40,7 +41,7 @@ func (m *client) TryLock(parentCtx context.Context, key string, wait ...time.Dur
 
 	for time.Now().Sub(start) <= waitTime || waitTime == 0 {
 		ok := m.getClient().SetNX(_ctx, key, "lock", time.Minute)
-		log.Println("redis lock", ok.Val(), ok.Err(), ok)
+		log.Println(fmt.Sprintf("redis lock:%v,%v,%v", ok.Val(), ok.Err(), ok))
 		if ok.Val() {
 			//获取锁成功
 			go func() {

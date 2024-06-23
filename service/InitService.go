@@ -239,7 +239,7 @@ $Goods$ LANGUAGE plpgsql;`
 		}
 
 		var languageList []model.Language
-		db.Orm().Model(model.Language{}).Where(`"CodeBiadu"<>''`).Find(&languageList)
+		db.Orm().Model(model.Language{}).Where(`"CodeBiadu"<>''`).Order(`"ISOName"`).Find(&languageList)
 		for index, v := range languageList {
 			Cache.LanguageCache.ShowLanguage = append(Cache.LanguageCache.ShowLanguage, languageList[index])
 			Cache.LanguageCodeCache.LangBaiduCode[v.Code6391] = v.CodeBiadu

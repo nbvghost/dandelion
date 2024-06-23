@@ -19,9 +19,9 @@
                         <select style="width: 120px;" name="SocialType" required class="form-select">
                             {{range $k,$v:=.SocialTypeList}}
                                 {{if eq $k 0}}
-                                    <option selected value="{{$v}}">{{$v}}</option>
+                                    <option selected no-translate value="{{$v}}">{{$v}}</option>
                                 {{else}}
-                                    <option value="{{$v}}">{{$v}}</option>
+                                    <option no-translate value="{{$v}}">{{$v}}</option>
                                 {{end}}
                             {{end}}
                         </select>
