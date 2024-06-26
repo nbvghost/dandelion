@@ -27,11 +27,14 @@ func init() {
 type Api struct {
 }
 
-func (Api) UpdateGoods(ID dao.PrimaryKey, Images sqltype.Array[string]) (*model.Goods, error) {
+func (Api) UpdateGoods(ID dao.PrimaryKey, Title string, Images sqltype.Array[string], GoodsTypeID dao.PrimaryKey, GoodsTypeChildID dao.PrimaryKey) (*model.Goods, error) {
 	//https://admin.sites.ink/api/goods/change-goods
 
 	goods := &model.Goods{Entity: dao.Entity{ID: ID}}
 	goods.Images = Images
+	goods.Title = Title
+	goods.GoodsTypeID = GoodsTypeID
+	goods.GoodsTypeChildID = GoodsTypeChildID
 
 	goodsBytes, err := json.Marshal(goods)
 	if err != nil {
@@ -66,7 +69,7 @@ func (Api) UpdateGoods(ID dao.PrimaryKey, Images sqltype.Array[string]) (*model.
 	}
 	return ar.Data.Goods, nil
 }
-func (Api) AddGoods(Title string, GoodsTypeID int, GoodsTypeChildID int) (*model.Goods, error) {
+func (Api) AddGoods(Title string, GoodsTypeID dao.PrimaryKey, GoodsTypeChildID dao.PrimaryKey) (*model.Goods, error) {
 	//http://admin.dev.com/api/goods/add-goods
 
 	params := url.Values{}

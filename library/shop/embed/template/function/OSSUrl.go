@@ -10,7 +10,8 @@ import (
 )
 
 type OSSUrl struct {
-	Path any `arg:""`
+	Path       any    `arg:""`
+	ChangeSize string `arg:""`
 }
 
 func (g *OSSUrl) Call(ctx constrain.IContext) funcmap.IFuncResult {
@@ -22,5 +23,10 @@ func (g *OSSUrl) Call(ctx constrain.IContext) funcmap.IFuncResult {
 	if err != nil {
 		log.Println(err)
 	}
-	return funcmap.NewStringFuncResult(url)
+	if len(g.ChangeSize) > 0 {
+		return funcmap.NewStringFuncResult(url + "@" + g.ChangeSize)
+	} else {
+		return funcmap.NewStringFuncResult(url)
+	}
+
 }
