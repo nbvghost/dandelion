@@ -1,8 +1,8 @@
-package pinyin
+package cache
 
 import (
 	"fmt"
-	"github.com/nbvghost/dandelion/service/internal/cache"
+	"github.com/nbvghost/dandelion/entity/model"
 	"regexp"
 	"strings"
 )
@@ -18,17 +18,19 @@ var gRegexp = regexp.MustCompile("-+")
 
 //var enRegexp = regexp.MustCompile("[a-zA-Z\u4E00-\u9FA5\u9FA6-\u9FFF]+")
 
-func (Service) AutoDetectUri(s string) string {
+type ChinesePinyinCache struct {
+	Pinyin map[string]string
+}
 
+func (m *ChinesePinyinCache) AutoDetectUri(s string) string {
 	var ll []string
-
 	for _, v := range []rune(s) {
 		word := string(v)
 		if !markRegexp.MatchString(word) {
 			if enRegexp.MatchString(word) {
 				ll = append(ll, word)
 			} else {
-				py := (&cache.ChinesePinyinCache{}).GetPinyin(word)
+				py := m.GetPinyin(word)
 				if len(py) == 0 {
 					ll = append(ll, fmt.Sprintf("-%x-", word[:]))
 				} else {
@@ -44,4 +46,27 @@ func (Service) AutoDetectUri(s string) string {
 	txt := strings.Join(ll, "")
 	txt = gRegexp.ReplaceAllString(txt, "-")
 	return strings.ToLower(strings.Trim(txt, "-"))
+}
+
+func (m *ChinesePinyinCache) GetPinyin(word string) string {
+	return m.Pinyin[word]
+}
+
+type LanguageCache struct {
+	ShowLanguage []model.Language
+}
+
+func (m *LanguageCache) ShowLang() []model.Language {
+	return m.ShowLanguage
+}
+
+type LanguageCodeCache struct {
+	LangBaiduCode map[string]string
+}
+
+func (m *LanguageCodeCache) GetLangBaiduCodeByCode6391(Code6391 string) string {
+	return m.LangBaiduCode[Code6391]
+}
+func (m *LanguageCodeCache) GetLangBaiduCode() map[string]string {
+	return m.LangBaiduCode
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service/internal/company"
 	"github.com/nbvghost/dandelion/service/internal/journal"
-	"github.com/nbvghost/dandelion/service/internal/pinyin"
 	"gorm.io/gorm"
 
 	"github.com/nbvghost/dandelion/entity/model"
@@ -16,11 +15,10 @@ type ContentService struct {
 	model.BaseDao
 	Journal             journal.JournalService
 	OrganizationService company.OrganizationService
-	PinyinService       pinyin.Service
 }
 
-func (service ContentService) GetTitle(orm *gorm.DB, OID dao.PrimaryKey) string {
-	organization := service.OrganizationService.GetOrganization(OID).(*model.Organization)
+func (m ContentService) GetTitle(orm *gorm.DB, OID dao.PrimaryKey) string {
+	organization := m.OrganizationService.GetOrganization(OID).(*model.Organization)
 	contentConfig := repository.ContentConfigDao.GetContentConfig(db.Orm(), organization.Primary())
 	title := contentConfig.Name
 	if len(title) == 0 {

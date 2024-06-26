@@ -9,7 +9,6 @@ import (
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service/internal/activity"
 	"github.com/nbvghost/dandelion/service/internal/admin"
-	"github.com/nbvghost/dandelion/service/internal/cache"
 	"github.com/nbvghost/dandelion/service/internal/catch"
 	"github.com/nbvghost/dandelion/service/internal/company"
 	"github.com/nbvghost/dandelion/service/internal/configuration"
@@ -25,7 +24,6 @@ import (
 	"github.com/nbvghost/dandelion/service/internal/payment"
 	"github.com/nbvghost/dandelion/service/internal/payment/paypal"
 	"github.com/nbvghost/dandelion/service/internal/payment/wechatpay"
-	"github.com/nbvghost/dandelion/service/internal/pinyin"
 	"github.com/nbvghost/dandelion/service/internal/question"
 	"github.com/nbvghost/dandelion/service/internal/search"
 	"github.com/nbvghost/dandelion/service/internal/site"
@@ -48,8 +46,11 @@ var Activity = struct {
 	TimeSell    activity.TimeSellService
 	Voucher     activity.VoucherService
 }{}
+
 var Admin = admin.AdminService{}
 var Catch = catch.SpiderService{}
+var Api = catch.Api{}
+
 var Company = struct {
 	Organization company.OrganizationService
 	Store        company.StoreService
@@ -90,7 +91,7 @@ var Order = struct {
 	Transfers    order.TransfersService
 	Verification order.VerificationService
 }{}
-var Pinyin = pinyin.Service{}
+
 var Question = question.QuestionService{}
 var Search = search.Service{}
 var Site = site.Service{}
@@ -128,16 +129,7 @@ var Network = struct {
 	NewSMS: network.NewSMS,
 }
 
-var Cache = struct {
-	ChinesePinyinCache cache.ChinesePinyinCache
-	LanguageCache      cache.LanguageCache
-	LanguageCodeCache  cache.LanguageCodeCache
-	RedisCache         cache.RedisCache
-}{
-	ChinesePinyinCache: cache.ChinesePinyinCache{Pinyin: make(map[string]string)},
-	LanguageCache:      cache.LanguageCache{ShowLanguage: make([]model.Language, 0)},
-	LanguageCodeCache:  cache.LanguageCodeCache{LangBaiduCode: make(map[string]string)},
-}
+
 
 func init() {
 

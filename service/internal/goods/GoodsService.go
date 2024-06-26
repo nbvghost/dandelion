@@ -3,11 +3,12 @@ package goods
 import (
 	"fmt"
 	"github.com/lib/pq"
+	"github.com/nbvghost/dandelion/domain/cache"
+
 	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/activity"
 	"github.com/nbvghost/dandelion/service/internal/express"
-	"github.com/nbvghost/dandelion/service/internal/pinyin"
 	"github.com/nbvghost/dandelion/service/serviceargument"
 	"github.com/nbvghost/tool/object"
 	"gorm.io/gorm/clause"
@@ -32,7 +33,6 @@ type GoodsService struct {
 	model.BaseDao
 	TimeSell               activity.TimeSellService
 	Collage                activity.CollageService
-	PinyinService          pinyin.Service
 	GoodsTypeService       GoodsTypeService
 	AttributesService      AttributesService
 	SpecificationService   SpecificationService
@@ -260,7 +260,7 @@ func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Go
 		return errors.Errorf("重复的产品标题")
 	}
 
-	uri := m.PinyinService.AutoDetectUri(goods.Title)
+	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(goods.Title)
 	g = m.getGoodsByUri(OID, uri)
 	if !g.IsZero() {
 		uri = fmt.Sprintf("%s-%d", uri, time.Now().Unix())

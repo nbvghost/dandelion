@@ -2,12 +2,13 @@ package goods
 
 import (
 	"fmt"
+	"github.com/nbvghost/dandelion/domain/cache"
+
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/internal/pinyin"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"log"
@@ -22,7 +23,7 @@ type TopGoodsTypeChild struct {
 }
 
 type GoodsTypeService struct {
-	PinyinService pinyin.Service
+
 }
 
 func (m GoodsTypeService) GetTopGoodsTypeChild(DB *gorm.DB, Num uint) []TopGoodsTypeChild {
@@ -349,7 +350,7 @@ func (m GoodsTypeService) AddGoodsType(OID dao.PrimaryKey, goodsType *model.Good
 		return errors.Errorf("重复的名字:%s", goodsType.Name)
 	}
 
-	uri := m.PinyinService.AutoDetectUri(goodsType.Name)
+	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(goodsType.Name)
 	gt, _ = m.getGoodsTypeByUri(orm, OID, uri)
 	if !gt.IsZero() {
 		gt.Uri = fmt.Sprintf("%s-%d", gt.Uri, time.Now().Unix())
@@ -367,7 +368,7 @@ func (m GoodsTypeService) ChangeGoodsType(OID dao.PrimaryKey, goodsType *model.G
 		return errors.Errorf("重复的名字:%s", goodsType.Name)
 	}
 
-	uri := m.PinyinService.AutoDetectUri(goodsType.Name)
+	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(goodsType.Name)
 	gt, _ = m.getGoodsTypeByUri(orm, OID, uri)
 	if !gt.IsZero() {
 		gt.Uri = fmt.Sprintf("%s-%d", gt.Uri, time.Now().Unix())
@@ -408,7 +409,7 @@ func (m GoodsTypeService) AddGoodsTypeChild(OID, GoodsTypeID dao.PrimaryKey, nam
 		return errors.Errorf("重复的名字:%s", name)
 	}
 
-	uri := m.PinyinService.AutoDetectUri(name)
+	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(name)
 	gt, _ = m.getGoodsTypeChildByUri(orm, OID, GoodsTypeID, uri)
 	if !gt.IsZero() {
 		gt.Uri = fmt.Sprintf("%s-%d", gt.Uri, time.Now().Unix())
@@ -433,7 +434,7 @@ func (m GoodsTypeService) ChangeGoodsTypeChild(OID, ID dao.PrimaryKey, name, ima
 		return errors.Errorf("重复的名字:%s", name)
 	}
 
-	uri := m.PinyinService.AutoDetectUri(name)
+	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(name)
 	gt, _ = m.getGoodsTypeChildByUri(orm, OID, gtc.GoodsTypeID, uri)
 	if !gt.IsZero() {
 		gt.Uri = fmt.Sprintf("%s-%d", gt.Uri, time.Now().Unix())

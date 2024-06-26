@@ -3,6 +3,8 @@ package content
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/dandelion/domain/cache"
+
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/repository"
 	"go.uber.org/zap"
@@ -25,7 +27,7 @@ import (
 	"github.com/nbvghost/tool/object"
 )
 
-func (service ContentService) FindContentByTag(OID dao.PrimaryKey, tag extends.Tag, _pageIndex int, orders ...extends.Order) (pageIndex, pageSize int, total int64, list []*model.Content, err error) {
+func (m ContentService) FindContentByTag(OID dao.PrimaryKey, tag extends.Tag, _pageIndex int, orders ...extends.Order) (pageIndex, pageSize int, total int64, list []*model.Content, err error) {
 	//select * from "Content" where array_length("Tags",1) is null;
 	db := db.Orm().Model(model.Content{}).Where(`"OID"=?`, OID).
 		Where(`array_length("Tags",1) is not null`).
@@ -44,7 +46,7 @@ func (service ContentService) FindContentByTag(OID dao.PrimaryKey, tag extends.T
 
 	return
 }
-func (service ContentService) FindContentTags(OID dao.PrimaryKey) ([]extends.Tag, error) {
+func (m ContentService) FindContentTags(OID dao.PrimaryKey) ([]extends.Tag, error) {
 	//SELECT unnest("Tags") as Tag,count("Tags") as Count FROM "Content" where  group by unnest("Tags");
 	var tags []extends.Tag
 	err := db.Orm().Model(model.Content{}).Select(`unnest("Tags") as "Name",count("Tags") as "Count"`).Where(map[string]interface{}{
@@ -53,7 +55,7 @@ func (service ContentService) FindContentTags(OID dao.PrimaryKey) ([]extends.Tag
 	tags = tag.CreateUri(tags)
 	return tags, err
 }
-func (service ContentService) FindContentTagsByContentItemID(OID, ContentItemID dao.PrimaryKey) []extends.Tag {
+func (m ContentService) FindContentTagsByContentItemID(OID, ContentItemID dao.PrimaryKey) []extends.Tag {
 	//SELECT unnest("Tags") as Tag,count("Tags") as Count FROM "Content" where  group by unnest("Tags");
 	var tags []extends.Tag
 	db.Orm().Model(model.Content{}).Select(`unnest("Tags") as "Name",count("Tags") as "Count"`).Where(map[string]interface{}{
@@ -63,7 +65,7 @@ func (service ContentService) FindContentTagsByContentItemID(OID, ContentItemID 
 	tags = tag.CreateUri(tags)
 	return tags
 }
-func (service ContentService) PaginationContent(OID, ContentItemID, ContentSubTypeID dao.PrimaryKey, pageIndex int, pageSize int) (int, int, int, []*model.Content) {
+func (m ContentService) PaginationContent(OID, ContentItemID, ContentSubTypeID dao.PrimaryKey, pageIndex int, pageSize int) (int, int, int, []*model.Content) {
 	if ContentItemID == 0 {
 		db := dao.Find(db.Orm(), &model.Content{}).Where(`"OID"=?`, OID)
 		total := db.Limit(pageIndex, pageSize)
@@ -99,7 +101,7 @@ func (service ContentService) PaginationContent(OID, ContentItemID, ContentSubTy
 
 	return pageIndex, pageSize, int(total), list
 }
-func (service ContentService) GetContentTypeByID(OID dao.PrimaryKey, ContentItemID, ContentSubTypeID dao.PrimaryKey) (model.ContentItem, model.ContentSubType) {
+func (m ContentService) GetContentTypeByID(OID dao.PrimaryKey, ContentItemID, ContentSubTypeID dao.PrimaryKey) (model.ContentItem, model.ContentSubType) {
 	Orm := db.Orm()
 	var item model.ContentItem
 	var itemSub model.ContentSubType
@@ -116,14 +118,14 @@ func (service ContentService) GetContentTypeByID(OID dao.PrimaryKey, ContentItem
 	return item, itemSub
 }
 
-func (service ContentService) SaveContentSubType(OID dao.PrimaryKey, item *model.ContentSubType) error {
+func (m ContentService) SaveContentSubType(OID dao.PrimaryKey, item *model.ContentSubType) error {
 	Orm := db.Orm()
 	mm := repository.ContentSubTypeDao.GetContentSubTypeByName(OID, item.ContentItemID, item.ID, item.Name)
 	if !mm.IsZero() {
 		return errors.Errorf("名字重复")
 	}
 
-	uri := service.PinyinService.AutoDetectUri(item.Name)
+	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(item.Name)
 	g := repository.ContentSubTypeDao.GetContentSubTypeByUri(OID, item.ContentItemID, item.ID, uri)
 	if !g.IsZero() {
 		uri = fmt.Sprintf("%s-%d", uri, time.Now().Unix())
@@ -157,7 +159,7 @@ func (service ContentService) SaveContentSubType(OID dao.PrimaryKey, item *model
 
 	return nil
 }
-func (service ContentService) SaveContentItem(OID dao.PrimaryKey, item *model.ContentItem) error {
+func (m ContentService) SaveContentItem(OID dao.PrimaryKey, item *model.ContentItem) error {
 	Orm := db.Orm()
 
 	if len(item.Name) == 0 {
@@ -175,7 +177,7 @@ func (service ContentService) SaveContentItem(OID dao.PrimaryKey, item *model.Co
 
 	item.OID = OID
 
-	uri := service.PinyinService.AutoDetectUri(item.Name)
+	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(item.Name)
 	g := repository.ContentItemDao.GetContentItemByUri(OID, item.ID, uri)
 	if !g.IsZero() {
 		uri = fmt.Sprintf("%s-%d", uri, time.Now().Unix())
@@ -239,7 +241,7 @@ func (service ContentService) SaveContentItem(OID dao.PrimaryKey, item *model.Co
 		Data:    nil,
 	}
 }
-func (service ContentService) ChangeContentConfig(OID dao.PrimaryKey, fieldName, fieldValue string) error {
+func (m ContentService) ChangeContentConfig(OID dao.PrimaryKey, fieldName, fieldValue string) error {
 
 	changeMap := make(map[string]interface{})
 
@@ -284,7 +286,7 @@ func (service ContentService) ChangeContentConfig(OID dao.PrimaryKey, fieldName,
 //-----------------------------------------Content----------------------------------------------------------
 
 // AddSpiderContent -----------------------
-func (service ContentService) AddSpiderContent(OID dao.PrimaryKey, ContentName string, ContentSubTypeName string, Author, Title string, FromUrl string, Introduce string, Picture string, Content string, CreatedAt time.Time) error {
+func (m ContentService) AddSpiderContent(OID dao.PrimaryKey, ContentName string, ContentSubTypeName string, Author, Title string, FromUrl string, Introduce string, Picture string, Content string, CreatedAt time.Time) error {
 	var article model.Content
 	article.Title = Title
 	article.FromUrl = FromUrl
@@ -330,14 +332,14 @@ func (service ContentService) AddSpiderContent(OID dao.PrimaryKey, ContentName s
 
 	article.Author = Author
 	article.ContentSubTypeID = contentSubType.ID
-	err := service.SaveContent(OID, &article)
+	err := m.SaveContent(OID, &article)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (service ContentService) FindContentByTypeID(menusData *extends.MenusData, ContentItemID, ContentSubTypeID, ContentSubTypeChildID dao.PrimaryKey) model.Content {
+func (m ContentService) FindContentByTypeID(menusData *extends.MenusData, ContentItemID, ContentSubTypeID, ContentSubTypeChildID dao.PrimaryKey) model.Content {
 
 	var content model.Content
 
@@ -424,7 +426,7 @@ func (service ContentService) FindContentByTypeID(menusData *extends.MenusData, 
 
 	return content
 }
-func (service ContentService) FindContentListByTypeID(menusData *extends.MenusData, ContentItemID, ContentSubTypeID, ContentSubTypeChildID dao.PrimaryKey, _Page int, _Limit int) result.Pager {
+func (m ContentService) FindContentListByTypeID(menusData *extends.MenusData, ContentItemID, ContentSubTypeID, ContentSubTypeChildID dao.PrimaryKey, _Page int, _Limit int) result.Pager {
 
 	var pager result.Pager
 
@@ -459,7 +461,7 @@ func (service ContentService) FindContentListByTypeID(menusData *extends.MenusDa
 
 }
 
-func (service ContentService) FindContentListForLeftRight(ContentItemID, ContentSubTypeID dao.PrimaryKey, ContentID dao.PrimaryKey, ContentCreatedAt time.Time) [2]*model.Content {
+func (m ContentService) FindContentListForLeftRight(ContentItemID, ContentSubTypeID dao.PrimaryKey, ContentID dao.PrimaryKey, ContentCreatedAt time.Time) [2]*model.Content {
 	var contentList [2]*model.Content
 	if ContentItemID == 0 {
 		log.Println("参数ContentItemID为0")
@@ -498,7 +500,7 @@ func (service ContentService) FindContentListForLeftRight(ContentItemID, Content
 	return [2]*model.Content{&left, &right}
 }
 
-func (service ContentService) GetContentAndAddLook(ctx constrain.IContext, ArticleID dao.PrimaryKey) *model.Content {
+func (m ContentService) GetContentAndAddLook(ctx constrain.IContext, ArticleID dao.PrimaryKey) *model.Content {
 
 	article := dao.GetByPrimaryKey(db.Orm(), &model.Content{}, ArticleID).(*model.Content) //SelectOne(user, "select * from User where Email=?", Email)
 
@@ -520,7 +522,7 @@ func (service ContentService) GetContentAndAddLook(ctx constrain.IContext, Artic
 		//if context.Session.Attributes.Get(play.SessionUser) != nil {
 		//user := context.Session.Attributes.Get(play.SessionUser).(*model.User)
 		//err = service.Journal.AddScoreJournal(db.Orm(), ctx.UID(), "看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)), play.ScoreJournal_Type_Look_Article, int64(LookArticle), extends.KV{Key: "ArticleID", Value: article.ID})
-		err = service.Journal.AddScoreJournal(db.Orm(), ctx.UID(), "看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)), model.ScoreJournal_Type_Look_Article, int64(LookArticle))
+		err = m.Journal.AddScoreJournal(db.Orm(), ctx.UID(), "看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)), model.ScoreJournal_Type_Look_Article, int64(LookArticle))
 		if err != nil {
 			ctx.Logger().Error("GetContentAndAddLook", zap.Error(err))
 		}
@@ -530,7 +532,7 @@ func (service ContentService) GetContentAndAddLook(ctx constrain.IContext, Artic
 	return article
 }
 
-func (service ContentService) SaveContent(OID dao.PrimaryKey, article *model.Content) error {
+func (m ContentService) SaveContent(OID dao.PrimaryKey, article *model.Content) error {
 	Orm := db.Orm()
 	if article.ContentItemID == 0 {
 		return errors.Errorf("必须指定ContentItemID")
@@ -566,7 +568,7 @@ func (service ContentService) SaveContent(OID dao.PrimaryKey, article *model.Con
 
 	article.OID = OID
 	if len(g.Uri) == 0 {
-		uri := service.PinyinService.AutoDetectUri(article.Title)
+		uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(article.Title)
 		hasContent := repository.ContentDao.GetContentByUri(OID, uri)
 		if !hasContent.IsZero() && hasContent.ID != g.ID {
 			return errors.Errorf("添加失败,存在相同的标题")
@@ -600,7 +602,7 @@ func (service ContentService) SaveContent(OID dao.PrimaryKey, article *model.Con
 	return err
 }
 
-func (service ContentService) GalleryBlock(OID dao.PrimaryKey, num int) ([]model.ContentItem, []model.Content) {
+func (m ContentService) GalleryBlock(OID dao.PrimaryKey, num int) ([]model.ContentItem, []model.Content) {
 	contentItemList := repository.ContentItemDao.FindContentItemByType(model.ContentTypeGallery, OID)
 	contentItemIDList := make([]dao.PrimaryKey, 0)
 	for _, item := range contentItemList {
@@ -610,7 +612,7 @@ func (service ContentService) GalleryBlock(OID dao.PrimaryKey, num int) ([]model
 	return contentItemList, contentList
 }
 
-func (service ContentService) FindContentByTypeTemplate(oid dao.PrimaryKey, contentType string, templateName string, pageIndex int) (int64, []*model.Content) {
+func (m ContentService) FindContentByTypeTemplate(oid dao.PrimaryKey, contentType string, templateName string, pageIndex int) (int64, []*model.Content) {
 	var list []*model.Content
 	var total int64
 

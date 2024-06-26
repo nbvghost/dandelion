@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/nbvghost/dandelion/config"
+	"github.com/nbvghost/dandelion/domain/cache"
 	"github.com/nbvghost/dandelion/library/db"
 	"golang.org/x/sync/errgroup"
 	"log"
@@ -235,14 +236,14 @@ $Goods$ LANGUAGE plpgsql;`
 		var cacheList []model.Pinyin
 		db.Orm().Model(model.Pinyin{}).Find(&cacheList)
 		for _, v := range cacheList {
-			Cache.ChinesePinyinCache.Pinyin[v.Word] = v.Pinyin
+			cache.Cache.ChinesePinyinCache.Pinyin[v.Word] = v.Pinyin
 		}
 
 		var languageList []model.Language
 		db.Orm().Model(model.Language{}).Where(`"CodeBiadu"<>''`).Order(`"ISOName"`).Find(&languageList)
 		for index, v := range languageList {
-			Cache.LanguageCache.ShowLanguage = append(Cache.LanguageCache.ShowLanguage, languageList[index])
-			Cache.LanguageCodeCache.LangBaiduCode[v.Code6391] = v.CodeBiadu
+			cache.Cache.LanguageCache.ShowLanguage = append(cache.Cache.LanguageCache.ShowLanguage, languageList[index])
+			cache.Cache.LanguageCodeCache.LangBaiduCode[v.Code6391] = v.CodeBiadu
 		}
 		return nil
 	})
