@@ -245,19 +245,19 @@ func (m GoodsService) getGoodsByUri(OID dao.PrimaryKey, uri string) model.Goods 
 	Orm.Model(model.Goods{}).Where(map[string]interface{}{"OID": goods.OID, "Uri": goods.Uri}).First(&goods)
 	return goods
 }
-func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Goods, specifications []model.Specification) error {
+func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Goods, specifications []model.Specification) (*model.Goods, error) {
 	if goods.Tags == nil {
 		goods.Tags = make(pq.StringArray, 0)
 	}
 
 	goods.OID = OID
 	if len(goods.Title) == 0 {
-		return errors.Errorf("请指定产品标题")
+		return goods,errors.Errorf("请指定产品标题")
 	}
 
-	g := m.FindGoodsByTitle(goods.Title)
+	g := m.FindGoodsByTitle(OID, goods.Title)
 	if !g.IsZero() && g.ID != goods.ID {
-		return errors.Errorf("重复的产品标题")
+		return &g,errors.Errorf("重复的产品标题")
 	}
 
 	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(goods.Title)
@@ -269,13 +269,13 @@ func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Go
 	if goods.ID.IsZero() {
 		err := tx.Create(goods).Error
 		if err != nil {
-			return err
+			return goods,err
 		}
 	} else {
 		//err = tx.Save(goods).Error
 		err := tx.Model(goods).Updates(goods).Error
 		if err != nil {
-			return err
+			return goods,err
 		}
 	}
 
@@ -294,13 +294,13 @@ func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Go
 			if value.ID.IsZero() {
 				err := tx.Create(&value).Error
 				if err != nil {
-					return err
+					return goods,err
 				}
 				total = total + value.Stock
 			} else {
 				err := tx.Save(&value).Error
 				if err != nil {
-					return err
+					return goods,err
 				}
 				//err = tx.Model(&goods).Updates(goods).Error
 				total = total + value.Stock
@@ -312,12 +312,12 @@ func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Go
 	if goods.ExpressTemplateID == 0 {
 		expressTemplate := m.ExpressTemplateService.GetExpressTemplateByOID(OID)
 		if expressTemplate.IsZero() {
-			return errors.New("请设置快递信息")
+			return goods,errors.New("请设置快递信息")
 		}
 		goods.ExpressTemplateID = expressTemplate.ID
 	}
 	err := tx.Save(goods).Error
-	return err
+	return goods,err
 }
 
 func (m GoodsService) Rating(goodsID dao.PrimaryKey) *extends.GoodsRating {
@@ -506,9 +506,9 @@ func (m GoodsService) FindGoodsByOrganizationIDAndGoodsID(OrganizationID dao.Pri
 	db.Orm().Model(&model.Goods{}).Where(`"ID"=? and "OID"=?`, GoodsID, OrganizationID).First(&Goods)
 	return Goods
 }
-func (m GoodsService) FindGoodsByTitle(Title string) model.Goods {
+func (m GoodsService) FindGoodsByTitle(OID dao.PrimaryKey, Title string) model.Goods {
 	var Goods model.Goods
-	db.Orm().Model(&model.Goods{}).Where(`"Title"=?`, Title).First(&Goods)
+	db.Orm().Model(&model.Goods{}).Where(`"OID"=? and "Title"=?`, OID, Title).First(&Goods)
 	return Goods
 }
 func (m GoodsService) FindGoodsLikeMark(Mark string) model.Goods {

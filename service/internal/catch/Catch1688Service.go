@@ -212,7 +212,7 @@ func (m *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 		goods.Title = title
 	})
 
-	_goods := m.Goods.FindGoodsByTitle(goods.Title)
+	_goods := m.Goods.FindGoodsByTitle(haveAdmin.OID, goods.Title)
 	if _goods.ID != 0 {
 		return
 	}
