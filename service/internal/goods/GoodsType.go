@@ -23,7 +23,6 @@ type TopGoodsTypeChild struct {
 }
 
 type GoodsTypeService struct {
-
 }
 
 func (m GoodsTypeService) GetTopGoodsTypeChild(DB *gorm.DB, Num uint) []TopGoodsTypeChild {
@@ -343,11 +342,11 @@ func (m GoodsTypeService) getGoodsTypeByUri(orm *gorm.DB, OID dao.PrimaryKey, ur
 	err := orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "Uri": uri}).First(&gt).Error
 	return gt, err
 }
-func (m GoodsTypeService) AddGoodsType(OID dao.PrimaryKey, goodsType *model.GoodsType) error {
+func (m GoodsTypeService) AddGoodsType(OID dao.PrimaryKey, goodsType *model.GoodsType) (*model.GoodsType, error) {
 	orm := db.Orm()
 	gt, _ := m.getGoodsTypeByName(orm, OID, goodsType.Name)
 	if !gt.IsZero() {
-		return errors.Errorf("重复的名字:%s", goodsType.Name)
+		return nil, errors.Errorf("重复的名字:%s", goodsType.Name)
 	}
 
 	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(goodsType.Name)
@@ -359,7 +358,8 @@ func (m GoodsTypeService) AddGoodsType(OID dao.PrimaryKey, goodsType *model.Good
 	gt.Name = goodsType.Name
 	gt.Uri = uri
 	gt.Introduction = goodsType.Introduction
-	return orm.Model(model.GoodsType{}).Create(&gt).Error
+	err := orm.Model(model.GoodsType{}).Create(&gt).Error
+	return &gt, err
 }
 func (m GoodsTypeService) ChangeGoodsType(OID dao.PrimaryKey, goodsType *model.GoodsType) error {
 	orm := db.Orm()
@@ -394,19 +394,19 @@ func (m GoodsTypeService) getGoodsTypeChildByUri(orm *gorm.DB, OID, GoodsTypeID 
 	err := orm.Model(model.GoodsTypeChild{}).Where(map[string]interface{}{"OID": OID, "GoodsTypeID": GoodsTypeID, "Uri": uri}).First(&gt).Error
 	return gt, err
 }
-func (m GoodsTypeService) AddGoodsTypeChild(OID, GoodsTypeID dao.PrimaryKey, name, image string) error {
+func (m GoodsTypeService) AddGoodsTypeChild(OID, GoodsTypeID dao.PrimaryKey, name, image string) (*model.GoodsTypeChild, error) {
 	if GoodsTypeID == 0 {
-		return errors.Errorf("没有指定父类ID")
+		return nil, errors.Errorf("没有指定父类ID")
 	}
 	orm := db.Orm()
 	gtc := m.GetGoodsType(GoodsTypeID)
 	if gtc.IsZero() {
-		return errors.Errorf("不存在父类:%d", GoodsTypeID)
+		return nil, errors.Errorf("不存在父类:%d", GoodsTypeID)
 	}
 
 	gt, _ := m.getGoodsTypeChildByName(orm, OID, GoodsTypeID, name)
 	if !gt.IsZero() {
-		return errors.Errorf("重复的名字:%s", name)
+		return nil, errors.Errorf("重复的名字:%s", name)
 	}
 
 	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(name)
@@ -419,7 +419,8 @@ func (m GoodsTypeService) AddGoodsTypeChild(OID, GoodsTypeID dao.PrimaryKey, nam
 	gt.Uri = uri
 	gt.Image = image
 	gt.GoodsTypeID = GoodsTypeID
-	return orm.Model(model.GoodsTypeChild{}).Create(&gt).Error
+	err := orm.Model(model.GoodsTypeChild{}).Create(&gt).Error
+	return &gt, err
 }
 func (m GoodsTypeService) ChangeGoodsTypeChild(OID, ID dao.PrimaryKey, name, image string) error {
 	orm := db.Orm()

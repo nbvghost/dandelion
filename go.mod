@@ -19,6 +19,7 @@ require (
 	github.com/nbvghost/captcha v0.0.0-20180625094027-5f52e2511d89
 	github.com/nbvghost/tool v0.0.0-20240405220402-a8fff92f2a4a
 	github.com/pkg/errors v0.9.1
+	github.com/robertkrimen/otto v0.4.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/wechatpay-apiv3/wechatpay-go v0.2.16
 	go.etcd.io/etcd/client/v3 v3.5.4
@@ -78,5 +79,6 @@ require (
 	google.golang.org/genproto v0.0.0-20210602131652-f16073e35f0c // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/ini.v1 v1.56.0 // indirect
+	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

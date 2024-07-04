@@ -34,6 +34,11 @@ import (
 	"github.com/nbvghost/dandelion/service/serviceargument"
 )
 
+var Catch = struct {
+	Catch1688 catch.Catch1688Service
+	Spider    catch.SpiderService
+}{}
+
 var Content = content.ContentService{}
 var Activity = struct {
 	CardItem    activity.CardItemService
@@ -47,9 +52,10 @@ var Activity = struct {
 	Voucher     activity.VoucherService
 }{}
 
-var Admin = admin.AdminService{}
-var Catch = catch.SpiderService{}
-var Api = catch.Api{}
+var Admin = struct {
+	Service admin.AdminService
+	Api     admin.Api
+}{}
 
 var Company = struct {
 	Organization company.OrganizationService
@@ -128,8 +134,6 @@ var Network = struct {
 }{
 	NewSMS: network.NewSMS,
 }
-
-
 
 func init() {
 

@@ -3,6 +3,7 @@ package catch
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/activity"
 	"github.com/nbvghost/dandelion/service/internal/admin"
@@ -10,11 +11,13 @@ import (
 	"github.com/nbvghost/dandelion/service/internal/express"
 	"github.com/nbvghost/dandelion/service/internal/goods"
 	"html"
+	"io"
 	"io/ioutil"
 	"log"
 	"math"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -28,7 +31,10 @@ import (
 	"golang.org/x/text/transform"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/robertkrimen/otto"
 )
+
+var vm = otto.New()
 
 type Catch1688Service struct {
 	model.BaseDao
@@ -41,67 +47,319 @@ type Catch1688Service struct {
 	//URLS         []string
 }
 
-func (m *Catch1688Service) Run() {
+var scriptRegexp = regexp.MustCompile(`<script.*?>([\s\S]*?)<\/script>`)
+var titleRegexp = regexp.MustCompile(`<title>([\s\S]*?)</title>`)
 
-	//service.URLS = append(service.URLS, GGoodsType{URL:"https://detail.1688.com/offer/565805587556.html?sk=consign"})
-	//service.URLS = append(service.URLS, GGoodsType{URL:"https://detail.1688.com/offer/594644186430.html?sk=consign"})
-	//service.URLS = append(service.URLS, GGoodsType{URL:"https://detail.1688.com/offer/586995720260.html?sk=consign"})
-	//service.URLS = append(service.URLS, GGoodsType{URL:"https://detail.1688.com/offer/588862561819.html?sk=consign"})
-	//service.URLS = append(service.URLS, GGoodsType{URL:"https://detail.1688.com/offer/590544720505.html?sk=consign"})
-	//service.URLS = append(service.URLS, GGoodsType{URL:"https://detail.1688.com/offer/589160608401.html?sk=consign"})
-	//service.URLS = append(service.URLS, GGoodsType{URL:"https://detail.1688.com/offer/591799200224.html?sk=consign"})
+func (m *Catch1688Service) Api(catchDir string) error {
+	http.HandleFunc("/push-html", func(writer http.ResponseWriter, request *http.Request) {
 
-	type URLModel struct {
-		Catch []string
+		//writer.Header().Set("Access-Control-Allow-Origin", strings.TrimRight(request.Referer(), "/"))
+		writer.Header().Set("Access-Control-Allow-Origin", "https://detail.1688.com")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type,FromURL")        //todo
+		writer.Header().Set("Access-Control-Allow-Methods", "DELETE,POST,PUT,OPTIONS,GET") //todo
+		writer.Header().Set("Access-Control-Allow-Credentials", "true")                    //todo
+		if request.Method == http.MethodOptions {
+			return
+		}
+
+		body, err := io.ReadAll(request.Body)
+		if err != nil {
+			writer.WriteHeader(404)
+			writer.Write([]byte(err.Error()))
+		} else {
+			resss := titleRegexp.FindStringSubmatch(string(body))
+			if len(resss) < 2 {
+				writer.WriteHeader(404)
+				writer.Write([]byte("读取标题错误"))
+				return
+			}
+			title := resss[1]
+
+			os.MkdirAll(fmt.Sprintf("%s/%s", catchDir, title), os.ModePerm)
+			err := os.WriteFile(fmt.Sprintf("%s/%s/%s", catchDir, title, "content.html"), body, os.ModePerm)
+			if err != nil {
+				writer.WriteHeader(404)
+				writer.Write([]byte(err.Error()))
+				return
+			}
+			err = os.WriteFile(fmt.Sprintf("%s/%s/%s", catchDir, title, "url.txt"), []byte(request.Header.Get("FromURL")), os.ModePerm)
+			if err != nil {
+				writer.WriteHeader(404)
+				writer.Write([]byte(err.Error()))
+				return
+			}
+			log.Println(len(resss))
+		}
+
+	})
+	err := http.ListenAndServe(":8080", http.DefaultServeMux)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (m *Catch1688Service) readGoods(dir string) error {
+	//log.Println(dir.Name(),subDirs[i].Name(),"content.html")
+	contentHtml, err := os.ReadFile(fmt.Sprintf("%s/%s", dir, "content.html"))
+	if err != nil {
+		return err
+	}
+	//log.Println(contentHtml,err)
+
+	document, err := goquery.NewDocumentFromReader(bytes.NewReader(contentHtml))
+	if err != nil {
+		return err
 	}
 
-	go func() {
-		for {
+	images := make([]string, 0)
+	document.Find(".content-detail").Find(".desc-img-loaded").Each(func(i int, selection *goquery.Selection) {
+		if len(selection.Nodes) > 0 {
+			if selection.Nodes[0].Parent.Data == "div" || selection.Nodes[0].Parent.Data == "p" {
+				if value, has := selection.Attr("data-lazyload-src"); has {
+					images = append(images, value)
+				}
+			}
+		}
+	})
+	document.Find(".content-detail").Find(".desc-img-no-load").Each(func(i int, selection *goquery.Selection) {
+		if len(selection.Nodes) > 0 {
+			if selection.Nodes[0].Parent.Data == "div" || selection.Nodes[0].Parent.Data == "p" {
+				if value, has := selection.Attr("data-lazyload-src"); has {
+					images = append(images, value)
+				}
+			}
+		}
+	})
 
-			URLS := URLModel{}
-			//todo util.JSONToStruct(conf.JsonText, &URLS)
+	for _, imageSrc := range images {
+		_, fileName := filepath.Split(imageSrc)
+		saveFile := fmt.Sprintf("%s/image/%s", dir, strings.Split(fileName,"?")[0])
+		os.MkdirAll(fmt.Sprintf("%s/image", dir), os.ModePerm)
+		if fi, err := os.Stat(saveFile); err == nil && fi.Size() > 0 {
+			continue
+		}
+		log.Println(imageSrc)
+		response, err := http.Get(imageSrc)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		defer response.Body.Close()
+		imgBody, err := io.ReadAll(response.Body)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		os.WriteFile(saveFile, imgBody, os.ModePerm)
+	}
 
-			//URLS = append(URLS, "https://detail.1688.com/offer/562482031336.html?sk=consign")
-			for index := range URLS.Catch {
-				m.URLCatch(URLS.Catch[index])
-				time.Sleep(60 * time.Second)
+	resss := scriptRegexp.FindAllStringSubmatch(string(contentHtml), -1)
+	log.Println(len(resss))
+	for _, i2 := range resss {
+		if len(i2) >= 2 && strings.Contains(i2[1], "window.__INIT_DATA") && strings.Contains(i2[1], "window.__GLOBAL_DADA") {
+			storeData := make(map[string]any)
+			storeDataObj, err := vm.Run("var window = {};\n" + i2[1] + "\n;window.__INIT_DATA;")
+			if err != nil {
+				return err
+			}
+			obj := storeDataObj.Object()
+			{
+				globalData, err := obj.Get("globalData")
+				if err != nil {
+					return err
+				}
+
+				skuModel, err := globalData.Object().Get("skuModel")
+				if err != nil {
+					return err
+				}
+
+				func(){
+					skuInfoMap,err:=skuModel.Object().Get("skuInfoMap")
+					if err != nil {
+						log.Println(err)
+						return
+					}
+					if jb,err:=skuInfoMap.MarshalJSON();err!=nil{
+						log.Println(err)
+					}else{
+						os.WriteFile(fmt.Sprintf("%s/%s", dir, "skuInfoMap.json"),jb,os.ModePerm)
+					}
+				}()
+
+				func(){
+					skuProps,err:=skuModel.Object().Get("skuProps")
+					if err != nil {
+						log.Println(err)
+						return
+					}
+					if jb,err:=skuProps.MarshalJSON();err!=nil{
+						log.Println(err)
+					}else{
+						os.WriteFile(fmt.Sprintf("%s/%s", dir, "skuProps.json"),jb,os.ModePerm)
+					}
+				}()
+
+				images, err := globalData.Object().Get("images")
+				if err != nil {
+					return err
+				}
+
+				imagesObject := images.Object()
+				keys := imagesObject.Keys()
+				for _, key := range keys {
+					if imageItem, err := imagesObject.Get(key); err == nil {
+						if imageSrc, err := imageItem.Object().Get("fullPathImageURI"); err == nil {
+							_, fileName := filepath.Split(imageSrc.String())
+							saveFile := fmt.Sprintf("%s/head/%s", dir, strings.Split(fileName,"?")[0])
+							os.MkdirAll(fmt.Sprintf("%s/head", dir), os.ModePerm)
+							if fi, err := os.Stat(saveFile); err == nil && fi.Size() > 0 {
+								continue
+							}
+							log.Println(imageSrc.String())
+							response, err := http.Get(imageSrc.String())
+							if err != nil {
+								log.Println(err)
+								continue
+							}
+							defer response.Body.Close()
+							imgBody, err := io.ReadAll(response.Body)
+							if err != nil {
+								log.Println(err)
+								continue
+							}
+							os.WriteFile(saveFile, imgBody, os.ModePerm)
+						}
+					}
+				}
+
+
+				/*if imagesJSON, err := images.MarshalJSON(); err == nil {
+					log.Println(images)
+					log.Println(string(imagesJSON))
+				}*/
 			}
 
-			time.Sleep(60 * time.Second)
-
+			log.Println(storeData)
 		}
-	}()
+		/*if len(i2) >= 2 && strings.Contains(i2[1], "window.__STORE_DATA") && strings.Contains(i2[1], "window.isOnline") && false {
+			//storeData := make(map[string]any)
+			storeDataObj, err := vm.Run("var window = {};\n" + i2[1] + "\n;window.__STORE_DATA;")
+			if err != nil {
+				return err
+			}
+			obj := storeDataObj.Object()
+			{
+				globalData, err := obj.Get("globalData")
+				if err != nil {
+					return err
+				}
+				images, err := globalData.Object().Get("images")
+				if err != nil {
+					return err
+				}
+				if _, err := images.MarshalJSON(); err == nil {
+					//log.Println(string(imagesJSON))
+				}
+			}
+			//log.Println(storeData)
+		}*/
+	}
 
-	go func() {
+	return nil
+}
+func (m *Catch1688Service) Run(catchDir string) error {
+	dir, err := os.Open(catchDir)
+	if err != nil {
+		return err
+	}
+	typeDirs, err := dir.Readdir(-1)
+	if err != nil {
+		return err
+	}
+	for i := 0; i < len(typeDirs); i++ {
+		subTypeDir, err := os.Open(catchDir + "/" + typeDirs[i].Name())
+		if err != nil {
+			return err
+		}
+		subTypeDirs, err := subTypeDir.Readdir(-1)
+		if err != nil {
+			return err
+		}
 
-		for {
-			list, err := os.Open("1688")
-			if err == nil {
+		for ii := 0; ii < len(subTypeDirs); ii++ {
+			goodsDir, err := os.Open(fmt.Sprintf("%s/%s", subTypeDir.Name(), subTypeDirs[ii].Name()))
+			if err != nil {
+				return err
+			}
+			goodsDirs, err := goodsDir.Readdir(-1)
+			if err != nil {
+				return err
+			}
 
-				fl, err := list.Readdir(-1)
+			for iii := 0; iii < len(goodsDirs); iii++ {
+				err = m.readGoods(fmt.Sprintf("%s/%s/%s", subTypeDir.Name(), subTypeDirs[ii].Name(), goodsDirs[iii].Name()))
+				if err != nil {
+					return err
+				}
+			}
+		}
+
+	}
+
+	/*
+		type URLModel struct {
+				Catch []string
+			}
+		go func() {
+			for {
+
+				URLS := URLModel{}
+				//todo util.JSONToStruct(conf.JsonText, &URLS)
+
+				//URLS = append(URLS, "https://detail.1688.com/offer/562482031336.html?sk=consign")
+				for index := range URLS.Catch {
+					m.URLCatch(URLS.Catch[index])
+					time.Sleep(60 * time.Second)
+				}
+
+				time.Sleep(60 * time.Second)
+
+			}
+		}()
+
+		go func() {
+
+			for {
+				list, err := os.Open("1688")
 				if err == nil {
 
-					for i := range fl {
+					fl, err := list.Readdir(-1)
+					if err == nil {
 
-						f, err := os.Open("1688/" + fl[i].Name())
-						if err == nil {
+						for i := range fl {
 
-							b, err := ioutil.ReadAll(f)
+							f, err := os.Open("1688/" + fl[i].Name())
 							if err == nil {
-								m.Catch(string(b), fl[i].Name(), false)
+
+								b, err := ioutil.ReadAll(f)
+								if err == nil {
+									m.Catch(string(b), fl[i].Name(), false)
+								}
 							}
+
 						}
 
 					}
 
 				}
 
+				time.Sleep(60 * time.Second)
 			}
 
-			time.Sleep(60 * time.Second)
-		}
+		}()*/
 
-	}()
+	return nil
 }
 
 func (m *Catch1688Service) getGoodsType(content string) (map[string]interface{}, map[string]interface{}) {
@@ -110,9 +368,8 @@ func (m *Catch1688Service) getGoodsType(content string) (map[string]interface{},
 	goodsInfo := make(map[string]interface{})
 
 	//reg := regexp.MustCompile(`iDetailData.registerRenderData\(([\s\S]*)[\)^;]*`)
-	reg := regexp.MustCompile(`<script.*?>([\s\S]*?)<\/script>`)
 
-	resss := reg.FindAllStringSubmatch(content, -1)
+	resss := scriptRegexp.FindAllStringSubmatch(content, -1)
 	log.Println(len(resss))
 
 	for x := 0; x < len(resss); x++ {
