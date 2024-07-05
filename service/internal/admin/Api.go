@@ -29,6 +29,46 @@ func init() {
 type Api struct {
 }
 
+func (Api) PutGoodsSKULabel(GoodsID dao.PrimaryKey, GoodsSkuLabelList []model.GoodsSkuLabel) ([]model.GoodsSkuLabel, error) {
+	//https://admin.sites.ink/api/goods/sku-label
+	goodsType := map[string]any{
+		"GoodsID":   GoodsID,
+		"LabelList": GoodsSkuLabelList,
+	}
+
+	goodsBytes, err := json.Marshal(goodsType)
+	if err != nil {
+		return nil, err
+	}
+
+	form, err := client.Post("https://admin.sites.ink/api/goods/sku-label", "application/json", bytes.NewReader(goodsBytes))
+	if err != nil {
+		return nil, err
+	}
+	defer form.Body.Close()
+
+	body, err := io.ReadAll(form.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	ar := struct {
+		Code    result.ActionResultCode
+		Message string
+		Data    struct {
+			SkuLabelList []model.GoodsSkuLabel
+		}
+		Now int64
+	}{}
+	err = json.Unmarshal(body, &ar)
+	if err != nil {
+		return nil, err
+	}
+	if ar.Code != 0 {
+		return nil, errors.New(ar.Message)
+	}
+	return ar.Data.SkuLabelList, nil
+}
 func (Api) AddGoodsTypeChild(GoodsTypeID dao.PrimaryKey, Name string) (*model.GoodsTypeChild, error) {
 	goodsType := &model.GoodsTypeChild{Name: Name, GoodsTypeID: GoodsTypeID}
 
@@ -63,9 +103,10 @@ func (Api) AddGoodsTypeChild(GoodsTypeID dao.PrimaryKey, Name string) (*model.Go
 	}
 	return ar.Data, nil
 }
-func (Api) GetGoodsTypeChild(ID dao.PrimaryKey, Name string) (*model.GoodsTypeChild, error) {
+func (Api) GetGoodsTypeChild(ID dao.PrimaryKey, Name string, GoodsTypeID dao.PrimaryKey) (*model.GoodsTypeChild, error) {
 	params := url.Values{}
 	params.Set("ID", fmt.Sprintf("%d", ID))
+	params.Set("GoodsTypeID", fmt.Sprintf("%d", GoodsTypeID))
 	params.Set("Name", Name)
 
 	form, err := client.Get("https://admin.sites.ink/api/goods/get-goods-type-child?" + params.Encode())
@@ -88,6 +129,9 @@ func (Api) GetGoodsTypeChild(ID dao.PrimaryKey, Name string) (*model.GoodsTypeCh
 	err = json.Unmarshal(body, &ar)
 	if err != nil {
 		return nil, err
+	}
+	if ar.Code != 0 {
+		return nil, errors.New(ar.Message)
 	}
 	return ar.Data, nil
 }
@@ -126,7 +170,7 @@ func (Api) AddGoodsType(Name string) (*model.GoodsType, error) {
 	}
 	return ar.Data, nil
 }
-func (Api) GetGoodsType(ID dao.PrimaryKey, Name string) (*model.Goods, error) {
+func (Api) GetGoodsType(ID dao.PrimaryKey, Name string) (*model.GoodsType, error) {
 	params := url.Values{}
 	params.Set("ID", fmt.Sprintf("%d", ID))
 	params.Set("Name", Name)
@@ -145,20 +189,24 @@ func (Api) GetGoodsType(ID dao.PrimaryKey, Name string) (*model.Goods, error) {
 	ar := struct {
 		Code    result.ActionResultCode
 		Message string
-		Data    *model.Goods
+		Data    *model.GoodsType
 		Now     int64
 	}{}
 	err = json.Unmarshal(body, &ar)
 	if err != nil {
 		return nil, err
 	}
+	if ar.Code != 0 {
+		return nil, errors.New(ar.Message)
+	}
 	return ar.Data, nil
 }
 
-func (Api) UpdateGoods(ID dao.PrimaryKey, Title string, Images sqltype.Array[string], GoodsTypeID dao.PrimaryKey, GoodsTypeChildID dao.PrimaryKey) (*model.Goods, error) {
+func (Api) UpdateGoods(ID dao.PrimaryKey, goods *model.Goods, Title string, Images sqltype.Array[string], GoodsTypeID dao.PrimaryKey, GoodsTypeChildID dao.PrimaryKey) (*model.Goods, error) {
 	//https://admin.sites.ink/api/goods/change-goods
 
-	goods := &model.Goods{Entity: dao.Entity{ID: ID}}
+	//goods := &model.Goods{Entity: dao.Entity{ID: ID}}
+	goods.ID = ID
 	goods.Images = Images
 	goods.Title = Title
 	goods.GoodsTypeID = GoodsTypeID
@@ -195,6 +243,9 @@ func (Api) UpdateGoods(ID dao.PrimaryKey, Title string, Images sqltype.Array[str
 	if err != nil {
 		return nil, err
 	}
+	if ar.Code != 0 {
+		return nil, errors.New(ar.Message)
+	}
 	return ar.Data.Goods, nil
 }
 func (Api) AddGoods(Title string, GoodsTypeID dao.PrimaryKey, GoodsTypeChildID dao.PrimaryKey) (*model.Goods, error) {
@@ -226,6 +277,9 @@ func (Api) AddGoods(Title string, GoodsTypeID dao.PrimaryKey, GoodsTypeChildID d
 	if err != nil {
 		return nil, err
 	}
+	if ar.Code != 0 {
+		return ar.Data.Goods, errors.New(ar.Message)
+	}
 	return ar.Data.Goods, nil
 }
 func (Api) Login(account, password string) error {
@@ -242,6 +296,22 @@ func (Api) Login(account, password string) error {
 	body, err := io.ReadAll(form.Body)
 	if err != nil {
 		return err
+	}
+
+	ar := struct {
+		Code    result.ActionResultCode
+		Message string
+		Data    struct {
+			Goods *model.Goods
+		}
+		Now int64
+	}{}
+	err = json.Unmarshal(body, &ar)
+	if err != nil {
+		return err
+	}
+	if ar.Code != 0 {
+		return errors.New(ar.Message)
 	}
 	log.Println(string(body))
 	return nil
