@@ -29,6 +29,132 @@ func init() {
 type Api struct {
 }
 
+func (Api) UpdateGoodsSkuLabelData(ID dao.PrimaryKey, label, image string) (map[dao.PrimaryKey][]*model.GoodsSkuLabelData, error) {
+	goodsType := &model.GoodsSkuLabelData{
+		Label: label,
+		Image: image,
+	}
+	goodsType.ID = ID
+
+	goodsBytes, err := json.Marshal(goodsType)
+	if err != nil {
+		return nil, err
+	}
+
+	request, err := http.NewRequest("PUT", "https://admin.sites.ink/api/goods/sku-label-data", bytes.NewReader(goodsBytes))
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	form, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer form.Body.Close()
+
+	body, err := io.ReadAll(form.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	ar := struct {
+		Code    result.ActionResultCode
+		Message string
+		Data    struct {
+			SkuLabelDataList map[dao.PrimaryKey][]*model.GoodsSkuLabelData
+		}
+		Now int64
+	}{}
+	err = json.Unmarshal(body, &ar)
+	if err != nil {
+		return nil, err
+	}
+	if ar.Code != 0 {
+		return nil, errors.New(ar.Message)
+	}
+	return ar.Data.SkuLabelDataList, nil
+}
+func (Api) AddGoodsSkuLabelData(GoodsID, GoodsSkuLabelID dao.PrimaryKey, label, image string) (map[dao.PrimaryKey][]*model.GoodsSkuLabelData, error) {
+	goodsType := &model.GoodsSkuLabelData{
+		GoodsSkuLabelID: GoodsSkuLabelID,
+		GoodsID:         GoodsID,
+		Label:           label,
+		Image:           image,
+	}
+
+	goodsBytes, err := json.Marshal(goodsType)
+	if err != nil {
+		return nil, err
+	}
+
+	form, err := client.Post("https://admin.sites.ink/api/goods/sku-label-data", "application/json", bytes.NewReader(goodsBytes))
+	if err != nil {
+		return nil, err
+	}
+	defer form.Body.Close()
+
+	body, err := io.ReadAll(form.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	ar := struct {
+		Code    result.ActionResultCode
+		Message string
+		Data    struct {
+			SkuLabelDataList map[dao.PrimaryKey][]*model.GoodsSkuLabelData
+		}
+		Now int64
+	}{}
+	err = json.Unmarshal(body, &ar)
+	if err != nil {
+		return nil, err
+	}
+	if ar.Code != 0 {
+		return nil, errors.New(ar.Message)
+	}
+	return ar.Data.SkuLabelDataList, nil
+}
+func (Api) GetSKULabelData(GoodsID dao.PrimaryKey, goodsSkuLabelData *model.GoodsSkuLabelData) (map[dao.PrimaryKey][]*model.GoodsSkuLabelData, error) {
+	//https://admin.sites.ink/api/goods/sku-label
+	params := url.Values{}
+	params.Set("goods-id", fmt.Sprintf("%d", GoodsID))
+	params.Set("goods-sku-label-id", fmt.Sprintf("%d", goodsSkuLabelData.ID))
+	params.Set("label", goodsSkuLabelData.Label)
+
+	request, err := http.NewRequest("GET", "https://admin.sites.ink/api/goods/sku-label-data?"+params.Encode(), nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	form, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer form.Body.Close()
+
+	body, err := io.ReadAll(form.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	ar := struct {
+		Code    result.ActionResultCode
+		Message string
+		Data    struct {
+			SkuLabelDataList map[dao.PrimaryKey][]*model.GoodsSkuLabelData
+		}
+		Now int64
+	}{}
+	err = json.Unmarshal(body, &ar)
+	if err != nil {
+		return nil, err
+	}
+	if ar.Code != 0 {
+		return nil, errors.New(ar.Message)
+	}
+	return ar.Data.SkuLabelDataList, nil
+}
 func (Api) PutGoodsSKULabel(GoodsID dao.PrimaryKey, GoodsSkuLabelList []model.GoodsSkuLabel) ([]model.GoodsSkuLabel, error) {
 	//https://admin.sites.ink/api/goods/sku-label
 	goodsType := map[string]any{
@@ -41,7 +167,12 @@ func (Api) PutGoodsSKULabel(GoodsID dao.PrimaryKey, GoodsSkuLabelList []model.Go
 		return nil, err
 	}
 
-	form, err := client.Post("https://admin.sites.ink/api/goods/sku-label", "application/json", bytes.NewReader(goodsBytes))
+	request, err := http.NewRequest("PUT", "https://admin.sites.ink/api/goods/sku-label", bytes.NewReader(goodsBytes))
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	form, err := client.Do(request)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +266,6 @@ func (Api) GetGoodsTypeChild(ID dao.PrimaryKey, Name string, GoodsTypeID dao.Pri
 	}
 	return ar.Data, nil
 }
-
 func (Api) AddGoodsType(Name string) (*model.GoodsType, error) {
 	goodsType := &model.GoodsType{Name: Name}
 
@@ -201,7 +331,6 @@ func (Api) GetGoodsType(ID dao.PrimaryKey, Name string) (*model.GoodsType, error
 	}
 	return ar.Data, nil
 }
-
 func (Api) UpdateGoods(ID dao.PrimaryKey, goods *model.Goods, Title string, Images sqltype.Array[string], GoodsTypeID dao.PrimaryKey, GoodsTypeChildID dao.PrimaryKey) (*model.Goods, error) {
 	//https://admin.sites.ink/api/goods/change-goods
 
