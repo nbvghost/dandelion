@@ -9,6 +9,7 @@ import (
 	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 	"io"
 	"log"
 	"net/http"
@@ -29,6 +30,77 @@ func init() {
 type Api struct {
 }
 
+func (Api) GetSpecification(GoodsID dao.PrimaryKey) ([]model.Specification, error) {
+	params := url.Values{}
+	params.Set("goods-id", fmt.Sprintf("%d", GoodsID))
+
+	form, err := client.Get("https://admin.sites.ink/api/goods/specification?" + params.Encode())
+	if err != nil {
+		return nil, err
+	}
+	defer form.Body.Close()
+
+	body, err := io.ReadAll(form.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	ar := struct {
+		Code    result.ActionResultCode
+		Message string
+		Data    struct {
+			Specifications []model.Specification
+		}
+		Now int64
+	}{}
+	err = json.Unmarshal(body, &ar)
+	if err != nil {
+		return nil, err
+	}
+	if ar.Code != 0 {
+		return nil, errors.New(ar.Message)
+	}
+	return ar.Data.Specifications, nil
+}
+func (Api) PostSpecification(GoodsID dao.PrimaryKey, si []serviceargument.SpecificationInfo) ([]model.Specification, error) {
+	goodsType := map[string]any{
+		"GoodsID": GoodsID,
+		"List":    si,
+	}
+
+	goodsBytes, err := json.Marshal(goodsType)
+	if err != nil {
+		return nil, err
+	}
+
+	form, err := client.Post("https://admin.sites.ink/api/goods/specification", "application/json", bytes.NewReader(goodsBytes))
+	if err != nil {
+		return nil, err
+	}
+	defer form.Body.Close()
+
+	body, err := io.ReadAll(form.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	ar := struct {
+		Code    result.ActionResultCode
+		Message string
+		Data    struct {
+			Specifications []model.Specification
+		}
+		Now int64
+	}{}
+	err = json.Unmarshal(body, &ar)
+	if err != nil {
+		return nil, err
+	}
+	if ar.Code != 0 {
+		return nil, errors.New(ar.Message)
+	}
+	return ar.Data.Specifications, nil
+}
 func (Api) UpdateGoodsSkuLabelData(ID dao.PrimaryKey, label, image string) (map[dao.PrimaryKey][]*model.GoodsSkuLabelData, error) {
 	goodsType := &model.GoodsSkuLabelData{
 		Label: label,
@@ -74,11 +146,12 @@ func (Api) UpdateGoodsSkuLabelData(ID dao.PrimaryKey, label, image string) (map[
 	}
 	return ar.Data.SkuLabelDataList, nil
 }
-func (Api) AddGoodsSkuLabelData(GoodsID, GoodsSkuLabelID dao.PrimaryKey, label, image string) (map[dao.PrimaryKey][]*model.GoodsSkuLabelData, error) {
+func (Api) AddGoodsSkuLabelData(GoodsID, GoodsSkuLabelID dao.PrimaryKey, label, name, image string) (map[dao.PrimaryKey][]*model.GoodsSkuLabelData, error) {
 	goodsType := &model.GoodsSkuLabelData{
 		GoodsSkuLabelID: GoodsSkuLabelID,
 		GoodsID:         GoodsID,
 		Label:           label,
+		Name:            name,
 		Image:           image,
 	}
 
@@ -120,7 +193,7 @@ func (Api) GetSKULabelData(GoodsID dao.PrimaryKey, goodsSkuLabelData *model.Good
 	params := url.Values{}
 	params.Set("goods-id", fmt.Sprintf("%d", GoodsID))
 	params.Set("goods-sku-label-id", fmt.Sprintf("%d", goodsSkuLabelData.ID))
-	params.Set("label", goodsSkuLabelData.Label)
+	params.Set("name", goodsSkuLabelData.Name)
 
 	request, err := http.NewRequest("GET", "https://admin.sites.ink/api/goods/sku-label-data?"+params.Encode(), nil)
 	if err != nil {
