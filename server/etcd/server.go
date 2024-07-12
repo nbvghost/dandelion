@@ -78,8 +78,8 @@ func (m *server) ObtainRedis() (*config.RedisOptions, error) {
 }
 
 func (m *server) parseDNS(dns []constrain.ServerDNS, check bool) error {
-	defer m.dnsLocker.Unlock()
 	m.dnsLocker.Lock()
+	defer m.dnsLocker.Unlock()
 
 	m.dnsDomainToServer = map[string]config.MicroServer{}
 	m.dnsServerToDomain = map[string][]string{}
