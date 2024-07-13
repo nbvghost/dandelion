@@ -105,7 +105,7 @@ json_agg("GoodsSkuLabelData"."Label")::jsonb as "SKUDataLabel"
 
 	mainOrm.Find(&goodsList)
 
-	var options = m.goodsOptions(goodsList)
+	var options = &serviceargument.Options{} //m.goodsOptions(goodsList)
 
 	if pageIndex < 0 {
 		pageIndex = 0
