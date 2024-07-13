@@ -183,6 +183,7 @@ func (m GoodsService) goodsOptions(list []*extends.GoodsDetail) *serviceargument
 			}
 		}
 	}
+	log.Println("goodsOptions list end", options)
 	return options
 }
 
