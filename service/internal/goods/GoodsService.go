@@ -105,7 +105,7 @@ json_agg("GoodsSkuLabelData"."Label")::jsonb as "SKUDataLabel"
 
 	mainOrm.Find(&goodsList)
 
-	var options = &serviceargument.Options{} //m.goodsOptions(goodsList)
+	var options = m.goodsOptions(goodsList)
 
 	if pageIndex < 0 {
 		pageIndex = 0
@@ -121,16 +121,15 @@ json_agg("GoodsSkuLabelData"."Label")::jsonb as "SKUDataLabel"
 
 func (m GoodsService) goodsOptions(list []*extends.GoodsDetail) *serviceargument.Options {
 	var options = &serviceargument.Options{}
-
-	for _, detail := range list {
+	log.Println("goodsOptions list len", len(list))
+	for p := range list {
+		detail := list[p]
 		{
-			//goodsList := dao.Find(db.Orm(), &model.GoodsAttributes{}).Where(`"OID"=?`, oid).List()
 			for i := range detail.GoodsAttributes {
 				item := detail.GoodsAttributes[i]
 				options.AddAttributes(serviceargument.OptionsTypeAttribute, item.Name, item.Name, item.Value)
 			}
 		}
-
 		{
 			skuList := m.SKUService.SkuLabel(detail.GoodsSkuLabel, detail.GoodsSkuLabelData)
 			for i := range skuList {
@@ -156,13 +155,6 @@ func (m GoodsService) goodsOptions(list []*extends.GoodsDetail) *serviceargument
 		sort.Ints(marketPriceList)
 
 		{
-			//select "Num" from "Specification" group by "Num" order by "Num" desc;
-			/*specificationList, err := dao.Find(db.Orm(), &model.Specification{}).Where(`"OID"=?`, oid).Order(`"Num" desc`).Group("Num")
-			if err != nil {
-				return nil, err
-			}*/
-			//sList, ok := specificationList.([]uint)
-
 			for i, u := range numList {
 				if i == 0 {
 					options.AddAttributes(serviceargument.OptionsTypePackageNum, "PackingQuantity", "Packing quantity", "0-"+object.ParseString(u))
@@ -173,14 +165,6 @@ func (m GoodsService) goodsOptions(list []*extends.GoodsDetail) *serviceargument
 		}
 
 		{
-			/*specificationWeightList, err := dao.Find(db.Orm(), &model.Specification{}).Where(`"OID"=?`, oid).Order(`"Weight"`).Group("Weight")
-			if err != nil {
-				return nil, err
-			}
-			weightList, ok := specificationWeightList.([]uint)
-			if !ok {
-				return nil, errors.New("error data type")
-			}*/
 			for i, u := range weightList {
 				if i == 0 {
 					options.AddAttributes(serviceargument.OptionsTypeWeight, "Weight", "Weight", "0-"+object.ParseString(u))
@@ -190,14 +174,6 @@ func (m GoodsService) goodsOptions(list []*extends.GoodsDetail) *serviceargument
 			}
 		}
 		{
-			/*specificationMarketPriceList, err := dao.Find(db.Orm(), &model.Specification{}).Where(`"OID"=?`, oid).Order(`"MarketPrice"`).Group("MarketPrice")
-			if err != nil {
-				return nil, err
-			}
-			priceList, ok := specificationMarketPriceList.([]uint)
-			if !ok {
-				return nil, errors.New("error data type")
-			}*/
 			for i, u := range marketPriceList {
 				if i == 0 {
 					options.AddAttributes(serviceargument.OptionsTypePrice, "Price", "Price", "0-"+object.ParseString(u))
@@ -207,14 +183,6 @@ func (m GoodsService) goodsOptions(list []*extends.GoodsDetail) *serviceargument
 			}
 		}
 	}
-
-	/*var attributes []serviceargument.Option
-	for i := 0; i < len(options.Attributes); i++ {
-		if len(options.Attributes[i].Value) > 1 {
-			attributes = append(attributes, options.Attributes[i])
-		}
-	}
-	options.Attributes = attributes*/
 	return options
 }
 
@@ -252,12 +220,12 @@ func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Go
 
 	goods.OID = OID
 	if len(goods.Title) == 0 {
-		return goods,errors.Errorf("请指定产品标题")
+		return goods, errors.Errorf("请指定产品标题")
 	}
 
 	g := m.FindGoodsByTitle(OID, goods.Title)
 	if !g.IsZero() && g.ID != goods.ID {
-		return &g,errors.Errorf("重复的产品标题")
+		return &g, errors.Errorf("重复的产品标题")
 	}
 
 	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(goods.Title)
@@ -269,13 +237,13 @@ func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Go
 	if goods.ID.IsZero() {
 		err := tx.Create(goods).Error
 		if err != nil {
-			return goods,err
+			return goods, err
 		}
 	} else {
 		//err = tx.Save(goods).Error
 		err := tx.Model(goods).Updates(goods).Error
 		if err != nil {
-			return goods,err
+			return goods, err
 		}
 	}
 
@@ -294,13 +262,13 @@ func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Go
 			if value.ID.IsZero() {
 				err := tx.Create(&value).Error
 				if err != nil {
-					return goods,err
+					return goods, err
 				}
 				total = total + value.Stock
 			} else {
 				err := tx.Save(&value).Error
 				if err != nil {
-					return goods,err
+					return goods, err
 				}
 				//err = tx.Model(&goods).Updates(goods).Error
 				total = total + value.Stock
@@ -312,12 +280,12 @@ func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Go
 	if goods.ExpressTemplateID == 0 {
 		expressTemplate := m.ExpressTemplateService.GetExpressTemplateByOID(OID)
 		if expressTemplate.IsZero() {
-			return goods,errors.New("请设置快递信息")
+			return goods, errors.New("请设置快递信息")
 		}
 		goods.ExpressTemplateID = expressTemplate.ID
 	}
 	err := tx.Save(goods).Error
-	return goods,err
+	return goods, err
 }
 
 func (m GoodsService) Rating(goodsID dao.PrimaryKey) *extends.GoodsRating {
