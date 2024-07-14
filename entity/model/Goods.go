@@ -32,7 +32,7 @@ type Goods struct {
 	Summary           string                `gorm:"column:Summary;type:text"`       //
 	Introduce         string                `gorm:"column:Introduce;type:text"`     //
 	Pictures          sqltype.Array[string] `gorm:"column:Pictures;type:JSON"`      //json array
-	Params            string                `gorm:"column:Params"`                  //json array
+	Params            string                `gorm:"column:Params;type:JSON;default:'[]'"`                  //json array
 	ExpressTemplateID dao.PrimaryKey        `gorm:"column:ExpressTemplateID"`       //
 	CountSale         uint                  `gorm:"column:CountSale"`               //销售量
 	CountView         uint                  `gorm:"column:CountView"`               //查看数量

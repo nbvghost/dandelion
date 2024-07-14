@@ -40,7 +40,7 @@ type GoodsService struct {
 	ExpressTemplateService express.ExpressTemplateService
 }
 
-func (m GoodsService) PaginationGoodsDetail(context constrain.IContext,OID, GoodsTypeID, GoodsTypeChildID dao.PrimaryKey, filterOption []serviceargument.Option, pageIndex, pageSize int) (serviceargument.Pagination[*extends.GoodsDetail], *serviceargument.Options) {
+func (m GoodsService) PaginationGoodsDetail(context constrain.IContext, OID, GoodsTypeID, GoodsTypeChildID dao.PrimaryKey, filterOption []serviceargument.Option, pageIndex, pageSize int) (serviceargument.Pagination[*extends.GoodsDetail], *serviceargument.Options) {
 	orm := db.Orm().Model(&model.Goods{}).Where(`"Goods"."OID"=?`, OID)
 
 	if GoodsTypeID > 0 && GoodsTypeChildID == 0 {
@@ -120,7 +120,6 @@ json_agg("GoodsSkuLabelData"."Label")::jsonb as "SKUDataLabel"
 
 func (m GoodsService) goodsOptions(list []*extends.GoodsDetail) *serviceargument.Options {
 	var options = &serviceargument.Options{}
-	log.Println("goodsOptions list len", len(list))
 	for p := range list {
 		detail := list[p]
 		{
@@ -130,14 +129,14 @@ func (m GoodsService) goodsOptions(list []*extends.GoodsDetail) *serviceargument
 			}
 		}
 		{
-			skuList := m.SKUService.SkuLabel(detail.GoodsSkuLabel, detail.GoodsSkuLabelData)
+			/*skuList := m.SKUService.SkuLabel(detail.GoodsSkuLabel, detail.GoodsSkuLabelData)
 			for i := range skuList {
 				item := skuList[i]
 				for i2 := range item.Data {
 					itemData := item.Data[i2]
 					options.AddAttributes(serviceargument.OptionsTypeSpecification, item.Label.Name, item.Label.Label, itemData.Label)
 				}
-			}
+			}*/
 		}
 
 		numList := make([]int, 0)
@@ -182,7 +181,6 @@ func (m GoodsService) goodsOptions(list []*extends.GoodsDetail) *serviceargument
 			}
 		}
 	}
-	log.Println("goodsOptions list end", options)
 	return options
 }
 
@@ -556,6 +554,7 @@ func (m GoodsService) getGoodsInfoList(goodsList []model.Goods) []extends.GoodsM
 	}
 	return results
 }
+
 /*func (m GoodsService) getGoodsInfoList(goodsList []model.Goods) []extends.GoodsMix {
 	var results = make([]extends.GoodsMix, 0)
 	for _, value := range goodsList {

@@ -280,7 +280,7 @@ func RebuildFullTextSearch() {
 		if err = db.Orm().Model(&fts).Save(&fts).Error; err != nil {
 			panic(err)
 		}
-		if err = db.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
+		if err = db.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') || setweight(to_tsvector('english', coalesce("Content",'')),'C') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
 			panic(err)
 		}
 	}
