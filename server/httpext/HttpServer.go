@@ -210,6 +210,10 @@ func (m *httpServer) handlerFunc(beforeViewRender constrain.IBeforeViewRender, v
 func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, engine *mux.Router, router *mux.Router, mRoute constrain.IRoute, ops ...Option) *httpServer {
 	s := &httpServer{router: router, etcdClient: etcdClient, redisClient: redisClient, route: mRoute, engine: engine, defaultMiddleware: &httpMiddleware{}}
 
+	engine.HandleFunc("/debug/pprof/*any", func(writer http.ResponseWriter, request *http.Request) {
+		http.DefaultServeMux.ServeHTTP(writer, request)
+	})
+
 	s.errorHandler = func(ctx constrain.IContext, customizeViewRender constrain.IAfterViewRender, w http.ResponseWriter, r *http.Request, err error) {
 		contextValue := contexext.FromContext(ctx)
 		if contextValue.IsApi {
@@ -236,7 +240,7 @@ func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, eng
 		ops[i].apply(s)
 	}
 
-	if s.viewRender==nil{
+	if s.viewRender == nil {
 		s.viewRender = &DefaultViewRender{}
 	}
 

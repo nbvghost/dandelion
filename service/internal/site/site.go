@@ -18,6 +18,7 @@ type Service struct {
 	GoodsService        goods.GoodsService
 	OrganizationService company.OrganizationService
 	ContentService      content.ContentService
+	GoodsTypeService    goods.GoodsTypeService
 }
 
 func (m Service) FindShowMenus(OID dao.PrimaryKey) extends.MenusData {
@@ -181,8 +182,7 @@ func (m Service) menus(OID dao.PrimaryKey, hide uint) extends.MenusData {
 	return menusData
 
 }
-
-func (m Service) GoodsDetail(context constrain.IContext, OID dao.PrimaryKey, GoodsTypeUri, GoodsTypeChildUri string, filterOption []serviceargument.Option, pageIndex, pageSize int) serviceargument.SiteData[*extends.GoodsDetail] {
+func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, GoodsTypeUri, GoodsTypeChildUri string, filterOption []serviceargument.Option, pageIndex, pageSize int) serviceargument.SiteData[*extends.GoodsDetail] {
 	var moduleContentData serviceargument.SiteData[*extends.GoodsDetail]
 
 	Orm := db.Orm()
@@ -212,7 +212,7 @@ func (m Service) GoodsDetail(context constrain.IContext, OID dao.PrimaryKey, Goo
 
 	menusPage := allMenusData.ListMenusByType(model.ContentTypePage)
 
-	pagination, options := m.GoodsService.PaginationGoodsDetail(OID, currentMenuData.TypeID, currentMenuData.SubTypeID, filterOption, pageIndex, pageSize)
+	pagination, options := m.GoodsService.PaginationGoodsDetail(context, OID, currentMenuData.TypeID, currentMenuData.SubTypeID, filterOption, pageIndex, pageSize)
 
 	var navigations []extends.Menus
 
@@ -254,6 +254,87 @@ func (m Service) GoodsDetail(context constrain.IContext, OID dao.PrimaryKey, Goo
 		LeftRight:       [2]*extends.GoodsDetail{},
 		ContentItemMap:  contentItemMap,
 		Options:         *options,
+	}
+
+	companyName := contentConfig.Name
+	if len(companyName) == 0 {
+		companyName = organization.Name
+	}
+	moduleContentData.SiteAuthor = companyName
+	return moduleContentData
+}
+func (m Service) GoodsDetail(context constrain.IContext, OID dao.PrimaryKey, GoodsTypeUri, GoodsTypeChildUri string) serviceargument.SiteData[*extends.GoodsDetail] {
+	var moduleContentData serviceargument.SiteData[*extends.GoodsDetail]
+
+	Orm := db.Orm()
+	var item model.GoodsType
+	var itemSub model.GoodsTypeChild
+
+	Orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "Uri": GoodsTypeUri}).First(&item)
+
+	Orm.Model(model.GoodsTypeChild{}).Where(map[string]interface{}{"OID": OID, "GoodsTypeID": item.ID, "Uri": GoodsTypeChildUri}).First(&itemSub)
+	if itemSub.IsZero() {
+		//itemSub.Uri = "all"
+	}
+
+	contentItemMap := repository.ContentItemDao.ListContentItemByOIDMap(OID)
+
+	allMenusData := m.FindAllMenus(OID)
+
+	menusData := m.FindShowMenus(OID)
+
+	currentMenuData := serviceargument.NewProductMenusData(item, itemSub)
+	for _, v := range menusData.List {
+		if v.Type == model.ContentTypeProducts {
+			currentMenuData.Menus = v
+			break
+		}
+	}
+
+	menusPage := allMenusData.ListMenusByType(model.ContentTypePage)
+
+	var navigations []extends.Menus
+
+	for index, v := range menusData.List {
+		if v.Type == model.ContentTypeProducts {
+			navigations = append(navigations, menusData.List[index])
+			for si, sv := range v.List {
+				if sv.ID == currentMenuData.TypeID {
+					navigations = append(navigations, menusData.List[index].List[si])
+					for ssi, ssv := range sv.List {
+						if ssv.ID == currentMenuData.SubTypeID {
+							navigations = append(navigations, menusData.List[index].List[si].List[ssi])
+							break
+						}
+					}
+					break
+				}
+			}
+			break
+		}
+	}
+
+	organization := m.OrganizationService.GetOrganization(OID).(*model.Organization)
+	contentConfig := repository.ContentConfigDao.GetContentConfig(db.Orm(), OID)
+
+	leftRightArr := [2]*extends.GoodsDetail{}
+
+	moduleContentData = serviceargument.SiteData[*extends.GoodsDetail]{
+		AllMenusData:    allMenusData,
+		MenusData:       menusData,
+		PageMenus:       menusPage,
+		CurrentMenuData: currentMenuData,
+		ContentItem:     model.ContentItem{},
+		ContentSubType:  model.ContentSubType{},
+		Pagination:      serviceargument.Pagination[*extends.GoodsDetail]{}, //pagination,
+		Tags:            []extends.Tag{},
+		Navigations:     navigations,
+		Organization:    *organization,
+		ContentConfig:   contentConfig,
+		SiteAuthor:      "",
+		LeftRight:       leftRightArr,
+		ContentItemMap:  contentItemMap,
+		Options:         serviceargument.Options{Attributes: make([]serviceargument.Option, 0)},
 	}
 
 	companyName := contentConfig.Name

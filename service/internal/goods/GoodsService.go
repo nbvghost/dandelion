@@ -40,10 +40,7 @@ type GoodsService struct {
 	ExpressTemplateService express.ExpressTemplateService
 }
 
-func (m GoodsService) PaginationGoodsDetail(OID, GoodsTypeID, GoodsTypeChildID dao.PrimaryKey, filterOption []serviceargument.Option, pageIndex, pageSize int) (serviceargument.Pagination[*extends.GoodsDetail], *serviceargument.Options) {
-	if pageSize <= 0 || pageSize > 20 {
-		pageSize = 10
-	}
+func (m GoodsService) PaginationGoodsDetail(context constrain.IContext,OID, GoodsTypeID, GoodsTypeChildID dao.PrimaryKey, filterOption []serviceargument.Option, pageIndex, pageSize int) (serviceargument.Pagination[*extends.GoodsDetail], *serviceargument.Options) {
 	orm := db.Orm().Model(&model.Goods{}).Where(`"Goods"."OID"=?`, OID)
 
 	if GoodsTypeID > 0 && GoodsTypeChildID == 0 {
@@ -356,21 +353,7 @@ func (m GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsMix, error
 
 	return &goodsInfo, nil
 }
-func (m GoodsService) GetGoodsInfoList(goodsList []model.Goods) []extends.GoodsMix {
 
-	var results = make([]extends.GoodsMix, 0)
-
-	for _, value := range goodsList {
-		goodsInfo := extends.GoodsMix{}
-		goodsInfo.Goods = value
-		goodsInfo.Discounts = m.GetDiscounts(value.ID, value.OID)
-		goodsInfo.GoodsType = m.GoodsTypeService.GetGoodsType(value.GoodsTypeID)
-		goodsInfo.GoodsTypeChild = m.GoodsTypeService.GetGoodsTypeChild(value.GoodsTypeChildID)
-		results = append(results, goodsInfo)
-	}
-
-	return results
-}
 func (m GoodsService) GetGoods(DB *gorm.DB, context constrain.IContext, ID dao.PrimaryKey) (*extends.GoodsMix, error) {
 	Orm := db.Orm()
 	//var goods model.Goods
@@ -552,7 +535,7 @@ func (m GoodsService) GoodsList(queryParam *serviceargument.ListQueryParam, oid 
 
 	orm.Count(&recordsTotal).Limit(pageSize).Offset(pageSize * pageIndex).Order(orderBy).Order(`"ID" DESC`).Find(&goodsList)
 	//pager := service.FindWherePaging(Orm, SqlOrder, model.Goods{}, Index, Size, where, args...)
-	return result.NewPagination(pageNo, pageSize, int(recordsTotal), m.GetGoodsInfoList(goodsList))
+	return result.NewPagination(pageNo, pageSize, int(recordsTotal), m.getGoodsInfoList(goodsList))
 
 	/*return extends.GoodsInfoPagination{
 		List:  service.GetGoodsInfoList(goodsList),
@@ -561,3 +544,27 @@ func (m GoodsService) GoodsList(queryParam *serviceargument.ListQueryParam, oid 
 		Size:  pager.Limit,
 	}*/
 }
+func (m GoodsService) getGoodsInfoList(goodsList []model.Goods) []extends.GoodsMix {
+	var results = make([]extends.GoodsMix, 0)
+	for _, value := range goodsList {
+		goodsInfo := extends.GoodsMix{}
+		goodsInfo.Goods = value
+		goodsInfo.Discounts = m.GetDiscounts(value.ID, value.OID)
+		goodsInfo.GoodsType = m.GoodsTypeService.GetGoodsType(value.GoodsTypeID)
+		goodsInfo.GoodsTypeChild = m.GoodsTypeService.GetGoodsTypeChild(value.GoodsTypeChildID)
+		results = append(results, goodsInfo)
+	}
+	return results
+}
+/*func (m GoodsService) getGoodsInfoList(goodsList []model.Goods) []extends.GoodsMix {
+	var results = make([]extends.GoodsMix, 0)
+	for _, value := range goodsList {
+		goodsInfo := extends.GoodsMix{}
+		goodsInfo.Goods = value
+		goodsInfo.Discounts = m.GetDiscounts(value.ID, value.OID)
+		goodsInfo.GoodsType = m.GoodsTypeService.GetGoodsType(value.GoodsTypeID)
+		goodsInfo.GoodsTypeChild = m.GoodsTypeService.GetGoodsTypeChild(value.GoodsTypeChildID)
+		results = append(results, goodsInfo)
+	}
+	return results
+}*/
