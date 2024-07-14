@@ -41,6 +41,9 @@ type GoodsService struct {
 }
 
 func (m GoodsService) PaginationGoodsDetail(OID, GoodsTypeID, GoodsTypeChildID dao.PrimaryKey, filterOption []serviceargument.Option, pageIndex, pageSize int) (serviceargument.Pagination[*extends.GoodsDetail], *serviceargument.Options) {
+	if pageSize <= 0 || pageSize > 20 {
+		pageSize = 10
+	}
 	orm := db.Orm().Model(&model.Goods{}).Where(`"Goods"."OID"=?`, OID)
 
 	if GoodsTypeID > 0 && GoodsTypeChildID == 0 {
