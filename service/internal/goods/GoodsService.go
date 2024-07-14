@@ -40,8 +40,7 @@ type GoodsService struct {
 	ExpressTemplateService express.ExpressTemplateService
 }
 
-func (m GoodsService) PaginationGoodsDetail(OID, GoodsTypeID, GoodsTypeChildID dao.PrimaryKey, filterOption []serviceargument.Option, pageIndex int) (serviceargument.Pagination[*extends.GoodsDetail], *serviceargument.Options) {
-	var pageSize = 20
+func (m GoodsService) PaginationGoodsDetail(OID, GoodsTypeID, GoodsTypeChildID dao.PrimaryKey, filterOption []serviceargument.Option, pageIndex, pageSize int) (serviceargument.Pagination[*extends.GoodsDetail], *serviceargument.Options) {
 	orm := db.Orm().Model(&model.Goods{}).Where(`"Goods"."OID"=?`, OID)
 
 	if GoodsTypeID > 0 && GoodsTypeChildID == 0 {
