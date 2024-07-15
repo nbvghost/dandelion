@@ -27,6 +27,12 @@ func init() {
 	client.Jar = jar
 }
 
+var baseUrl = "https://admin.sites.ink"
+
+func SetBaseURL(url string) {
+	baseUrl = url
+}
+
 type Api struct {
 }
 
@@ -34,7 +40,7 @@ func (Api) GetSpecification(GoodsID dao.PrimaryKey) ([]model.Specification, erro
 	params := url.Values{}
 	params.Set("goods-id", fmt.Sprintf("%d", GoodsID))
 
-	form, err := client.Get("https://admin.sites.ink/api/goods/specification?" + params.Encode())
+	form, err := client.Get(baseUrl + "/api/goods/specification?" + params.Encode())
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +79,7 @@ func (Api) PostSpecification(GoodsID dao.PrimaryKey, si []serviceargument.Specif
 		return nil, err
 	}
 
-	form, err := client.Post("https://admin.sites.ink/api/goods/specification", "application/json", bytes.NewReader(goodsBytes))
+	form, err := client.Post(baseUrl+"/api/goods/specification", "application/json", bytes.NewReader(goodsBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +119,7 @@ func (Api) UpdateGoodsSkuLabelData(ID dao.PrimaryKey, label, image string) (map[
 		return nil, err
 	}
 
-	request, err := http.NewRequest("PUT", "https://admin.sites.ink/api/goods/sku-label-data", bytes.NewReader(goodsBytes))
+	request, err := http.NewRequest("PUT", baseUrl+"/api/goods/sku-label-data", bytes.NewReader(goodsBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -160,7 +166,7 @@ func (Api) AddGoodsSkuLabelData(GoodsID, GoodsSkuLabelID dao.PrimaryKey, label, 
 		return nil, err
 	}
 
-	form, err := client.Post("https://admin.sites.ink/api/goods/sku-label-data", "application/json", bytes.NewReader(goodsBytes))
+	form, err := client.Post(baseUrl+"/api/goods/sku-label-data", "application/json", bytes.NewReader(goodsBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -195,7 +201,7 @@ func (Api) GetSKULabelData(GoodsID dao.PrimaryKey, goodsSkuLabelData *model.Good
 	params.Set("goods-sku-label-id", fmt.Sprintf("%d", goodsSkuLabelData.ID))
 	params.Set("name", goodsSkuLabelData.Name)
 
-	request, err := http.NewRequest("GET", "https://admin.sites.ink/api/goods/sku-label-data?"+params.Encode(), nil)
+	request, err := http.NewRequest("GET", baseUrl+"/api/goods/sku-label-data?"+params.Encode(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +246,7 @@ func (Api) PutGoodsSKULabel(GoodsID dao.PrimaryKey, GoodsSkuLabelList []model.Go
 		return nil, err
 	}
 
-	request, err := http.NewRequest("PUT", "https://admin.sites.ink/api/goods/sku-label", bytes.NewReader(goodsBytes))
+	request, err := http.NewRequest("PUT", baseUrl+"/api/goods/sku-label", bytes.NewReader(goodsBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -281,7 +287,7 @@ func (Api) AddGoodsTypeChild(GoodsTypeID dao.PrimaryKey, Name string) (*model.Go
 		return nil, err
 	}
 
-	form, err := client.Post("https://admin.sites.ink/api/goods/add-goods-type-child", "application/json", bytes.NewReader(goodsBytes))
+	form, err := client.Post(baseUrl+"/api/goods/add-goods-type-child", "application/json", bytes.NewReader(goodsBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -313,7 +319,7 @@ func (Api) GetGoodsTypeChild(ID dao.PrimaryKey, Name string, GoodsTypeID dao.Pri
 	params.Set("GoodsTypeID", fmt.Sprintf("%d", GoodsTypeID))
 	params.Set("Name", Name)
 
-	form, err := client.Get("https://admin.sites.ink/api/goods/get-goods-type-child?" + params.Encode())
+	form, err := client.Get(baseUrl + "/api/goods/get-goods-type-child?" + params.Encode())
 	if err != nil {
 		return nil, err
 	}
@@ -347,7 +353,7 @@ func (Api) AddGoodsType(Name string) (*model.GoodsType, error) {
 		return nil, err
 	}
 
-	form, err := client.Post("https://admin.sites.ink/api/goods/add-goods-type", "application/json", bytes.NewReader(goodsBytes))
+	form, err := client.Post(baseUrl+"/api/goods/add-goods-type", "application/json", bytes.NewReader(goodsBytes))
 	if err != nil {
 		return nil, err
 	}
@@ -378,7 +384,7 @@ func (Api) GetGoodsType(ID dao.PrimaryKey, Name string) (*model.GoodsType, error
 	params.Set("ID", fmt.Sprintf("%d", ID))
 	params.Set("Name", Name)
 
-	form, err := client.Get("https://admin.sites.ink/api/goods/get-goods-type?" + params.Encode())
+	form, err := client.Get(baseUrl + "/api/goods/get-goods-type?" + params.Encode())
 	if err != nil {
 		return nil, err
 	}
@@ -422,7 +428,7 @@ func (Api) UpdateGoods(ID dao.PrimaryKey, goods *model.Goods, Title string, Imag
 	params := url.Values{}
 	params.Set("goods", string(goodsBytes))
 
-	form, err := client.PostForm("https://admin.sites.ink/api/goods/change-goods", params)
+	form, err := client.PostForm(baseUrl+"/api/goods/change-goods", params)
 	if err != nil {
 		return nil, err
 	}
@@ -456,7 +462,7 @@ func (Api) AddGoods(Title string, GoodsTypeID dao.PrimaryKey, GoodsTypeChildID d
 	params := url.Values{}
 	params.Set("goods", fmt.Sprintf(`{"Title":"%s","GoodsTypeID":%d,"GoodsTypeChildID":%d}`, Title, GoodsTypeID, GoodsTypeChildID))
 
-	form, err := client.PostForm("https://admin.sites.ink/api/goods/add-goods", params)
+	form, err := client.PostForm(baseUrl+"/api/goods/add-goods", params)
 	if err != nil {
 		return nil, err
 	}
@@ -489,7 +495,7 @@ func (Api) Login(account, password string) error {
 	params.Set("account", account)
 	params.Set("password", password)
 
-	form, err := client.PostForm("https://admin.sites.ink/api/account/login", params)
+	form, err := client.PostForm(baseUrl+"/api/account/login", params)
 	if err != nil {
 		return err
 	}

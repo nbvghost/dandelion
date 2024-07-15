@@ -53,9 +53,12 @@ var Activity = struct {
 }{}
 
 var Admin = struct {
-	Service admin.AdminService
-	Api     admin.Api
-}{}
+	Service    admin.AdminService
+	Api        admin.Api
+	SetBaseURL func(url string)
+}{
+	SetBaseURL: admin.SetBaseURL,
+}
 
 var Company = struct {
 	Organization company.OrganizationService
