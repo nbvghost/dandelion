@@ -10,6 +10,7 @@ type Specification struct {
 	dao.Entity
 	OID         dao.PrimaryKey                `gorm:"column:OID;index"`
 	GoodsID     dao.PrimaryKey                `gorm:"column:GoodsID;index"`        //
+	Name        string                        `gorm:"column:Name"`                 //
 	Label       string                        `gorm:"column:Label"`                //
 	LabelIndex  sqltype.Array[dao.PrimaryKey] `gorm:"column:LabelIndex;type:JSON"` //
 	Num         uint                          `gorm:"column:Num"`                  //件

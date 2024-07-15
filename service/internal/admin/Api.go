@@ -9,7 +9,6 @@ import (
 	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/serviceargument"
 	"io"
 	"log"
 	"net/http"
@@ -35,7 +34,46 @@ func SetBaseURL(url string) {
 
 type Api struct {
 }
+func (Api) PutSpecification(ID dao.PrimaryKey, s model.Specification) ([]model.Specification, error) {
+	s.ID=ID
+	goodsBytes, err := json.Marshal(s)
+	if err != nil {
+		return nil, err
+	}
 
+	request, err := http.NewRequest("PUT", baseUrl+"/api/goods/specification", bytes.NewReader(goodsBytes))
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	form, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer form.Body.Close()
+
+	body, err := io.ReadAll(form.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	ar := struct {
+		Code    result.ActionResultCode
+		Message string
+		Data    struct {
+			Specifications []model.Specification
+		}
+		Now int64
+	}{}
+	err = json.Unmarshal(body, &ar)
+	if err != nil {
+		return nil, err
+	}
+	if ar.Code != 0 {
+		return nil, errors.New(ar.Message)
+	}
+	return ar.Data.Specifications, nil
+}
 func (Api) GetSpecification(GoodsID dao.PrimaryKey) ([]model.Specification, error) {
 	params := url.Values{}
 	params.Set("goods-id", fmt.Sprintf("%d", GoodsID))
@@ -68,7 +106,7 @@ func (Api) GetSpecification(GoodsID dao.PrimaryKey) ([]model.Specification, erro
 	}
 	return ar.Data.Specifications, nil
 }
-func (Api) PostSpecification(GoodsID dao.PrimaryKey, si []serviceargument.SpecificationInfo) ([]model.Specification, error) {
+func (Api) PostSpecification(GoodsID dao.PrimaryKey, si []model.Specification) ([]model.Specification, error) {
 	goodsType := map[string]any{
 		"GoodsID": GoodsID,
 		"List":    si,
