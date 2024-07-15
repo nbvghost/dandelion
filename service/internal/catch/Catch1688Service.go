@@ -119,7 +119,7 @@ func (m *Catch1688Service) readGoods(dir string) error {
 	images := make([]string, 0)
 	document.Find(".content-detail").Find(".desc-img-loaded").Each(func(i int, selection *goquery.Selection) {
 		if len(selection.Nodes) > 0 {
-			if selection.Nodes[0].Parent.Data == "div" || selection.Nodes[0].Parent.Data == "p" {
+			if selection.Nodes[0].Parent.Data != "a" {
 				if value, has := selection.Attr("data-lazyload-src"); has {
 					images = append(images, value)
 				}
@@ -128,7 +128,7 @@ func (m *Catch1688Service) readGoods(dir string) error {
 	})
 	document.Find(".content-detail").Find(".desc-img-no-load").Each(func(i int, selection *goquery.Selection) {
 		if len(selection.Nodes) > 0 {
-			if selection.Nodes[0].Parent.Data == "div" || selection.Nodes[0].Parent.Data == "p" {
+			if selection.Nodes[0].Parent.Data != "a" {
 				if value, has := selection.Attr("data-lazyload-src"); has {
 					images = append(images, value)
 				}
@@ -136,9 +136,9 @@ func (m *Catch1688Service) readGoods(dir string) error {
 		}
 	})
 
-	for _, imageSrc := range images {
+	for imageIndex, imageSrc := range images {
 		_, fileName := filepath.Split(imageSrc)
-		saveFile := fmt.Sprintf("%s/image/%s", dir, strings.Split(fileName, "?")[0])
+		saveFile := fmt.Sprintf("%s/image/%d-%s", dir, 1000+imageIndex, strings.Split(fileName, "?")[0])
 		os.MkdirAll(fmt.Sprintf("%s/image", dir), os.ModePerm)
 		if fi, err := os.Stat(saveFile); err == nil && fi.Size() > 0 {
 			continue
@@ -271,11 +271,11 @@ func (m *Catch1688Service) readGoods(dir string) error {
 
 				imagesObject := images.Object()
 				keys := imagesObject.Keys()
-				for _, key := range keys {
+				for keyIndex, key := range keys {
 					if imageItem, err := imagesObject.Get(key); err == nil {
 						if imageSrc, err := imageItem.Object().Get("fullPathImageURI"); err == nil {
 							_, fileName := filepath.Split(imageSrc.String())
-							saveFile := fmt.Sprintf("%s/head/%s", dir, strings.Split(fileName, "?")[0])
+							saveFile := fmt.Sprintf("%s/head/%d-%s", dir, 1000+keyIndex, strings.Split(fileName, "?")[0])
 							_ = os.MkdirAll(fmt.Sprintf("%s/head", dir), os.ModePerm)
 							if fi, err := os.Stat(saveFile); err == nil && fi.Size() > 0 {
 								continue

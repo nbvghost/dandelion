@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"io"
@@ -32,10 +31,49 @@ func SetBaseURL(url string) {
 	baseUrl = url
 }
 
-type Api struct {
+type Api struct{}
+func (Api) Translate(query []string,from,to string) ([]string, error) {
+
+	goodsBytes, err := json.Marshal(map[string]any{"Query":query,"From":from,"To":to})
+	if err != nil {
+		return nil, err
+	}
+
+	request, err := http.NewRequest("POST", baseUrl+"/api/translate", bytes.NewReader(goodsBytes))
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	form, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer form.Body.Close()
+
+	body, err := io.ReadAll(form.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	ar := struct {
+		Code    result.ActionResultCode
+		Message string
+		Data    struct {
+			List []string
+		}
+		Now int64
+	}{}
+	err = json.Unmarshal(body, &ar)
+	if err != nil {
+		return nil, err
+	}
+	if ar.Code != 0 {
+		return nil, errors.New(ar.Message)
+	}
+	return ar.Data.List, nil
 }
 func (Api) PutSpecification(ID dao.PrimaryKey, s model.Specification) ([]model.Specification, error) {
-	s.ID=ID
+	s.ID = ID
 	goodsBytes, err := json.Marshal(s)
 	if err != nil {
 		return nil, err
@@ -231,6 +269,45 @@ func (Api) AddGoodsSkuLabelData(GoodsID, GoodsSkuLabelID dao.PrimaryKey, label, 
 		return nil, errors.New(ar.Message)
 	}
 	return ar.Data.SkuLabelDataList, nil
+}
+func (Api) GetSKULabel(GoodsID dao.PrimaryKey) ([]*model.GoodsSkuLabel, error) {
+	//https://admin.sites.ink/api/goods/sku-label
+	params := url.Values{}
+	params.Set("goods-id", fmt.Sprintf("%d", GoodsID))
+
+
+	request, err := http.NewRequest("GET", baseUrl+"/api/goods/sku-label?"+params.Encode(), nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Content-Type", "application/json")
+	form, err := client.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer form.Body.Close()
+
+	body, err := io.ReadAll(form.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	ar := struct {
+		Code    result.ActionResultCode
+		Message string
+		Data    struct {
+			SkuLabelList []*model.GoodsSkuLabel
+		}
+		Now int64
+	}{}
+	err = json.Unmarshal(body, &ar)
+	if err != nil {
+		return nil, err
+	}
+	if ar.Code != 0 {
+		return nil, errors.New(ar.Message)
+	}
+	return ar.Data.SkuLabelList, nil
 }
 func (Api) GetSKULabelData(GoodsID dao.PrimaryKey, goodsSkuLabelData *model.GoodsSkuLabelData) (map[dao.PrimaryKey][]*model.GoodsSkuLabelData, error) {
 	//https://admin.sites.ink/api/goods/sku-label
@@ -448,12 +525,11 @@ func (Api) GetGoodsType(ID dao.PrimaryKey, Name string) (*model.GoodsType, error
 	}
 	return ar.Data, nil
 }
-func (Api) UpdateGoods(ID dao.PrimaryKey, goods *model.Goods, Title string, Images sqltype.Array[string], GoodsTypeID dao.PrimaryKey, GoodsTypeChildID dao.PrimaryKey) (*model.Goods, error) {
+func (Api) UpdateGoods(ID dao.PrimaryKey, goods *model.Goods, Title string, GoodsTypeID dao.PrimaryKey, GoodsTypeChildID dao.PrimaryKey) (*model.Goods, error) {
 	//https://admin.sites.ink/api/goods/change-goods
 
 	//goods := &model.Goods{Entity: dao.Entity{ID: ID}}
 	goods.ID = ID
-	goods.Images = Images
 	goods.Title = Title
 	goods.GoodsTypeID = GoodsTypeID
 	goods.GoodsTypeChildID = GoodsTypeChildID
