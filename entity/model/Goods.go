@@ -45,8 +45,8 @@ type Goods struct {
 	//TimeSellID        uint `gorm:"column:TimeSellID"`                          //
 }
 
-func (u *Goods) GetParams() map[string]any {
-	v := make(map[string]any)
+func (u *Goods) GetParams() any {
+	var v any
 	err := json.Unmarshal([]byte(u.Params), &v)
 	if err != nil {
 		log.Println(err)

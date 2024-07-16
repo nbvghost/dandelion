@@ -47,7 +47,7 @@ func Init(app config.MicroServer) error {
 	models = append(models, model.Store{})
 	models = append(models, model.ExpressTemplate{})
 	models = append(models, model.CardItem{})
-	models = append(models, model.Goods{})
+	models = append(models, &model.Goods{})
 	models = append(models, model.GoodsType{})
 	models = append(models, model.GoodsTypeChild{})
 	models = append(models, model.ScoreJournal{})
