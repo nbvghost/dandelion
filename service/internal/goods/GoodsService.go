@@ -40,7 +40,7 @@ type GoodsService struct {
 	ExpressTemplateService express.ExpressTemplateService
 }
 
-func (m GoodsService) PaginationGoodsDetail(context constrain.IContext, OID, GoodsTypeID, GoodsTypeChildID dao.PrimaryKey, filterOption []serviceargument.Option, pageIndex, pageSize int) (serviceargument.Pagination[*extends.GoodsDetail], *serviceargument.Options) {
+func (m GoodsService) PaginationGoodsDetail(context constrain.IContext, OID, GoodsTypeID, GoodsTypeChildID dao.PrimaryKey, filterOption []serviceargument.Option, sortMethod *serviceargument.SortMethod, pageIndex, pageSize int) (serviceargument.Pagination[*extends.GoodsDetail], *serviceargument.Options) {
 	orm := db.Orm().Model(&model.Goods{}).Where(`"Goods"."OID"=?`, OID)
 
 	if GoodsTypeID > 0 && GoodsTypeChildID == 0 {
@@ -55,6 +55,28 @@ func (m GoodsService) PaginationGoodsDetail(context constrain.IContext, OID, Goo
 	orm.Joins(`left join "GoodsSkuLabel" on ("Goods"."ID" = "GoodsSkuLabel"."GoodsID")`)
 	orm.Joins(`left join "GoodsSkuLabelData" on ("Goods"."ID" = "GoodsSkuLabelData"."GoodsID")`)
 	orm.Group(`"Goods"."ID"`)
+	if sortMethod != nil {
+		if len(sortMethod.Field) > 0 {
+			method := "asc"
+			if !strings.EqualFold(sortMethod.Method, "asc") {
+				method = "desc"
+			}
+			switch sortMethod.Field {
+			case "position":
+				orm.Order(`"Goods"."CountSale" desc,"Goods"."CountView" desc,"Goods"."UpdatedAt" desc,"Goods"."ID" desc`)
+			case "name":
+				orm.Order(fmt.Sprintf(`"Goods"."Title" %s,"Goods"."CountSale" desc,"Goods"."CountView" desc,"Goods"."UpdatedAt" desc,"Goods"."ID" desc`, method))
+			case "price":
+				orm.Order(fmt.Sprintf(`"Goods"."Price" %s,"Goods"."CountSale" desc,"Goods"."CountView" desc,"Goods"."UpdatedAt" desc,"Goods"."ID" desc`, method))
+			}
+
+		} else {
+			orm.Order(`"Goods"."CountSale" desc,"Goods"."CountView" desc,"Goods"."UpdatedAt" desc,"Goods"."ID" desc`)
+		}
+	} else {
+		orm.Order(`"Goods"."CountSale" desc,"Goods"."CountView" desc,"Goods"."UpdatedAt" desc,"Goods"."ID" desc`)
+	}
+
 	orm.Select(`
 "Goods".* as "Goods",
 json_agg("Specification") as "Specification",

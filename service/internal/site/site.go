@@ -182,7 +182,7 @@ func (m Service) menus(OID dao.PrimaryKey, hide uint) extends.MenusData {
 	return menusData
 
 }
-func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, GoodsTypeUri, GoodsTypeChildUri string, filterOption []serviceargument.Option, pageIndex, pageSize int) serviceargument.SiteData[*extends.GoodsDetail] {
+func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, GoodsTypeUri, GoodsTypeChildUri string, filterOption []serviceargument.Option,sortMethod *serviceargument.SortMethod, pageIndex, pageSize int) serviceargument.SiteData[*extends.GoodsDetail] {
 	var moduleContentData serviceargument.SiteData[*extends.GoodsDetail]
 
 	Orm := db.Orm()
@@ -212,7 +212,7 @@ func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, Goods
 
 	menusPage := allMenusData.ListMenusByType(model.ContentTypePage)
 
-	pagination, options := m.GoodsService.PaginationGoodsDetail(context, OID, currentMenuData.TypeID, currentMenuData.SubTypeID, filterOption, pageIndex, pageSize)
+	pagination, options := m.GoodsService.PaginationGoodsDetail(context, OID, currentMenuData.TypeID, currentMenuData.SubTypeID, filterOption,sortMethod, pageIndex, pageSize)
 
 	var navigations []extends.Menus
 
