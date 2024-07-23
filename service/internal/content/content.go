@@ -26,3 +26,7 @@ func (m ContentService) GetTitle(orm *gorm.DB, OID dao.PrimaryKey) string {
 	}
 	return title
 }
+
+func (m ContentService) GetByTitle(orm *gorm.DB, OID dao.PrimaryKey, title string) *model.Content {
+	return dao.GetBy(orm, &model.Content{}, map[string]any{"UseType":"tag","Title": title, "OID": OID}).(*model.Content)
+}

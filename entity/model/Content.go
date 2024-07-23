@@ -91,6 +91,8 @@ type Content struct {
 	Keywords    string `gorm:"column:Keywords"`    //
 	Description string `gorm:"column:Description"` //
 
+	UseType string `gorm:"column:UseType"` //tag
+
 	IsStickyTop  bool           `gorm:"column:IsStickyTop"`                      //
 	CountView    int            `gorm:"column:CountView"`                        //
 	CountLike    int            `gorm:"column:CountLike"`                        //

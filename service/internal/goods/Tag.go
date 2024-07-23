@@ -17,7 +17,7 @@ func (service TagService) FindGoodsTags(OID dao.PrimaryKey) ([]extends.Tag, erro
 	var tags []extends.Tag
 	err := db.Orm().Model(model.Goods{}).Select(`unnest("Tags") as "Name",count("Tags") as "Count"`).Where(map[string]interface{}{
 		"OID": OID,
-	}).Where(`array_length("Tags",1)>0`).Group(`unnest("Tags")`).Find(&tags).Error
+	}).Where(`array_length("Tags",1)>0`).Group(`unnest("Tags")`).Order(`"Count" desc`).Find(&tags).Error
 	tags = tag.CreateUri(tags)
 	return tags, err
 }
