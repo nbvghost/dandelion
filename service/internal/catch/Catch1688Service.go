@@ -56,8 +56,90 @@ type NameValue struct {
 }
 
 func (m *Catch1688Service) Api(catchDir string) error {
-	http.HandleFunc("/push-html", func(writer http.ResponseWriter, request *http.Request) {
+	http.HandleFunc("/push-temu", func(writer http.ResponseWriter, request *http.Request) {
+		rootDir:=catchDir+"/temu"
+		//writer.Header().Set("Access-Control-Allow-Origin", strings.TrimRight(request.Referer(), "/"))
+		writer.Header().Set("Access-Control-Allow-Origin", "https://www.temu.com")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type,FromURL")        //todo
+		writer.Header().Set("Access-Control-Allow-Methods", "DELETE,POST,PUT,OPTIONS,GET") //todo
+		writer.Header().Set("Access-Control-Allow-Credentials", "true")                    //todo
+		if request.Method == http.MethodOptions {
+			return
+		}
 
+		body, err := io.ReadAll(request.Body)
+		if err != nil {
+			writer.WriteHeader(404)
+			writer.Write([]byte(err.Error()))
+		} else {
+
+			scripts := scriptRegexp.FindAllStringSubmatch(string(body), -1)
+			for _, script := range scripts {
+				if strings.Contains(script[1], "window.rawData=") {
+					rawData, err := vm.Run("var window = {};var Event = function(x){};var document={dispatchEvent:function(x){}};\n" + script[1] + "\n;window.rawData;")
+					if err != nil {
+						writer.WriteHeader(404)
+						writer.Write([]byte(err.Error()))
+						return
+					}
+					storeValue, err := rawData.Object().Get("store")
+					if err != nil {
+						writer.WriteHeader(404)
+						writer.Write([]byte(err.Error()))
+						return
+					}
+					//window.rawData.store.goods.goodsName
+					jsonBytes, err := storeValue.MarshalJSON()
+					if err != nil {
+						writer.WriteHeader(404)
+						writer.Write([]byte(err.Error()))
+						return
+					}
+					//window.rawData.store.crumbOptList
+
+					storeMap := make(map[string]any)
+					err = json.Unmarshal(jsonBytes, &storeMap)
+					if err != nil {
+						writer.WriteHeader(404)
+						writer.Write([]byte(err.Error()))
+						return
+					}
+
+					if crumbOptList, ok := storeMap["crumbOptList"].([]any); ok {
+						if len(crumbOptList) >= 3 {
+
+							//window.rawData.store.goods.goodsName
+							goodsName:=storeMap["goods"].(map[string]any)["goodsName"].(string)
+
+							a := crumbOptList[1].(map[string]any)["title"].(string)
+							b := crumbOptList[2].(map[string]any)["title"].(string)
+							dir:=fmt.Sprintf("%s/%s/%s/%s", rootDir, a, b,goodsName)
+							os.MkdirAll(dir, os.ModePerm)
+
+							err := os.WriteFile(fmt.Sprintf("%s/%s", dir, "content.json"), jsonBytes, os.ModePerm)
+							if err != nil {
+								writer.WriteHeader(404)
+								writer.Write([]byte(err.Error()))
+								return
+							}
+
+							err = os.WriteFile(fmt.Sprintf("%s/%s", dir, "url.txt"), []byte(request.Header.Get("FromURL")), os.ModePerm)
+							if err != nil {
+								writer.WriteHeader(404)
+								writer.Write([]byte(err.Error()))
+								return
+							}
+						}
+					}
+				}
+			}
+			writer.WriteHeader(http.StatusOK)
+			writer.Write([]byte("写入成功"))
+		}
+
+	})
+	http.HandleFunc("/push-1688", func(writer http.ResponseWriter, request *http.Request) {
+		rootDir:=catchDir+"/1688"
 		//writer.Header().Set("Access-Control-Allow-Origin", strings.TrimRight(request.Referer(), "/"))
 		writer.Header().Set("Access-Control-Allow-Origin", "https://detail.1688.com")
 		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type,FromURL")        //todo
@@ -80,20 +162,21 @@ func (m *Catch1688Service) Api(catchDir string) error {
 			}
 			title := resss[1]
 
-			os.MkdirAll(fmt.Sprintf("%s/%s", catchDir, title), os.ModePerm)
-			err := os.WriteFile(fmt.Sprintf("%s/%s/%s", catchDir, title, "content.html"), body, os.ModePerm)
+			os.MkdirAll(fmt.Sprintf("%s/%s", rootDir, title), os.ModePerm)
+			err := os.WriteFile(fmt.Sprintf("%s/%s/%s", rootDir, title, "content.html"), body, os.ModePerm)
 			if err != nil {
 				writer.WriteHeader(404)
 				writer.Write([]byte(err.Error()))
 				return
 			}
-			err = os.WriteFile(fmt.Sprintf("%s/%s/%s", catchDir, title, "url.txt"), []byte(request.Header.Get("FromURL")), os.ModePerm)
+			err = os.WriteFile(fmt.Sprintf("%s/%s/%s", rootDir, title, "url.txt"), []byte(request.Header.Get("FromURL")), os.ModePerm)
 			if err != nil {
 				writer.WriteHeader(404)
 				writer.Write([]byte(err.Error()))
 				return
 			}
-			log.Println(len(resss))
+			writer.WriteHeader(http.StatusOK)
+			writer.Write([]byte("写入成功"))
 		}
 
 	})
