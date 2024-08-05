@@ -61,12 +61,12 @@ func (m *LanguageCache) ShowLang() []model.Language {
 }
 
 type LanguageCodeCache struct {
-	LangBaiduCode map[string]string
+	LangCode map[string]string
 }
 
-func (m *LanguageCodeCache) GetLangBaiduCodeByCode6391(Code6391 string) string {
-	return m.LangBaiduCode[Code6391]
+func (m *LanguageCodeCache) GetLangName(code string) string {
+	return m.LangCode[code]
 }
-func (m *LanguageCodeCache) GetLangBaiduCode() map[string]string {
-	return m.LangBaiduCode
+func (m *LanguageCodeCache) GetLangCode() map[string]string {
+	return m.LangCode
 }

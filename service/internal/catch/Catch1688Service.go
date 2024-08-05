@@ -275,6 +275,20 @@ func (m *Catch1688Service) readGoods(dir string) error {
 			}
 			obj := storeDataObj.Object()
 			{
+				data, err := obj.Get("data")
+				if err != nil {
+					return err
+				}
+				func(){
+
+					log.Println(data.Object().Keys())
+
+
+				}()
+			}
+
+			{
+
 				globalData, err := obj.Get("globalData")
 				if err != nil {
 					return err
@@ -388,6 +402,8 @@ func (m *Catch1688Service) readGoods(dir string) error {
 					log.Println(string(imagesJSON))
 				}*/
 			}
+
+
 		}
 		/*if len(i2) >= 2 && strings.Contains(i2[1], "window.__STORE_DATA") && strings.Contains(i2[1], "window.isOnline") && false {
 			//storeData := make(map[string]any)

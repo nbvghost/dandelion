@@ -86,18 +86,9 @@ func (m ConfigurationService) GetEmailSTMP(oid dao.PrimaryKey) *EmailSTMP {
 	}
 }
 
-
-var baiduTranslateURL model.ConfigurationKey = "BaiduTranslateURL"
-var baiduTranslateSecurityKey model.ConfigurationKey = "BaiduTranslateSecurityKey"
-var baiduTranslateAppid model.ConfigurationKey = "BaiduTranslateAppid"
-
-func (m ConfigurationService) GetBaiduTranslateConfiguration(oid dao.PrimaryKey) BaiduTranslateConfiguration {
-	c := m.GetConfigurations(oid, baiduTranslateURL, baiduTranslateSecurityKey, baiduTranslateAppid)
-	return BaiduTranslateConfiguration{
-		URL:         c[baiduTranslateURL],
-		SecurityKey: c[baiduTranslateSecurityKey],
-		Appid:       c[baiduTranslateAppid],
-	}
+func (m ConfigurationService) GetLibreTranslateApiKey(oid dao.PrimaryKey) string {
+	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyLibreTranslateApiKey)
+	return c.V
 }
 
 func (m ConfigurationService) GetPopConfiguration(oid dao.PrimaryKey) []Pop {

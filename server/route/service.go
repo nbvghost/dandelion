@@ -128,7 +128,7 @@ func (m *service) CreateHandle(isApi bool, r *http.Request) (constrain.IRouteInf
 	//return apiHandler, routeInfo.GetWithoutAuth(), nil
 	return routeInfo, nil
 }
-func (m *service) ExecuteInterceptors(context constrain.IContext, routeHandler any) error {
+func (m *service) ExecuteInterceptors(context constrain.IContext, routeHandler any) (bool,error) {
 	//todo 权限控制采用拦截器来处理
 	/*if withoutAuth {
 		return false, nil
@@ -161,12 +161,12 @@ func (m *service) ExecuteInterceptors(context constrain.IContext, routeHandler a
 						if m.mappingCallback != nil {
 							err := m.mappingCallback.Mapping(context, m.interceptors[k].Interceptors[i])
 							if err != nil {
-								return err
+								return false,err
 							}
 						}
-						err := m.interceptors[k].Interceptors[i].Execute(context)
+						isWriteHttpResponse,err := m.interceptors[k].Interceptors[i].Execute(context)
 						if err != nil {
-							return err
+							return isWriteHttpResponse,err
 						}
 						//return nil
 					}
@@ -183,7 +183,7 @@ func (m *service) ExecuteInterceptors(context constrain.IContext, routeHandler a
 		}
 	}*/
 
-	return nil
+	return false,nil
 
 }
 

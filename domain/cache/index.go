@@ -10,5 +10,5 @@ var Cache = struct {
 }{
 	ChinesePinyinCache: &ChinesePinyinCache{Pinyin: make(map[string]string)},
 	LanguageCache:      LanguageCache{ShowLanguage: make([]model.Language, 0)},
-	LanguageCodeCache:  LanguageCodeCache{LangBaiduCode: make(map[string]string)},
+	LanguageCodeCache:  LanguageCodeCache{LangCode: make(map[string]string)},
 }

@@ -1,12 +1,15 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/domain/cache"
 	"github.com/nbvghost/dandelion/library/db"
 	"golang.org/x/sync/errgroup"
+	"io"
 	"log"
+	"net/http"
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/environments"
@@ -240,10 +243,10 @@ $Goods$ LANGUAGE plpgsql;`
 		}
 
 		var languageList []model.Language
-		db.Orm().Model(model.Language{}).Where(`"CodeBiadu"<>''`).Order(`"ISOName"`).Find(&languageList)
+		db.Orm().Model(model.Language{}).Where(`"Code"<>''`).Order(`"Name"`).Find(&languageList)
 		for index, v := range languageList {
 			cache.Cache.LanguageCache.ShowLanguage = append(cache.Cache.LanguageCache.ShowLanguage, languageList[index])
-			cache.Cache.LanguageCodeCache.LangBaiduCode[v.Code6391] = v.CodeBiadu
+			cache.Cache.LanguageCodeCache.LangCode[v.Code] = v.Name
 		}
 		return nil
 	})
@@ -251,9 +254,43 @@ $Goods$ LANGUAGE plpgsql;`
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
+
+func downloadLang() {
+	get, err := http.Get("http://translate.app.usokay.com/languages")
+	if err != nil {
+		return
+	}
+	body, err := io.ReadAll(get.Body)
+	if err != nil {
+		return
+	}
+
+	lans := make([]map[string]any, 0)
+	json.Unmarshal(body, &lans)
+
+	mm := make(map[string]map[string]any)
+	for _, lan := range lans {
+		log.Println(lan)
+		mm[lan["code"].(string)] = lan
+	}
+	targets := mm["en"]["targets"].([]any)
+	for _, target := range targets {
+		code := mm[target.(string)]["code"].(string)
+		name := mm[target.(string)]["name"].(string)
+		log.Println(code, name)
+
+		lang := model.Language{
+			Code: code,
+			Name: name,
+		}
+		db.Orm().Create(&lang)
+	}
+
+	log.Println(mm, targets)
+}
+
 func RebuildFullTextSearch() {
 	var err error
 	var goodsList []model.Goods

@@ -14,6 +14,6 @@ type IRoute interface {
 	RegisterView(path string, handler IViewHandler)
 	GetMappingCallback() IMappingCallback
 	CreateHandle(isApi bool, r *http.Request) (IRouteInfo, error)
-	ExecuteInterceptors(context IContext, routeHandler any) error
+	ExecuteInterceptors(context IContext, routeHandler any) (bool, error)
 	RegisterInterceptors(prefixPath string, excludedPath []string, interceptors ...IInterceptor)
 }

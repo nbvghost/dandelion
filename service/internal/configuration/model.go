@@ -37,11 +37,6 @@ type Pop struct {
 	Type     ShowPositionType
 	Images   []Image
 }
-type BaiduTranslateConfiguration struct {
-	URL         string
-	SecurityKey string
-	Appid       string
-}
 
 type Advert struct {
 	Matching []string

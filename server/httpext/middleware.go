@@ -297,9 +297,15 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 	//创建新的handler处理器
 	apiHandler = reflect.New(routeInfo.GetHandlerType()).Interface()
 
+	var isWriteHttpResponse bool
+
 	if ctxValue.IsApi {
-		err = router.ExecuteInterceptors(ctx, apiHandler)
+		isWriteHttpResponse,err = router.ExecuteInterceptors(ctx, apiHandler)
 		if err != nil {
+			if isWriteHttpResponse{
+				ctx.Logger().Error("ExecuteInterceptors Api",zap.Error(err))
+				return nil
+			}
 			return err
 		}
 
@@ -389,8 +395,12 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 		returnResult.Apply(ctx)
 
 	} else {
-		err = router.ExecuteInterceptors(ctx, apiHandler)
+		isWriteHttpResponse,err = router.ExecuteInterceptors(ctx, apiHandler)
 		if err != nil {
+			if isWriteHttpResponse{
+				ctx.Logger().Error("ExecuteInterceptors View",zap.Error(err))
+				return nil
+			}
 			return err
 		}
 

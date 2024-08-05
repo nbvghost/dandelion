@@ -22,13 +22,13 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/db"
-	"github.com/nbvghost/tool/encryption"
 	"github.com/nbvghost/tool/object"
 	"github.com/pkg/errors"
 )
 
 type Html struct {
-	baiduCode map[string]string
+	LanguageCode map[string]string
+	ApiKey       string
 	sync.RWMutex
 }
 
@@ -71,7 +71,7 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 		return docBytes, nil
 	}
 
-	if _, ok := m.baiduCode[contextValue.Lang]; !ok {
+	if _, ok := m.LanguageCode[contextValue.Lang]; !ok {
 		//当前语言不在翻译列表中
 		return docBytes, nil
 	}
@@ -174,7 +174,7 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 
 	//TODO 缓存在cache server 里，或者放在redis
 	var translateModelList []model.Translate
-	tx.Model(model.Translate{}).Where(`"LangType"=?`, contextValue.Lang).Find(&translateModelList)
+	tx.Model(model.Translate{}).Where(`"TextType"=? and "LangType"=?`, "en", contextValue.Lang).Find(&translateModelList)
 
 	for k, v := range willTranslateTexts {
 		var has bool
@@ -192,49 +192,39 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 		}
 	}
 
-	var translateText string
-	for i, v := range translateList {
-		if i == 0 {
-			translateText = v
-		} else {
-			translateText = translateText + "\n" + v
-		}
-
-		if (len(translateText) > 5000 || i == len(translateList)-1) && len(translateText) > 0 {
-			var translateInfos []translateInfo
-			translateInfos, err = m.TranslateBaidu(translateText, "en", contextValue.Lang)
+	//var translateText string
+	for _, v := range translateList {
+		if len(v) > 0 {
+			var translateText string
+			translateText, err = m.Translate(v, "en", contextValue.Lang)
 			if err != nil {
-				context.Logger().Error("baidu translate error", zap.Error(err))
+				context.Logger().Error("translate error", zap.Error(err))
 				return nil, err
 			}
 
-			{
-				willTranslateLocker.Lock()
-				for _, e := range translateInfos {
-					for k, vv := range willTranslateTexts {
-						if vv.Src == e.Src {
-							vv.Dst = e.Dst
-							willTranslateTexts[k] = vv
-							break
-						}
-					}
+			willTranslateLocker.Lock()
+			for k, vv := range willTranslateTexts {
+				if vv.Src == v {
+					vv.Dst = translateText
+					willTranslateTexts[k] = vv
+					break
 				}
-				willTranslateLocker.Unlock()
+			}
+			willTranslateLocker.Unlock()
+
+			if len(translateText) == 0 {
+				translateText = v
 			}
 
-			translateModelList = []model.Translate{}
-			for _, e := range translateInfos {
-				var translate model.Translate
-				translate.Text = e.Src
-				translate.LangText = e.Dst
-				translate.LangType = contextValue.Lang
-				translateModelList = append(translateModelList, translate)
-			}
-			if err = tx.Model(model.Translate{}).CreateInBatches(&translateModelList, 100).Error; err != nil {
+			if err = tx.Model(model.Translate{}).Create(&model.Translate{
+				Text:     v,
+				TextType: "en",
+				LangType: contextValue.Lang,
+				LangText: translateText,
+			}).Error; err != nil {
 				context.Logger().Error("write db.Translate error", zap.Error(err))
 				return nil, err
 			}
-			translateText = ""
 		}
 	}
 
@@ -254,14 +244,6 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 		return nil, err
 	}
 	return buffer.Bytes(), nil
-}
-
-type result struct {
-	From        string          `json:"from"`
-	To          string          `json:"to"`
-	TransResult []translateInfo `json:"trans_result"`
-	ErrorCode   string          `json:"error_code"`
-	ErrorMsg    string          `json:"error_msg"`
 }
 
 var bingTranslateHttpParamsReg = regexp.MustCompile(`var\sparams_RichTranslateHelper.*?;`)
@@ -441,7 +423,59 @@ func (m *Html) bingTranslate(query, from, to string) (_ string, err error) {
 	return translate.LangText, nil
 
 }
-func (m *Html) TranslateBaidu(query, from, to string) (list []translateInfo, err error) {
+
+type _Result struct {
+	TranslatedText string `json:"translatedText"`
+	Error          string `json:"error"`
+}
+
+func (m *Html) Translate(query, from, to string) (string, error) {
+	//###
+	//POST http://translate.app.usokay.com/translate
+	//Content-Type: application/json
+	//
+	//{
+	//	"q": "name",
+	//	"source": "en",
+	//	"target": "zh",
+	//	"format": "text",
+	//	"alternatives": 0,
+	//	"api_key": "ba07e09c-6e8c-4c1f-b3e0-88091934d51f"
+	//}
+
+	postParams := make(map[string]any)
+	//q := url.QueryEscape(query)
+	postParams["q"] = query
+	postParams["source"] = from
+	postParams["target"] = to
+	postParams["format"] = "text"
+	postParams["alternatives"] = 0
+	postParams["api_key"] = m.ApiKey
+
+	postParamsBytes, err := json.Marshal(&postParams)
+	if err != nil {
+		return "", err
+	}
+	response, err := http.Post("http://translate.app.usokay.com/translate", "application/json", bytes.NewReader(postParamsBytes))
+	if err != nil {
+		return "", err
+	}
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return "", err
+	}
+	defer response.Body.Close()
+
+	var r _Result
+	if err = json.Unmarshal(body, &r); err != nil {
+		return "", err
+	}
+	if response.StatusCode != 200 {
+		return "", errors.New(r.Error)
+	}
+	return r.TranslatedText, nil
+}
+func (m *Html) _TranslateBaidu(query, from, to string) (list []translateInfo, err error) {
 	//var translate model.Translate
 
 	/*tx := db.Orm().Begin()
@@ -458,7 +492,9 @@ func (m *Html) TranslateBaidu(query, from, to string) (list []translateInfo, err
 		return translate.LangText, nil
 	}*/
 
-	salt := fmt.Sprintf("%d", time.Now().Unix())
+	//------------
+
+	/*salt := fmt.Sprintf("%d", time.Now().Unix())
 	sign := strings.ToLower(encryption.Md5ByString(fmt.Sprintf("%s%s%s%s", appid, query, salt, securityKey)))
 	postParams := url.Values{}
 	//q := url.QueryEscape(query)
@@ -486,7 +522,9 @@ func (m *Html) TranslateBaidu(query, from, to string) (list []translateInfo, err
 
 	if len(r.ErrorCode) > 0 {
 		return nil, fmt.Errorf(r.ErrorMsg)
-	}
+	}*/
+
+	//------------
 
 	//translate.Text = query
 	//translate.LangType = to
@@ -515,17 +553,10 @@ func (m *Html) TranslateBaidu(query, from, to string) (list []translateInfo, err
 	/*if err = tx.Model(model.Translate{}).Create(&translate).Error; err != nil {
 		return "", err
 	}*/
-	return r.TransResult, nil
+	return nil, nil
 }
 
-var tranUrl = ""
-var securityKey = ""
-var appid = ""
-
-func NewTranslateHtml(baiduCode map[string]string) *Html {
-	conf := service.Configuration.GetBaiduTranslateConfiguration(0)
-	tranUrl = conf.URL
-	securityKey = conf.SecurityKey
-	appid = conf.Appid
-	return &Html{baiduCode: baiduCode}
+func NewTranslateHtml(languageCode map[string]string) *Html {
+	apiKey := service.Configuration.GetLibreTranslateApiKey(0)
+	return &Html{LanguageCode: languageCode, ApiKey: apiKey}
 }
