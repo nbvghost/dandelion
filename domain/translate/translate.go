@@ -182,8 +182,9 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 	var translateModelList []model.Translate
 	tx.Model(model.Translate{}).Where(`"TextType"=? and "LangType"=?`, "en", contextValue.Lang).Find(&translateModelList)
 
-	for k, v := range willTranslateTexts {
+	for k := range willTranslateTexts {
 		var has bool
+		v:=willTranslateTexts[k]
 		//todo 优化二分查找或者其它方法
 		for _, e := range translateModelList {
 			if strings.EqualFold(v.Src, e.Text) {
@@ -504,7 +505,8 @@ func (m *Html) Translate(query []string, from, to string) (map[int]string, error
 			}
 			translateMap[i] = translateText
 		} else {
-			if samllLen+len(query[i]) > 8000 || len(samllMap) >= 50 {
+			if samllLen+len(query[i]) > 8000 || len(samllMap)+1 >= 50 || i== len(query)-1 {
+				samllMap[object.ParseString(i)] = query[i]
 				mTranslateMap, err := m.translateBatchBase(samllMap, from, to)
 				if err != nil {
 					return nil, err
