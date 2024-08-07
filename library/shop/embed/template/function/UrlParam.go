@@ -28,6 +28,9 @@ func (g *UrlParam) Call(ctx constrain.IContext) funcmap.IFuncResult {
 		} else {
 
 			switch g.Type {
+			case "set":
+				var newValue = strings.ToLower(g.Values[i])
+				params.Set(label, newValue)
 			case "add":
 				{
 					var hasValue = params.Get(label)

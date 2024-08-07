@@ -12,7 +12,7 @@ type URLPathJoin struct {
 }
 
 func (g *URLPathJoin) Call(ctx constrain.IContext) funcmap.IFuncResult {
-	path, err := url.JoinPath("", g.Values...)
+	path, err := url.JoinPath("/", g.Values...)
 	if err != nil {
 		ctx.Logger().With(zap.NamedError("URLPathJoin", err))
 	}
