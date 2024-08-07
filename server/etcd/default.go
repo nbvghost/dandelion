@@ -8,6 +8,10 @@ import (
 
 type DefaultEtcd struct{}
 
+func (m *DefaultEtcd) CheckDomain(domainName string) error {
+	return nil
+}
+
 func (m *DefaultEtcd) Close() error {
 	return nil
 }

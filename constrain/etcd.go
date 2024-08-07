@@ -13,6 +13,7 @@ type IEtcd interface {
 	//GetDNSName(localName key.MicroServer) (string, error)
 	//GetDNSLocalName(domainName string) (config.MicroServer, error)
 	GetMicroServer(domainName string) (config.MicroServer, error)
+	CheckDomain(domainName string) error
 	ObtainRedis() (*config.RedisOptions, error)
 	ObtainPostgresql(serverName string) (string, error)
 }
@@ -22,4 +23,5 @@ type IEtcdAdmin interface {
 	RegisterPostgresql(dsn string, serverName string) error
 	RegisterDNS(dns []ServerDNS) error
 	AddDNS(newDNS []ServerDNS) error
+	AddDomains(domainName string, domainNames []string) error
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
 	"log"
+	"strings"
 )
 
 type adminServer struct {
@@ -46,10 +47,16 @@ func (m *adminServer) RegisterDNS(dns []constrain.ServerDNS) error {
 	}
 	client := m.server.getClient()
 
+	for i := range dns {
+		if !strings.Contains(dns[i].DomainName, "*.") {
+			err := m.AddDomains(dns[i].DomainName, []string{dns[i].DomainName})
+			if err != nil {
+				return err
+			}
+		}
+	}
 	etcdKey := "dns"
-
 	ctx := context.TODO()
-
 	jsonByte, err := json.Marshal(dns)
 	if err != nil {
 		return err
@@ -61,6 +68,21 @@ func (m *adminServer) RegisterDNS(dns []constrain.ServerDNS) error {
 	return nil
 }
 
+func (m *adminServer) AddDomains(domainName string, domainNames []string) error {
+	ctx := context.TODO()
+	client := m.server.getClient()
+	serverKey := fmt.Sprintf("%s/%s", "domains", domainName)
+
+	domainNamesJson, err := json.Marshal(domainNames)
+	if err != nil {
+		return err
+	}
+	_, err = client.Put(ctx, serverKey, string(domainNamesJson))
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func (m *adminServer) AddDNS(newDNS []constrain.ServerDNS) error {
 	etcdKey := "dns"
 	ctx := context.TODO()
