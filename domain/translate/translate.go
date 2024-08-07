@@ -5,6 +5,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
+	util "github.com/alibabacloud-go/tea-utils/v2/service"
+	"github.com/alibabacloud-go/tea/tea"
 	"github.com/nbvghost/dandelion/service"
 	"html/template"
 	"io/ioutil"
@@ -24,11 +27,14 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/tool/object"
 	"github.com/pkg/errors"
+
+	alimt20181012 "github.com/alibabacloud-go/alimt-20181012/v2/client"
 )
 
 type Html struct {
-	LanguageCode map[string]string
-	ApiKey       string
+	LanguageCode    map[string]string
+	AccessKeyID     string
+	AccessKeySecret string
 	sync.RWMutex
 }
 
@@ -79,7 +85,7 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 	var seqID int
 	setMap := map[string]nodeID{}
 	willTranslateTexts := map[string]translateInfo{}
-	var willTranslateLocker sync.RWMutex
+	//var willTranslateLocker sync.RWMutex
 
 	extractFunc := func(text string) string {
 		texts := strings.Split(text, "\n")
@@ -192,17 +198,16 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 		}
 	}
 
-	//var translateText string
-	for _, v := range translateList {
-		if len(v) > 0 {
-			var translateText string
-			translateText, err = m.Translate(v, "en", contextValue.Lang)
-			if err != nil {
-				context.Logger().Error("translate error", zap.Error(err))
-				return nil, err
-			}
+	if len(translateList) > 0 {
+		translateMap, err := m.Translate(translateList, "en", contextValue.Lang)
+		if err != nil {
+			context.Logger().Error("translate error", zap.Error(err))
+			return nil, err
+		}
 
-			willTranslateLocker.Lock()
+		for index := range translateList {
+			v := translateList[index]
+			translateText := translateMap[index]
 			for k, vv := range willTranslateTexts {
 				if vv.Src == v {
 					vv.Dst = translateText
@@ -210,7 +215,41 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 					break
 				}
 			}
-			willTranslateLocker.Unlock()
+			if len(translateText) == 0 {
+				translateText = v
+			}
+			if err = tx.Model(model.Translate{}).Create(&model.Translate{
+				Text:     v,
+				TextType: "en",
+				LangType: contextValue.Lang,
+				LangText: translateText,
+			}).Error; err != nil {
+				context.Logger().Error("write db.Translate error", zap.Error(err))
+				return nil, err
+			}
+		}
+	}
+
+	/*//var translateText string
+	for _, v := range translateList {
+		if len(v) > 0 {
+
+			var translateText string
+			translateText, err = m.Translate(v, "en", contextValue.Lang)
+			if err != nil {
+				context.Logger().Error("translate error", zap.Error(err))
+				return nil, err
+			}
+
+			//willTranslateLocker.Lock()
+			for k, vv := range willTranslateTexts {
+				if vv.Src == v {
+					vv.Dst = translateText
+					willTranslateTexts[k] = vv
+					break
+				}
+			}
+			//willTranslateLocker.Unlock()
 
 			if len(translateText) == 0 {
 				translateText = v
@@ -226,7 +265,7 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 				return nil, err
 			}
 		}
-	}
+	}*/
 
 	docBytes, err = m.html(node)
 	if err != nil {
@@ -429,52 +468,173 @@ type _Result struct {
 	Error          string `json:"error"`
 }
 
-func (m *Html) Translate(query, from, to string) (string, error) {
-	//###
-	//POST http://translate.app.usokay.com/translate
-	//Content-Type: application/json
-	//
-	//{
-	//	"q": "name",
-	//	"source": "en",
-	//	"target": "zh",
-	//	"format": "text",
-	//	"alternatives": 0,
-	//	"api_key": "ba07e09c-6e8c-4c1f-b3e0-88091934d51f"
-	//}
+var _aliyunClient *alimt20181012.Client
 
-	postParams := make(map[string]any)
-	//q := url.QueryEscape(query)
-	postParams["q"] = query
-	postParams["source"] = from
-	postParams["target"] = to
-	postParams["format"] = "text"
-	postParams["alternatives"] = 0
-	postParams["api_key"] = m.ApiKey
+func (m *Html) GetClient() (*alimt20181012.Client, error) {
+	if _aliyunClient == nil {
+		// 工程代码泄露可能会导致 AccessKey 泄露，并威胁账号下所有资源的安全性。以下代码示例仅供参考。
+		// 建议使用更安全的 STS 方式，更多鉴权访问方式请参见：https://help.aliyun.com/document_detail/378661.html。
+		config := &openapi.Config{
+			// 必填，请确保代码运行环境设置了环境变量 ALIBABA_CLOUD_ACCESS_KEY_ID。
+			AccessKeyId: tea.String(m.AccessKeyID),
+			// 必填，请确保代码运行环境设置了环境变量 ALIBABA_CLOUD_ACCESS_KEY_SECRET。
+			AccessKeySecret: tea.String(m.AccessKeySecret),
+		}
+		// Endpoint 请参考 https://api.aliyun.com/product/alimt
+		config.Endpoint = tea.String("mt.aliyuncs.com")
 
-	postParamsBytes, err := json.Marshal(&postParams)
-	if err != nil {
-		return "", err
+		_result, _err := alimt20181012.NewClient(config)
+		if _err != nil {
+			return nil, _err
+		}
+		_aliyunClient = _result
+		return _aliyunClient, nil
 	}
-	response, err := http.Post("http://translate.app.usokay.com/translate", "application/json", bytes.NewReader(postParamsBytes))
-	if err != nil {
-		return "", err
-	}
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return "", err
-	}
-	defer response.Body.Close()
-
-	var r _Result
-	if err = json.Unmarshal(body, &r); err != nil {
-		return "", err
-	}
-	if response.StatusCode != 200 {
-		return "", errors.New(r.Error)
-	}
-	return r.TranslatedText, nil
+	return _aliyunClient, nil
 }
+func (m *Html) Translate(query []string, from, to string) (map[int]string, error) {
+	translateMap := make(map[int]string)
+	samllMap := make(map[string]string)
+	samllLen := 0
+	for i := range query {
+		if len(query[i]) > 1000 {
+			translateText, err := m.translateBase(query[i], from, to)
+			if err != nil {
+				return nil, err
+			}
+			translateMap[i] = translateText
+		} else {
+			if samllLen+len(query[i]) > 8000 || len(samllMap) >= 50 {
+				mTranslateMap, err := m.translateBatchBase(samllMap, from, to)
+				if err != nil {
+					return nil, err
+				}
+				for i2, s := range mTranslateMap {
+					translateMap[i2] = s
+				}
+				samllMap = make(map[string]string)
+				samllLen = 0
+			} else {
+				samllMap[object.ParseString(i)] = query[i]
+				samllLen = samllLen + len(query[i])
+			}
+		}
+	}
+	return translateMap, nil
+}
+func (m *Html) translateBase(query string, from, to string) (string, error) {
+	client, err := m.GetClient()
+	if err != nil {
+		return "", err
+	}
+	getBatchTranslateRequest := &alimt20181012.TranslateGeneralRequest{
+		FormatType:     tea.String("text"),
+		Scene:          tea.String("general"),
+		SourceLanguage: tea.String(from),
+		SourceText:     tea.String(query),
+		TargetLanguage: tea.String(to),
+	}
+	runtime := &util.RuntimeOptions{}
+	res, err := client.TranslateGeneralWithOptions(getBatchTranslateRequest, runtime)
+	if err != nil {
+		return "", err
+	}
+	if *res.StatusCode != 200 {
+		return "", errors.New("网络错误")
+	}
+	if *res.Body.Code != 200 {
+		return "", errors.New(tea.StringValue(res.Body.Message))
+	}
+	return tea.StringValue(res.Body.Data.Translated), nil
+}
+func (m *Html) translateBatchBase(query map[string]string, from, to string) (map[int]string, error) {
+	outArr := make(map[int]string)
+	client, err := m.GetClient()
+	if err != nil {
+		return outArr, err
+	}
+	queryJson, err := json.Marshal(query)
+	if err != nil {
+		return outArr, err
+	}
+	getBatchTranslateRequest := &alimt20181012.GetBatchTranslateRequest{
+		ApiType:        tea.String("translate_standard"),
+		FormatType:     tea.String("text"),
+		Scene:          tea.String("general"),
+		SourceLanguage: tea.String(from),
+		SourceText:     tea.String(string(queryJson)),
+		TargetLanguage: tea.String(to),
+	}
+	runtime := &util.RuntimeOptions{}
+	res, err := client.GetBatchTranslateWithOptions(getBatchTranslateRequest, runtime)
+	if err != nil {
+		return outArr, err
+	}
+	if *res.StatusCode != 200 {
+		return outArr, errors.New("网络错误")
+	}
+	if *res.Body.Code != 200 {
+		return outArr, errors.New(tea.StringValue(res.Body.Message))
+	}
+
+	trans := res.Body.TranslatedList
+	for i := range trans {
+		item := trans[i]
+		index := object.ParseInt(item["index"])
+		translated := object.ParseString(item["translated"])
+		outArr[index] = translated
+	}
+	return outArr, nil
+}
+
+/*
+	func (m *Html) Translate(query, from, to string) (string, error) {
+		//###
+		//POST http://translate.app.usokay.com/translate
+		//Content-Type: application/json
+		//
+		//{
+		//	"q": "name",
+		//	"source": "en",
+		//	"target": "zh",
+		//	"format": "text",
+		//	"alternatives": 0,
+		//	"api_key": "ba07e09c-6e8c-4c1f-b3e0-88091934d51f"
+		//}
+
+		postParams := make(map[string]any)
+		//q := url.QueryEscape(query)
+		postParams["q"] = query
+		postParams["source"] = from
+		postParams["target"] = to
+		postParams["format"] = "text"
+		postParams["alternatives"] = 0
+		postParams["api_key"] = m.ApiKey
+
+		postParamsBytes, err := json.Marshal(&postParams)
+		if err != nil {
+			return "", err
+		}
+		response, err := http.Post("http://translate.app.usokay.com/translate", "application/json", bytes.NewReader(postParamsBytes))
+		if err != nil {
+			return "", err
+		}
+		body, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			return "", err
+		}
+		defer response.Body.Close()
+
+		var r _Result
+		if err = json.Unmarshal(body, &r); err != nil {
+			return "", err
+		}
+		if response.StatusCode != 200 {
+			return "", errors.New(r.Error)
+		}
+		return r.TranslatedText, nil
+	}
+*/
 func (m *Html) _TranslateBaidu(query, from, to string) (list []translateInfo, err error) {
 	//var translate model.Translate
 
@@ -557,6 +717,6 @@ func (m *Html) _TranslateBaidu(query, from, to string) (list []translateInfo, er
 }
 
 func NewTranslateHtml(languageCode map[string]string) *Html {
-	apiKey := service.Configuration.GetLibreTranslateApiKey(0)
-	return &Html{LanguageCode: languageCode, ApiKey: apiKey}
+	apiKey := service.Configuration.GetAliyunConfiguration(0)
+	return &Html{LanguageCode: languageCode, AccessKeyID: apiKey.AccessKeyID, AccessKeySecret: apiKey.AccessKeySecret}
 }

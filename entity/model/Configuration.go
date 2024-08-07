@@ -139,8 +139,6 @@ const (
 	ConfigurationKeyEmailSTMPHost     ConfigurationKey = "EmailSTMPHost"
 	ConfigurationKeyEmailSTMPPort     ConfigurationKey = "EmailSTMPPort"
 	ConfigurationKeyEmailSTMPPassword ConfigurationKey = "EmailSTMPPassword"
-
-	ConfigurationKeyLibreTranslateApiKey ConfigurationKey = "LibreTranslateApiKey"
 )
 
 type Configuration struct {

@@ -344,7 +344,7 @@ func (m ContentService) FindContentByTypeID(menusData *extends.MenusData, Conten
 	var content model.Content
 
 	/*if ContentItemID == 0 {
-		log.Println("参数ContentItemID为0")
+
 		return content
 	}
 
@@ -431,7 +431,7 @@ func (m ContentService) FindContentListByTypeID(menusData *extends.MenusData, Co
 	var pager result.Pager
 
 	if ContentItemID == 0 {
-		log.Println("参数ContentItemID为0")
+		log.Println("FindContentListByTypeID:参数ContentItemID为0")
 		return pager
 	}
 
@@ -464,7 +464,7 @@ func (m ContentService) FindContentListByTypeID(menusData *extends.MenusData, Co
 func (m ContentService) FindContentListForLeftRight(ContentItemID, ContentSubTypeID dao.PrimaryKey, ContentID dao.PrimaryKey, ContentCreatedAt time.Time) [2]*model.Content {
 	var contentList [2]*model.Content
 	if ContentItemID == 0 {
-		log.Println("参数ContentItemID为0")
+		log.Println("FindContentListForLeftRight:参数ContentItemID为0")
 		return contentList
 	}
 

@@ -86,11 +86,6 @@ func (m ConfigurationService) GetEmailSTMP(oid dao.PrimaryKey) *EmailSTMP {
 	}
 }
 
-func (m ConfigurationService) GetLibreTranslateApiKey(oid dao.PrimaryKey) string {
-	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyLibreTranslateApiKey)
-	return c.V
-}
-
 func (m ConfigurationService) GetPopConfiguration(oid dao.PrimaryKey) []Pop {
 	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyPop)
 	var h []Pop
@@ -102,6 +97,14 @@ func (m ConfigurationService) GetQuickLinkConfiguration(oid dao.PrimaryKey) []Qu
 	var h []QuickLink
 	_ = json.Unmarshal([]byte(c.V), &h)
 	return h
+}
+func (m ConfigurationService) GetAliyunConfiguration(oid dao.PrimaryKey) *AliyunConfig {
+	c := m.GetConfigurations(oid, model.ConfigurationKeyAliyunAccessKeyID, model.ConfigurationKeyAliyunAccessKeySecret)
+	h := AliyunConfig{
+		AccessKeyID:     c[model.ConfigurationKeyAliyunAccessKeyID],
+		AccessKeySecret: c[model.ConfigurationKeyAliyunAccessKeySecret],
+	}
+	return &h
 }
 func (m ConfigurationService) GetHeaderConfiguration(oid dao.PrimaryKey) *Header {
 	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyHeader)
