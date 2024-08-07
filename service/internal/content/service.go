@@ -464,10 +464,8 @@ func (m ContentService) FindContentListByTypeID(menusData *extends.MenusData, Co
 func (m ContentService) FindContentListForLeftRight(ContentItemID, ContentSubTypeID dao.PrimaryKey, ContentID dao.PrimaryKey, ContentCreatedAt time.Time) [2]*model.Content {
 	var contentList [2]*model.Content
 	if ContentItemID == 0 {
-		log.Println("FindContentListForLeftRight:参数ContentItemID为0")
 		return contentList
 	}
-
 	var ContentSubTypeIDList []dao.PrimaryKey
 	if ContentSubTypeID > 0 {
 		ContentSubTypeIDList = repository.ContentSubTypeDao.GetContentSubTypeAllIDByID(ContentItemID, ContentSubTypeID)
