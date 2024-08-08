@@ -59,7 +59,7 @@ func newNodeID(seqID int) nodeID {
 var varRegexp = regexp.MustCompile(`\$\{[\S\x20]+}`)
 var notTranslateRegexp = regexp.MustCompile(`(?i)^(([\d+-.$])|([\d|+|-|.|$|/|\\])|(kg)|([:\s]))+$`)
 
-func CheckNotTranslate(text string) bool{
+func CheckNotTranslate(text string) bool {
 	return notTranslateRegexp.MatchString(text)
 }
 
@@ -99,7 +99,7 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 			if varRegexp.MatchString(texts[i]) {
 				continue
 			}
-			if notTranslateRegexp.MatchString(texts[i]) {
+			if CheckNotTranslate(texts[i]) {
 				continue
 			}
 			v := strings.TrimSpace(texts[i])
@@ -178,7 +178,7 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 
 	tx := db.Orm().Begin(&sql.TxOptions{Isolation: sql.LevelReadUncommitted})
 	defer func() {
-		if err != nil {
+		if err != nil || recover() != nil {
 			tx.Rollback()
 		} else {
 			tx.Commit()
@@ -193,7 +193,7 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 
 	for k := range willTranslateTexts {
 		var has bool
-		v:=willTranslateTexts[k]
+		v := willTranslateTexts[k]
 		//todo 优化二分查找或者其它方法
 		for _, e := range translateModelList {
 			if strings.EqualFold(v.Src, e.Text) {
@@ -209,7 +209,8 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 	}
 
 	if len(translateList) > 0 {
-		translateMap, err := m.Translate(translateList, "en", contextValue.Lang)
+		var translateMap map[int]string
+		translateMap, err = m.Translate(translateList, "en", contextValue.Lang)
 		if err != nil {
 			context.Logger().Error("translate error", zap.Error(err))
 			return nil, err
@@ -514,7 +515,7 @@ func (m *Html) Translate(query []string, from, to string) (map[int]string, error
 			}
 			translateMap[i] = translateText
 		} else {
-			if samllLen+len(query[i]) > 8000 || len(samllMap)+1 >= 50 || i== len(query)-1 {
+			if samllLen+len(query[i]) > 8000 || len(samllMap)+1 >= 50 || i == len(query)-1 {
 				samllMap[object.ParseString(i)] = query[i]
 				mTranslateMap, err := m.translateBatchBase(samllMap, from, to)
 				if err != nil {
