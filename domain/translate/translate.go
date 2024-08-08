@@ -57,6 +57,11 @@ func newNodeID(seqID int) nodeID {
 }
 
 var varRegexp = regexp.MustCompile(`\$\{[\S\x20]+}`)
+var notTranslateRegexp = regexp.MustCompile(`(?i)^(([\d+-.$])|([\d|+|-|.|$|/|\\])|(kg)|([:\s]))+$`)
+
+func CheckNotTranslate(text string) bool{
+	return notTranslateRegexp.MatchString(text)
+}
 
 type translateInfo struct {
 	Src string `json:"src"`
@@ -87,10 +92,14 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 	willTranslateTexts := map[string]translateInfo{}
 	//var willTranslateLocker sync.RWMutex
 
+	//把翻译的文本替换成变量占位符，并把要翻译的放在willTranslateTexts里
 	extractFunc := func(text string) string {
 		texts := strings.Split(text, "\n")
 		for i := range texts {
 			if varRegexp.MatchString(texts[i]) {
+				continue
+			}
+			if notTranslateRegexp.MatchString(texts[i]) {
 				continue
 			}
 			v := strings.TrimSpace(texts[i])
@@ -366,7 +375,7 @@ type bingResult struct {
 	} `json:"translations"`
 }
 
-func (m *Html) bingTranslate(query, from, to string) (_ string, err error) {
+func (m *Html) BingTranslate(query, from, to string) (_ string, err error) {
 	if err = m.bingTranslateParams(); err != nil {
 		return "", err
 	}
@@ -438,7 +447,7 @@ func (m *Html) bingTranslate(query, from, to string) (_ string, err error) {
 	}
 	if obj.ShowCaptcha {
 		time.Sleep(time.Second)
-		return m.bingTranslate(query, from, to)
+		return m.BingTranslate(query, from, to)
 	}
 
 	var rs []bingResult

@@ -16,8 +16,6 @@ github.com/alibabacloud-go/alimt-20181012/v2 v2.3.0 h1:IDXPw5MOdK3EmDw3xFLtm6FgX
 github.com/alibabacloud-go/alimt-20181012/v2 v2.3.0/go.mod h1:NR9bEoCnxfA6/7Q3VAqUOD76ervfR12m+3nw4WuKjP8=
 github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.0/go.mod h1:5JHVmnHvGzR2wNdgaW1zDLQG8kOC4Uec8ubkMogW7OQ=
 github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.2/go.mod h1:5JHVmnHvGzR2wNdgaW1zDLQG8kOC4Uec8ubkMogW7OQ=
-github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.5 h1:yyolbgHfV2Tp91vMjO/CF5aOxKG+UgdVAeUoloEQI3E=
-github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.5/go.mod h1:kUe8JqFmoVU7lfBauaDD5taFaW7mBI+xVsyHutYtabg=
 github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.7/go.mod h1:CzQnh+94WDnJOnKZH5YRyouL+OOcdBnXY5VWAf0McgI=
 github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.8 h1:benoD0QHDrylMzEQVpX/6uKtrN8LohT66ZlKXVJh7pM=
 github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.8/go.mod h1:CzQnh+94WDnJOnKZH5YRyouL+OOcdBnXY5VWAf0McgI=
@@ -30,6 +28,7 @@ github.com/alibabacloud-go/endpoint-util v1.1.0/go.mod h1:O5FuCALmCKs2Ff7JFJMudH
 github.com/alibabacloud-go/openapi-util v0.0.11/go.mod h1:sQuElr4ywwFRlCCberQwKRFhRzIyG4QTP/P4y1CJ6Ws=
 github.com/alibabacloud-go/openapi-util v0.1.0 h1:0z75cIULkDrdEhkLWgi9tnLe+KhAFE/r5Pb3312/eAY=
 github.com/alibabacloud-go/openapi-util v0.1.0/go.mod h1:sQuElr4ywwFRlCCberQwKRFhRzIyG4QTP/P4y1CJ6Ws=
+github.com/alibabacloud-go/openplatform-20191219/v2 v2.0.1 h1:L0TIjr9Qh/SLVc1yPhFkcB9+9SbCNK/jPq4ZKB5zmnc=
 github.com/alibabacloud-go/openplatform-20191219/v2 v2.0.1/go.mod h1:EKxBRDLcMzwl4VLF/1WJwlByZZECJawPXUvinKMsTTs=
 github.com/alibabacloud-go/tea v1.1.0/go.mod h1:IkGyUSX4Ba1V+k4pCtJUc6jDpZLFph9QMy2VUPTwukg=
 github.com/alibabacloud-go/tea v1.1.7/go.mod h1:/tmnEaQMyb4Ky1/5D+SE1BAsa5zj/KeGOFfwYm3N/p4=
@@ -40,17 +39,17 @@ github.com/alibabacloud-go/tea v1.1.17/go.mod h1:nXxjm6CIFkBhwW4FQkNrolwbfon8Svy
 github.com/alibabacloud-go/tea v1.1.19/go.mod h1:nXxjm6CIFkBhwW4FQkNrolwbfon8Svy6cujmKFUq98A=
 github.com/alibabacloud-go/tea v1.2.1 h1:rFF1LnrAdhaiPmKwH5xwYOKlMh66CqRwPUTzIK74ask=
 github.com/alibabacloud-go/tea v1.2.1/go.mod h1:qbzof29bM/IFhLMtJPrgTGK3eauV5J2wSyEUo4OEmnA=
+github.com/alibabacloud-go/tea-fileform v1.1.1 h1:1YG6erAP3joQ0XdCXYIotuD7zyOM6qCR49xkp5FZDeU=
 github.com/alibabacloud-go/tea-fileform v1.1.1/go.mod h1:ZeCV91o4ISmxidd686f0ebdS5EDHWU+vW+TkjLhrsFE=
+github.com/alibabacloud-go/tea-oss-sdk v1.1.3 h1:EhAHI6edMeqgkZEqP7r4nc9iMWAUBKGxJHoBsOSKTtU=
 github.com/alibabacloud-go/tea-oss-sdk v1.1.3/go.mod h1:yUnodpR3Bf2rudLE7V/Gft5txjJF30Pk+hH77K/Eab0=
+github.com/alibabacloud-go/tea-oss-utils v1.1.0 h1:y65crjjcZ2Pbb6UZtC2deuIZHDVTS3IaDWE7M9nVLRc=
 github.com/alibabacloud-go/tea-oss-utils v1.1.0/go.mod h1:PFCF12e9yEKyBUIn7X1IrF/pNjvxgkHy0CgxX4+xRuY=
-github.com/alibabacloud-go/tea-utils v1.3.1 h1:iWQeRzRheqCMuiF3+XkfybB3kTgUXkXX+JMrqfLeB2I=
 github.com/alibabacloud-go/tea-utils v1.3.1/go.mod h1:EI/o33aBfj3hETm4RLiAxF/ThQdSngxrpF8rKUDJjPE=
 github.com/alibabacloud-go/tea-utils v1.3.6 h1:bVjrxHztM8hAs6nOfLWCgxQfAtKb9RgFFMV6J3rdvB4=
 github.com/alibabacloud-go/tea-utils v1.3.6/go.mod h1:EI/o33aBfj3hETm4RLiAxF/ThQdSngxrpF8rKUDJjPE=
 github.com/alibabacloud-go/tea-utils/v2 v2.0.0/go.mod h1:U5MTY10WwlquGPS34DOeomUGBB0gXbLueiq5Trwu0C4=
 github.com/alibabacloud-go/tea-utils/v2 v2.0.3/go.mod h1:sj1PbjPodAVTqGTA3olprfeeqqmwD0A5OQz94o9EuXQ=
-github.com/alibabacloud-go/tea-utils/v2 v2.0.4 h1:SoFgjJuO7pze88j9RBJNbKb7AgTS52O+J5ITxc00lCs=
-github.com/alibabacloud-go/tea-utils/v2 v2.0.4/go.mod h1:sj1PbjPodAVTqGTA3olprfeeqqmwD0A5OQz94o9EuXQ=
 github.com/alibabacloud-go/tea-utils/v2 v2.0.5 h1:EUakYEUAwr6L3wLT0vejIw2rc0IA1RSXDwLnIb3f2vU=
 github.com/alibabacloud-go/tea-utils/v2 v2.0.5/go.mod h1:dL6vbUT35E4F4bFTHL845eUloqaerYBYPsdWR2/jhe4=
 github.com/alibabacloud-go/tea-xml v1.1.1/go.mod h1:Rq08vgCcCAjHyRi/M7xlHKUykZCEtyBy9+DPF6GgEu8=
@@ -348,7 +347,6 @@ golang.org/x/net v0.0.0-20220722155237-a158d28d115b/go.mod h1:XRhObCWvk6IyKnWLug
 golang.org/x/net v0.6.0/go.mod h1:2Tu9+aMcznHK/AK1HMvgo6xiTLG5rD5rZLDS+rp2Bjs=
 golang.org/x/net v0.7.0/go.mod h1:2Tu9+aMcznHK/AK1HMvgo6xiTLG5rD5rZLDS+rp2Bjs=
 golang.org/x/net v0.10.0/go.mod h1:0qNGK6F8kojg2nk9dLZ2mShWaEBan6FAoqfSigmmuDg=
-golang.org/x/net v0.11.0 h1:Gi2tvZIJyBtO9SDr1q9h5hEQCp/4L2RQ+ar0qjx2oNU=
 golang.org/x/net v0.11.0/go.mod h1:2L/ixqYpgIVXmeoSA/4Lu7BzTG4KIyPIryS4IsOd1oQ=
 golang.org/x/net v0.17.0 h1:pVaXccu2ozPjCXewfr1S7xza/zcXTity9cCdXQYSjIM=
 golang.org/x/net v0.17.0/go.mod h1:NxSsAGuq816PNPmqtQdLE42eU2Fs7NoRIZrHJAlaCOE=
