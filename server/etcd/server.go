@@ -131,7 +131,7 @@ func (m *server) CheckDomain(domainName string) error {
 		return err
 	}
 	if len(resp.Kvs) == 0 {
-		return errors.Errorf("域名不允许:%s", domain)
+		return errors.Errorf("域名不允许:%s", domainName)
 	}
 	if !strings.Contains(string(resp.Kvs[0].Value), domainName) {
 		return errors.Errorf("域名不在列表中:%s", domainName)
