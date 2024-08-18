@@ -22,6 +22,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/robertkrimen/otto v0.4.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
+	github.com/volcengine/volc-sdk-golang v1.0.172
 	github.com/wechatpay-apiv3/wechatpay-go v0.2.16
 	go.etcd.io/etcd/client/v3 v3.5.4
 	go.uber.org/zap v1.19.1
@@ -75,7 +76,6 @@ require (
 	github.com/tjfoc/gmsm v1.3.2 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
-	github.com/volcengine/volc-sdk-golang v1.0.172 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.4 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.5.4 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
