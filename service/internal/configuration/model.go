@@ -60,7 +60,3 @@ type Brokerage struct {
 	Leve6 float64
 }
 
-type AliyunConfig struct {
-	AccessKeyID     string
-	AccessKeySecret string
-}

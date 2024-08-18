@@ -8,6 +8,7 @@ import (
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/nbvghost/dandelion/service"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 	"github.com/nbvghost/tool/object"
 )
 
@@ -17,21 +18,23 @@ type Result struct {
 }
 
 type Index struct {
-	AccessKeyID     string
-	AccessKeySecret string
+	config *serviceargument.AliyunConfig
 }
 
 var aliyunClient *alimt20181012.Client
 
 func (m *Index) getClient() (*alimt20181012.Client, error) {
 	if aliyunClient == nil {
+		if m.config == nil {
+			m.config = service.Configuration.GetAliyunConfiguration(0)
+		}
 		// 工程代码泄露可能会导致 AccessKey 泄露，并威胁账号下所有资源的安全性。以下代码示例仅供参考。
 		// 建议使用更安全的 STS 方式，更多鉴权访问方式请参见：https://help.aliyun.com/document_detail/378661.html。
 		config := &openapi.Config{
 			// 必填，请确保代码运行环境设置了环境变量 ALIBABA_CLOUD_ACCESS_KEY_ID。
-			AccessKeyId: tea.String(m.AccessKeyID),
+			AccessKeyId: tea.String(m.config.AccessKeyID),
 			// 必填，请确保代码运行环境设置了环境变量 ALIBABA_CLOUD_ACCESS_KEY_SECRET。
-			AccessKeySecret: tea.String(m.AccessKeySecret),
+			AccessKeySecret: tea.String(m.config.AccessKeySecret),
 		}
 		// Endpoint 请参考 https://api.aliyun.com/product/alimt
 		config.Endpoint = tea.String("mt.aliyuncs.com")
@@ -45,6 +48,7 @@ func (m *Index) getClient() (*alimt20181012.Client, error) {
 	}
 	return aliyunClient, nil
 }
+
 func (m *Index) Translate(query []string, from, to string) (map[int]string, error) {
 	translateMap := make(map[int]string)
 	samllMap := make(map[string]string)
@@ -141,9 +145,5 @@ func (m *Index) translateBatchBase(query map[string]string, from, to string) (ma
 	return outArr, nil
 }
 func New() *Index {
-	apiKey := service.Configuration.GetAliyunConfiguration(0)
-	return &Index{
-		AccessKeyID:     apiKey.AccessKeyID,
-		AccessKeySecret: apiKey.AccessKeySecret,
-	}
+	return &Index{}
 }

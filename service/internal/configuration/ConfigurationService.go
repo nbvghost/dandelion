@@ -3,6 +3,7 @@ package configuration
 import (
 	"encoding/json"
 	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 	"github.com/nbvghost/tool/object"
 	"gorm.io/gorm"
 	"log"
@@ -98,9 +99,30 @@ func (m ConfigurationService) GetQuickLinkConfiguration(oid dao.PrimaryKey) []Qu
 	_ = json.Unmarshal([]byte(c.V), &h)
 	return h
 }
-func (m ConfigurationService) GetAliyunConfiguration(oid dao.PrimaryKey) *AliyunConfig {
+func (m ConfigurationService) GetBaiduTranslateConfiguration(oid dao.PrimaryKey) *serviceargument.BaiduTranslateConfig {
+	c := m.GetConfigurations(oid, model.ConfigurationKeyBaiduTranslateAppID, model.ConfigurationKeyBaiduTranslateAppKey)
+	h := serviceargument.BaiduTranslateConfig{
+		AppID:  c[model.ConfigurationKeyBaiduTranslateAppID],
+		AppKey: c[model.ConfigurationKeyBaiduTranslateAppKey],
+	}
+	return &h
+}
+func (m ConfigurationService) GetTranslate(db *gorm.DB, oid dao.PrimaryKey) []model.Configuration {
+	var list []model.Configuration
+	db.Model(&model.Configuration{}).Where(`"OID"=?`, oid).Where(`"K" like 'Translate%'`).Order(`"V"::int desc`).Find(&list)
+	return list
+}
+func (m ConfigurationService) GetVolcengineConfiguration(oid dao.PrimaryKey) *serviceargument.Volcengine {
+	c := m.GetConfigurations(oid, model.ConfigurationKeyVolcengineAccessKeyID, model.ConfigurationKeyVolcengineAccessKeySecret)
+	h := serviceargument.Volcengine{
+		AccessKeyID:     c[model.ConfigurationKeyVolcengineAccessKeyID],
+		AccessKeySecret: c[model.ConfigurationKeyVolcengineAccessKeySecret],
+	}
+	return &h
+}
+func (m ConfigurationService) GetAliyunConfiguration(oid dao.PrimaryKey) *serviceargument.AliyunConfig {
 	c := m.GetConfigurations(oid, model.ConfigurationKeyAliyunAccessKeyID, model.ConfigurationKeyAliyunAccessKeySecret)
-	h := AliyunConfig{
+	h := serviceargument.AliyunConfig{
 		AccessKeyID:     c[model.ConfigurationKeyAliyunAccessKeyID],
 		AccessKeySecret: c[model.ConfigurationKeyAliyunAccessKeySecret],
 	}

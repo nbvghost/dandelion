@@ -135,6 +135,12 @@ const (
 	ConfigurationKeyAliyunAccessKeySecret ConfigurationKey = "AliyunAccessKeySecret"
 	ConfigurationKeyAliyunSMSSignName     ConfigurationKey = "AliyunSMSSignName"
 
+	ConfigurationKeyVolcengineAccessKeyID     ConfigurationKey = "VolcengineAccessKeyID"
+	ConfigurationKeyVolcengineAccessKeySecret ConfigurationKey = "VolcengineAccessKeySecret"
+
+	ConfigurationKeyBaiduTranslateAppID  ConfigurationKey = "BaiduTranslateAppID"
+	ConfigurationKeyBaiduTranslateAppKey ConfigurationKey = "BaiduTranslateAppKey"
+
 	ConfigurationKeyEmailSTMPFrom     ConfigurationKey = "EmailSTMPFrom"
 	ConfigurationKeyEmailSTMPHost     ConfigurationKey = "EmailSTMPHost"
 	ConfigurationKeyEmailSTMPPort     ConfigurationKey = "EmailSTMPPort"
