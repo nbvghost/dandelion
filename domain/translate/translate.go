@@ -54,6 +54,9 @@ type translateInfo struct {
 	Dst string `json:"dst"`
 }
 
+func (m *Html) Translate(query []string, from, to string) (map[int]string, error) {
+	return m.translate.Translate(query, from, to)
+}
 func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byte, error) {
 	contextValue := contexext.FromContext(context)
 	var err error
