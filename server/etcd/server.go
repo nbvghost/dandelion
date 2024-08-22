@@ -30,6 +30,7 @@ type server struct {
 	dnsDomainToServer map[string]config.MicroServer
 	dnsServerToDomain map[string][]string
 	dnsLocker         sync.RWMutex
+	domains           *sync.Map
 	//serverMap         map[key.MicroServer][]serviceobject.ServerDesc
 	//serverLocker      sync.RWMutex
 }
@@ -120,7 +121,16 @@ func (m *server) SelectOutsideServer(localName config.MicroServer) (string, erro
 	return list[0], nil
 }
 func (m *server) CheckDomain(domainName string) error {
-	ctx := context.TODO()
+	_, domain := util.ParseDomain(domainName)
+	v, ok := m.domains.Load(domain)
+	if !ok {
+		return errors.Errorf("域名不允许:%s", domainName)
+	}
+	if !strings.Contains(v.(string), domainName) {
+		return errors.Errorf("域名不在列表中:%s", domainName)
+	}
+
+	/*ctx := context.TODO()
 	client := m.getClient()
 
 	_, domain := util.ParseDomain(domainName)
@@ -136,6 +146,7 @@ func (m *server) CheckDomain(domainName string) error {
 	if !strings.Contains(string(resp.Kvs[0].Value), domainName) {
 		return errors.Errorf("域名不在列表中:%s", domainName)
 	}
+	return nil*/
 	return nil
 }
 func (m *server) SelectInsideServer(appName config.MicroServer) (string, error) {
@@ -178,8 +189,6 @@ func (m *server) watch() {
 	client := m.getClient()
 
 	etcdKey := "dns"
-	//serverKey := "server"
-
 	{
 		resp, err = client.Get(ctx, etcdKey)
 		if err != nil {
@@ -193,6 +202,28 @@ func (m *server) watch() {
 				panic(err)
 			}
 			log.Printf("dns list:%+v", dns)
+		}
+	}
+	etcdDomainsKey := "domains"
+	{
+		resp, err = client.Get(ctx, etcdDomainsKey, clientv3.WithPrefix())
+		if err != nil {
+			panic(err)
+		}
+		if len(resp.Kvs) > 0 {
+
+			for i := range resp.Kvs {
+				k := string(resp.Kvs[i].Key)
+				v := string(resp.Kvs[i].Value)
+				dss := strings.Split(k, "/")
+				if len(dss) >= 2 {
+					m.domains.Store(dss[1], v)
+				} else {
+					log.Printf("etcd 中domains key 格式不正解：%s", k)
+				}
+				log.Printf("domains list:%s\t\t\t->\t\t\t%s", k, v)
+			}
+
 		}
 	}
 	/*{
@@ -215,32 +246,23 @@ func (m *server) watch() {
 
 	//serverWatch := client.Watch(ctx, serverKey, clientv3.WithPrefix())
 	dnsWatch := client.Watch(ctx, etcdKey)
+	domainsWatch := client.Watch(ctx, etcdDomainsKey, clientv3.WithPrefix())
 	go func() {
 		for {
 			select {
-			/*case serverResp := <-serverWatch:
-			for _, ev := range serverResp.Events {
-				var serverDesc serviceobject.ServerDesc
-				if ev.Kv.Value != nil {
-					if err = json.Unmarshal(ev.Kv.Value, &serverDesc); err != nil {
-						log.Println(err)
-					}
-				} else {
-					keys := strings.Split(string(ev.Kv.Key), "/")
-					hosts := strings.Split(keys[len(keys)-1], ":")
-					if len(hosts) == 2 {
-						serverDesc.Name = keys[1]
-						serverDesc.IP = hosts[0]
-						serverDesc.Port, _ = strconv.Atoi(hosts[1])
-					}
-					if len(serverDesc.IP) == 0 || serverDesc.Port == 0 {
-						log.Printf("分析删除的key时错误,key:%s", ev.Kv.Key)
+			case domainsResp := <-domainsWatch:
+				for i := range domainsResp.Events {
+					ev := domainsResp.Events[i]
+					k := string(ev.Kv.Key)
+					v := string(ev.Kv.Value)
+					dss := strings.Split(k, "/")
+					if len(dss) >= 2 {
+						m.domains.Store(dss[1], v)
+						log.Printf("new domains list:%s\t\t\t->\t\t\t%s", dss[1], v)
+					} else {
+						log.Printf("etcd 中domains key 格式不正解：%s", k)
 					}
 				}
-				if err = m.parseServer(serverDesc, ev.IsCreate(), ev.IsModify()); err != nil {
-					log.Println(err)
-				}
-			}*/
 			case dnsResp := <-dnsWatch:
 				for _, ev := range dnsResp.Events {
 					//fmt.Printf("%s %q : %q\n", ev.Type, ev.Kv.Key, ev.Kv.Value)
@@ -359,16 +381,20 @@ func (m *server) Register(desc *config.MicroServerConfig) (*config.MicroServerCo
 				leaseGrant, err = client.Grant(ctx, 10)
 				if err != nil {
 					log.Println(err)
-					return
+					time.Sleep(time.Second * 10)
+					continue
 				}
 				_, err = client.Put(ctx, etcdKey, string(vBytes), clientv3.WithLease(leaseGrant.ID))
 				if err != nil {
 					log.Println(err)
+					time.Sleep(time.Second * 10)
+					continue
 				}
 				channel, err = client.KeepAlive(ctx, leaseGrant.ID)
 				if err != nil {
 					log.Println(err)
-					return
+					time.Sleep(time.Second * 10)
+					continue
 				}
 			}
 		}
@@ -421,6 +447,7 @@ func NewServer(config clientv3.Config) constrain.IEtcd {
 		//dnsDomainToServer: map[string]config.MicroServer{},
 		//serverMap:         map[key.MicroServer][]serviceobject.ServerDesc{},
 		resolverBuilder: r,
+		domains:         &sync.Map{},
 	}
 	s.watch()
 
