@@ -76,15 +76,25 @@ func (m *client) Del(ctx context.Context, keys ...string) (int64, error) {
 func (m *client) Get(ctx context.Context, key string) (string, error) {
 	return m.getClient().Get(ctx, key).Result()
 }
-func (m *client) GenerateUID(ctx context.Context) uint64 {
+func (m *client) GenerateUID(ctx context.Context, maxID int64) (uint64, error) {
 	key := NewUIDKey()
 	mUID := m.getClient().Get(ctx, key)
 	v, _ := mUID.Uint64()
 	if v == 0 {
-		v, _ = m.getClient().IncrBy(ctx, key, 100000).Uint64()
+		if maxID<1000000{
+			maxID=1000001
+		}
+		var err error
+		_, err = m.getClient().IncrBy(ctx, key, maxID).Uint64()
+		if err != nil {
+			return 0, err
+		}
 	}
-	v, _ = m.getClient().Incr(ctx, key).Uint64()
-	return v
+	v, err := m.getClient().Incr(ctx, key).Uint64()
+	if err != nil {
+		return 0, err
+	}
+	return v, nil
 }
 func (m *client) GetEx(ctx context.Context, key string, expiration time.Duration) (string, error) {
 	return m.getClient().GetEx(ctx, key, expiration).Result()

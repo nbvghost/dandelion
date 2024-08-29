@@ -65,6 +65,7 @@ func (m *FindQuery) Where(query interface{}, args ...interface{}) *FindQuery {
 	return m
 }
 func (m *FindQuery) Order(order ...string) *FindQuery {
+	m.order = append(m.order, order...)
 	m.db.Order(strings.Join(order, ","))
 	return m
 }
@@ -108,11 +109,11 @@ func (m *FindQuery) Result(dest interface{}) {
 	if len(m.order) == 0 {
 		m.db.Order(fmt.Sprintf(`"%s" asc`, m.model.PrimaryName()))
 	}
-	v:=reflect.TypeOf(dest).Elem()
+	v := reflect.TypeOf(dest).Elem()
 	log.Println(v.Kind())
-	if v.Kind()==reflect.Slice{
+	if v.Kind() == reflect.Slice {
 		m.db.Find(dest)
-	}else{
+	} else {
 		m.db.First(dest)
 	}
 }
