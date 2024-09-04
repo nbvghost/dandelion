@@ -45,7 +45,7 @@ func DeleteBy(tx *gorm.DB, model IEntity, where map[string]any) error {
 
 type FindQuery struct {
 	model IEntity
-	order []string
+	isSetOrder bool
 	db    *gorm.DB
 }
 
@@ -65,8 +65,13 @@ func (m *FindQuery) Where(query interface{}, args ...interface{}) *FindQuery {
 	return m
 }
 func (m *FindQuery) Order(order ...string) *FindQuery {
-	m.order = append(m.order, order...)
+	m.isSetOrder=true
 	m.db.Order(strings.Join(order, ","))
+	return m
+}
+func (m *FindQuery) OrderRaw(value interface{}) *FindQuery {
+	m.isSetOrder=true
+	m.db.Order(value)
 	return m
 }
 func (m *FindQuery) Count() int64 {
@@ -106,7 +111,7 @@ func (m *FindQuery) Pluck(column string, dest interface{}) {
 	m.db.Pluck(column, dest)
 }
 func (m *FindQuery) Result(dest interface{}) {
-	if len(m.order) == 0 {
+	if !m.isSetOrder {
 		m.db.Order(fmt.Sprintf(`"%s" asc`, m.model.PrimaryName()))
 	}
 	v := reflect.TypeOf(dest).Elem()
@@ -119,7 +124,7 @@ func (m *FindQuery) Result(dest interface{}) {
 }
 func (m *FindQuery) List() []IEntity {
 	var list = reflect.New(reflect.SliceOf(reflect.TypeOf(m.model)))
-	if len(m.order) == 0 {
+	if !m.isSetOrder {
 		m.db.Order(fmt.Sprintf(`"%s" asc`, m.model.PrimaryName()))
 	}
 	m.db.Find(list.Interface())
