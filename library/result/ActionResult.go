@@ -100,6 +100,15 @@ func NewCodeWithMessage(code ActionResultCode, message string) *ActionResult {
 		Now:     time.Now().UnixMilli(),
 	}
 }
+
+func NewDataMessage(data interface{},msg string) *ActionResult {
+	return &ActionResult{
+		Code:    Success,
+		Message: msg,
+		Data:    data,
+		Now:     time.Now().UnixMilli(),
+	}
+}
 func NewData(data interface{}) *ActionResult {
 	return &ActionResult{
 		Code:    Success,
