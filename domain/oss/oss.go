@@ -29,7 +29,8 @@ func Url(context constrain.IContext) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("//%s/assets", ossHost), nil
+	contextValue:=contexext.FromContext(context)
+	return fmt.Sprintf("%s://%s/assets",util.GetScheme(contextValue.Request), ossHost), nil
 }
 func ReadUrl(context constrain.IContext, path string) (string, error) {
 	ossHost, err := context.Etcd().SelectOutsideServer(config.MicroServerOSS)
