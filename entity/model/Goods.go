@@ -29,8 +29,8 @@ type Goods struct {
 	Price             uint                  `gorm:"column:Price"`                         //
 	Stock             uint                  `gorm:"column:Stock"`                         //
 	Hide              uint                  `gorm:"column:Hide"`                          //
-	Images            sqltype.Array[string] `gorm:"column:Images;type:JSON;"`             //json array
-	Videos            sqltype.Array[string] `gorm:"column:Videos;type:JSON;"`             //json array
+	Images            sqltype.Array[string] `gorm:"column:Images;type:JSON;"`             //json array//焦点图片
+	Videos            sqltype.Array[string] `gorm:"column:Videos;type:JSON;"`             //json array//介绍图片
 	Summary           string                `gorm:"column:Summary;type:text"`             //
 	Introduce         string                `gorm:"column:Introduce;type:text"`           //
 	Pictures          sqltype.Array[string] `gorm:"column:Pictures;type:JSON"`            //json array

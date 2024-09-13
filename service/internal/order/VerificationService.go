@@ -1,6 +1,7 @@
 package order
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/library/db"
@@ -18,8 +19,6 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/util"
-
 	"gorm.io/gorm"
 )
 
@@ -168,11 +167,12 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 		//如果是福利卷，结算给门店，没有用户上下级佣金结算
 		if strings.EqualFold(cardItem.Type, play.CardItem_Type_ScoreGoods) {
 			var scoreGoods model.ScoreGoods
-			err := util.JSONToStruct(cardItem.Data, &scoreGoods)
-			//err := service.ScoreGoods.Get(DB, cardItem.ScoreGoodsID, &scoreGoods)
+			//err := util.JSONToMap(cardItem.Data, &scoreGoods)
+			err = json.Unmarshal([]byte(cardItem.Data),&scoreGoods)
 			if err != nil {
 				return err
 			}
+			//err := service.ScoreGoods.Get(DB, cardItem.ScoreGoodsID, &scoreGoods)
 
 			_, err = service.Journal.AddStoreJournal(DB, store.ID, "积分商品核销", scoreGoods.Name, play.StoreJournal_Type_SG, int64(scoreGoods.Price), cardItem.ID)
 			if err != nil {
@@ -181,7 +181,8 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 		} else if strings.EqualFold(cardItem.Type, play.CardItem_Type_Voucher) {
 			var voucher model.Voucher
 			//err := service.Voucher.Get(DB, cardItem.VoucherID, &voucher)
-			err := util.JSONToStruct(cardItem.Data, &voucher)
+			//err := util.JSONToStruct(cardItem.Data, &voucher)
+			err = json.Unmarshal([]byte(cardItem.Data),&voucher)
 			if err != nil {
 				return err
 			}

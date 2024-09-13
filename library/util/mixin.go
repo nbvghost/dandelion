@@ -82,10 +82,7 @@ func RequestBodyToJSON(body io.ReadCloser, target interface{}) error {
 	err = json.Unmarshal(b, target)
 	return err
 }
-func JSONToStruct(body string, target interface{}) error {
-	err := json.Unmarshal([]byte(body), target)
-	return err
-}
+
 func StructToMap(obj interface{}) map[string]interface{} {
 	t := reflect.TypeOf(obj).Elem()
 	v := reflect.ValueOf(obj).Elem()
@@ -99,6 +96,7 @@ func StructToMap(obj interface{}) map[string]interface{} {
 func StructToJSON(obj interface{}) string {
 	b, err := json.Marshal(obj)
 	if err != nil {
+		log.Println(err)
 		return ""
 	}
 	return string(b)

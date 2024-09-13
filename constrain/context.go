@@ -17,6 +17,9 @@ type IMappingCallback interface {
 	AddMapping(mapping IMapping) IMappingCallback
 }
 
+type IService interface {
+
+}
 type IServiceContext interface {
 	context.Context
 	Redis() IRedis

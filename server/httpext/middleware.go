@@ -33,8 +33,8 @@ import (
 )
 
 type httpMiddleware struct {
-	context    constrain.IContext
-	serverName string
+	serverName  string
+	serviceList []constrain.IService
 
 	//session      Session
 	//isApi        bool
@@ -179,6 +179,14 @@ func (m *httpMiddleware) CreateContext(etcdClient constrain.IEtcd, redisClient c
 
 	parentCtx := r.Context()
 
+	if len(m.serviceList) > 0 {
+		for i := range m.serviceList {
+			service := m.serviceList[i]
+			st := reflect.TypeOf(service).Elem()
+			parentCtx = context.WithValue(parentCtx, reflect.New(st).Interface(), service)
+		}
+	}
+
 	mode := r.Header.Get("Mode")
 
 	Timeout, _ := strconv.ParseUint(r.Header.Get("Timeout"), 10, 64)
@@ -300,10 +308,10 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 	var isWriteHttpResponse bool
 
 	if ctxValue.IsApi {
-		isWriteHttpResponse,err = router.ExecuteInterceptors(ctx, apiHandler)
+		isWriteHttpResponse, err = router.ExecuteInterceptors(ctx, apiHandler)
 		if err != nil {
-			if isWriteHttpResponse{
-				ctx.Logger().Error("ExecuteInterceptors Api",zap.Error(err))
+			if isWriteHttpResponse {
+				ctx.Logger().Error("ExecuteInterceptors Api", zap.Error(err))
 				return nil
 			}
 			return err
@@ -395,10 +403,10 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 		returnResult.Apply(ctx)
 
 	} else {
-		isWriteHttpResponse,err = router.ExecuteInterceptors(ctx, apiHandler)
+		isWriteHttpResponse, err = router.ExecuteInterceptors(ctx, apiHandler)
 		if err != nil {
-			if isWriteHttpResponse{
-				ctx.Logger().Error("ExecuteInterceptors View",zap.Error(err))
+			if isWriteHttpResponse {
+				ctx.Logger().Error("ExecuteInterceptors View", zap.Error(err))
 				return nil
 			}
 			return err

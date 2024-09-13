@@ -25,7 +25,7 @@ import (
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/util"
+	"github.com/nbvghost/dandelion/library/util/fileutil"
 
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
@@ -48,6 +48,7 @@ type Catch1688Service struct {
 }
 
 var scriptRegexp = regexp.MustCompile(`<script.*?>([\s\S]*?)<\/script>`)
+var styleRegexp = regexp.MustCompile(`<style.*?>([\s\S]*?)<\/style>`)
 var titleRegexp = regexp.MustCompile(`<title>([\s\S]*?)</title>`)
 
 type NameValue struct {
@@ -55,9 +56,11 @@ type NameValue struct {
 	Value string
 }
 
+
+
 func (m *Catch1688Service) Api(catchDir string) error {
 	http.HandleFunc("/push-temu", func(writer http.ResponseWriter, request *http.Request) {
-		rootDir:=catchDir+"/temu"
+		rootDir := catchDir + "/temu"
 		//writer.Header().Set("Access-Control-Allow-Origin", strings.TrimRight(request.Referer(), "/"))
 		writer.Header().Set("Access-Control-Allow-Origin", "https://www.temu.com")
 		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type,FromURL")        //todo
@@ -109,11 +112,11 @@ func (m *Catch1688Service) Api(catchDir string) error {
 						if len(crumbOptList) >= 3 {
 
 							//window.rawData.store.goods.goodsName
-							goodsName:=storeMap["goods"].(map[string]any)["goodsName"].(string)
+							goodsName := storeMap["goods"].(map[string]any)["goodsName"].(string)
 
 							a := crumbOptList[1].(map[string]any)["title"].(string)
 							b := crumbOptList[2].(map[string]any)["title"].(string)
-							dir:=fmt.Sprintf("%s/%s/%s/%s", rootDir, a, b,goodsName)
+							dir := fmt.Sprintf("%s/%s/%s/%s", rootDir, a, b, goodsName)
 							os.MkdirAll(dir, os.ModePerm)
 
 							err := os.WriteFile(fmt.Sprintf("%s/%s", dir, "content.json"), jsonBytes, os.ModePerm)
@@ -139,7 +142,7 @@ func (m *Catch1688Service) Api(catchDir string) error {
 
 	})
 	http.HandleFunc("/push-1688", func(writer http.ResponseWriter, request *http.Request) {
-		rootDir:=catchDir+"/1688"
+		rootDir := catchDir + "/1688"
 		//writer.Header().Set("Access-Control-Allow-Origin", strings.TrimRight(request.Referer(), "/"))
 		writer.Header().Set("Access-Control-Allow-Origin", "https://detail.1688.com")
 		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type,FromURL")        //todo
@@ -180,11 +183,68 @@ func (m *Catch1688Service) Api(catchDir string) error {
 		}
 
 	})
+	http.HandleFunc("/push-alibaba", func(writer http.ResponseWriter, request *http.Request) {
+		rootDir := catchDir + "/alibaba"
+		//writer.Header().Set("Access-Control-Allow-Origin", strings.TrimRight(request.Referer(), "/"))
+		writer.Header().Set("Access-Control-Allow-Origin", "https://www.alibaba.com")
+		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type,FromURL")        //todo
+		writer.Header().Set("Access-Control-Allow-Methods", "DELETE,POST,PUT,OPTIONS,GET") //todo
+		writer.Header().Set("Access-Control-Allow-Credentials", "true")                    //todo
+		if request.Method == http.MethodOptions {
+			return
+		}
+
+		bodyByte, err := io.ReadAll(request.Body)
+		if err != nil {
+			writeError(writer, err)
+		} else {
+
+			body := styleRegexp.ReplaceAll(bodyByte, []byte(""))
+			doc, err := goquery.NewDocumentFromReader(bytes.NewBuffer(body))
+			if err != nil {
+				writeError(writer, err)
+				return
+			}
+
+			title := strings.TrimSpace(doc.Find(".product-title-container").Text())
+			err = fileutil.WriteFile(fmt.Sprintf("%s/%s/%s", rootDir, title, "url.txt"), []byte(request.Header.Get("FromURL")))
+			if err != nil {
+				writeError(writer, err)
+				return
+			}
+			err = fileutil.WriteFile(fmt.Sprintf("%s/%s/%s", rootDir, title, "content.html"), body)
+			if err != nil {
+				writeError(writer, err)
+				return
+			}
+			//log.Println(string(body))
+
+			writeSuccess(writer)
+		}
+
+	})
+	log.Println("listening")
 	err := http.ListenAndServe(":8080", http.DefaultServeMux)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+func writeSuccess(writer http.ResponseWriter) {
+	writer.WriteHeader(http.StatusOK)
+	_, err := writer.Write([]byte("写入成功"))
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+func writeError(writer http.ResponseWriter, err error) {
+	writer.WriteHeader(404)
+	_, e := writer.Write([]byte(err.Error()))
+	if e != nil {
+		log.Println(e)
+		return
+	}
 }
 func (m *Catch1688Service) readGoods(dir string) error {
 	//log.Println(dir.Name(),subDirs[i].Name(),"content.html")
@@ -279,10 +339,9 @@ func (m *Catch1688Service) readGoods(dir string) error {
 				if err != nil {
 					return err
 				}
-				func(){
+				func() {
 
 					log.Println(data.Object().Keys())
-
 
 				}()
 			}
@@ -402,7 +461,6 @@ func (m *Catch1688Service) readGoods(dir string) error {
 					log.Println(string(imagesJSON))
 				}*/
 			}
-
 
 		}
 		/*if len(i2) >= 2 && strings.Contains(i2[1], "window.__STORE_DATA") && strings.Contains(i2[1], "window.isOnline") && false {
@@ -727,8 +785,12 @@ func (m *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 			imgPath, exist := selection.Attr("data-imgs")
 			if exist {
 				//log.Println(imgPath)
-				imgPathMap := make(map[string]interface{})
-				util.JSONToStruct(imgPath, &imgPathMap)
+				//imgPathMap,err:=util.JSONToMap(imgPath)
+				imgPathMap := make(map[string]any)
+				err = json.Unmarshal([]byte(imgPath), &imgPathMap)
+				if err != nil {
+					log.Fatalln(err)
+				}
 				if imgPathMap["original"] != nil {
 					//todo imgPath := "" //todo tool.DownloadInternetImage(imgPathMap["original"].(string), "", "")
 					//todo images = append(images, "//"+conf.Config.Domain+"/file/load?path="+imgPath)

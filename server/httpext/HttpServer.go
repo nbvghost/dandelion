@@ -40,6 +40,7 @@ type httpServer struct {
 	middlewares        []constrain.IMiddleware
 	defaultMiddleware  *httpMiddleware
 	errorHandler       ErrorHandler
+	serviceList        []constrain.IService
 }
 
 func (m *httpServer) ApiErrorHandle(result constrain.IResultError) {
@@ -155,6 +156,11 @@ func WithViewRenderOption(customizeViewRender constrain.IAfterViewRender) Option
 		server.viewRender = customizeViewRender
 	})
 }
+func WithService(service constrain.IService) Option {
+	return newOption(func(server *httpServer) {
+		server.serviceList = append(server.serviceList, service)
+	})
+}
 func WithNotFoundViewRenderOption(customizeViewRender constrain.IAfterViewRender) Option {
 	return newOption(func(server *httpServer) {
 		server.notFoundViewRender = customizeViewRender
@@ -239,6 +245,8 @@ func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, eng
 	for i := range ops {
 		ops[i].apply(s)
 	}
+
+	s.defaultMiddleware.serviceList = s.serviceList
 
 	if s.viewRender == nil {
 		s.viewRender = &DefaultViewRender{}
