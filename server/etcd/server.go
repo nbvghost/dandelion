@@ -27,26 +27,29 @@ type server struct {
 	client          *clientv3.Client
 	resolverBuilder resolver.Builder
 
-	dnsDomainToServer map[string]config.MicroServer
-	dnsServerToDomain map[string][]string
+	//dnsDomainToServer map[string]config.MicroServer
+	dnsDomainToServer *sync.Map
+	//dnsServerToDomain map[string][]string
+	dnsServerToDomain *sync.Map
 	dnsLocker         sync.RWMutex
 	domains           *sync.Map
 	//serverMap         map[key.MicroServer][]serviceobject.ServerDesc
 	//serverLocker      sync.RWMutex
 }
 
-func (m *server) GetMicroServer(domainName string) (config.MicroServer, error) {
+func (m *server) GetMicroServer(domainName string) (*config.MicroServer, error) {
 	m.dnsLocker.RLock()
 	defer m.dnsLocker.RUnlock()
 	domainName = strings.Split(domainName, ":")[0]
-	v, ok := m.dnsDomainToServer[domainName]
+	//v, ok := m.dnsDomainToServer[domainName]
+	v, ok := m.dnsDomainToServer.Load(domainName)
 	if !ok {
-		v, ok = m.dnsDomainToServer[fmt.Sprintf("*.%s", domainName)]
+		v, ok = m.dnsDomainToServer.Load(domainName) //m.dnsDomainToServer[fmt.Sprintf("*.%s", domainName)]
 	}
 	if !ok {
-		return config.MicroServer{}, errors.Errorf("dns:没有找到(%s)的服务节点", domainName)
+		return &config.MicroServer{}, errors.Errorf("dns:没有找到(%s)的服务节点", domainName)
 	}
-	return v, nil
+	return v.(*config.MicroServer), nil
 }
 
 func (m *server) Close() error {
@@ -82,16 +85,25 @@ func (m *server) parseDNS(dns []constrain.ServerDNS, check bool) error {
 	m.dnsLocker.Lock()
 	defer m.dnsLocker.Unlock()
 
-	m.dnsDomainToServer = map[string]config.MicroServer{}
-	m.dnsServerToDomain = map[string][]string{}
+	//m.dnsDomainToServer = map[string]config.MicroServer{}
+	//m.dnsServerToDomain = map[string][]string{}
 	for _, v := range dns {
 		if check {
-			if _, ok := m.dnsDomainToServer[v.DomainName]; ok {
+			//if _, ok := m.dnsDomainToServer[v.DomainName]; ok {
+			if _, ok := m.dnsDomainToServer.Load(v.DomainName); ok {
 				return errors.Errorf("存在重复的key:DomainName(%s)", v.DomainName)
 			}
 		}
-		m.dnsDomainToServer[v.DomainName] = v.LocalName
-		list := m.dnsServerToDomain[v.LocalName.Name]
+		//m.dnsDomainToServer[v.DomainName] = v.LocalName
+		m.dnsDomainToServer.Store(v.DomainName, v.LocalName)
+		//list := m.dnsServerToDomain[v.LocalName.Name]
+		var list []string
+		{
+			v,ok:= m.dnsServerToDomain.Load(v.LocalName.Name)
+			if ok{
+				list=v.([]string)
+			}
+		}
 		if check {
 			var has bool
 			for _, n := range list {
@@ -105,20 +117,22 @@ func (m *server) parseDNS(dns []constrain.ServerDNS, check bool) error {
 			}
 		}
 		list = append(list, v.DomainName)
-		m.dnsServerToDomain[v.LocalName.Name] = list
+		//m.dnsServerToDomain[v.LocalName.Name] = list
+		m.dnsServerToDomain.Store(v.LocalName.Name,list)
 	}
 	return nil
 }
 
 // SelectOutsideServer 对外服务地址
-func (m *server) SelectOutsideServer(localName config.MicroServer) (string, error) {
+func (m *server) SelectOutsideServer(localName *config.MicroServer) (string, error) {
 	m.dnsLocker.RLock()
 	defer m.dnsLocker.RUnlock()
-	list, ok := m.dnsServerToDomain[localName.Name]
-	if !ok || len(list) == 0 {
+	//list, ok := m.dnsServerToDomain[localName.Name]
+	list, ok := m.dnsServerToDomain.Load(localName.Name)
+	if !ok {
 		return "", errors.Errorf("dns:在获取%s服务时找不到服务地址", localName)
 	}
-	return list[0], nil
+	return list.([]string)[0], nil
 }
 func (m *server) CheckDomain(domainName string) error {
 	_, domain := util.ParseDomain(domainName)
@@ -149,7 +163,7 @@ func (m *server) CheckDomain(domainName string) error {
 	return nil*/
 	return nil
 }
-func (m *server) SelectInsideServer(appName config.MicroServer) (string, error) {
+func (m *server) SelectInsideServer(appName *config.MicroServer) (string, error) {
 	ctx := context.TODO()
 	client := m.getClient()
 	if appName.ServerType != config.ServerTypeHttp {
@@ -442,7 +456,9 @@ func NewServer(config clientv3.Config) constrain.IEtcd {
 	resolver.Register(r)
 
 	s := &server{etcd: config,
-		client: client,
+		client:            client,
+		dnsDomainToServer: &sync.Map{},
+		dnsServerToDomain: &sync.Map{},
 		//dnsServerToDomain: map[string][]string{},
 		//dnsDomainToServer: map[string]config.MicroServer{},
 		//serverMap:         map[key.MicroServer][]serviceobject.ServerDesc{},

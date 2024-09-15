@@ -7,13 +7,14 @@ import (
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
 	"log"
+	"sync"
 )
 
 type adminServer struct {
 	server *server
 }
 
-func (m *adminServer) RegisterRedis(config config.RedisOptions) error {
+func (m *adminServer) RegisterRedis(config *config.RedisOptions) error {
 	var err error
 	client := m.server.getClient()
 	ctx := context.Background()
@@ -40,7 +41,11 @@ func (m *adminServer) RegisterPostgresql(dsn string, serverName string) error {
 }
 
 func (m *adminServer) RegisterDNS(dns []constrain.ServerDNS) error {
-	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]config.MicroServer{}}
+	copyServer := &server{
+		dnsDomainToServer: &sync.Map{},
+		dnsServerToDomain: &sync.Map{},
+		dnsLocker:         sync.RWMutex{},
+	}
 	if err := copyServer.parseDNS(dns, true); err != nil {
 		return err
 	}
@@ -102,7 +107,7 @@ func (m *adminServer) AddDNS(newDNS []constrain.ServerDNS) error {
 
 	hasDns = append(hasDns, newDNS...)
 
-	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]config.MicroServer{}}
+	copyServer := &server{dnsServerToDomain: &sync.Map{}, dnsDomainToServer: &sync.Map{}}
 	if err := copyServer.parseDNS(hasDns, true); err != nil {
 		return err
 	}

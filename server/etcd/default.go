@@ -20,16 +20,16 @@ func (m *DefaultEtcd) Register(desc *config.MicroServerConfig) (*config.MicroSer
 	return desc, nil
 }
 
-func (m *DefaultEtcd) SelectInsideServer(appName config.MicroServer) (string, error) {
+func (m *DefaultEtcd) SelectInsideServer(appName *config.MicroServer) (string, error) {
 	return environments.GetENV(appName.Name, "127.0.0.1"), nil
 }
 
-func (m *DefaultEtcd) SelectOutsideServer(appName config.MicroServer) (string, error) {
+func (m *DefaultEtcd) SelectOutsideServer(appName *config.MicroServer) (string, error) {
 	return environments.GetENV(appName.Name, "127.0.0.1"), nil
 }
 
-func (m *DefaultEtcd) GetMicroServer(domainName string) (config.MicroServer, error) {
-	return config.MicroServer{}, nil
+func (m *DefaultEtcd) GetMicroServer(domainName string) (*config.MicroServer, error) {
+	return &config.MicroServer{}, nil
 }
 
 func (m *DefaultEtcd) ObtainRedis() (*config.RedisOptions, error) {

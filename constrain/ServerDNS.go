@@ -6,5 +6,5 @@ import (
 
 type ServerDNS struct {
 	DomainName string
-	LocalName  config.MicroServer //用于etcd服务发现
+	LocalName  *config.MicroServer //用于etcd服务发现
 }

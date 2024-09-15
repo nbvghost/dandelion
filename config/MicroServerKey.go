@@ -76,12 +76,12 @@ func (m MicroServer) getFileName() (string, error) {
 }
 
 var (
-	MicroServerSSO        = MicroServer{Name: "sso", ServerType: ServerTypeHttp}
-	MicroServerOSS        = MicroServer{Name: "oss", ServerType: ServerTypeHttp}
-	MicroServerADMIN      = MicroServer{Name: "admin", ServerType: ServerTypeHttp}
-	MicroServerSITE       = MicroServer{Name: "site", ServerType: ServerTypeHttp}
-	MicroServersShop      = MicroServer{Name: "shop", ServerType: ServerTypeHttp}
-	MicroServerMANAGER    = MicroServer{Name: "manager", ServerType: ServerTypeHttp}
-	MicroServerMimiServer = MicroServer{Name: "mimi", ServerType: ServerTypeGrpc}
-	MicroServerMiniapp    = MicroServer{Name: "miniapp", ServerType: ServerTypeHttp}
+	MicroServerSSO        = &MicroServer{Name: "sso", ServerType: ServerTypeHttp}
+	MicroServerOSS        = &MicroServer{Name: "oss", ServerType: ServerTypeHttp}
+	MicroServerADMIN      = &MicroServer{Name: "admin", ServerType: ServerTypeHttp}
+	MicroServerSITE       = &MicroServer{Name: "site", ServerType: ServerTypeHttp}
+	MicroServersShop      = &MicroServer{Name: "shop", ServerType: ServerTypeHttp}
+	MicroServerMANAGER    = &MicroServer{Name: "manager", ServerType: ServerTypeHttp}
+	MicroServerMimiServer = &MicroServer{Name: "mimi", ServerType: ServerTypeGrpc}
+	MicroServerMiniapp    = &MicroServer{Name: "miniapp", ServerType: ServerTypeHttp}
 )
