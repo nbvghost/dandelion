@@ -11,7 +11,7 @@ import (
 )
 
 type MicroServerConfig struct {
-	MicroServer MicroServer
+	MicroServer *MicroServer
 	Port        int
 	IP          string
 	Addr        string
@@ -66,7 +66,7 @@ type MicroServerConfig struct {
 	return nil
 }*/
 
-func NewMicroServerConfig(microServerKey MicroServer, port int, ip string) *MicroServerConfig {
+func NewMicroServerConfig(microServerKey *MicroServer, port int, ip string) *MicroServerConfig {
 	return &MicroServerConfig{
 		MicroServer: microServerKey,
 		Port:        port,
