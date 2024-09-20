@@ -33,17 +33,17 @@ func (p *server) Orm() *gorm.DB {
 		if err != nil {
 			panic(err)
 		}
-		db, err := _database.DB()
+		/*db, err := _database.DB()
 		if err != nil {
 			panic(err)
-		}
-		db.SetConnMaxIdleTime(time.Minute*1)
+		}*/
+		//db.SetConnMaxIdleTime(time.Minute*1)
 		// SetConnMaxLifetime 设置了连接可复用的最大时间。
-		db.SetConnMaxLifetime(time.Hour)
+		//db.SetConnMaxLifetime(time.Hour)
 		// SetMaxIdleConns 用于设置连接池中空闲连接的最大数量。
-		db.SetMaxIdleConns(10)
+		//db.SetMaxIdleConns(10)
 		// SetMaxOpenConns 设置打开数据库连接的最大数量。
-		db.SetMaxOpenConns(100)
+		//db.SetMaxOpenConns(100)
 		p.orm = _database
 	})
 	return p.orm
