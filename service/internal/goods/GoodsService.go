@@ -555,7 +555,7 @@ func (m GoodsService) GoodsList(queryParam *serviceargument.ListQueryParam, oid 
 
 	orm.Count(&recordsTotal).Limit(pageSize).Offset(pageSize * pageIndex).Order(orderBy).Order(`"ID" DESC`).Find(&goodsList)
 	//pager := service.FindWherePaging(Orm, SqlOrder, model.Goods{}, Index, Size, where, args...)
-	return result.NewPagination(pageNo, pageSize, int(recordsTotal), m.getGoodsInfoList(goodsList))
+	return result.NewPagination(pageNo, pageSize, recordsTotal, m.getGoodsInfoList(goodsList))
 
 	/*return extends.GoodsInfoPagination{
 		List:  service.GetGoodsInfoList(goodsList),

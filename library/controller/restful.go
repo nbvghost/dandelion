@@ -105,7 +105,7 @@ func (m *Restful) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 		d.Order(fmt.Sprintf(`"%s" %s`, m.Get.OrderField, m.Get.OrderMethod))
 	}
 	list := d.List()
-	return result.NewData(result.NewPagination(m.Get.PageNo, m.Get.PageSize, int(total), list)), nil
+	return result.NewData(result.NewPagination(m.Get.PageNo, m.Get.PageSize, total, list)), nil
 }
 func (m *Restful) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	m.bindQuery(ctx)

@@ -639,7 +639,7 @@ func (m OrdersService) ListOrders(queryParam *serviceargument.ListOrdersQueryPar
 		//pack.CollageUsers = service.FindOrdersGoodsByCollageUser(og.CollageNo)
 		results = append(results, pack)
 	}
-	return result.NewPagination(pageNo, pageSize, int(recordsTotal), results), nil
+	return result.NewPagination(pageNo, pageSize, recordsTotal, results), nil
 }
 
 func (m OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transactionId string, payTime time.Time, ordersType model.OrdersType) (string, error) {
