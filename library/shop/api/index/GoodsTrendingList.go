@@ -2,8 +2,8 @@ package index
 
 import (
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/dandelion/service/serviceargument"
@@ -21,7 +21,7 @@ func (m *GoodsTrendingList) Handle(ctx constrain.IContext) (constrain.IResult, e
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 
 	params := &serviceargument.ListQueryParam{}
-	orderBy := &extends.Order{}
+	orderBy := &dao.Sort{}
 
 	pagination := service.Goods.Goods.GoodsList(params, m.User.OID, orderBy.OrderByColumn(`"CountSale"+"CountView"`, true), m.Get.Index+1, 10)
 

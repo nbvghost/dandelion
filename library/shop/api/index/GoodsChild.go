@@ -2,7 +2,6 @@ package index
 
 import (
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
@@ -45,7 +44,7 @@ func (m *GoodsChild) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	Total: 1
 	*/
 
-	orderBy := &extends.Order{}
+	orderBy := &dao.Sort{}
 
 	return result.NewData(service.Goods.Goods.GoodsList(params, m.User.OID, orderBy.OrderByColumn(`"UpdatedAt"`, true), m.Get.Index+1, 10)), nil //&result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: m.GoodsService.GoodsList(`"UpdatedAt" desc`, m.Get.Index, 10, sqlWhere)}}, nil
 

@@ -2,8 +2,8 @@ package index
 
 import (
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/dandelion/service/serviceargument"
@@ -21,7 +21,7 @@ func (m *GoodsHotList) Handle(ctx constrain.IContext) (constrain.IResult, error)
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 
 	params := &serviceargument.ListQueryParam{}
-	orderBy := &extends.Order{}
+	orderBy := &dao.Sort{}
 
 	//`"Hide"=?`, 0,
 

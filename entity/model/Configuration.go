@@ -149,9 +149,10 @@ const (
 
 type Configuration struct {
 	dao.Entity
-	OID dao.PrimaryKey   `gorm:"column:OID;uniqueIndex:Configuration_OID_K_unique"`
-	K   ConfigurationKey `gorm:"column:K;uniqueIndex:Configuration_OID_K_unique"`
-	V   string           `gorm:"column:V"`
+	OID         dao.PrimaryKey   `gorm:"column:OID;uniqueIndex:Configuration_OID_K_unique"`
+	K           ConfigurationKey `gorm:"column:K;uniqueIndex:Configuration_OID_K_unique"`
+	V           string           `gorm:"column:V"`
+	Description string           `gorm:"column:Description"`
 }
 
 func (u *Configuration) BeforeCreate(scope *gorm.DB) (err error) {

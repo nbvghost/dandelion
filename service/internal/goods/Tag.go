@@ -21,7 +21,7 @@ func (service TagService) FindGoodsTags(OID dao.PrimaryKey) ([]extends.Tag, erro
 	tags = tag.CreateUri(tags)
 	return tags, err
 }
-func (service TagService) FindGoodsByTag(OID dao.PrimaryKey, tag extends.Tag, _pageIndex int, orders ...extends.Order) (pageIndex, pageSize int, total int64, list []*model.Goods, err error) {
+func (service TagService) FindGoodsByTag(OID dao.PrimaryKey, tag extends.Tag, _pageIndex int, orders ...dao.Sort) (pageIndex, pageSize int, total int64, list []*model.Goods, err error) {
 	//select * from "Content" where array_length("Tags",1) is null;
 	db := db.Orm().Model(model.Goods{}).Where(`"OID"=?`, OID).
 		Where(`array_length("Tags",1) is not null`).

@@ -1,23 +1,23 @@
-package extends
+package dao
 
 import (
 	"gorm.io/gorm/clause"
 	"strings"
 )
 
-type OrderMethod string
+type SortMethod string
 
 const (
-	OrderMethodASC  OrderMethod = "ASC"
-	OrderMethodDESC OrderMethod = "DESC"
+	OrderMethodASC  SortMethod = "ASC"
+	OrderMethodDESC SortMethod = "DESC"
 )
 
-type Order struct {
+type Sort struct {
 	ColumnName string
-	Method     OrderMethod
+	Method     SortMethod
 }
 
-func (m *Order) OrderByColumn(defaultField string, defaultDesc bool) clause.OrderByColumn {
+func (m *Sort) OrderByColumn(defaultField string, defaultDesc bool) clause.OrderByColumn {
 	var desc = false
 	if m.SortMethod() == OrderMethodDESC {
 		desc = true
@@ -27,10 +27,10 @@ func (m *Order) OrderByColumn(defaultField string, defaultDesc bool) clause.Orde
 	}
 	return clause.OrderByColumn{Column: clause.Column{Name: m.SortField()}, Desc: desc}
 }
-func (m *Order) SortField() string {
+func (m *Sort) SortField() string {
 	return m.ColumnName
 }
-func (m *Order) SortMethod() OrderMethod {
+func (m *Sort) SortMethod() SortMethod {
 	//'ASC' | 'DESC' | '' | 'ascending' | 'descending'
 	if strings.EqualFold(string(m.Method), "ascending") {
 		return OrderMethodASC

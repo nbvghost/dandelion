@@ -27,7 +27,7 @@ import (
 	"github.com/nbvghost/tool/object"
 )
 
-func (m ContentService) FindContentByTag(OID dao.PrimaryKey, tag extends.Tag, _pageIndex int, orders ...extends.Order) (pageIndex, pageSize int, total int64, list []*model.Content, err error) {
+func (m ContentService) FindContentByTag(OID dao.PrimaryKey, tag extends.Tag, _pageIndex int, orders ...dao.Sort) (pageIndex, pageSize int, total int64, list []*model.Content, err error) {
 	//select * from "Content" where array_length("Tags",1) is null;
 	db := db.Orm().Model(model.Content{}).Where(`"OID"=?`, OID).
 		Where(`array_length("Tags",1) is not null`).

@@ -36,7 +36,7 @@ require (
 	gorm.io/gorm v1.25.9
 )
 
-require go.etcd.io/etcd/client/v3 v3.5.0
+require go.etcd.io/etcd/client/v3 v3.5.16
 
 require (
 	github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.4 // indirect

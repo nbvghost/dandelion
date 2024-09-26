@@ -1,8 +1,9 @@
 package sqltype
 
+type Permission string
 type Route struct {
 	Path        string
-	Permissions []string //拥有的权限['edit', 'add', 'delete']
+	Permissions map[Permission]bool //拥有的权限['edit', 'add', 'delete']
 	Children    []Route
 }
 

@@ -2,8 +2,8 @@ package order
 
 import (
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/dandelion/service/serviceargument"
@@ -33,7 +33,7 @@ func (m *List) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 		Status: StatusList,
 	}
 
-	list, err := service.Order.Orders.ListOrders(params, m.User.OID, (&extends.Order{}).OrderByColumn(`"CreatedAt"`, true), m.Get.Index+1, m.Get.PageSize)
+	list, err := service.Order.Orders.ListOrders(params, m.User.OID, (&dao.Sort{}).OrderByColumn(`"CreatedAt"`, true), m.Get.Index+1, m.Get.PageSize)
 	if err != nil {
 		return nil, err
 	}
