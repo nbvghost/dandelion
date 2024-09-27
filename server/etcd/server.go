@@ -135,6 +135,7 @@ func (m *server) SelectOutsideServer(localName *config.MicroServer) (string, err
 	return list.([]string)[0], nil
 }
 func (m *server) CheckDomain(domainName string) error {
+	domainName=strings.Split(domainName,":")[0]
 	_, domain := util.ParseDomain(domainName)
 	v, ok := m.domains.Load(domain)
 	if !ok {
