@@ -17,5 +17,5 @@ type UserInfoKeyStateType string
 
 const (
 	UserInfoKeyStateTypeNormal  UserInfoKeyStateType = ""        //
-	UserInfoKeyStateTypeClosure UserInfoKeyStateType = "closure" //封闭
+	UserInfoKeyStateTypeClosure UserInfoKeyStateType = "CLOSURE" //封闭
 )
