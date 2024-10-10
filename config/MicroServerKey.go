@@ -6,17 +6,17 @@ import (
 	"path/filepath"
 )
 
-type serverType string
+type ServerType string
 
 const (
-	ServerTypeHttp serverType = "http"
-	ServerTypeGrpc serverType = "grpc"
-	ServerTypeDNS  serverType = "dns"
+	ServerTypeHttp ServerType = "http"
+	ServerTypeGrpc ServerType = "grpc"
+	ServerTypeDNS  ServerType = "dns"
 )
 
 type MicroServer struct {
 	Name       string
-	ServerType serverType
+	ServerType ServerType
 }
 
 /*func ParseMicroServer(domainName string) *MicroServer {

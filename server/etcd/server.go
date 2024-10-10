@@ -31,15 +31,15 @@ type server struct {
 	dnsDomainToServer *sync.Map
 	//dnsServerToDomain map[string][]string
 	dnsServerToDomain *sync.Map
-	dnsLocker         sync.RWMutex
+	//dnsLocker         sync.RWMutex
 	domains           *sync.Map
 	//serverMap         map[key.MicroServer][]serviceobject.ServerDesc
 	//serverLocker      sync.RWMutex
 }
 
 func (m *server) GetMicroServer(domainName string) (*config.MicroServer, error) {
-	m.dnsLocker.RLock()
-	defer m.dnsLocker.RUnlock()
+	//m.dnsLocker.RLock()
+	//defer m.dnsLocker.RUnlock()
 	domainName = strings.Split(domainName, ":")[0]
 	//v, ok := m.dnsDomainToServer[domainName]
 	v, ok := m.dnsDomainToServer.Load(domainName)
@@ -82,8 +82,8 @@ func (m *server) ObtainRedis() (*config.RedisOptions, error) {
 }
 
 func (m *server) parseDNS(dns []constrain.ServerDNS, check bool) error {
-	m.dnsLocker.Lock()
-	defer m.dnsLocker.Unlock()
+	//m.dnsLocker.Lock()
+	//defer m.dnsLocker.Unlock()
 
 	//m.dnsDomainToServer = map[string]config.MicroServer{}
 	//m.dnsServerToDomain = map[string][]string{}
@@ -125,8 +125,8 @@ func (m *server) parseDNS(dns []constrain.ServerDNS, check bool) error {
 
 // SelectOutsideServer 对外服务地址
 func (m *server) SelectOutsideServer(localName *config.MicroServer) (string, error) {
-	m.dnsLocker.RLock()
-	defer m.dnsLocker.RUnlock()
+	//m.dnsLocker.RLock()
+	//defer m.dnsLocker.RUnlock()
 	//list, ok := m.dnsServerToDomain[localName.Name]
 	list, ok := m.dnsServerToDomain.Load(localName.Name)
 	if !ok {
@@ -167,9 +167,9 @@ func (m *server) CheckDomain(domainName string) error {
 func (m *server) SelectInsideServer(appName *config.MicroServer) (string, error) {
 	ctx := context.TODO()
 	client := m.getClient()
-	if appName.ServerType != config.ServerTypeHttp {
+	/*if appName.ServerType != config.ServerTypeHttp {
 		return "", errors.Errorf("服务不是http服务:%s", appName)
-	}
+	}*/
 
 	serverKey := fmt.Sprintf("%s/%s/%s/", "server", appName.ServerType, appName.Name)
 

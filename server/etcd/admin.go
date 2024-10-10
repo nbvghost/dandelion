@@ -44,7 +44,7 @@ func (m *adminServer) RegisterDNS(dns []constrain.ServerDNS) error {
 	copyServer := &server{
 		dnsDomainToServer: &sync.Map{},
 		dnsServerToDomain: &sync.Map{},
-		dnsLocker:         sync.RWMutex{},
+		//dnsLocker:         sync.RWMutex{},
 	}
 	if err := copyServer.parseDNS(dns, true); err != nil {
 		return err
