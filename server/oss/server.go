@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/library/environments"
 	"github.com/nbvghost/dandelion/server/httpext"
 	"github.com/nbvghost/tool/encryption"
 	"golang.org/x/image/bmp"
@@ -289,11 +288,11 @@ type Server struct {
 	engine      *mux.Router
 }
 
-func (m *Server) Listen() error {
+func (m *Server) Listen(ip string, port int) error {
 	serverDesc := &config.MicroServerConfig{
 		MicroServer: config.MicroServerOSS,
-		IP:          environments.IP(),
-		Port:        environments.Port(),
+		IP:          ip,
+		Port:        port,
 	}
 	httpServer := httpext.NewHttpServer(m.etcdService, nil, m.engine, nil, nil)
 	//httpext.WithServerDesc(serverDesc.MicroServer.Name, serverDesc.IP, serverDesc.Port),

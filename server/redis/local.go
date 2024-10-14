@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/library/environments"
 	"github.com/nbvghost/tool/object"
+	"log"
 	"reflect"
 	"sync"
 	"time"
@@ -248,6 +251,9 @@ func (l *local) expiration() {
 				if time.Now().Sub(v.CreateAt) >= v.TTL {
 					l.data.Delete(key)
 				}
+			}
+			if environments.Release()==false{
+				log.Println(fmt.Sprintf("local redis:%s\t%t",key,value))
 			}
 			return true
 		})

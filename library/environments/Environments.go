@@ -16,6 +16,7 @@ type environments struct {
 	listenIP      string
 	listenPort    int
 	etcdAble      bool
+	redisAble     bool
 	etcdEndpoints []string
 	etcdUsername  string
 	etcdPassword  string
@@ -31,6 +32,7 @@ func init() {
 	env.etcdUsername = GetENV("ETCD_USERNAME", "")
 	env.etcdPassword = GetENV("ETCD_PASSWORD", "")
 	env.etcdAble = GetENV("ETCD_ABLE", "true") == "true"
+	env.redisAble = GetENV("REDIS_ABLE", "true") == "true"
 }
 func Print() {
 	log.Println("FLAG release", env.release)
@@ -48,6 +50,9 @@ func Release() bool {
 }
 func EtcdAble() bool {
 	return env.etcdAble
+}
+func RedisAble() bool {
+	return env.redisAble
 }
 func EtcdEndpoints() []string {
 	return env.etcdEndpoints
