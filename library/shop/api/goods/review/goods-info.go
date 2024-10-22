@@ -28,7 +28,7 @@ func (m *GoodsInfo) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	db := dao.Find(db.Orm(), &model.GoodsReview{}).Where(`"GoodsID"=?`, m.Get.GoodsID).Order(`"CreatedAt" desc`)
 	total := db.Limit(m.Get.Index, m.Get.PageSize)
 	list := db.List()
-	return result.NewData(result.NewPagination(m.Get.Index, m.Get.PageSize, int(total), list)), nil
+	return result.NewData(result.NewPagination(m.Get.Index, m.Get.PageSize, total, list)), nil
 }
 
 func (m *GoodsInfo) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {

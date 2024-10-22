@@ -2,14 +2,13 @@ package configuration
 
 import (
 	"encoding/json"
+	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/serviceargument"
 	"github.com/nbvghost/tool/object"
 	"gorm.io/gorm"
 	"log"
-
-	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/dao"
 )
 
 type ConfigurationService struct {
@@ -19,7 +18,6 @@ type ConfigurationService struct {
 func (m ConfigurationService) GetConfiguration(tx *gorm.DB, OID dao.PrimaryKey, Key model.ConfigurationKey) model.Configuration {
 	var item model.Configuration
 	err := tx.Where(`"K"=? and "OID"=?`, Key, OID).First(&item).Error
-	//db.Where([]int64{20, 21, 22}).Find(&users
 	if err != nil {
 		log.Println(err)
 	}

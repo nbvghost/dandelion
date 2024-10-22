@@ -21,7 +21,7 @@ var flagEnv = struct {
 	DisableMigratorAndCreateTable bool
 }{}
 
-func Init(app config.MicroServer) error {
+func Init(app *config.MicroServer) error {
 	if flagEnv.DisableMigratorAndCreateTable {
 		return nil
 	}

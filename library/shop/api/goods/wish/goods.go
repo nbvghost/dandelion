@@ -46,7 +46,7 @@ func (m *Goods) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 		Count(&total).Offset(m.Get.Index * m.Get.PageSize).
 		Limit(m.Get.PageSize).Find(&list)
 
-	return result.NewData(result.NewPagination(m.Get.Index, m.Get.PageSize, int(total), list)), nil
+	return result.NewData(result.NewPagination(m.Get.Index, m.Get.PageSize, total, list)), nil
 }
 
 func (m *Goods) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {

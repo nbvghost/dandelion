@@ -179,10 +179,10 @@ func (l *local) Exists(ctx context.Context, keys ...string) (int64, error) {
 func (l *local) Incr(ctx context.Context, key string) (int64, error) {
 	value, ok := l.data.Load(key)
 	if !ok {
-		value = MapItem{V: "0", CreateAt: time.Now(), TTL: 0}
+		value = &MapItem{V: "0", CreateAt: time.Now(), TTL: 0}
 	}
 	item := value.(*MapItem)
-	v := object.ParseInt(value) + 1
+	v := object.ParseInt(item.V) + 1
 	item.V = v
 	l.data.Store(key, item)
 	return int64(v), nil
@@ -191,7 +191,7 @@ func (l *local) Incr(ctx context.Context, key string) (int64, error) {
 func (l *local) SetAdd(ctx context.Context, key string, members ...any) (int64, error) {
 	value, ok := l.data.Load(key)
 	if !ok {
-		value = MapItem{V: []any{}, CreateAt: time.Now(), TTL: 0}
+		value = &MapItem{V: []any{}, CreateAt: time.Now(), TTL: 0}
 	}
 	item := value.(*MapItem)
 	vs := item.V.([]any)

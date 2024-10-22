@@ -31,5 +31,5 @@ func (m *Review) Handle(context constrain.IContext) (r constrain.IResult, err er
 		Count(&total).Offset(m.Get.Index * m.Get.PageSize).
 		Limit(m.Get.PageSize).Find(&list)
 
-	return result.NewData(result.NewPagination(m.Get.Index, m.Get.PageSize, int(total), list)), nil
+	return result.NewData(result.NewPagination(m.Get.Index, m.Get.PageSize, total, list)), nil
 }
