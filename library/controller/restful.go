@@ -7,7 +7,6 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/com"
 	"github.com/nbvghost/dandelion/entity"
-	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
@@ -19,14 +18,18 @@ import (
 	"github.com/nbvghost/tool/object"
 )
 
-type Restful struct {
-	Admin *model.Admin `mapping:""`
+type IAdminTable interface {
+	GetOID() dao.PrimaryKey
+}
+
+type Restful[T IAdminTable] struct {
+	Admin T `mapping:""`
 	Get   struct {
 		Model       string `uri:"model"`
-		PageNo      int    `form:"page-no"`
-		PageSize    int    `form:"page-size"`
-		OrderField  string `form:"order-field"`
-		OrderMethod string `form:"order-method"`
+		PageNo      int    `form:"Page-No"`
+		PageSize    int    `form:"Page-Size"`
+		OrderField  string `form:"Order-Field"`
+		OrderMethod string `form:"Order-Method"`
 	} `method:"get"`
 	Post struct {
 		Model string `uri:"model"`
@@ -44,19 +47,19 @@ type Restful struct {
 	Query url.Values
 }
 
-func (m *Restful) bindQuery(ctx constrain.IContext) {
+func (m *Restful[T]) bindQuery(ctx constrain.IContext) {
 	contextValue := contexext.FromContext(ctx)
 	query := contextValue.Request.URL.Query()
 	m.Query = url.Values{}
 	for key := range query {
-		if strings.Contains(key, "page-") {
+		if strings.Contains(strings.ToLower(key), "page-") {
 			continue
 		}
-		if strings.Contains(key, "order-") {
+		if strings.Contains(strings.ToLower(key), "order-") {
 			continue
 		}
-		v := query[key]
 
+		v := query[key]
 		var hasList []string
 		for i := range v {
 			if len(v[i]) > 0 {
@@ -69,19 +72,34 @@ func (m *Restful) bindQuery(ctx constrain.IContext) {
 		}
 	}
 }
-func (m *Restful) Handle(ctx constrain.IContext) (constrain.IResult, error) {
+func (m *Restful[T]) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	m.bindQuery(ctx)
 	table, err := entity.GetModel(m.Get.Model)
 	if err != nil {
 		return nil, err
 	}
+
+	tableType := reflect.TypeOf(table).Elem()
+
 	d := dao.Find(db.Orm(), table)
 	//分析url参数作为where条件
 	for k := range m.Query {
 		if len(m.Query[k]) > 1 {
 			d.Where(fmt.Sprintf(`"%s" in ?`, k), m.Query[k])
 		} else {
+			field, ok := tableType.FieldByName(k)
+			if !ok {
+				continue
+			}
 			val := m.Query.Get(k)
+
+			if strings.EqualFold(field.Type.Name(), "PrimaryKey") {
+				if object.ParseUint(val) > 0 {
+					d.Where(fmt.Sprintf(`"%s"='%s'`, k, val))
+				}
+				continue
+			}
+
 			if strings.Contains(val, "%") {
 				d.Where(fmt.Sprintf(`"%s" like '%s'`, k, val))
 			} else {
@@ -90,10 +108,9 @@ func (m *Restful) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 		}
 	}
 
-	r := reflect.TypeOf(table).Elem()
-	_, exist := r.FieldByName("OID")
+	_, exist := tableType.FieldByName("OID")
 	if exist {
-		d.Where(`"OID"=?`, m.Admin.OID)
+		d.Where(`"OID"=?`, m.Admin.GetOID())
 	}
 
 	index := m.Get.PageNo - 1
@@ -107,7 +124,7 @@ func (m *Restful) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	list := d.List()
 	return result.NewData(result.NewPagination(m.Get.PageNo, m.Get.PageSize, total, list)), nil
 }
-func (m *Restful) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
+func (m *Restful[T]) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	m.bindQuery(ctx)
 	table, err := entity.GetModel(m.Post.Model)
 	if err != nil {
@@ -155,23 +172,23 @@ func (m *Restful) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 	if newData.Primary() > 0 {
 		oldData := dao.GetByPrimaryKey(db.Orm(), table, newData.Primary())
 		if oldData.IsZero() {
-			reflect.ValueOf(newData).Elem().FieldByName("OID").Set(reflect.ValueOf(m.Admin.OID))
+			reflect.ValueOf(newData).Elem().FieldByName("OID").Set(reflect.ValueOf(m.Admin.GetOID()))
 			err = dao.Create(db.Orm(), newData)
 			primaryId = newData.Primary()
 		} else {
 			changeMap := com.Diff(oldData, newData)
 			where["ID"] = newData.Primary()
-			where["OID"] = m.Admin.OID
+			where["OID"] = m.Admin.GetOID()
 			err = dao.UpdateBy(db.Orm(), table, changeMap, where)
 			primaryId = newData.Primary()
 		}
 	} else {
-		where["OID"] = m.Admin.OID
+		where["OID"] = m.Admin.GetOID()
 		oldData := dao.GetBy(db.Orm(), table, where)
 		if oldData.IsZero() {
 			field := reflect.ValueOf(newData).Elem().FieldByName("OID")
 			if field.CanSet() {
-				field.Set(reflect.ValueOf(m.Admin.OID))
+				field.Set(reflect.ValueOf(m.Admin.GetOID()))
 			}
 			err = dao.Create(db.Orm(), newData)
 			primaryId = newData.Primary()
@@ -196,7 +213,7 @@ func (m *Restful) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 	}
 	return result.NewData(map[string]any{"Item": dao.GetByPrimaryKey(db.Orm(), table, primaryId)}), err
 }
-func (m *Restful) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
+func (m *Restful[T]) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
 	m.bindQuery(ctx)
 	table, err := entity.GetModel(m.Put.Model)
 	if err != nil {
@@ -287,7 +304,7 @@ func (m *Restful) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
 	}
 	return result.NewData(map[string]any{"Item": dao.GetByPrimaryKey(db.Orm(), table, m.Put.ID)}), err
 }
-func (m *Restful) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) {
+func (m *Restful[T]) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) {
 	m.bindQuery(ctx)
 
 	table, err := entity.GetModel(m.Put.Model)
