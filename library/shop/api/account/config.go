@@ -21,17 +21,23 @@ func (m *Config) Handle(context constrain.IContext) (r constrain.IResult, err er
 
 	userInfo := service.User.GetUserInfo(context.UID())
 
-	//userInfo := dao.GetBy(db.Orm(), &model.UserInfo{}, map[string]any{"UserID": context.UID()})
-	data := service.Configuration.GetConfigurations(m.User.OID, model.ConfigurationKeyAdvert, model.ConfigurationKeyPop, model.ConfigurationKeyQuickLink)
+	data := service.Configuration.GetConfigurations(
+		m.User.OID,
+		model.ConfigurationKeyAdvert,
+		model.ConfigurationKeyPop,
+		model.ConfigurationKeyQuickLink,
+		model.ConfigurationKeyPaymentPaypalClientId,
+	)
 	ossUrl, err := oss.Url(context)
 	if err != nil {
 		return nil, err
 	}
 	return result.NewData(map[string]any{
-		"Advert":    data[model.ConfigurationKeyAdvert],
-		"Pop":       data[model.ConfigurationKeyPop],
-		"QuickLink": data[model.ConfigurationKeyQuickLink],
-		"User":      user,
+		"Advert":                data[model.ConfigurationKeyAdvert],
+		"Pop":                   data[model.ConfigurationKeyPop],
+		"QuickLink":             data[model.ConfigurationKeyQuickLink],
+		"PaymentPaypalClientId": data[model.ConfigurationKeyPaymentPaypalClientId],
+		"User":                  user,
 		"UserInfo": map[string]any{
 			"AllowAssistance": userInfo.GetAllowAssistance(),
 			"Subscribe":       userInfo.GetSubscribe(),
