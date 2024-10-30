@@ -271,7 +271,6 @@ func (m *Service) GetAccessToken() (*PaypalAccessToken, error) {
 		if len(at.PaypalAccessToken.AccessToken) > 0 {
 			return &at.PaypalAccessToken, nil
 		}
-
 	}
 
 	params := url.Values{}
@@ -298,6 +297,10 @@ func (m *Service) GetAccessToken() (*PaypalAccessToken, error) {
 	err = json.Unmarshal(body, at)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(at.Error) > 0 && len(at.ErrorDescription) > 0 {
+		return nil, errors.New(at.ErrorDescription)
 	}
 
 	err = m.Context.Redis().Set(m.Context, key.NewPaypalAccessTokenRedisKey(m.OID), &at.PaypalAccessToken, time.Second*time.Duration(at.ExpiresIn))
