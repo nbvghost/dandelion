@@ -18,8 +18,7 @@ type User struct {
 	} `method:"Get"`
 	Put struct {
 		Email           string
-		FirstName       string
-		LastName        string
+		Name            string
 		ChangeEmail     bool
 		ChangePassword  bool
 		AllowAssistance bool
@@ -44,8 +43,8 @@ func (m *User) HandlePut(context constrain.IContext) (r constrain.IResult, err e
 		needValidPassword = true
 	}
 
-	if len(m.Put.LastName) > 0 && len(m.Put.FirstName) > 0 {
-		changeMap["Name"] = m.Put.LastName + " " + m.Put.FirstName
+	if len(m.Put.Name) > 0 {
+		changeMap["Name"] = m.Put.Name
 	}
 
 	tx := db.Orm().Begin()
