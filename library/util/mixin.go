@@ -83,6 +83,23 @@ func RequestBodyToJSON(body io.ReadCloser, target interface{}) error {
 	return err
 }
 
+type IJSON interface {
+
+}
+func JSONToStruct[T IJSON](j string) (T,error) {
+	st:=reflect.TypeFor[T]()
+	if st.Kind() == reflect.Ptr{
+		st =st.Elem()
+	}
+	t:=reflect.New(st)
+	err:=json.Unmarshal([]byte(j),t.Interface())
+
+	if st.Kind()==reflect.Slice{
+		return t.Elem().Interface().(T), err
+	}else{
+		return t.Interface().(T), err
+	}
+}
 func StructToMap(obj interface{}) map[string]interface{} {
 	t := reflect.TypeOf(obj).Elem()
 	v := reflect.ValueOf(obj).Elem()
