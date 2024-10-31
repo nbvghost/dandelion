@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/dandelion/service/internal/payment"
 	"log"
 	"math"
@@ -1468,7 +1467,7 @@ func (m OrdersService) AddCartOrders(ctx constrain.IContext, UserID dao.PrimaryK
 
 	tx.Commit()
 
-	err := service.Wechat.SendText(botMessage.String())
+	err := wechat.SendText(botMessage.String())
 	if err != nil {
 		return err
 	}
