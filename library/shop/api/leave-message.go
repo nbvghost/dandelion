@@ -72,7 +72,7 @@ func (m *LeaveMessage) HandlePost(context constrain.IContext) (constrain.IResult
 		for k := range extend {
 			botMessage.WriteString(fmt.Sprintf(">**%s**:<font color=\"info\">%s</font>\n", k, extend[k]))
 		}
-		err = service.Wechat.SendMarkdown(botMessage.String())
+		err = service.Wechat.SendText(botMessage.String())
 		if err != nil {
 			return nil, err
 		}
