@@ -25,7 +25,7 @@ func (m *Add) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	//SpecificationID := object.ParseUint(context.Request.FormValue("SpecificationID"))
 	//Quantity := object.ParseUint(context.Request.FormValue("Quantity"))
 
-	err := service.Order.Orders.AddCartOrders(m.User.ID, m.Post.GoodsID, m.Post.SpecificationID, m.Post.Quantity)
+	err := service.Order.Orders.AddCartOrders(ctx, m.User.ID, m.Post.GoodsID, m.Post.SpecificationID, m.Post.Quantity)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "已添加到购物车", nil)}, nil
 }
 
