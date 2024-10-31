@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/dandelion/service/internal/payment"
 	"log"
 	"math"
@@ -1385,18 +1386,21 @@ func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, li
 
 }
 
-func (m OrdersService) AddCartOrders(UserID dao.PrimaryKey, GoodsID, SpecificationID dao.PrimaryKey, Quantity uint) error {
+func (m OrdersService) AddCartOrders(ctx constrain.IContext, UserID dao.PrimaryKey, GoodsID, SpecificationID dao.PrimaryKey, Quantity uint) error {
 	//Orm := singleton.Orm()
 	shoppingCarts := m.ShoppingCart.FindShoppingCartByUserID(UserID)
 
 	tx := db.Orm().Begin()
 
-	//var goods model.Goods
 	g := dao.GetByPrimaryKey(tx, entity.Goods, GoodsID).(*model.Goods)
 	if g.IsZero() {
 		tx.Rollback()
 		return gorm.ErrRecordNotFound
 	}
+
+	botMessage := strings.Builder{}
+	botMessage.WriteString(fmt.Sprintf("网站[%s]有新的商品添加到购物车，请注意查收。\n", ctx.AppName()))
+	botMessage.WriteString(fmt.Sprintf("商品：%s\n", g.Title))
 
 	//var specification model.Specification
 	specification := dao.GetByPrimaryKey(tx, entity.Specification, SpecificationID).(*model.Specification)
@@ -1417,6 +1421,9 @@ func (m OrdersService) AddCartOrders(UserID dao.PrimaryKey, GoodsID, Specificati
 		tx.Rollback()
 		return errors.New(specification.Label + "库存不足")
 	}
+
+	botMessage.WriteString(fmt.Sprintf("规格：%s\n", specification.Name))
+	botMessage.WriteString(fmt.Sprintf("数量：%d\n", Quantity))
 
 	have := false
 	for _, value := range shoppingCarts {
@@ -1460,6 +1467,11 @@ func (m OrdersService) AddCartOrders(UserID dao.PrimaryKey, GoodsID, Specificati
 	}
 
 	tx.Commit()
+
+	err := service.Wechat.SendText(botMessage.String())
+	if err != nil {
+		return err
+	}
 
 	return nil
 

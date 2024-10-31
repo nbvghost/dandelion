@@ -88,9 +88,21 @@ func (m *WorkGroupBot) SendMarkdown(text string) error {
 }
 
 func SendText(text string) error {
-	return defaultWorkGroupBot.SendText(text)
+	go func() {
+		err := defaultWorkGroupBot.SendText(text)
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+	return nil
 }
 
 func SendMarkdown(text string) error {
-	return defaultWorkGroupBot.SendMarkdown(text)
+	go func() {
+		err := defaultWorkGroupBot.SendMarkdown(text)
+		if err != nil {
+			log.Println(err)
+		}
+	}()
+	return nil
 }

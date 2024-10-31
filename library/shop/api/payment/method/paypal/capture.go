@@ -2,8 +2,11 @@ package paypal
 
 import (
 	"errors"
+	"fmt"
 	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal"
+	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/tool/object"
+	"strings"
 	"time"
 
 	"github.com/nbvghost/dandelion/constrain"
@@ -52,6 +55,15 @@ func (m *Capture) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 	err = dao.UpdateByPrimaryKey(db.Orm(), &model.Orders{}, mOrder.ID, changeOrder)
 	if err != nil {
 		return nil, err
+	}
+
+	{
+		botMessage := strings.Builder{}
+		botMessage.WriteString(fmt.Sprintf("网站[%s]有新的订单支付成功，请注意查收。\n", ctx.AppName()))
+		err = service.Wechat.SendText(botMessage.String())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return result.NewData(capture), nil
