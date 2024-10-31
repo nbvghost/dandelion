@@ -65,12 +65,12 @@ func (m *LeaveMessage) HandlePost(context constrain.IContext) (constrain.IResult
 	{
 		botMessage := strings.Builder{}
 		botMessage.WriteString(fmt.Sprintf("网站[%s]有新的消息，请注意查收。\n", context.AppName()))
-		botMessage.WriteString(fmt.Sprintf(">姓名:%s\n", leaveMessage.Name))
-		botMessage.WriteString(fmt.Sprintf(">Email:%s\n", leaveMessage.Email))
-		botMessage.WriteString(fmt.Sprintf(">内容:%s\n", leaveMessage.Content))
-		botMessage.WriteString(fmt.Sprintf(">IP:%s\n", leaveMessage.ClientIP))
+		botMessage.WriteString(fmt.Sprintf(">姓名：%s\n", leaveMessage.Name))
+		botMessage.WriteString(fmt.Sprintf(">Email：%s\n", leaveMessage.Email))
+		botMessage.WriteString(fmt.Sprintf(">内容：%s\n", leaveMessage.Content))
+		botMessage.WriteString(fmt.Sprintf(">IP：%s\n", leaveMessage.ClientIP))
 		for k := range extend {
-			botMessage.WriteString(fmt.Sprintf(">%s:%s\n", k, extend[k]))
+			botMessage.WriteString(fmt.Sprintf(">%s：%s\n", k, extend[k]))
 		}
 		err = service.Wechat.SendText(botMessage.String())
 		if err != nil {
