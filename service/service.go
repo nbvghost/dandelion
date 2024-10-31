@@ -118,7 +118,12 @@ var Wechat = struct {
 	AccessToken    wechat.AccessTokenService
 	WXQRCodeParams wechat.WXQRCodeParamsService
 	MessageNotify  wechat.MessageNotify
-}{}
+	SendText       func(text string) error
+	SendMarkdown   func(text string) error
+}{
+	SendText:     wechat.SendText,
+	SendMarkdown: wechat.SendMarkdown,
+}
 
 var Payment = struct {
 	NewWechat  func(ctx constrain.IServiceContext, oid dao.PrimaryKey) *wechatpay.Service

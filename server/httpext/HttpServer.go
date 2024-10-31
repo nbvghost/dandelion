@@ -62,6 +62,7 @@ func (m *httpServer) Listen(microServerConfig *config.MicroServerConfig, callbac
 			log.Fatalln(err)
 		}
 	}()*/
+	m.defaultMiddleware.serverName = microServerConfig.MicroServer.Name
 	if m.etcdClient != nil {
 		var err error
 		microServerConfig, err = m.etcdClient.Register(microServerConfig)
