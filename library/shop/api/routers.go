@@ -19,6 +19,8 @@ import (
 )
 
 func Register(route constrain.IRoute) {
+	route.RegisterRoute("leave-message", &LeaveMessage{})
+
 	route.RegisterRoute("account/mini_program_login", &account.MiniProgramLogin{})
 	route.RegisterRoute("account/qrcode", &account.MiniprogramQRcode{})
 	route.RegisterRoute("account/get_login_user", &account.GetLoginUser{})
