@@ -9,6 +9,7 @@ import (
 	"github.com/nbvghost/dandelion/server/route"
 	"golang.org/x/sync/errgroup"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
@@ -95,7 +96,20 @@ func (m *httpServer) Listen(microServerConfig *config.MicroServerConfig, callbac
 		}
 	}()
 
-	return srv.ListenAndServe()
+	ln, err := net.Listen("tcp", listenAddr)
+	if err != nil {
+		log.Println(fmt.Sprintf("tcp:server:%s:%s:START_ERROR:%s", m.defaultMiddleware.serverName, listenAddr, err.Error()))
+		return err
+	}
+	go func() {
+		_, err := net.DialTimeout("tcp", listenAddr, time.Second*5)
+		if err != nil {
+			log.Println(fmt.Sprintf("tcp:server:%s:%s:START_ERROR:%s", m.defaultMiddleware.serverName, listenAddr, err.Error()))
+		} else {
+			log.Println(fmt.Sprintf("tcp:server:%s:%s:START_SUCCESS", m.defaultMiddleware.serverName, listenAddr))
+		}
+	}()
+	return srv.Serve(ln)
 }
 
 type Option interface {

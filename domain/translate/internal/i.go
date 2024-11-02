@@ -93,6 +93,8 @@ func (m *NewTranslate) Translate(query []string, from, to string) (map[int]strin
 	var d map[int]string
 	d, err = currentTranslator.T.Translate(query, from, to)
 	return d, err
+
+	//return libre.New().Translate(query, from, to)
 }
 
 type FakeTranslate struct{}
@@ -115,6 +117,7 @@ var translatorConfig = map[string]*TranslatorConfig{
 	"TranslateBaidu":      {K: "TranslateBaidu", MaxFreeWordCount: 2000000 - 100, T: baidu.New()},
 	"TranslateAliyun":     {K: "TranslateAliyun", MaxFreeWordCount: 1000000 - 100, T: aliyun.New()},
 	"TranslateVolcengine": {K: "TranslateVolcengine", MaxFreeWordCount: 2000000 - 100, T: volcengine.New()},
+	//"Libre": {K: "Libre", MaxFreeWordCount: 2000000 - 100, T: libre.New()},
 }
 
 func New() (Translate, error) {
