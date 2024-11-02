@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/nbvghost/dandelion/domain/translate/internal"
+	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/samber/lo"
 	"go.uber.org/zap"
 	"golang.org/x/net/html"
 	"html/template"
@@ -18,6 +20,7 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 )
 
+// 38/40/41MM,42/44/45/49mm,20MM
 var varRegexp = regexp.MustCompile(`\$\{[\S\x20]+}`)
 var notTranslateRegexp = regexp.MustCompile(`(?i)^(([\d+-.$])|([\d|+|-|.|$|/|\\])|(kg)|([:\s]))+$`)
 
@@ -32,8 +35,8 @@ func newNodeID(seqID int) nodeID {
 }
 
 type Html struct {
-	translate    internal.Translate
-	LanguageCode map[string]string
+	translate internal.Translate
+	//LanguageCode map[string]string
 	sync.RWMutex
 }
 
@@ -54,6 +57,8 @@ type translateInfo struct {
 	Dst string `json:"dst"`
 }
 
+var ignoreKeyWords = []string{"usokay", "usokay.com"}
+
 func (m *Html) Translate(query []string, from, to string) (map[int]string, error) {
 	return m.translate.Translate(query, from, to)
 }
@@ -71,14 +76,20 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 		return docBytes, nil
 	}
 
-	if _, ok := m.LanguageCode[contextValue.Lang]; !ok {
+	lang := dao.GetBy(db.Orm(), &model.Language{}, map[string]any{"Code": contextValue.Lang})
+	if lang.IsZero() {
 		//当前语言不在翻译列表中
 		return docBytes, nil
 	}
+	/*if _, ok := m.LanguageCode[contextValue.Lang]; !ok {
+		//当前语言不在翻译列表中
+		return docBytes, nil
+	}*/
 
 	var seqID int
 	setMap := map[string]nodeID{}
-	willTranslateTexts := map[string]translateInfo{}
+
+	willTranslateInfoMap := map[string]*translateInfo{}
 	//var willTranslateLocker sync.RWMutex
 
 	//把翻译的文本替换成变量占位符，并把要翻译的放在willTranslateTexts里
@@ -91,6 +102,10 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 			if CheckNotTranslate(texts[i]) {
 				continue
 			}
+			if lo.IndexOf[string](ignoreKeyWords, strings.ToLower(texts[i])) > -1 {
+				continue
+			}
+
 			v := strings.TrimSpace(texts[i])
 			var nid nodeID
 			var ok bool
@@ -98,7 +113,7 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 				seqID++
 				nid = newNodeID(seqID)
 				setMap[v] = nid
-				willTranslateTexts[string(nid)] = translateInfo{
+				willTranslateInfoMap[string(nid)] = &translateInfo{
 					Src: v,
 				}
 			}
@@ -174,98 +189,76 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 		}
 	}()
 
-	var translateList []string
+	needTranslateHtmlVarNameList := make([]string, 0)
 
-	//TODO 缓存在cache server 里，或者放在redis
-	var translateModelList []model.Translate
-	tx.Model(model.Translate{}).Where(`"TextType"=? and "LangType"=?`, "en", contextValue.Lang).Find(&translateModelList)
+	{
+		//从数据库读取已经翻译的文本，比较哪些需要翻译的文本
+		//TODO 缓存在cache server 里，或者放在redis
+		var translateModelList []model.Translate
+		tx.Model(model.Translate{}).Where(`"TextType"=? and "LangType"=?`, "en", contextValue.Lang).Find(&translateModelList)
 
-	for k := range willTranslateTexts {
-		var has bool
-		v := willTranslateTexts[k]
-		//todo 优化二分查找或者其它方法
-		for _, e := range translateModelList {
-			if strings.EqualFold(v.Src, e.Text) {
-				v.Dst = e.LangText
-				willTranslateTexts[k] = v
-				has = true
-				break
+		for k := range willTranslateInfoMap {
+			var has bool
+			v := willTranslateInfoMap[k]
+			//todo 优化二分查找或者其它方法
+			for _, e := range translateModelList {
+				if strings.EqualFold(v.Src, e.Text) {
+					v.Dst = e.LangText
+					willTranslateInfoMap[k] = v
+					has = true
+					break
+				}
 			}
-		}
-		if !has {
-			translateList = append(translateList, v.Src)
+			if !has {
+				needTranslateHtmlVarNameList = append(needTranslateHtmlVarNameList, k)
+			}
 		}
 	}
 
-	if len(translateList) > 0 {
-		var translateMap map[int]string
-		translateMap, err = m.translate.Translate(translateList, "en", contextValue.Lang)
+	if len(needTranslateHtmlVarNameList) > 0 {
+		queryArr := make([]string, 0)
+		keyIndex := make(map[int]string)
+		for index := range needTranslateHtmlVarNameList {
+			htmlVarName := needTranslateHtmlVarNameList[index]
+			keyIndex[len(queryArr)] = htmlVarName
+			queryArr = append(queryArr, willTranslateInfoMap[htmlVarName].Src)
+		}
+
+		var translatedMap map[int]string
+		translatedMap, err = m.translate.Translate(queryArr, "en", contextValue.Lang)
 		if err != nil {
 			context.Logger().Error("translate error", zap.Error(err))
 			return nil, err
 		}
 
-		for index := range translateList {
-			v := translateList[index]
-			translateText := translateMap[index]
-			for k, vv := range willTranslateTexts {
-				if vv.Src == v {
-					vv.Dst = translateText
-					willTranslateTexts[k] = vv
-					break
+		for key := range translatedMap {
+
+			htmlVarName := keyIndex[key]
+
+			tInfo := willTranslateInfoMap[htmlVarName]
+
+			{
+				translateText := translatedMap[key]
+				if len(translateText) == 0 {
+					//如果翻译得到的结果的话，那就是原来的字符
+					translateText = tInfo.Src
 				}
+				tInfo.Dst = translateText
 			}
-			if len(translateText) == 0 {
-				translateText = v
-			}
+
+			willTranslateInfoMap[htmlVarName] = tInfo
+
 			if err = tx.Model(model.Translate{}).Create(&model.Translate{
-				Text:     v,
+				Text:     tInfo.Src,
 				TextType: "en",
 				LangType: contextValue.Lang,
-				LangText: translateText,
+				LangText: tInfo.Dst,
 			}).Error; err != nil {
 				context.Logger().Error("write db.Translate error", zap.Error(err))
 				return nil, err
 			}
 		}
 	}
-
-	/*//var translateText string
-	for _, v := range translateList {
-		if len(v) > 0 {
-
-			var translateText string
-			translateText, err = m.Translate(v, "en", contextValue.Lang)
-			if err != nil {
-				context.Logger().Error("translate error", zap.Error(err))
-				return nil, err
-			}
-
-			//willTranslateLocker.Lock()
-			for k, vv := range willTranslateTexts {
-				if vv.Src == v {
-					vv.Dst = translateText
-					willTranslateTexts[k] = vv
-					break
-				}
-			}
-			//willTranslateLocker.Unlock()
-
-			if len(translateText) == 0 {
-				translateText = v
-			}
-
-			if err = tx.Model(model.Translate{}).Create(&model.Translate{
-				Text:     v,
-				TextType: "en",
-				LangType: contextValue.Lang,
-				LangText: translateText,
-			}).Error; err != nil {
-				context.Logger().Error("write db.Translate error", zap.Error(err))
-				return nil, err
-			}
-		}
-	}*/
 
 	docBytes, err = m.html(node)
 	if err != nil {
@@ -278,17 +271,17 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 		return nil, err
 	}
 	buffer := bytes.NewBuffer(nil)
-	err = t.Execute(buffer, willTranslateTexts)
+	err = t.Execute(buffer, willTranslateInfoMap)
 	if err != nil {
 		return nil, err
 	}
 	return buffer.Bytes(), nil
 }
 
-func NewTranslate(languageCode map[string]string) (*Html, error) {
+func NewTranslate() (*Html, error) {
 	translate, err := internal.New()
 	if err != nil {
 		return nil, err
 	}
-	return &Html{LanguageCode: languageCode, translate: translate}, nil
+	return &Html{translate: translate}, nil
 }

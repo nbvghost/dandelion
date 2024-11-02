@@ -105,9 +105,9 @@ func (m ConfigurationService) GetBaiduTranslateConfiguration(oid dao.PrimaryKey)
 	}
 	return &h
 }
-func (m ConfigurationService) GetTranslate(db *gorm.DB, oid dao.PrimaryKey) []model.Configuration {
-	var list []model.Configuration
-	db.Model(&model.Configuration{}).Where(`"OID"=?`, oid).Where(`"K" like 'Translate%'`).Order(`"V"::int desc`).Find(&list)
+func (m ConfigurationService) GetTranslate(db *gorm.DB, k string) *model.Configuration {
+	var list = &model.Configuration{}
+	db.Model(&model.Configuration{}).Where(`"OID"=?`, 0).Where(`"K"=?`, k).First(list)
 	return list
 }
 func (m ConfigurationService) GetVolcengineConfiguration(oid dao.PrimaryKey) *serviceargument.Volcengine {
