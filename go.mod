@@ -39,7 +39,7 @@ require (
 require (
 	github.com/samber/lo v1.47.0
 	go.etcd.io/etcd/client/v3 v3.5.16
-	golang.org/x/image v0.0.0-20190802002840-cff245a6509b
+	golang.org/x/image v0.18.0
 )
 
 require (
