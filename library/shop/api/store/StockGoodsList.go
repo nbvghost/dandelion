@@ -5,14 +5,13 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/company"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type StockGoodsList struct {
-	StoreService company.StoreService
-	User         *model.User  `mapping:""`
-	Store        *model.Store `mapping:""`
-	Get          struct {
+	User  *model.User  `mapping:""`
+	Store *model.Store `mapping:""`
+	Get   struct {
 		GoodsID dao.PrimaryKey `uri:"GoodsID"`
 	} `method:"Get"`
 }
@@ -21,6 +20,6 @@ func (m *StockGoodsList) Handle(context constrain.IContext) (r constrain.IResult
 	//GoodsID
 	//GoodsID, _ := strconv.ParseUint(context.PathParams["GoodsID"], 10, 64)
 
-	list := m.StoreService.ListStoreSpecifications(m.Store.ID, m.Get.GoodsID)
+	list := service.Company.Store.ListStoreSpecifications(m.Store.ID, m.Get.GoodsID)
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: list}}, nil
 }

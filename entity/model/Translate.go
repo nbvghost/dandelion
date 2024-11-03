@@ -7,6 +7,7 @@ import (
 type Translate struct {
 	dao.Entity
 	Text     string `gorm:"column:Text;uniqueIndex:Translate_Idx_Text_LangType"`     //
+	TextType string `gorm:"column:TextType;uniqueIndex:Translate_Idx_Text_LangType"` //
 	LangType string `gorm:"column:LangType;uniqueIndex:Translate_Idx_Text_LangType"` //
 	LangText string `gorm:"column:LangText"`                                         //
 }

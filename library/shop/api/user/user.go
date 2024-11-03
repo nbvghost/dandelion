@@ -6,6 +6,7 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
+	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/tool/encryption"
 	"github.com/pkg/errors"
 	"strings"
@@ -17,8 +18,7 @@ type User struct {
 	} `method:"Get"`
 	Put struct {
 		Email           string
-		FirstName       string
-		LastName        string
+		Name            string
 		ChangeEmail     bool
 		ChangePassword  bool
 		AllowAssistance bool
@@ -43,8 +43,8 @@ func (m *User) HandlePut(context constrain.IContext) (r constrain.IResult, err e
 		needValidPassword = true
 	}
 
-	if len(m.Put.LastName) > 0 && len(m.Put.FirstName) > 0 {
-		changeMap["Name"] = m.Put.LastName + " " + m.Put.FirstName
+	if len(m.Put.Name) > 0 {
+		changeMap["Name"] = m.Put.Name
 	}
 
 	tx := db.Orm().Begin()
@@ -63,14 +63,17 @@ func (m *User) HandlePut(context constrain.IContext) (r constrain.IResult, err e
 		return nil, err
 	}
 
-	err = dao.UpdateBy(tx, &model.UserInfo{}, map[string]any{"AllowAssistance": m.Put.AllowAssistance}, `"UserID"=?`, context.UID())
+	userInfo := service.User.GetUserInfo(context.UID())
+	userInfo.SetAllowAssistance(m.Put.AllowAssistance)
+	err = userInfo.Update(tx)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
 	}
-	user := dao.GetByPrimaryKey(tx, &model.User{}, context.UID())
-	userInfo := dao.GetBy(tx, &model.UserInfo{}, map[string]any{"UserID": context.UID()})
+
+	u := dao.GetByPrimaryKey(tx, &model.User{}, context.UID())
+
 	tx.Commit()
 
-	return result.NewData(map[string]any{"User": user, "UserInfo": userInfo}), nil
+	return result.NewData(map[string]any{"User": u, "UserInfo": userInfo.Data()}), nil
 }

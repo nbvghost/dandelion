@@ -5,14 +5,13 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/order"
+	"github.com/nbvghost/dandelion/service"
 	"github.com/pkg/errors"
 )
 
 type BuyCollage struct {
-	OrdersService order.OrdersService
-	User          *model.User `mapping:""`
-	Post          struct {
+	User *model.User `mapping:""`
+	Post struct {
 		GoodsID         dao.PrimaryKey `form:"GoodsID"`
 		SpecificationID dao.PrimaryKey `form:"SpecificationID"`
 		Quantity        uint           `form:"Quantity"`
@@ -32,7 +31,7 @@ func (m *BuyCollage) HandlePost(ctx constrain.IContext) (constrain.IResult, erro
 	//Quantity := object.ParseUint(context.Request.FormValue("Quantity"))
 
 	if m.Post.GoodsID != 0 && m.Post.SpecificationID != 0 && m.Post.Quantity != 0 {
-		err := m.OrdersService.BuyCollageOrders(ctx, m.User.ID, dao.PrimaryKey(m.Post.GoodsID), dao.PrimaryKey(m.Post.SpecificationID), uint(m.Post.Quantity))
+		err := service.Order.Orders.BuyCollageOrders(ctx, m.User.ID, dao.PrimaryKey(m.Post.GoodsID), dao.PrimaryKey(m.Post.SpecificationID), uint(m.Post.Quantity))
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "立即购买", nil)}, nil
 	} else {
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("订单数据出错"), "", nil)}, nil

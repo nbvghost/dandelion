@@ -126,16 +126,33 @@ const (
 		    }
 		  ]
 	*/
-	ConfigurationKeyQuickLink              ConfigurationKey = "QuickLink"
+	ConfigurationKeyQuickLink ConfigurationKey = "QuickLink"
+
 	ConfigurationKeyPaymentPaypalClientId  ConfigurationKey = "PaymentPaypalClientId"
 	ConfigurationKeyPaymentPaypalAppSecret ConfigurationKey = "PaymentPaypalAppSecret"
+
+	ConfigurationKeyAliyunAccessKeyID     ConfigurationKey = "AliyunAccessKeyID"
+	ConfigurationKeyAliyunAccessKeySecret ConfigurationKey = "AliyunAccessKeySecret"
+	ConfigurationKeyAliyunSMSSignName     ConfigurationKey = "AliyunSMSSignName"
+
+	ConfigurationKeyVolcengineAccessKeyID     ConfigurationKey = "VolcengineAccessKeyID"
+	ConfigurationKeyVolcengineAccessKeySecret ConfigurationKey = "VolcengineAccessKeySecret"
+
+	ConfigurationKeyBaiduTranslateAppID  ConfigurationKey = "BaiduTranslateAppID"
+	ConfigurationKeyBaiduTranslateAppKey ConfigurationKey = "BaiduTranslateAppKey"
+
+	ConfigurationKeyEmailSTMPFrom     ConfigurationKey = "EmailSTMPFrom"
+	ConfigurationKeyEmailSTMPHost     ConfigurationKey = "EmailSTMPHost"
+	ConfigurationKeyEmailSTMPPort     ConfigurationKey = "EmailSTMPPort"
+	ConfigurationKeyEmailSTMPPassword ConfigurationKey = "EmailSTMPPassword"
 )
 
 type Configuration struct {
 	dao.Entity
-	OID dao.PrimaryKey   `gorm:"column:OID"`
-	K   ConfigurationKey `gorm:"column:K"`
-	V   string           `gorm:"column:V"`
+	OID         dao.PrimaryKey   `gorm:"column:OID;uniqueIndex:Configuration_OID_K_unique"`
+	K           ConfigurationKey `gorm:"column:K;uniqueIndex:Configuration_OID_K_unique"`
+	V           string           `gorm:"column:V"`
+	Description string           `gorm:"column:Description"`
 }
 
 func (u *Configuration) BeforeCreate(scope *gorm.DB) (err error) {

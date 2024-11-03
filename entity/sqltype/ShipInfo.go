@@ -1,14 +1,10 @@
 package sqltype
 
-import (
-	"database/sql/driver"
-	"encoding/json"
-	"fmt"
-	"github.com/pkg/errors"
-	"time"
-)
+/*type ShipInfo struct {
 
-type ShipInfo struct {
+}*/
+
+/*type ShipInfo struct {
 	No   string //快递单号
 	Name string //快递
 	Key  string //快递编号
@@ -25,24 +21,12 @@ func (j *ShipInfo) Scan(value interface{}) error {
 }
 
 // Value 实现 driver.Valuer 接口，Value 返回 json value
-func (j *ShipInfo) Value() (driver.Value, error) {
-	if j == nil {
-		j = &ShipInfo{}
-	}
+func (j ShipInfo) Value() (driver.Value, error) {
 	return json.Marshal(j)
 }
 
-type RefundStatus string
-
-const (
-	RefundStatusRefund         RefundStatus = "Refund"         // 申请退款退货，等待客服确认
-	RefundStatusRefundAgree    RefundStatus = "RefundAgree"    // 同意退货
-	RefundStatusRefundReject   RefundStatus = "RefundReject"   // 拒绝退货
-	RefundStatusRefundShip     RefundStatus = "RefundShip"     // 退货货品邮寄中
-	RefundStatusRefundComplete RefundStatus = "RefundComplete" // 收到退货货品，客服放款
-	RefundStatusRefundPay      RefundStatus = "RefundPay"      // 买家已经收到退款
-)
-
+*/
+/*
 // RefundInfo 退货信息
 type RefundInfo struct {
 	Status   RefundStatus
@@ -63,9 +47,7 @@ func (j *RefundInfo) Scan(value interface{}) error {
 }
 
 // Value 实现 driver.Valuer 接口，Value 返回 json value
-func (j *RefundInfo) Value() (driver.Value, error) {
-	if j == nil {
-		j = &RefundInfo{}
-	}
+func (j RefundInfo) Value() (driver.Value, error) {
+
 	return json.Marshal(j)
-}
+}*/

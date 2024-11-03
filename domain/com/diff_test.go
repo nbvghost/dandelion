@@ -21,6 +21,10 @@ func Test_diff(t *testing.T) {
 			from: &model.Admin{},
 			to:   &model.Admin{Phone: "52", Name: "88"},
 		}, want: map[string]any{"Phone": "52"}},
+		{name: "struct", args: args{
+			from: &model.Admin{},
+			to:   &model.Admin{},
+		}, want: map[string]any{}},
 		{name: "map-1", args: args{
 			from: &map[string]any{"A": 5},
 			to:   &map[string]any{"A": 53},

@@ -5,13 +5,11 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/user"
 )
 
 type Review struct {
-	UserService user.UserService
-	User        *model.User `mapping:""`
-	Get         struct {
+	User *model.User `mapping:""`
+	Get  struct {
 		Index    int `form:"index"`
 		PageSize int `form:"page-size"`
 	} `method:"get"`
@@ -33,5 +31,5 @@ func (m *Review) Handle(context constrain.IContext) (r constrain.IResult, err er
 		Count(&total).Offset(m.Get.Index * m.Get.PageSize).
 		Limit(m.Get.PageSize).Find(&list)
 
-	return result.NewData(result.NewPagination(m.Get.Index, m.Get.PageSize, int(total), list)), nil
+	return result.NewData(result.NewPagination(m.Get.Index, m.Get.PageSize, total, list)), nil
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/pkg/errors"
-	"log"
 	"reflect"
 )
 
@@ -26,7 +25,7 @@ func (m *mapping) register(mapping constrain.IMapping) error {
 	return nil
 }
 
-func (m *mapping) Before(context constrain.IContext, handler interface{}) {
+func (m *mapping) Mapping(context constrain.IContext, handler interface{}) error {
 	t := reflect.TypeOf(handler)
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
@@ -49,7 +48,7 @@ func (m *mapping) Before(context constrain.IContext, handler interface{}) {
 					instance = mp.Call(context)
 					if instance == nil {
 						//return errors.New("mapping的Call不能返回空的实例")
-						log.Printf("%v的Call返回空的数据", mp)
+						//log.Printf("%#v的Call返回空的数据", mp)
 						instance = mp.Instance()
 					} else {
 						context.SyncCache().Store(cacheKey, instance)
@@ -74,13 +73,15 @@ func (m *mapping) Before(context constrain.IContext, handler interface{}) {
 			}
 		}
 	}
-	return
-}
-
-func (m *mapping) ViewAfter(context constrain.IContext, r constrain.IViewResult) error {
-	m.Before(context, r)
 	return nil
 }
+
+/*
+	func (m *mapping) ViewAfter(context constrain.IContext, r constrain.IViewResult) error {
+		m.Before(context, r)
+		return nil
+	}
+*/
 func (m *mapping) AddMapping(mapping constrain.IMapping) constrain.IMappingCallback {
 	if err := m.register(mapping); err != nil {
 		panic(err)

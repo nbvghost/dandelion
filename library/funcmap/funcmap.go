@@ -6,10 +6,12 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/tool"
 	"html/template"
 	"io/fs"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -200,13 +202,13 @@ func (fo *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 		}
 
 		contextValue := contexext.FromContext(context)
-		contextValue.Mapping.Before(context, function)
+		context.Mapping(function)
 
-		backCallFunc := reflect.MakeFunc(makeFuncType, func(args []reflect.Value) (results []reflect.Value) {
+		backCallFunc := reflect.MakeFunc(makeFuncType, func(args []reflect.Value) []reflect.Value {
 			for i := 0; i < len(args); i++ {
 				v.Field(argsIndex[i]).Set(args[i])
 			}
-			var result interface{}
+			var r interface{}
 			var err error
 
 			switch function.(type) {
@@ -217,15 +219,26 @@ func (fo *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 					return []reflect.Value{reflect.ValueOf(err)}
 				}
 				//todo resultData["Query"] = fm.c.Query()
-				fileName := filepath.Join("view", contextValue.DomainName, "template", "widget", fmt.Sprintf("%s.%s", funcName, "gohtml"))
+
 				var b []byte
-				b, err = ioutil.ReadFile(fileName)
+
+				templateBytes, err := function.(IWidget).Template()
 				if err != nil {
-					b, err = embeds.ReadFile(fmt.Sprintf("template/%s.gohtml", funcName))
-					if err != nil {
-						return []reflect.Value{reflect.ValueOf(err)}
-					}
+					return []reflect.Value{reflect.ValueOf(err)}
 				}
+				if templateBytes == nil || len(templateBytes) == 0 {
+					fileName := filepath.Join("view", contextValue.DomainName, "template", "widget", fmt.Sprintf("%s.%s", funcName, "gohtml"))
+					b, err = ioutil.ReadFile(fileName)
+					if err != nil {
+						b, err = embeds.ReadFile(fmt.Sprintf("template/%s.gohtml", funcName))
+						if err != nil {
+							return []reflect.Value{reflect.ValueOf(err)}
+						}
+					}
+				} else {
+					b = templateBytes
+				}
+
 				var t *template.Template
 				t, err = template.New(funcName).Funcs(NewFuncMap().Build(context)).Parse(string(b))
 				if err != nil {
@@ -235,12 +248,12 @@ func (fo *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 				if err = t.Execute(buffer, resultData); err != nil {
 					return []reflect.Value{reflect.ValueOf(err)}
 				}
-				result = template.HTML(buffer.Bytes())
+				r = template.HTML(buffer.Bytes())
 			case IFunc:
-				result = function.(IFunc).Call(context).Result()
+				r = function.(IFunc).Call(context).Result()
 			}
 
-			return []reflect.Value{reflect.ValueOf(result)}
+			return []reflect.Value{reflect.ValueOf(r)}
 		})
 		fo.funcMap[funcName] = backCallFunc.Interface()
 	}
@@ -253,7 +266,7 @@ func (fo *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 func NewFuncMap() ITemplateFunc {
 	fm := &templateFuncMap{}
 	fm.funcMap = make(template.FuncMap)
-	fm.funcMap["IncludeHTML"] = fm.includeHTML
+	fm.funcMap["Include"] = fm.include
 	fm.funcMap["Split"] = fm.splitFunc
 	fm.funcMap["FromJSONToMap"] = fm.fromJSONToMap
 	fm.funcMap["FromJSONToArray"] = fm.fromJSONToArray
@@ -271,6 +284,9 @@ func NewFuncMap() ITemplateFunc {
 	fm.funcMap["DigitMod"] = fm.digitMod
 	fm.funcMap["Map"] = fm.mapFunc
 	fm.funcMap["Index"] = fm.Index
+	fm.funcMap["Empty"] = fm.empty
+	fm.funcMap["Random"] = fm.random
+	fm.funcMap["UUID"] = fm.uuid
 	return fm
 }
 func indirectInterface(v reflect.Value) reflect.Value {
@@ -306,6 +322,33 @@ func indexArg(index reflect.Value, cap int) (int, error) {
 		return 0, fmt.Errorf("index out of range: %d", x)
 	}
 	return int(x), nil
+}
+
+var render = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+func (fo *templateFuncMap) random() int64 {
+	return render.Int63n(time.Now().UnixNano())
+}
+func (fo *templateFuncMap) uuid() string {
+	return tool.UUID()
+}
+func (fo *templateFuncMap) empty(v any) bool {
+	if v == nil {
+		return true
+	}
+	item := reflect.ValueOf(v)
+	if item.IsZero() {
+		return true
+	}
+	if item.Kind() == reflect.Ptr {
+		if item.IsNil() {
+			return true
+		}
+	}
+	if !item.IsValid() {
+		return true
+	}
+	return false
 }
 func (fo *templateFuncMap) Index(item reflect.Value, index reflect.Value) (reflect.Value, error) {
 	index = indirectInterface(index)
@@ -445,16 +488,16 @@ func (fo *templateFuncMap) splitFunc(source string, sep string) []string {
 
 	return strings.Split(source, sep)
 }
-func (fo *templateFuncMap) includeHTML(url string, params interface{}) template.HTML {
+func (fo *templateFuncMap) include(viewPath string, params interface{}) template.HTML {
 	//util.Trace(params)
 	//paramsMap := make(map[string]interface{})
 
 	b := bytes.NewBuffer(make([]byte, 0))
 	ww := bufio.NewWriter(b)
 
-	t, err := template.ParseFiles("view/" + url)
+	t, err := template.ParseFiles("view/" + viewPath + ".gohtml")
 	if os.IsNotExist(err) {
-		ww.WriteString("IncludeHTML:not found path in:" + url)
+		ww.WriteString("include:not found path in:" + viewPath)
 		t = template.New("static")
 	} else {
 		t.Execute(ww, params)

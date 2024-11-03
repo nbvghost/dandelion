@@ -3,19 +3,20 @@ package dao
 import (
 	"fmt"
 	"github.com/pkg/errors"
+	"log"
 	"reflect"
 	"strings"
 
 	"gorm.io/gorm"
 )
 
-func UpdateBy(tx *gorm.DB, model IEntity, value interface{}, query interface{}, args ...interface{}) error {
-	return tx.Model(model).Where(query, args...).Updates(value).Error
+func UpdateBy(tx *gorm.DB, model IEntity, updateValue interface{}, query interface{}, args ...interface{}) error {
+	return tx.Model(model).Where(query, args...).Updates(updateValue).Error
 }
 
-func UpdateByPrimaryKey(tx *gorm.DB, model IEntity, id PrimaryKey, value any) error {
+func UpdateByPrimaryKey(tx *gorm.DB, model IEntity, id PrimaryKey, updateValue any) error {
 	var item = reflect.New(reflect.TypeOf(model).Elem()).Interface().(IEntity)
-	return tx.Model(model).Where(fmt.Sprintf(`"%s"=?`, item.PrimaryName()), id).Updates(value).Error
+	return tx.Model(model).Where(fmt.Sprintf(`"%s"=?`, item.PrimaryName()), id).Updates(updateValue).Error
 }
 
 func GetByPrimaryKey(tx *gorm.DB, model IEntity, id PrimaryKey) IEntity {
@@ -44,7 +45,7 @@ func DeleteBy(tx *gorm.DB, model IEntity, where map[string]any) error {
 
 type FindQuery struct {
 	model IEntity
-	order []string
+	isSetOrder bool
 	db    *gorm.DB
 }
 
@@ -64,7 +65,13 @@ func (m *FindQuery) Where(query interface{}, args ...interface{}) *FindQuery {
 	return m
 }
 func (m *FindQuery) Order(order ...string) *FindQuery {
+	m.isSetOrder=true
 	m.db.Order(strings.Join(order, ","))
+	return m
+}
+func (m *FindQuery) OrderRaw(value interface{}) *FindQuery {
+	m.isSetOrder=true
+	m.db.Order(value)
 	return m
 }
 func (m *FindQuery) Count() int64 {
@@ -73,14 +80,18 @@ func (m *FindQuery) Count() int64 {
 	return total
 }
 func (m *FindQuery) Limit(index, pageSize int) int64 {
-	if index < 0 {
-		index = 0
-	}
-	if pageSize <= 0 {
-		pageSize = 10
-	}
 	var total int64
-	m.db.Count(&total).Limit(pageSize).Offset(pageSize * index)
+	if pageSize < 0 {
+		m.db.Count(&total)
+	} else {
+		if index < 0 {
+			index = 0
+		}
+		if pageSize <= 0 {
+			pageSize = 10
+		}
+		m.db.Count(&total).Limit(pageSize).Offset(pageSize * index)
+	}
 	return total
 }
 func (m *FindQuery) LimitOnly(pageSize int) *FindQuery {
@@ -99,9 +110,21 @@ func (m *FindQuery) Group(column string) (any, error) {
 func (m *FindQuery) Pluck(column string, dest interface{}) {
 	m.db.Pluck(column, dest)
 }
+func (m *FindQuery) Result(dest interface{}) {
+	if !m.isSetOrder {
+		m.db.Order(fmt.Sprintf(`"%s" asc`, m.model.PrimaryName()))
+	}
+	v := reflect.TypeOf(dest).Elem()
+	log.Println(v.Kind())
+	if v.Kind() == reflect.Slice {
+		m.db.Find(dest)
+	} else {
+		m.db.First(dest)
+	}
+}
 func (m *FindQuery) List() []IEntity {
 	var list = reflect.New(reflect.SliceOf(reflect.TypeOf(m.model)))
-	if len(m.order) == 0 {
+	if !m.isSetOrder {
 		m.db.Order(fmt.Sprintf(`"%s" asc`, m.model.PrimaryName()))
 	}
 	m.db.Find(list.Interface())

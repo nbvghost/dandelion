@@ -20,8 +20,7 @@ type Address struct {
 		DefaultBilling  bool   //`form:"DefaultBilling"`
 		DefaultShipping bool   //`form:"DefaultShipping"`
 		Detail          string //`form:"Detail"`
-		FirstName       string //`form:"FirstName"`
-		LastName        string //`form:"LastName"`
+		Name            string //`form:"FirstName"`
 		PostalCode      string //`form:"PostalCode"`
 		ProvinceName    string //`form:"ProvinceName"`
 		Tel             string //`form:"Tel"`
@@ -35,8 +34,7 @@ type Address struct {
 		DefaultBilling  bool   //`form:"DefaultBilling"`
 		DefaultShipping bool   //`form:"DefaultShipping"`
 		Detail          string //`form:"Detail"`
-		FirstName       string //`form:"FirstName"`
-		LastName        string //`form:"LastName"`
+		Name            string //`form:"FirstName"`
 		PostalCode      string //`form:"PostalCode"`
 		ProvinceName    string //`form:"ProvinceName"`
 		Tel             string //`form:"Tel"`
@@ -58,7 +56,8 @@ func (m *Address) HandleDelete(context constrain.IContext) (constrain.IResult, e
 		return nil, err
 	}
 
-	addressList := dao.Find(db.Orm(), &model.Address{}).Where(where.String()).List()
+	w, vs := where.Text()
+	addressList := dao.Find(db.Orm(), &model.Address{}).Where(w, vs...).List()
 	return result.NewData(map[string]any{"AddressList": addressList}), nil
 }
 
@@ -68,7 +67,8 @@ func (m *Address) Handle(context constrain.IContext) (r constrain.IResult, err e
 	if m.Get.ID > 0 {
 		where.Eq(`"ID"`, m.Get.ID)
 	}
-	addressList := dao.Find(db.Orm(), &model.Address{}).Where(where.String()).List()
+	w, vs := where.Text()
+	addressList := dao.Find(db.Orm(), &model.Address{}).Where(w, vs...).List()
 	return result.NewData(map[string]any{"AddressList": addressList}), nil
 }
 
@@ -79,7 +79,7 @@ func (m *Address) HandlePut(context constrain.IContext) (constrain.IResult, erro
 	address := map[string]any{
 		"ID":              m.Put.ID,
 		"UserID":          context.UID(),
-		"Name":            m.Put.LastName + " " + m.Put.FirstName,
+		"Name":            m.Put.Name,
 		"CountyCode":      m.Put.CountyCode,
 		"CountyName":      m.Put.CountyName,
 		"ProvinceName":    m.Put.ProvinceName,
@@ -123,7 +123,7 @@ func (m *Address) HandlePost(context constrain.IContext) (constrain.IResult, err
 
 	address := &model.Address{
 		UserID:          context.UID(),
-		Name:            m.Post.LastName + " " + m.Post.FirstName,
+		Name:            m.Post.Name,
 		CountyCode:      m.Post.CountyCode,
 		CountyName:      m.Post.CountyName,
 		ProvinceName:    m.Post.ProvinceName,

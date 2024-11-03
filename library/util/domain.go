@@ -7,8 +7,8 @@ import (
 
 var ipRegexp = regexp.MustCompile(`(\d)+\.(\d)+\.(\d)+\.(\d)+`)
 
-//分析域名
-//返回域名前缀，域名
+// 分析域名
+// 返回域名前缀，域名
 func ParseDomain(host string) ([]string, string) {
 	hosts := strings.Split(host, ":")
 	var domainName string

@@ -4,6 +4,8 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 )
 
+
+
 type GoodsAttributes struct {
 	dao.Entity
 	OID     dao.PrimaryKey `gorm:"column:OID;index"` //
@@ -16,3 +18,5 @@ type GoodsAttributes struct {
 func (u GoodsAttributes) TableName() string {
 	return "GoodsAttributes"
 }
+
+

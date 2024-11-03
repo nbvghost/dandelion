@@ -11,8 +11,7 @@ type IRedis interface {
 	GetEx(ctx context.Context, key string, expiration time.Duration) (string, error)
 	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
 	TryLock(ctx context.Context, key string, wait ...time.Duration) (bool, func())
-	GetEtcd() IEtcd
-	GenerateUID(ctx context.Context) uint64
+	GenerateUID(ctx context.Context, maxID int64) (uint64,error)
 	Expire(ctx context.Context, key string, expiration time.Duration) error
 	HSet(ctx context.Context, key string, value map[string]any) error
 	HMGet(ctx context.Context, key string, fields ...string) ([]any, error)

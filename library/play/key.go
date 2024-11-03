@@ -56,11 +56,8 @@ const (
 	CardItem_Type_Voucher     = "Voucher"
 	CardItem_Type_ScoreGoods  = "ScoreGoods"
 )
-const (
-	OrdersTypeGoods        = "Goods"        //商品购买订单
-	OrdersTypeGoodsPackage = "GoodsPackage" //合并下单
-	OrdersTypeSupply       = "Supply"       //充值
-)
+
+
 const (
 	SupplyType_Store = "Store" //门店充值
 	SupplyType_User  = "User"  //普通用户充值

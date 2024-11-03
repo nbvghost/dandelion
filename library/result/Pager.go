@@ -26,12 +26,12 @@ func (p *Pager) Calculation() Pager {
 
 type Pagination struct {
 	List     any //这个字段要改成data 表示，可以用对象或数组
-	Total    int
+	Total    int64
 	PageSize int
-	Page     int
+	Page     int//1开始
 }
 
-func NewPagination(page, pageSize, total int, list any) *Pagination {
+func NewPagination(page, pageSize int, total int64, list any) *Pagination {
 	return &Pagination{
 		List:     list,
 		Total:    total,

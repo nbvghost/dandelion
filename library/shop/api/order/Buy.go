@@ -2,17 +2,15 @@ package order
 
 import (
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/viewmodel"
-	"github.com/nbvghost/dandelion/service/order"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type Buy struct {
-	OrdersService order.OrdersService
-	User          *model.User `mapping:""`
-	Post          struct {
+	User *model.User `mapping:""`
+	Post struct {
 		List    []viewmodel.GoodsSpecification
 		Address model.Address
 	} `method:"post"`
@@ -31,16 +29,16 @@ func (m *Buy) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	//SpecificationID := object.ParseUint(context.Request.FormValue("SpecificationID"))
 	//Quantity := object.ParseUint(context.Request.FormValue("Quantity"))
 
-	var list []*extends.OrdersGoods
+	var list []*model.OrdersGoods
 	for _, goodsSpecification := range m.Post.List {
-		goods, err := m.OrdersService.CreateOrdersGoods(ctx, m.User.ID, goodsSpecification.GoodsID, goodsSpecification.SpecificationID, goodsSpecification.Quantity)
+		goods, err := service.Order.Orders.CreateOrdersGoods(ctx, m.User.ID, goodsSpecification.GoodsID, goodsSpecification.SpecificationID, goodsSpecification.Quantity)
 		if err != nil {
 			return nil, err
 		}
 		list = append(list, goods...)
 	}
 
-	results, err := m.OrdersService.AnalyseOrdersGoodsList(m.User.OID, &m.Post.Address, list)
+	results, err := service.Order.Orders.AnalyseOrdersGoodsList(m.User.OID, &m.Post.Address, list)
 
 	return result.NewData(map[string]any{"ConfirmOrdersGoods": results}), err
 

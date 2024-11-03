@@ -5,7 +5,9 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/nbvghost/dandelion/constrain"
@@ -182,14 +184,38 @@ func (r *EmptyResult) Apply(context constrain.IContext) {
 type ImageBytesResult struct {
 	Data        []byte
 	ContentType string //: image/png
+	Filename    string
 }
 
 func (r *ImageBytesResult) Apply(context constrain.IContext) {
 	v := contexext.FromContext(context)
 	//context.Response.Header().Add()
-	v.Response.Header().Set("Content-Type", r.ContentType)
+	if len(r.ContentType) > 0 {
+		v.Response.Header().Set("Content-Type", r.ContentType)
+	}
+	if len(r.Filename) > 0 {
+		v.Response.Header().Set("content-disposition", "attachment;filename="+url.QueryEscape(r.Filename))
+	}
 	v.Response.Write(r.Data)
+}
 
+type fileDownloadResult struct {
+	Data     []byte
+	Filename string
+}
+
+func (r *fileDownloadResult) Apply(context constrain.IContext) {
+	v := contexext.FromContext(context)
+	v.Response.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", url.QueryEscape(r.Filename)))
+	v.Response.Header().Set("Content-Type", "application/octet-stream")
+	v.Response.WriteHeader(http.StatusOK) //写入 Header 时，一定要在 WriteHeader 方法的之前，否则不生效。
+	_, err := v.Response.Write(r.Data)
+	if err != nil {
+		return
+	}
+}
+func NewFileDownloadResult(d []byte, filename string) constrain.IResult {
+	return &fileDownloadResult{Data: d, Filename: filename}
 }
 
 type RedirectToUrlResult struct {

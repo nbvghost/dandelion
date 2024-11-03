@@ -1,8 +1,11 @@
 package key
 
-const baseURL = "https://api-m.paypal.com"
-const sandboxBaseURL = "https://api-m.sandbox.paypal.com"
+import "github.com/nbvghost/dandelion/library/environments"
 
 func BaseURL() string {
-	return sandboxBaseURL
+	if environments.Release() {
+		return "https://api-m.paypal.com"
+	} else {
+		return "https://api-m.sandbox.paypal.com"
+	}
 }

@@ -10,13 +10,11 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/user"
 	"github.com/pkg/errors"
 )
 
 type Update struct {
-	UserService user.UserService
-	Post        struct {
+	Post struct {
 		Name           string `form:"Name"`
 		Portrait       string `form:"Portrait"`
 		PortraitBase64 string `form:"PortraitBase64"`
