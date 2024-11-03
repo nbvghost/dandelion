@@ -68,6 +68,7 @@ const (
 	ScoreJournal_Type_Share        ScoreJournalType = 6 //转发获历
 	ScoreJournal_Type_InviteUser   ScoreJournalType = 7 //邀请好友
 	ScoreJournal_Type_Look_Video   ScoreJournalType = 8 //看视频送积分
+	ScoreJournal_Type_Recharge     ScoreJournalType = 9 //用钱充值的
 )
 
 // ScoreJournal Score明细

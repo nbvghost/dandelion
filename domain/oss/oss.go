@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/dandelion/config"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"time"
 
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/util"
@@ -25,22 +25,23 @@ type Upload struct {
 }
 
 func Url(context constrain.IContext) (string, error) {
-	ossHost, err := context.GetDNSName(key.MicroServerOSS)
+	ossHost, err := context.Etcd().SelectOutsideServer(config.MicroServerOSS)
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("//%s/assets", ossHost), nil
+	contextValue:=contexext.FromContext(context)
+	return fmt.Sprintf("%s://%s/assets",util.GetScheme(contextValue.Request), ossHost), nil
 }
 func ReadUrl(context constrain.IContext, path string) (string, error) {
-	ossHost, err := context.GetDNSName(key.MicroServerOSS)
+	ossHost, err := context.Etcd().SelectOutsideServer(config.MicroServerOSS)
 	if err != nil {
 		return "", err
 	}
 	contextValue := contexext.FromContext(context)
 	return fmt.Sprintf("%s://%s/assets%s", util.GetScheme(contextValue.Request), ossHost, path), nil
 }
-func WriteUrl(context constrain.IContext) (string, error) {
-	ossHost, err := context.SelectInsideServer(key.MicroServerOSS)
+func WriteUrl(context constrain.IServiceContext) (string, error) {
+	ossHost, err := context.Etcd().SelectInsideServer(config.MicroServerOSS)
 	if err != nil {
 		return "", err
 	}
@@ -59,15 +60,10 @@ func WriteUrl(context constrain.IContext) (string, error) {
 //
 // override  如果存在相同的文件名时，是否覆盖原来的文件
 // path 文件要存储的路径，做为name的目录
-func UploadFile(context constrain.IContext, file []byte, path string, fileType string, override bool, name string) (*Upload, error) {
-	ossUrl, err := WriteUrl(context)
-	if err != nil {
-		return nil, err
-	}
-
+func UploadFileBase(ossUrl string, file []byte, path string, fileType string, override bool, name string) (*Upload, error) {
 	buf := bytes.NewBuffer(nil)
 	writer := multipart.NewWriter(buf)
-	err = writer.WriteField("path", path)
+	err := writer.WriteField("path", path)
 	if err != nil {
 		return nil, err
 	}
@@ -113,6 +109,13 @@ func UploadFile(context constrain.IContext, file []byte, path string, fileType s
 		return nil, err
 	}
 	return &upload, nil
+}
+func UploadFile(context constrain.IServiceContext, file []byte, path string, fileType string, override bool, name string) (*Upload, error) {
+	ossUrl, err := WriteUrl(context)
+	if err != nil {
+		return nil, err
+	}
+	return UploadFileBase(ossUrl, file, path, fileType, override, name)
 }
 func UploadAvatar(context constrain.IContext, OID, userID dao.PrimaryKey, file []byte) (*Upload, error) {
 

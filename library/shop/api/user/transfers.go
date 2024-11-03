@@ -6,14 +6,11 @@ import (
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
-	"github.com/nbvghost/dandelion/service/order"
-	"github.com/nbvghost/dandelion/service/user"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type Transfers struct {
-	UserService      user.UserService
-	TransfersService order.TransfersService
-	Post             struct {
+	Post struct {
 		ReUserName string `form:"ReUserName"`
 	} `method:"Post"`
 	User         *model.User         `mapping:""`
@@ -23,7 +20,7 @@ type Transfers struct {
 func (m *Transfers) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	contextValue := contexext.FromContext(ctx)
 	IP := util.GetIP(contextValue.Request)
-	err := m.TransfersService.UserTransfers(m.User.ID, m.Post.ReUserName, IP, m.WechatConfig)
+	err := service.Order.Transfers.UserTransfers(m.User.ID, m.Post.ReUserName, IP, m.WechatConfig)
 
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "提现成功，请查看到账通知结果", nil)}, nil
 }

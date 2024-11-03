@@ -1,12 +1,5 @@
 package sqltype
 
-import (
-	"database/sql/driver"
-	"encoding/json"
-	"errors"
-	"fmt"
-)
-
 type CustomerService struct {
 	Photo         string
 	Name          string
@@ -15,7 +8,7 @@ type CustomerService struct {
 	SocialAccount []SocialAccount
 }
 
-type CustomerServiceList []CustomerService
+/*type CustomerServiceList []CustomerService
 
 // 实现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb
 func (j *CustomerServiceList) Scan(value interface{}) error {
@@ -33,4 +26,4 @@ func (j CustomerServiceList) Value() (driver.Value, error) {
 		j = make(CustomerServiceList, 0)
 	}
 	return json.Marshal(&j)
-}
+}*/

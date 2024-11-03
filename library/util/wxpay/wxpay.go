@@ -141,39 +141,41 @@ func Api_query_auth(authorization_code string, ComponentVerifyTicket string) (au
 	}
 }*/
 
-/*func Api_create_preauthcode(component_access_token string) string {
-	if time.Now().Unix()-VerifyCache.Pre_auth_code_update >= VerifyCache.Pre_auth_code_expires_in-10 || strings.EqualFold(VerifyCache.Pre_auth_code, "") {
+/*
+	func Api_create_preauthcode(component_access_token string) string {
+		if time.Now().Unix()-VerifyCache.Pre_auth_code_update >= VerifyCache.Pre_auth_code_expires_in-10 || strings.EqualFold(VerifyCache.Pre_auth_code, "") {
 
-		params := map[string]string{"component_appid": OpenAppID}
-		jd, err := json.Marshal(params)
-		log.Println(err)
-		fmt.Println(string(jd))
-		buf := bytes.NewBuffer(make([]byte, 0))
-		binary.Write(buf, binary.BigEndian, jd)
-		resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token="+component_access_token, "application/json", buf)
-		log.Println(err)
-		b, err := ioutil.ReadAll(resp.Body)
-		log.Println(err)
-		fmt.Println(string(b))
+			params := map[string]string{"component_appid": OpenAppID}
+			jd, err := json.Marshal(params)
+			log.Println(err)
+			fmt.Println(string(jd))
+			buf := bytes.NewBuffer(make([]byte, 0))
+			binary.Write(buf, binary.BigEndian, jd)
+			resp, err := http.Post("https://api.weixin.qq.com/cgi-bin/component/api_create_preauthcode?component_access_token="+component_access_token, "application/json", buf)
+			log.Println(err)
+			b, err := ioutil.ReadAll(resp.Body)
+			log.Println(err)
+			fmt.Println(string(b))
 
-		var respData = &struct {
-			Pre_auth_code string `json:"pre_auth_code"`
-			Expires_in    int64  `json:"expires_in"`
-		}{}
+			var respData = &struct {
+				Pre_auth_code string `json:"pre_auth_code"`
+				Expires_in    int64  `json:"expires_in"`
+			}{}
 
-		err = json.Unmarshal(b, respData)
-		log.Println(err)
+			err = json.Unmarshal(b, respData)
+			log.Println(err)
 
-		VerifyCache.Pre_auth_code = respData.Pre_auth_code
-		VerifyCache.Pre_auth_code_expires_in = respData.Expires_in
-		VerifyCache.Pre_auth_code_update = time.Now().Unix()
-		fmt.Println(respData)
+			VerifyCache.Pre_auth_code = respData.Pre_auth_code
+			VerifyCache.Pre_auth_code_expires_in = respData.Expires_in
+			VerifyCache.Pre_auth_code_update = time.Now().Unix()
+			fmt.Println(respData)
 
-		return VerifyCache.Pre_auth_code
-	} else {
-		return VerifyCache.Pre_auth_code
+			return VerifyCache.Pre_auth_code
+		} else {
+			return VerifyCache.Pre_auth_code
+		}
 	}
-}*/
+*/
 func GetAccessToken() string {
 
 	if (time.Now().Unix() - accessToken.Update) < accessToken.Expires_in {

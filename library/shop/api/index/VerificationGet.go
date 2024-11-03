@@ -6,14 +6,11 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/company"
-	"github.com/nbvghost/dandelion/service/order"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type VerificationGet struct {
-	VerificationService order.VerificationService
-	StoreService        company.StoreService
-	Get                 struct {
+	Get struct {
 		VerificationNo string `uri:"VerificationNo"`
 	} `method:"get"`
 }
@@ -21,7 +18,7 @@ type VerificationGet struct {
 func (m *VerificationGet) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
 	//VerificationNo := context.PathParams["VerificationNo"]
-	verification := m.VerificationService.GetVerificationByVerificationNo(m.Get.VerificationNo)
+	verification := service.Order.Verification.GetVerificationByVerificationNo(m.Get.VerificationNo)
 
 	if verification.StoreID > 0 && verification.Quantity > 0 {
 		//var store model.Store

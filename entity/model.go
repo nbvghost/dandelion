@@ -2,6 +2,7 @@ package entity
 
 import (
 	"fmt"
+	"log"
 	"reflect"
 
 	"github.com/nbvghost/dandelion/entity/model"
@@ -86,9 +87,13 @@ type r struct {
 }
 
 func (m *r) Register(e dao.IEntity) dao.IEntity {
-	name := reflect.TypeOf(e).Elem().Name()
-	if _, ok := m.models[name]; ok {
-		panic(fmt.Errorf("model %s 已经注册", e.TableName()))
+	elem := reflect.TypeOf(e).Elem()
+	name := elem.Name()
+	if old, ok := m.models[name]; ok {
+		oldElem := reflect.TypeOf(old).Elem()
+		m.models[name] = e
+		log.Println(fmt.Errorf("model %s 覆盖:%s.%s -> %s.%s", e.TableName(), oldElem.PkgPath(), oldElem.Name(), elem.PkgPath(), elem.Name()))
+		return e
 	} else {
 		m.models[name] = e
 		return e

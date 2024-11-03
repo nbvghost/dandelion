@@ -2,18 +2,76 @@ package config
 
 import (
 	"crypto/tls"
+	"fmt"
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/nbvghost/dandelion/constrain/key"
 )
 
 type MicroServerConfig struct {
-	MicroServer key.MicroServer
+	MicroServer *MicroServer
 	Port        int
 	IP          string
+	Addr        string
+}
+
+/*func (m *MicroServerConfig) UnRegister() error {
+	fileName, err := m.MicroServer.getFileName()
+	if err != nil {
+		return err
+	}
+
+	err = os.Remove(fileName)
+	if err != nil {
+		return err
+	}
+	return nil
+}*/
+/*func (m *MicroServerConfig) Register() error {
+	var err error
+	if m.IP == "" {
+		m.IP = util.NetworkIP()
+		if m.IP == "" {
+			return errors.New("无法获取本机ip")
+		}
+	}
+	if m.Port == 0 {
+		m.Port, err = util.RandomNetworkPort()
+		if err != nil {
+			return err
+		}
+	}
+
+	fileName, err := m.MicroServer.getFileName()
+	if err != nil {
+		return err
+	}
+
+	address := fmt.Sprintf("%s:%d", m.IP, m.Port)
+
+	_, err = os.Stat(fileName)
+	if err == nil {
+		err = os.Remove(fileName)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = writeLock(fileName, []byte(address))
+	if err != nil {
+		return err
+	}
+	return nil
+}*/
+
+func NewMicroServerConfig(microServerKey *MicroServer, port int, ip string) *MicroServerConfig {
+	return &MicroServerConfig{
+		MicroServer: microServerKey,
+		Port:        port,
+		IP:          ip,
+	}
 }
 
 type RedisOptions struct {
@@ -124,4 +182,18 @@ type ServerConfig struct {
 	Server MicroServerConfig
 	Etcd   clientv3.Config
 	Redis  RedisOptions
+}
+
+type PostgresqlConfig struct {
+	Host     string `json:"Host"`
+	User     string `json:"User"`
+	Password string `json:"Password"`
+	DBName   string `json:"DBName"`
+	Port     int    `json:"Port"`
+	SSLMode  string `json:"SSLMode"`
+	TimeZone string `json:"TimeZone"`
+}
+
+func (m *PostgresqlConfig) GetDSN() string {
+	return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s", m.Host, m.User, m.Password, m.DBName, m.Port, m.SSLMode, m.TimeZone)
 }

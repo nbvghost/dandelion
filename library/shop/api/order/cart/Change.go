@@ -6,13 +6,12 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/viewmodel"
-	"github.com/nbvghost/dandelion/service/order"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type Change struct {
-	ShoppingCartService order.ShoppingCartService
-	User                *model.User `mapping:""`
-	Post                struct {
+	User *model.User `mapping:""`
+	Post struct {
 		List []viewmodel.GoodsSpecification
 	} `method:"post"`
 }
@@ -28,7 +27,7 @@ func (m *Change) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 
 	tx := db.Orm().Begin()
 	for _, goodsSpecification := range m.Post.List {
-		err := m.ShoppingCartService.UpdateByUserIDAndID(tx, m.User.ID, goodsSpecification.GoodsID, goodsSpecification.SpecificationID, uint(goodsSpecification.Quantity))
+		err := service.Order.ShoppingCart.UpdateByUserIDAndID(tx, m.User.ID, goodsSpecification.GoodsID, goodsSpecification.SpecificationID, uint(goodsSpecification.Quantity))
 		if err != nil {
 			tx.Rollback()
 			return nil, err

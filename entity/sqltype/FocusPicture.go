@@ -1,12 +1,5 @@
 package sqltype
 
-import (
-	"database/sql/driver"
-	"encoding/json"
-	"errors"
-	"fmt"
-)
-
 type FocusPicture struct {
 	Url       string
 	Title     string
@@ -15,7 +8,7 @@ type FocusPicture struct {
 	Hide      bool
 }
 
-type FocusPictureList []FocusPicture
+/*type FocusPictureList []FocusPicture
 
 // 实现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb
 func (j *FocusPictureList) Scan(value interface{}) error {
@@ -33,4 +26,4 @@ func (j FocusPictureList) Value() (driver.Value, error) {
 		j = make(FocusPictureList, 0)
 	}
 	return json.Marshal(j)
-}
+}*/

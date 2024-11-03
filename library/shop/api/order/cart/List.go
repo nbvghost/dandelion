@@ -6,13 +6,12 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/order"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type List struct {
-	User          *model.User `mapping:""`
-	OrdersService order.OrdersService
-	Get           struct {
+	User *model.User `mapping:""`
+	Get  struct {
 		AddressID dao.PrimaryKey `form:"address-id"`
 	} `method:"get"`
 }
@@ -30,7 +29,7 @@ func (m *List) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	}
 
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
-	list, err := m.OrdersService.FindShoppingCartListDetails(m.User.OID, m.User.ID, address)
+	list, err := service.Order.Orders.FindShoppingCartListDetails(m.User.OID, m.User.ID, address)
 	if err != nil {
 		return nil, err
 	}

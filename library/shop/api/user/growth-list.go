@@ -8,12 +8,10 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/user"
 )
 
 type GrowthList struct {
-	UserService user.UserService
-	Get         struct {
+	Get struct {
 		Order string `uri:"Order"`
 	} `method:"Get"`
 }

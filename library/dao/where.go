@@ -65,16 +65,18 @@ func (m *Where) In(field string, value ...any) *Where {
 	})
 	return m
 }
-func (m *Where) String() string {
+func (m *Where) Text() (string, []any) {
 	var wheres []string
+	whereValues := make([]any, 0)
 	for _, condition := range m.w {
 		if condition.op == "" {
 			wheres = append(wheres, condition.field)
 		} else {
-			wheres = append(wheres, fmt.Sprintf(`%s %s '%v'`, condition.field, condition.op, condition.value))
+			wheres = append(wheres, fmt.Sprintf(`%s %s ?`, condition.field, condition.op))
+			whereValues = append(whereValues, condition.value)
 		}
 	}
-	return strings.Join(wheres, " and ")
+	return strings.Join(wheres, " and "), whereValues
 }
 func NewWhere() *Where {
 	return &Where{}

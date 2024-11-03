@@ -9,21 +9,17 @@ import (
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
-	"github.com/nbvghost/dandelion/service/company"
-	"github.com/nbvghost/dandelion/service/order"
-	"github.com/nbvghost/dandelion/service/wechat"
+	"github.com/nbvghost/dandelion/service"
 
 	"github.com/nbvghost/tool"
 )
 
 type Supply struct {
-	OrdersService order.OrdersService
-	StoreService  company.StoreService
-	Store         *model.Store        `mapping:""`
-	User          *model.User         `mapping:""`
-	WechatConfig  *model.WechatConfig `mapping:""`
-	Wx            wechat.WxService
-	Post          struct {
+	Store        *model.Store        `mapping:""`
+	User         *model.User         `mapping:""`
+	//WechatConfig *model.WechatConfig `mapping:""`
+
+	Post struct {
 		PayMoney uint `form:"PayMoney"`
 	} `method:"Post"`
 }
@@ -44,21 +40,24 @@ func (m *Supply) HandlePost(context constrain.IContext) (constrain.IResult, erro
 	supply.UserID = m.User.ID
 	supply.Type = play.SupplyType_Store
 
-	WxConfig := m.WechatConfig
+	//WxConfig := m.WechatConfig
 
-	Success, Message, Result := m.Wx.Order(context, supply.OrderNo, "门店", "充值", "", m.User.OpenID, ip, m.Post.PayMoney, play.OrdersTypeSupply, WxConfig)
-	if Success != result.Success {
-		return &result.JsonResult{Data: &result.ActionResult{Code: Success, Message: Message, Data: Result}}, nil
+
+	wechat := service.Payment.NewWechat(context,m.User.OID)
+
+	r,err := wechat.Order(supply.OrderNo, "门店", "充值", "", m.User.OpenID, ip, m.Post.PayMoney, model.OrdersTypeSupply)
+	if err!=nil {
+		return result.NewError(err),nil//&result.JsonResult{Data: &result.ActionResult{Code: Success, Message: Message, Data: Result}}, nil
 	}
 
-	err := dao.Create(db.Orm(), &supply)
+	err = dao.Create(db.Orm(), &supply)
 	if err != nil {
 		return nil, err
 	}
 
 	//WxConfig := controller.Wx.MiniProgram()
 
-	outData, err := m.Wx.GetWXAConfig(*Result.PrepayId, WxConfig)
+	outData, err := wechat.GetWXAConfig(r.PrepayId)
 	if err != nil {
 		return nil, err
 	}

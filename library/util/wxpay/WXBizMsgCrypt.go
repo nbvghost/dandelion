@@ -15,12 +15,11 @@ import (
 )
 
 /*
-
- * 对密文进行解密.
- *
- * @param text 需要解密的密文
- * @return 解密得到的明文
- * @throws AesException aes解密失败
+* 对密文进行解密.
+*
+* @param text 需要解密的密文
+* @return 解密得到的明文
+* @throws AesException aes解密失败
  */
 func Decrypt(text string) (bool, string) {
 	bkey, err := base64.StdEncoding.DecodeString(EncodingAESKey + "=")

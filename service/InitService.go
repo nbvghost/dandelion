@@ -1,13 +1,16 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/domain/cache"
 	"github.com/nbvghost/dandelion/library/db"
+	"golang.org/x/sync/errgroup"
+	"io"
 	"log"
+	"net/http"
 
-	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/environments"
 	"github.com/nbvghost/dandelion/library/util"
@@ -18,18 +21,12 @@ var flagEnv = struct {
 	DisableMigratorAndCreateTable bool
 }{}
 
-func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
-	err := db.Connect(etcd, dbName)
-	if err != nil {
-		return err
-	}
-
-	cache.Init()
-
+func Init(app *config.MicroServer) error {
 	if flagEnv.DisableMigratorAndCreateTable {
 		return nil
 	}
 
+	var err error
 	_database := db.Orm()
 
 	models := make([]model.IDataBaseFace, 0)
@@ -53,21 +50,18 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 	models = append(models, model.Store{})
 	models = append(models, model.ExpressTemplate{})
 	models = append(models, model.CardItem{})
-	models = append(models, model.Goods{})
+	models = append(models, &model.Goods{})
 	models = append(models, model.GoodsType{})
 	models = append(models, model.GoodsTypeChild{})
-	models = append(models, model.OrdersGoods{})
 	models = append(models, model.ScoreJournal{})
 	models = append(models, model.ScoreGoods{})
 	models = append(models, model.Specification{})
 	models = append(models, model.Transfers{})
-	models = append(models, model.Orders{})
 	models = append(models, model.ShoppingCart{})
 	models = append(models, model.Rank{})
 	models = append(models, model.GiveVoucher{})
 	models = append(models, model.Organization{})
 	models = append(models, model.OrganizationJournal{})
-	models = append(models, model.OrdersPackage{})
 	models = append(models, model.Manager{})
 	models = append(models, model.Collage{})
 	models = append(models, model.Content{})
@@ -94,15 +88,24 @@ func Init(app key.MicroServer, etcd constrain.IEtcd, dbName string) error {
 	models = append(models, model.WechatConfig{})
 	models = append(models, model.PushData{})
 	models = append(models, model.ExpressCompany{})
-	models = append(models, model.Area{})
+	models = append(models, &model.Area{})
 	models = append(models, model.Address{})
 	models = append(models, model.GoodsSkuLabel{})
 	models = append(models, model.GoodsSkuLabelData{})
 	models = append(models, model.GoodsReview{})
 	models = append(models, model.UserFreezeJournal{})
+	models = append(models, model.CustomizeFieldGroup{})
+	models = append(models, model.CustomizeField{})
+	models = append(models, model.Role{})
+
+	models = append(models, model.Orders{})
+	models = append(models, model.OrdersGoods{})
+	models = append(models, model.OrdersPackage{})
+	models = append(models, model.OrdersGoodsRefund{})
+	models = append(models, model.OrdersShipping{})
 
 	//set db session application name
-	_database.Exec(fmt.Sprintf("SET application_name='%s'", app))
+	_database.Exec(fmt.Sprintf("SET application_name='%s'", fmt.Sprintf("%s:%s", app.Name, app.ServerType)))
 
 	dbContentFunc := `CREATE OR REPLACE FUNCTION process_content_full_text_search() RETURNS TRIGGER AS
 $Content$
@@ -138,7 +141,7 @@ BEGIN
             "Title"=NEW."Title",
             "Content"=NEW."Introduce",
 			"Uri"=NEW."Uri",
-            "Picture"=json_array_element(NEW."Images",0),
+            "Picture"=json_array_element_text(NEW."Images",0),
             "Index"=setweight(to_tsvector('english', coalesce(NEW."Title", '')),'A') || setweight(to_tsvector('english', coalesce(NEW."Introduce", '')),'B')
         where "TID" = NEW."ID"
           and "Type" = 'product';
@@ -146,7 +149,7 @@ BEGIN
         INSERT INTO "FullTextSearch" ("ID", "CreatedAt", "UpdatedAt", "OID", "TID","Uri", "Title", "Content", "Picture",
                                       "Type", "Index")
         values (DEFAULT, NEW."CreatedAt", NEW."UpdatedAt", NEW."OID", NEW."ID",NEW."Uri", NEW."Title", NEW."Introduce",
-                json_array_element(NEW."Images",0), 'product',
+                json_array_element_text(NEW."Images",0), 'product',
                 setweight(to_tsvector('english', coalesce(NEW."Title", '')),'A') || setweight(to_tsvector('english', coalesce(NEW."Introduce", '')),'B'));
     END IF;
     RETURN NULL;
@@ -231,8 +234,63 @@ $Goods$ LANGUAGE plpgsql;`
 		}()
 	}
 
+	group := &errgroup.Group{}
+	group.Go(func() error {
+		var cacheList []model.Pinyin
+		db.Orm().Model(model.Pinyin{}).Find(&cacheList)
+		for _, v := range cacheList {
+			cache.Cache.ChinesePinyinCache.Pinyin[v.Word] = v.Pinyin
+		}
+
+		var languageList []model.Language
+		db.Orm().Model(model.Language{}).Where(`"Code"<>''`).Order(`"Name"`).Find(&languageList)
+		for index, v := range languageList {
+			cache.Cache.LanguageCache.ShowLanguage = append(cache.Cache.LanguageCache.ShowLanguage, languageList[index])
+			cache.Cache.LanguageCodeCache.LangCode[v.Code] = v.Name
+		}
+		return nil
+	})
+	err = group.Wait()
+	if err != nil {
+		return err
+	}
 	return nil
 }
+
+func downloadLang() {
+	get, err := http.Get("http://translate.app.usokay.com/languages")
+	if err != nil {
+		return
+	}
+	body, err := io.ReadAll(get.Body)
+	if err != nil {
+		return
+	}
+
+	lans := make([]map[string]any, 0)
+	json.Unmarshal(body, &lans)
+
+	mm := make(map[string]map[string]any)
+	for _, lan := range lans {
+		log.Println(lan)
+		mm[lan["code"].(string)] = lan
+	}
+	targets := mm["en"]["targets"].([]any)
+	for _, target := range targets {
+		code := mm[target.(string)]["code"].(string)
+		name := mm[target.(string)]["name"].(string)
+		log.Println(code, name)
+
+		lang := model.Language{
+			Code: code,
+			Name: name,
+		}
+		db.Orm().Create(&lang)
+	}
+
+	log.Println(mm, targets)
+}
+
 func RebuildFullTextSearch() {
 	var err error
 	var goodsList []model.Goods
@@ -259,7 +317,7 @@ func RebuildFullTextSearch() {
 		if err = db.Orm().Model(&fts).Save(&fts).Error; err != nil {
 			panic(err)
 		}
-		if err = db.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
+		if err = db.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') || setweight(to_tsvector('english', coalesce("Content",'')),'C') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
 			panic(err)
 		}
 	}

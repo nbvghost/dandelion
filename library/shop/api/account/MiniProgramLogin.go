@@ -2,8 +2,9 @@ package account
 
 import (
 	"fmt"
+	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/library/db"
-	"github.com/nbvghost/dandelion/library/shop/api/account/redisKey"
+	"github.com/nbvghost/dandelion/service"
 	"log"
 	"strconv"
 	"strings"
@@ -16,18 +17,10 @@ import (
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/server/httpext"
 	"github.com/nbvghost/dandelion/server/redis"
-	"github.com/nbvghost/dandelion/service/journal"
-	"github.com/nbvghost/dandelion/service/user"
-	"github.com/nbvghost/dandelion/service/wechat"
 )
 
 type MiniProgramLogin struct {
-	UserService           user.UserService
-	WxService             wechat.WxService
-	MessageNotify         wechat.MessageNotify
-	JournalService        journal.JournalService
-	WXQRCodeParamsService wechat.WXQRCodeParamsService
-	Post                  struct {
+	Post struct {
 		Code string
 		//UserInfo string
 		ShareKey string
@@ -44,12 +37,15 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 
 	wxa := g.WechatConfig
 
-	err, OpenID, SessionKey := g.WxService.MiniProgramInfo(g.Post.Code, wxa.AppID, wxa.AppSecret)
+	err, OpenID, SessionKey := service.Wechat.AccessToken.MiniProgramInfo(g.Post.Code, wxa.AppID, wxa.AppSecret)
 	fmt.Println(err, OpenID, SessionKey)
 
 	if err == nil {
 		tx := db.Orm().Begin()
-		newUser := g.UserService.AddUserByOpenID(tx, g.Organization.ID, OpenID)
+		newUser, err := service.User.AddUserByOpenID(tx, g.Organization.ID, OpenID)
+		if err != nil {
+			return nil, err
+		}
 		newUser.OpenID = OpenID
 		//newUser.Name = userInfo["nickName"].(string)
 		//newUser.Portrait = userInfo["avatarUrl"].(string)
@@ -61,19 +57,19 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 
 		if newUser.SuperiorID == 0 {
 			if !strings.EqualFold(g.Post.ShareKey, "") {
-				SuperiorID, _ := g.WXQRCodeParamsService.DecodeShareKey(g.Post.ShareKey)
+				SuperiorID, _ := service.Wechat.WXQRCodeParams.DecodeShareKey(g.Post.ShareKey)
 
 				if newUser.ID != dao.PrimaryKey(SuperiorID) {
 
 					//如果往上6级有包含新用户的ID，则不能绑定级别关系
-					if !strings.Contains(g.UserService.LeveAll6(tx, SuperiorID), strconv.Itoa(int(newUser.ID))) {
+					if !strings.Contains(service.User.LeveAll6(tx, SuperiorID), strconv.Itoa(int(newUser.ID))) {
 						//var superiorUser model.User
 						superiorUser := dao.GetByPrimaryKey(tx, entity.User, SuperiorID).(*model.User)
 						if superiorUser.ID != 0 {
 							newUser.SuperiorID = dao.PrimaryKey(SuperiorID)
 
 							//err := g.JournalService.AddScoreJournal(tx, superiorUser.ID, "邀请新朋友获取积分", "邀请新朋友获取积分", model.ScoreJournal_Type_InviteUser, int64(50), extends.KV{Key: "SuperiorID", Value: SuperiorID})
-							err := g.JournalService.AddScoreJournal(tx, superiorUser.ID, "获取积分", "邀请新朋友获取积分", model.ScoreJournal_Type_InviteUser, int64(50))
+							err := service.Journal.AddScoreJournal(tx, superiorUser.ID, "获取积分", "邀请新朋友获取积分", model.ScoreJournal_Type_InviteUser, int64(50))
 							if err != nil {
 								log.Println(err)
 								tx.Rollback()
@@ -81,7 +77,7 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 							}
 
 							//err = g.JournalService.AddUserJournal(tx, superiorUser.ID, "获得现金", "邀请新朋友获得现金", model.UserJournal_Type_USER_LEVE, int64(30), extends.KV{Key: "UserID", Value: newUser.ID}, newUser.ID)
-							_, err = g.JournalService.AddUserJournal(tx, superiorUser.ID, "获得现金", "邀请新朋友获得现金", int64(30), journal.NewDataTypeUser(newUser.ID), newUser.ID)
+							_, err = service.Journal.AddUserJournal(tx, superiorUser.ID, "获得现金", "邀请新朋友获得现金", int64(30), service.Journal.NewDataTypeUser(newUser.ID), newUser.ID)
 							if err != nil {
 								log.Println(err)
 								tx.Rollback()
@@ -89,9 +85,9 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 							}
 
 							go func(superiorUser *model.User, newUser *model.User) {
-								g.MessageNotify.NewUserJoinNotify(newUser, superiorUser)
+								service.Wechat.MessageNotify.NewUserJoinNotify(newUser, superiorUser)
 								time.Sleep(3 * time.Second)
-								g.MessageNotify.INComeNotify(superiorUser, "邀请新朋友获得现金", "0小时", "收入：0.3元")
+								service.Wechat.MessageNotify.INComeNotify(superiorUser, "邀请新朋友获得现金", "0小时", "收入：0.3元")
 							}(superiorUser, newUser)
 
 						}
@@ -116,7 +112,7 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 			log.Println(err)
 		}
 
-		err = ctx.Redis().Set(ctx, redisKey.NewMiniProgramKey(newUser.ID), SessionKey, time.Minute*10)
+		err = ctx.Redis().Set(ctx, key.NewMiniProgramRedisKey(newUser.ID), SessionKey, time.Minute*10)
 		if err != nil {
 			log.Println(err)
 		}
@@ -129,7 +125,7 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 
 		results := make(map[string]interface{})
 		results["User"] = newUser
-		results["MyShareKey"] = g.WXQRCodeParamsService.EncodeShareKey(newUser.ID, 0) //tool.Hashids{}.Encode(newUser.ID)
+		results["MyShareKey"] = service.Wechat.WXQRCodeParams.EncodeShareKey(newUser.ID, 0) //tool.Hashids{}.Encode(newUser.ID)
 
 		return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "登陆成功", Data: results}}, nil
 	} else {

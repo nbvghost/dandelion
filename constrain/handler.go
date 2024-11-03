@@ -10,10 +10,13 @@ type IHandlerPost interface {
 	IHandler
 	HandlePost(ctx IContext) (IResult, error)
 }
-type IHandlerHead interface {
-	IHandler
-	HandleHead(ctx IContext) (IResult, error)
-}
+
+/*
+	type IHandlerHead interface {
+		IHandler
+		HandleHead(ctx IContext) (IResult, error)
+	}
+*/
 type IHandlerPut interface {
 	IHandler
 	HandlePut(ctx IContext) (IResult, error)
@@ -26,18 +29,19 @@ type IHandlerDelete interface {
 	IHandler
 	HandleDelete(ctx IContext) (IResult, error)
 }
-type IHandlerConnect interface {
+
+/*type IHandlerConnect interface {
 	IHandler
 	HandleConnect(ctx IContext) (IResult, error)
-}
-type IHandlerOptions interface {
+}*/
+/*type IHandlerOptions interface {
 	IHandler
 	HandleOptions(ctx IContext) (IResult, error)
-}
-type IHandlerTrace interface {
+}*/
+/*type IHandlerTrace interface {
 	IHandler
 	HandleTrace(ctx IContext) (IResult, error)
-}
+}*/
 type IHandler interface {
 	Handle(ctx IContext) (IResult, error)
 }
