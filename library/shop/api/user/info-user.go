@@ -6,12 +6,10 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/user"
 )
 
 type InfoUser struct {
-	UserService user.UserService
-	Get         struct {
+	Get struct {
 		UserID dao.PrimaryKey `uri:"UserID"`
 	} `method:"Get"`
 }

@@ -7,14 +7,12 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/play"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/user"
 	"github.com/nbvghost/tool/encryption"
 	"github.com/nbvghost/tool/object"
 )
 
 type InfoSharekey struct {
-	UserService user.UserService
-	Post        struct {
+	Post struct {
 		ShareKey string `form:"ShareKey"`
 	} `method:"Post"`
 }

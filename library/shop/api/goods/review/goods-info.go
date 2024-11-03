@@ -6,13 +6,11 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/activity"
 )
 
 type GoodsInfo struct {
-	CardItemService activity.CardItemService
-	User            *model.User `mapping:""`
-	Get             struct {
+	User *model.User `mapping:""`
+	Get  struct {
 		GoodsID  dao.PrimaryKey `form:"goods-id"`
 		Index    int            `form:"index"`
 		PageSize int            `form:"page-size"`
@@ -30,7 +28,7 @@ func (m *GoodsInfo) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	db := dao.Find(db.Orm(), &model.GoodsReview{}).Where(`"GoodsID"=?`, m.Get.GoodsID).Order(`"CreatedAt" desc`)
 	total := db.Limit(m.Get.Index, m.Get.PageSize)
 	list := db.List()
-	return result.NewData(result.NewPagination(m.Get.Index, m.Get.PageSize, int(total), list)), nil
+	return result.NewData(result.NewPagination(m.Get.Index, m.Get.PageSize, total, list)), nil
 }
 
 func (m *GoodsInfo) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {

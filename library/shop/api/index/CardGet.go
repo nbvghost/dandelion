@@ -9,17 +9,13 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/activity"
-	"github.com/nbvghost/dandelion/service/order"
 	"github.com/nbvghost/tool"
 	"github.com/skip2/go-qrcode"
 )
 
 type CardGet struct {
-	CardItemService     activity.CardItemService
-	VerificationService order.VerificationService
-	User                *model.User `mapping:""`
-	Get                 struct {
+	User *model.User `mapping:""`
+	Get  struct {
 		CardItemID dao.PrimaryKey `uri:"CardItemID"`
 	} `method:"get"`
 }

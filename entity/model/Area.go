@@ -25,7 +25,7 @@ type Area struct {
 	Code         dao.PrimaryKey `gorm:"COMMENT:Code;NOT NULL;column:Code;PRIMARY_KEY"`
 	Name         string         `gorm:"column:Name"`
 	Level        AreaLevel      `gorm:"column:Level"`
-	ProvinceCode dao.PrimaryKey `gorm:"column:ProvinceCode"`
+	ProvinceCode dao.PrimaryKey `gorm:"column:ProvinceCode;index"`
 	CityCode     dao.PrimaryKey `gorm:"column:CityCode"`
 	AreaCode     dao.PrimaryKey `gorm:"column:AreaCode"`
 	StreetCode   dao.PrimaryKey `gorm:"column:StreetCode"`

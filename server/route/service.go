@@ -51,6 +51,7 @@ func NewNoneViewResult() constrain.IViewResult {
 }
 
 type scopeInterceptor struct {
+	Path         string
 	Interceptors []constrain.IInterceptor
 	ExcludedPath []string
 }
@@ -61,7 +62,7 @@ type service struct {
 
 	//redis           constrain.IRedis
 	mappingCallback constrain.IMappingCallback
-	interceptors    map[string]scopeInterceptor
+	interceptors    []scopeInterceptor
 	router          *mux.Router
 }
 
@@ -82,10 +83,27 @@ func (m *service) RegisterInterceptors(prefixPath string, excluded []string, int
 	if len(prefixPath) == 0 {
 		panic(errors.Errorf("prefixPath 不能为空"))
 	}
-	m.interceptors[prefixPath] = scopeInterceptor{
-		Interceptors: interceptors,
-		ExcludedPath: excluded,
+
+	var hasIndex = -1
+	for i := 0; i < len(m.interceptors); i++ {
+		if m.interceptors[i].Path == prefixPath {
+			hasIndex = i
+			break
+		}
 	}
+	if hasIndex == -1 {
+		m.interceptors = append(m.interceptors, scopeInterceptor{
+			Path:         prefixPath,
+			Interceptors: interceptors,
+			ExcludedPath: append(excluded, "/404"),
+		})
+	} else {
+		var item = m.interceptors[hasIndex]
+		item.Interceptors = append(item.Interceptors, interceptors...)
+		item.ExcludedPath = append(item.ExcludedPath, excluded...)
+		m.interceptors[hasIndex] = item
+	}
+
 }
 func (m *service) CheckRoute(isApi bool, route string) (*RouteInfo, bool) {
 	var routeInfo *RouteInfo
@@ -122,17 +140,14 @@ func (m *service) CreateHandle(isApi bool, r *http.Request) (constrain.IRouteInf
 
 	routeInfo, ok := m.CheckRoute(isApi, pathTemplate)
 	if !ok {
-		return nil, errors.Errorf("没有找到路由映射:%s   =>   %s", r.URL.String(), pathTemplate)
+		return nil, errors.Errorf("No path found %s", r.URL.String())
 	}
 	//apiHandler := reflect.New(routeInfo.GetHandlerType()).Interface()
 	//return apiHandler, routeInfo.GetWithoutAuth(), nil
 	return routeInfo, nil
 }
-func (m *service) Handle(context constrain.IContext, routeHandler any) error {
-	if m.mappingCallback != nil {
-		m.mappingCallback.Before(context, routeHandler)
-	}
-
+func (m *service) ExecuteInterceptors(context constrain.IContext, routeHandler any) (bool, error) {
+	//*/
 	//todo 权限控制采用拦截器来处理
 	/*if withoutAuth {
 		return false, nil
@@ -141,14 +156,15 @@ func (m *service) Handle(context constrain.IContext, routeHandler any) error {
 	//
 
 	//interceptors 是有状态的，不支持mapping
-	for k := range m.interceptors {
-		l := len(k)
+	for i := range m.interceptors {
+		item := m.interceptors[i]
+		l := len(item.Path)
 		route := context.Route()
 		if l > 0 && l <= len(route) {
-			if strings.EqualFold(k, route[:l]) {
+			if strings.EqualFold(item.Path, route[:l]) {
 				//判断是否要执行
 				isExcluded := false
-				for _, excludedPath := range m.interceptors[k].ExcludedPath {
+				for _, excludedPath := range item.ExcludedPath {
 					excludedPathLen := len(excludedPath)
 					if excludedPathLen > 0 && excludedPathLen <= len(route) {
 						routePath := route[:excludedPathLen]
@@ -157,20 +173,22 @@ func (m *service) Handle(context constrain.IContext, routeHandler any) error {
 							break
 						}
 					}
-
 				}
 
 				if !isExcluded {
 					//执行拦截器
-					for i := range m.interceptors[k].Interceptors {
+					for ii := range item.Interceptors {
 						if m.mappingCallback != nil {
-							m.mappingCallback.Before(context, m.interceptors[k].Interceptors[i])
+							err := m.mappingCallback.Mapping(context, item.Interceptors[ii])
+							if err != nil {
+								return false, err
+							}
 						}
-						err := m.interceptors[k].Interceptors[i].Execute(context)
+						isWriteHttpResponse, err := item.Interceptors[ii].Execute(context)
 						if err != nil {
-							return err
+							return isWriteHttpResponse, err
 						}
-						return nil
+						//return nil
 					}
 				}
 
@@ -185,15 +203,18 @@ func (m *service) Handle(context constrain.IContext, routeHandler any) error {
 		}
 	}*/
 
-	return nil
+	return false, nil
 
 }
 
 func (m *service) RegisterRoute(pathTemplate string, handler constrain.IHandler) {
+
 	if strings.EqualFold(pathTemplate, "*") {
 		pathTemplate = "/api/"
+		//pathTemplate = filepath.ToSlash(filepath.Join("/", "api", "/"))
 	} else {
-		pathTemplate = "/api/" + pathTemplate
+		pathTemplate = "/api/" + strings.TrimLeft(pathTemplate, "/")
+		//pathTemplate = filepath.ToSlash(filepath.Join("/", "api", strings.Trim(pathTemplate, "/")))
 	}
 	if _, ok := m.Routes[pathTemplate]; ok {
 		panic(errors.New(fmt.Sprintf("存在相同的路由:%s", pathTemplate)))
@@ -213,10 +234,11 @@ func (m *service) RegisterRoute(pathTemplate string, handler constrain.IHandler)
 
 // RegisterView path 为 * 号时，匹配所有没有定义的路由
 func (m *service) RegisterView(pathTemplate string, handler constrain.IViewHandler) {
+
 	if strings.EqualFold(pathTemplate, "*") {
 		pathTemplate = ""
 	} else {
-		pathTemplate = "/" + pathTemplate
+		pathTemplate = "/" + strings.TrimLeft(pathTemplate, "/")
 	}
 	if _, ok := m.ViewRoutes[pathTemplate]; ok {
 		panic(errors.New(fmt.Sprintf("存在相同的路由:%s", pathTemplate)))
@@ -236,5 +258,5 @@ func (m *service) RegisterView(pathTemplate string, handler constrain.IViewHandl
 }
 
 func New(router *mux.Router, mappingCallback constrain.IMappingCallback) constrain.IRoute {
-	return &service{router: router, Routes: map[string]*RouteInfo{}, ViewRoutes: map[string]*RouteInfo{}, mappingCallback: mappingCallback, interceptors: make(map[string]scopeInterceptor)}
+	return &service{router: router, Routes: map[string]*RouteInfo{}, ViewRoutes: map[string]*RouteInfo{}, mappingCallback: mappingCallback, interceptors: make([]scopeInterceptor, 0)}
 }

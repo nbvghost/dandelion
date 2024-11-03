@@ -6,12 +6,11 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/content"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type ListHot struct {
-	ContentService content.ContentService
-	Get            struct {
+	Get struct {
 		Offset        int            `form:"Offset"`
 		ContentItemID dao.PrimaryKey `form:"ContentItemID"`
 	} `method:"Get"`
@@ -29,7 +28,7 @@ func (g *ListHot) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//var articles []entity.Content
 	//controller.Content.FindOrderWhereLength(entity.Orm(),"Look desc",&articles,)
 
-	pager := g.ContentService.FindSelectWherePaging(db.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "Look desc", model.Content{}, g.Get.Offset, "ContentItemID=?", g.Get.ContentItemID)
+	pager := service.Content.FindSelectWherePaging(db.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "Look desc", model.Content{}, g.Get.Offset, "ContentItemID=?", g.Get.ContentItemID)
 
 	return result.NewData(&pager), nil
 

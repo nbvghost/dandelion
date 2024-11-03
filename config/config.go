@@ -8,17 +8,65 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/nbvghost/dandelion/constrain/key"
 )
 
 type MicroServerConfig struct {
-	MicroServer key.MicroServer
+	MicroServer *MicroServer
 	Port        int
 	IP          string
 	Addr        string
 }
 
-func NewMicroServerConfig(microServerKey key.MicroServer, port int, ip string) *MicroServerConfig {
+/*func (m *MicroServerConfig) UnRegister() error {
+	fileName, err := m.MicroServer.getFileName()
+	if err != nil {
+		return err
+	}
+
+	err = os.Remove(fileName)
+	if err != nil {
+		return err
+	}
+	return nil
+}*/
+/*func (m *MicroServerConfig) Register() error {
+	var err error
+	if m.IP == "" {
+		m.IP = util.NetworkIP()
+		if m.IP == "" {
+			return errors.New("无法获取本机ip")
+		}
+	}
+	if m.Port == 0 {
+		m.Port, err = util.RandomNetworkPort()
+		if err != nil {
+			return err
+		}
+	}
+
+	fileName, err := m.MicroServer.getFileName()
+	if err != nil {
+		return err
+	}
+
+	address := fmt.Sprintf("%s:%d", m.IP, m.Port)
+
+	_, err = os.Stat(fileName)
+	if err == nil {
+		err = os.Remove(fileName)
+		if err != nil {
+			return err
+		}
+	}
+
+	err = writeLock(fileName, []byte(address))
+	if err != nil {
+		return err
+	}
+	return nil
+}*/
+
+func NewMicroServerConfig(microServerKey *MicroServer, port int, ip string) *MicroServerConfig {
 	return &MicroServerConfig{
 		MicroServer: microServerKey,
 		Port:        port,

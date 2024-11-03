@@ -6,16 +6,15 @@ import (
 	"fmt"
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/constrain/key"
-	"github.com/nbvghost/dandelion/entity/etcd"
 	"log"
+	"sync"
 )
 
 type adminServer struct {
 	server *server
 }
 
-func (m *adminServer) RegisterRedis(config config.RedisOptions) error {
+func (m *adminServer) RegisterRedis(config *config.RedisOptions) error {
 	var err error
 	client := m.server.getClient()
 	ctx := context.Background()
@@ -41,17 +40,26 @@ func (m *adminServer) RegisterPostgresql(dsn string, serverName string) error {
 	return nil
 }
 
-func (m *adminServer) RegisterDNS(dns []etcd.ServerDNS) error {
-	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]key.MicroServer{}}
+func (m *adminServer) RegisterDNS(dns []constrain.ServerDNS) error {
+	copyServer := &server{
+		dnsDomainToServer: &sync.Map{},
+		dnsServerToDomain: &sync.Map{},
+		//dnsLocker:         sync.RWMutex{},
+	}
 	if err := copyServer.parseDNS(dns, true); err != nil {
 		return err
 	}
 	client := m.server.getClient()
-
+	/*for i := range dns {
+		if !strings.Contains(dns[i].DomainName, "*.") {
+			err := m.AddDomains(dns[i].DomainName, []string{dns[i].DomainName})
+			if err != nil {
+				return err
+			}
+		}
+	}*/
 	etcdKey := "dns"
-
 	ctx := context.TODO()
-
 	jsonByte, err := json.Marshal(dns)
 	if err != nil {
 		return err
@@ -63,11 +71,26 @@ func (m *adminServer) RegisterDNS(dns []etcd.ServerDNS) error {
 	return nil
 }
 
-func (m *adminServer) AddDNS(newDNS []etcd.ServerDNS) error {
+func (m *adminServer) AddDomains(domainName string, domainNames []string) error {
+	ctx := context.TODO()
+	client := m.server.getClient()
+	serverKey := fmt.Sprintf("%s/%s", "domains", domainName)
+
+	domainNamesJson, err := json.Marshal(domainNames)
+	if err != nil {
+		return err
+	}
+	_, err = client.Put(ctx, serverKey, string(domainNamesJson))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (m *adminServer) AddDNS(newDNS []constrain.ServerDNS) error {
 	etcdKey := "dns"
 	ctx := context.TODO()
 
-	var hasDns []etcd.ServerDNS
+	var hasDns []constrain.ServerDNS
 
 	client := m.server.getClient()
 
@@ -84,7 +107,7 @@ func (m *adminServer) AddDNS(newDNS []etcd.ServerDNS) error {
 
 	hasDns = append(hasDns, newDNS...)
 
-	copyServer := &server{dnsServerToDomain: map[string][]string{}, dnsDomainToServer: map[string]key.MicroServer{}}
+	copyServer := &server{dnsServerToDomain: &sync.Map{}, dnsDomainToServer: &sync.Map{}}
 	if err := copyServer.parseDNS(hasDns, true); err != nil {
 		return err
 	}

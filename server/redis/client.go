@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"reflect"
 	"sync"
@@ -24,11 +25,12 @@ func (m *client) TryLock(parentCtx context.Context, key string, wait ...time.Dur
 
 	waitTime := time.Duration(0)
 	if len(wait) > 0 {
-		waitTime = wait[0]
+		waitTime = wait[0] + time.Minute
 	}
 
-	_ctx, ctxCancel := context.WithCancel(parentCtx)
+	//log.Println(context.WithoutCancel(parentCtx).Err())
 
+	_ctx, ctxCancel := context.WithCancel(context.WithoutCancel(parentCtx))
 	cancel := func() {
 		ctxCancel()
 		if err := m.getClient().Del(parentCtx, key).Err(); err != nil {
@@ -39,10 +41,11 @@ func (m *client) TryLock(parentCtx context.Context, key string, wait ...time.Dur
 
 	for time.Now().Sub(start) <= waitTime || waitTime == 0 {
 		ok := m.getClient().SetNX(_ctx, key, "lock", time.Minute)
+		log.Println(fmt.Sprintf("redis lock:%v,%v,%v", ok.Val(), ok.Err(), ok))
 		if ok.Val() {
 			//获取锁成功
 			go func() {
-				t := time.NewTicker(time.Minute - (time.Second - 10))
+				t := time.NewTicker(time.Second * 10)
 				defer t.Stop()
 				for {
 					select {
@@ -73,15 +76,25 @@ func (m *client) Del(ctx context.Context, keys ...string) (int64, error) {
 func (m *client) Get(ctx context.Context, key string) (string, error) {
 	return m.getClient().Get(ctx, key).Result()
 }
-func (m *client) GenerateUID(ctx context.Context) uint64 {
+func (m *client) GenerateUID(ctx context.Context, maxID int64) (uint64, error) {
 	key := NewUIDKey()
 	mUID := m.getClient().Get(ctx, key)
 	v, _ := mUID.Uint64()
 	if v == 0 {
-		v, _ = m.getClient().IncrBy(ctx, key, 100000).Uint64()
+		if maxID<1000000{
+			maxID=1000001
+		}
+		var err error
+		_, err = m.getClient().IncrBy(ctx, key, maxID).Uint64()
+		if err != nil {
+			return 0, err
+		}
 	}
-	v, _ = m.getClient().Incr(ctx, key).Uint64()
-	return v
+	v, err := m.getClient().Incr(ctx, key).Uint64()
+	if err != nil {
+		return 0, err
+	}
+	return v, nil
 }
 func (m *client) GetEx(ctx context.Context, key string, expiration time.Duration) (string, error) {
 	return m.getClient().GetEx(ctx, key, expiration).Result()

@@ -1,19 +1,11 @@
 package sqltype
 
-import (
-	"database/sql/driver"
-	"encoding/json"
-	"fmt"
-
-	"github.com/pkg/errors"
-)
-
 type CustomizeField struct {
 	Name string
 	Type string
 }
 
-type CustomizeFieldList []CustomizeField
+/*type CustomizeFieldList []CustomizeField
 
 // Scan 实现 sql.Scanner 接口，Scan 将 value 扫描至 Jsonb
 func (j *CustomizeFieldList) Scan(value interface{}) error {
@@ -31,4 +23,4 @@ func (j CustomizeFieldList) Value() (driver.Value, error) {
 		j = make(CustomizeFieldList, 0)
 	}
 	return json.Marshal(&j)
-}
+}*/

@@ -97,6 +97,10 @@ func Diff(fromPtr, changePtr any, ignoreField ...string) map[string]any {
 			}
 			vtoField = vtoField.Elem()
 		}
+
+		if !vtoField.IsValid(){
+			continue
+		}
 		tv := vtoField.Interface()
 
 		switch fieldKind {

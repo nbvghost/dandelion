@@ -6,8 +6,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/nbvghost/dandelion/library/util"
-
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/tool/object"
 )
@@ -34,12 +32,12 @@ func (cardItem CardItem) GetNameLabel(DB *gorm.DB) (Name, Label string) {
 	case "OrdersGoods":
 		var item OrdersGoods
 		DB.First(&item, cardItem.OrdersGoodsID)
-		var goods Goods
+	/*	var goods Goods
 		var specification Specification
 		util.JSONToStruct(item.Goods, &goods)
-		util.JSONToStruct(item.Specification, &specification)
-		Name = goods.Title
-		Label = "规格：" + specification.Label + "(" + strconv.FormatFloat(float64(specification.Num)*float64(specification.Weight)/1000, 'f', 2, 64) + "Kg)"
+		util.JSONToStruct(item.Specification, &specification)*/
+		Name = item.Goods.Title
+		Label = "规格：" + item.Specification.Label + "(" + strconv.FormatFloat(float64(item.Specification.Num)*float64(item.Specification.Weight)/1000, 'f', 2, 64) + "Kg)"
 	case "Voucher":
 		var item Voucher
 		DB.First(&item, cardItem.VoucherID)

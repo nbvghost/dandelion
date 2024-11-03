@@ -7,16 +7,13 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/activity"
-	"github.com/nbvghost/dandelion/service/order"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type Verification struct {
-	VerificationService order.VerificationService
-	CardItemService     activity.CardItemService
-	Store               *model.Store `mapping:""`
-	User                *model.User  `mapping:""`
-	Get                 struct {
+	Store *model.Store `mapping:""`
+	User  *model.User  `mapping:""`
+	Get   struct {
 		VerificationNo string `uri:"VerificationNo"`
 	} `method:"Get"`
 	Post struct {
@@ -35,7 +32,7 @@ func (g *Verification) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 
 		//verification := controller.Verification.GetVerificationByVerificationNo(VerificationNo)
 		tx := db.Orm().Begin()
-		err := g.VerificationService.VerificationCardItem(tx, g.Post.VerificationNo, g.Post.Quantity, g.User, g.Store)
+		err := service.Order.Verification.VerificationCardItem(tx, g.Post.VerificationNo, g.Post.Quantity, g.User, g.Store)
 		if err != nil {
 			tx.Rollback()
 			return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, nil
@@ -49,7 +46,7 @@ func (g *Verification) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 		//StoreStockID, _ := strconv.ParseUint(context.Request.FormValue("StoreStockID"), 10, 64)
 		//Quantity, _ := strconv.ParseUint(context.Request.FormValue("Quantity"), 10, 64)
 
-		as := g.VerificationService.VerificationSelf(g.Store.ID, g.Post.StoreStockID, g.Post.Quantity)
+		as := service.Order.Verification.VerificationSelf(g.Store.ID, g.Post.StoreStockID, g.Post.Quantity)
 		return &result.JsonResult{Data: as}, nil
 
 	}
@@ -58,7 +55,7 @@ func (g *Verification) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 
 func (g *Verification) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
-	verification := g.VerificationService.GetVerificationByVerificationNo(g.Get.VerificationNo)
+	verification := service.Order.Verification.GetVerificationByVerificationNo(g.Get.VerificationNo)
 
 	//var cardItem model.CardItem
 	cardItem := dao.GetByPrimaryKey(db.Orm(), entity.CardItem, verification.CardItemID)

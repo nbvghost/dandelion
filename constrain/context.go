@@ -11,26 +11,31 @@ import (
 
 // 用于注入的回调方法
 type IMappingCallback interface {
-	Before(context IContext, handler interface{})
+	Mapping(context IContext, handler interface{}) error
 	// Deprecated: 好像没有用
-	ViewAfter(context IContext, r IViewResult) error
+	//ViewAfter(context IContext, r IViewResult) error
 	AddMapping(mapping IMapping) IMappingCallback
 }
 
-type IContext interface {
+type IService interface {
+
+}
+type IServiceContext interface {
 	context.Context
 	Redis() IRedis
 	Etcd() IEtcd
-	UID() dao.PrimaryKey
-	AppName() string
-	SelectInsideServer(appName key.MicroServer) (string, error)
-	GetDNSName(localName key.MicroServer) (string, error)
-	Route() string
-	Token() string
 	Logger() *zap.Logger
-	Mode() key.Mode
 	SyncCache() *sync.Map
 	Destroy()
+}
+type IContext interface {
+	IServiceContext
+	UID() dao.PrimaryKey
+	AppName() string
+	Route() string
+	Token() string
+	Mode() key.Mode
+	Mapping(v interface{})
 	//DomainName() string
 	//SelectFileServer() string
 }

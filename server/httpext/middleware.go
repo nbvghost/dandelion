@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/nbvghost/dandelion/domain/logger"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"reflect"
@@ -31,8 +33,8 @@ import (
 )
 
 type httpMiddleware struct {
-	context    constrain.IContext
-	serverName string
+	serverName  string
+	serviceList []constrain.IService
 
 	//session      Session
 	//isApi        bool
@@ -48,7 +50,7 @@ func (m *httpMiddleware) filterFlags(content string) string {
 	}
 	return content
 }
-func (m *httpMiddleware) bindData(apiHandler any, contextValue *contexext.ContextValue) error {
+func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contextValue *contexext.ContextValue) error {
 	v := reflect.ValueOf(apiHandler)
 	t := reflect.TypeOf(apiHandler).Elem()
 	num := t.NumField()
@@ -67,7 +69,7 @@ func (m *httpMiddleware) bindData(apiHandler any, contextValue *contexext.Contex
 		vv = v.Elem()
 	}
 
-	body, err := ioutil.ReadAll(contextValue.Request.Body)
+	body, err := io.ReadAll(contextValue.Request.Body)
 	if err != nil {
 		return err
 	}
@@ -95,10 +97,13 @@ func (m *httpMiddleware) bindData(apiHandler any, contextValue *contexext.Contex
 
 	err = binding.Default(contextValue.Request.Method, m.filterFlags(contextValue.Request.Header.Get("Content-Type"))).Bind(contextValue.Request.Clone(contextValue.Request.Context()), bodyValue.Addr().Interface())
 	if err != nil {
+		ctx.Logger().With(zap.Error(err))
 		return err
 	}
+
 	err = binding.Header.Bind(contextValue.Request, vv.Addr().Interface())
 	if err != nil {
+		ctx.Logger().With(zap.Error(err))
 		return err
 	}
 
@@ -111,6 +116,7 @@ func (m *httpMiddleware) bindData(apiHandler any, contextValue *contexext.Contex
 		if len(uriMap) > 0 {
 			err = binding.Uri.BindUri(uriMap, vv.Addr().Interface())
 			if err != nil {
+				ctx.Logger().With(zap.Error(err))
 				return err
 			}
 		}
@@ -118,10 +124,11 @@ func (m *httpMiddleware) bindData(apiHandler any, contextValue *contexext.Contex
 
 	err = binding.Query.Bind(contextValue.Request, vv.Addr().Interface())
 	if err != nil {
+		ctx.Logger().With(zap.Error(err))
 		return err
 	}
 	contextValue.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-	return err
+	return nil
 }
 
 func (m *httpMiddleware) getSession(parentCtx context.Context, redisClient constrain.IRedis, token string) (Session, error) {
@@ -160,7 +167,7 @@ func (m *httpMiddleware) getToken(w http.ResponseWriter, r *http.Request) string
 	return token
 }
 
-func (m *httpMiddleware) CreateContext(redisClient constrain.IRedis, etcdClient constrain.IEtcd, router constrain.IRoute, w http.ResponseWriter, r *http.Request) constrain.IContext {
+func (m *httpMiddleware) CreateContext(etcdClient constrain.IEtcd, redisClient constrain.IRedis, router constrain.IRoute, w http.ResponseWriter, r *http.Request) constrain.IContext {
 	var lang string
 	domainPrefix, domainName := util.ParseDomain(r.Host)
 	if len(domainPrefix) >= 1 {
@@ -172,6 +179,14 @@ func (m *httpMiddleware) CreateContext(redisClient constrain.IRedis, etcdClient 
 
 	parentCtx := r.Context()
 
+	if len(m.serviceList) > 0 {
+		for i := range m.serviceList {
+			service := m.serviceList[i]
+			st := reflect.TypeOf(service).Elem()
+			parentCtx = context.WithValue(parentCtx, reflect.New(st).Interface(), service)
+		}
+	}
+
 	mode := r.Header.Get("Mode")
 
 	Timeout, _ := strconv.ParseUint(r.Header.Get("Timeout"), 10, 64)
@@ -180,25 +195,19 @@ func (m *httpMiddleware) CreateContext(redisClient constrain.IRedis, etcdClient 
 		TraceID = tool.UUID()
 	}
 
-	var err error
-	var logger *zap.Logger
-	if environments.Release() {
-		logger, err = zap.NewProduction()
-	} else {
-		logger, err = zap.NewDevelopment()
-	}
+	appLogger, err := logger.CreateLogger("HttpContext", TraceID)
 	if err != nil {
-		panic(err)
+		return nil
 	}
 
-	logger = logger.Named("HttpContext").With(zap.String("TraceID", TraceID))
+	//logger = logger.Named("HttpContext").With(zap.String("TraceID", TraceID)).With(zap.String("DomainName", domainName))
 	//defer logger.Sync()
 
 	token := m.getToken(w, r)
 	var session Session
 	session, err = m.getSession(parentCtx, redisClient, token)
 	if err != nil {
-		logger.Error("getSession", zap.Error(err))
+		appLogger.Error("getSession", zap.Error(err))
 	}
 
 	var mappingCallback constrain.IMappingCallback
@@ -207,7 +216,6 @@ func (m *httpMiddleware) CreateContext(redisClient constrain.IRedis, etcdClient 
 	}
 
 	contextValue := &contexext.ContextValue{
-		Mapping:    mappingCallback,
 		Response:   w,
 		Request:    r,
 		Timeout:    Timeout,
@@ -226,12 +234,12 @@ func (m *httpMiddleware) CreateContext(redisClient constrain.IRedis, etcdClient 
 		}
 	}
 
-	logger = logger.With(zap.String("Path", r.URL.String()))
+	appLogger = appLogger.With(zap.String("Path", r.URL.String()))
 
-	ctx := contexext.New(contexext.NewContext(parentCtx, contextValue), m.serverName, session.ID, r.URL.Path, redisClient, etcdClient, session.Token, logger, key.Mode(mode))
+	ctx := contexext.New(contexext.NewContext(parentCtx, contextValue), m.serverName, session.ID, r.URL.Path, mappingCallback, etcdClient, redisClient, session.Token, appLogger, key.Mode(mode))
 	return ctx
 }
-func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute, customizeViewRender constrain.IViewRender, w http.ResponseWriter, r *http.Request) error {
+func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute, beforeViewRender constrain.IBeforeViewRender, afterViewRender constrain.IAfterViewRender, w http.ResponseWriter, r *http.Request) error {
 	var err error
 	ctxValue := contexext.FromContext(ctx)
 
@@ -297,16 +305,41 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 	//创建新的handler处理器
 	apiHandler = reflect.New(routeInfo.GetHandlerType()).Interface()
 
-	if err = m.bindData(apiHandler, contextValue); err != nil {
-		return err
-	}
-
-	err = router.Handle(ctx, apiHandler)
-	if err != nil {
-		return err
-	}
+	var isWriteHttpResponse bool
 
 	if ctxValue.IsApi {
+		isWriteHttpResponse, err = router.ExecuteInterceptors(ctx, apiHandler)
+		if err != nil {
+			if isWriteHttpResponse {
+				ctx.Logger().Error("ExecuteInterceptors Api", zap.Error(err))
+				return nil
+			}
+			return err
+		}
+
+		if beforeViewRender != nil {
+			var canNext bool
+			err = beforeViewRender.Api(ctx, r, w, func() {
+				canNext = true
+			})
+			if err != nil {
+				return err
+			}
+			if !canNext {
+				return nil
+			}
+		}
+
+		//注入路由mapping
+		err = router.GetMappingCallback().Mapping(ctx, apiHandler)
+		if err != nil {
+			return err
+		}
+
+		if err = m.bindData(apiHandler, ctx, contextValue); err != nil {
+			return err
+		}
+
 		var handle func(ctx constrain.IContext) (constrain.IResult, error)
 		switch r.Method {
 		case http.MethodGet:
@@ -370,6 +403,38 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 		returnResult.Apply(ctx)
 
 	} else {
+		isWriteHttpResponse, err = router.ExecuteInterceptors(ctx, apiHandler)
+		if err != nil {
+			if isWriteHttpResponse {
+				ctx.Logger().Error("ExecuteInterceptors View", zap.Error(err))
+				return nil
+			}
+			return err
+		}
+
+		if beforeViewRender != nil {
+			var canNext bool
+			err = beforeViewRender.View(ctx, r, w, func() {
+				canNext = true
+			})
+			if err != nil {
+				return err
+			}
+			if !canNext {
+				return nil
+			}
+		}
+
+		//注入路由mapping
+		err = router.GetMappingCallback().Mapping(ctx, apiHandler)
+		if err != nil {
+			return err
+		}
+
+		if err = m.bindData(apiHandler, ctx, contextValue); err != nil {
+			return err
+		}
+
 		if v, ok := apiHandler.(constrain.IViewHandler); ok {
 			var viewResult constrain.IViewResult
 			viewResult, err = v.Render(ctx)
@@ -400,16 +465,17 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			viewBase.HtmlMeta = htmlMeta
 			viewBaseValue.Set(reflect.ValueOf(viewBase))
 
-			if customizeViewRender != nil {
-				if err = customizeViewRender.Render(ctx, r, w, viewResult); err != nil {
-					return err
-				}
-				return nil
+			if afterViewRender == nil {
+				return errors.New("没找开视图渲染器")
 			}
-			vr := &viewRender{}
-			if err = vr.Render(ctx, r, w, viewResult); err != nil {
+			if err = afterViewRender.Render(ctx, r, w, viewResult); err != nil {
 				return err
 			}
+			return nil
+			/*vr := &DefaultViewRender{}
+			if err = vr.Render(ctx, r, w, viewResult); err != nil {
+				return err
+			}*/
 		} else {
 			return errors.Errorf("对视图访问的类型：%v不支持", apiHandler)
 		}

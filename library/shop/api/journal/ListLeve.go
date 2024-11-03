@@ -4,14 +4,11 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/service/journal"
-	"github.com/nbvghost/dandelion/service/user"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type ListLeve struct {
-	UserService    user.UserService
-	JournalService journal.JournalService
-	User           *model.User `mapping:""`
+	User *model.User `mapping:""`
 }
 
 func (controller *ListLeve) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
@@ -24,23 +21,23 @@ func (controller *ListLeve) Handle(ctx constrain.IContext) (constrain.IResult, e
 	//u := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 	u := controller.User
 
-	leve1UserIDs := controller.UserService.Leve1(u.ID)
-	leve1 := controller.JournalService.ListUserJournalLeveBrokerage(u.ID, leve1UserIDs)
+	leve1UserIDs := service.User.Leve1(u.ID)
+	leve1 := service.Journal.ListUserJournalLeveBrokerage(u.ID, leve1UserIDs)
 
-	leve2UserIDs := controller.UserService.Leve2(leve1UserIDs)
-	leve2 := controller.JournalService.ListUserJournalLeveBrokerage(u.ID, leve2UserIDs)
+	leve2UserIDs := service.User.Leve2(leve1UserIDs)
+	leve2 := service.Journal.ListUserJournalLeveBrokerage(u.ID, leve2UserIDs)
 
-	leve3UserIDs := controller.UserService.Leve3(leve2UserIDs)
-	leve3 := controller.JournalService.ListUserJournalLeveBrokerage(u.ID, leve3UserIDs)
+	leve3UserIDs := service.User.Leve3(leve2UserIDs)
+	leve3 := service.Journal.ListUserJournalLeveBrokerage(u.ID, leve3UserIDs)
 
-	leve4UserIDs := controller.UserService.Leve4(leve3UserIDs)
-	leve4 := controller.JournalService.ListUserJournalLeveBrokerage(u.ID, leve4UserIDs)
+	leve4UserIDs := service.User.Leve4(leve3UserIDs)
+	leve4 := service.Journal.ListUserJournalLeveBrokerage(u.ID, leve4UserIDs)
 
-	leve5UserIDs := controller.UserService.Leve5(leve4UserIDs)
-	leve5 := controller.JournalService.ListUserJournalLeveBrokerage(u.ID, leve5UserIDs)
+	leve5UserIDs := service.User.Leve5(leve4UserIDs)
+	leve5 := service.Journal.ListUserJournalLeveBrokerage(u.ID, leve5UserIDs)
 
-	leve6UserIDs := controller.UserService.Leve6(leve5UserIDs)
-	leve6 := controller.JournalService.ListUserJournalLeveBrokerage(u.ID, leve6UserIDs)
+	leve6UserIDs := service.User.Leve6(leve5UserIDs)
+	leve6 := service.Journal.ListUserJournalLeveBrokerage(u.ID, leve6UserIDs)
 
 	results := make(map[string]interface{})
 

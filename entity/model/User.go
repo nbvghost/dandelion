@@ -9,7 +9,7 @@ import (
 type User struct {
 	dao.Entity
 	OID         dao.PrimaryKey `gorm:"column:OID"`
-	Name        string         `gorm:"column:Name"`                  //
+	Name        string         `gorm:"column:Name;index"`            //
 	OpenID      string         `gorm:"column:OpenID"`                //
 	Email       string         `gorm:"column:Email"`                 //
 	Phone       string         `gorm:"column:Phone"`                 //
@@ -25,7 +25,7 @@ type User struct {
 	RankID      uint           `gorm:"column:RankID"`                //
 	SuperiorID  dao.PrimaryKey `gorm:"column:SuperiorID"`            //
 	RoleID      dao.PrimaryKey `gorm:"column:RoleID"`                //
-	//Subscribe   int              `gorm:"column:Subscribe"`             //move to UserInfo
+	//DeptID      dao.PrimaryKey `gorm:"column:DeptID"`                //部门ID
 }
 
 func (u User) TableName() string {
