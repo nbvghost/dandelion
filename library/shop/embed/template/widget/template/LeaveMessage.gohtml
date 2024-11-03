@@ -117,6 +117,24 @@
             </div>
         </div>
     </div>
+{{else if eq .StyleType "icon"}}
+    {{$leaveMessageID:=UUID}}
+    <a href="#" id="leaveMessageButton-{{$leaveMessageID}}" onclick="showLeaveMessageModal('{{$leaveMessageID}}')" class="leaveMessageButton link-secondary">
+        <i class="bi bi-envelope"></i> Leave a Message
+    </a>
+    <div class="leaveMessageModal modal fade" id="leaveMessageModal-{{$leaveMessageID}}" tabindex="-1"
+         aria-labelledby="leaveMessageModalLabel-{{$leaveMessageID}}"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="leaveMessageModalLabel-{{$leaveMessageID}}">New message</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                {{template "leaveMessageForm" .}}
+            </div>
+        </div>
+    </div>
 {{end}}
 
 <script>

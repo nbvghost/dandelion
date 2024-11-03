@@ -12,7 +12,8 @@ type SiteData[T ListType] struct {
 	MenusData       extends.MenusData
 	PageMenus       []extends.Menus
 	CurrentMenuData CurrentMenuData
-	ContentItem     model.ContentItem
+	CurrentMenu     extends.Menus
+	ContentItem     *model.ContentItem
 	ContentItemMap  map[dao.PrimaryKey]model.ContentItem
 	ContentSubType  model.ContentSubType
 	Pagination      Pagination[T]

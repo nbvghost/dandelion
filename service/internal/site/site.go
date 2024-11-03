@@ -12,6 +12,8 @@ import (
 	"github.com/nbvghost/dandelion/service/internal/content"
 	"github.com/nbvghost/dandelion/service/internal/goods"
 	"github.com/nbvghost/dandelion/service/serviceargument"
+	"github.com/samber/lo"
+	"path"
 )
 
 type Service struct {
@@ -21,11 +23,19 @@ type Service struct {
 	GoodsTypeService    goods.GoodsTypeService
 }
 
+type MenuShowType int
+
+const (
+	MenuShowTypeAll  MenuShowType = 0
+	MenuShowTypeHide MenuShowType = 1
+	MenuShowTypeShow MenuShowType = 2
+)
+
 func (m Service) FindShowMenus(OID dao.PrimaryKey) extends.MenusData {
-	return m.menus(OID, 2)
+	return m.menus(OID, MenuShowTypeShow)
 }
 func (m Service) FindAllMenus(OID dao.PrimaryKey) extends.MenusData {
-	return m.menus(OID, 0)
+	return m.menus(OID, MenuShowTypeAll)
 }
 func newRedisContentDataKey(OID dao.PrimaryKey, ContentItemUri, ContentSubTypeUri string, pageIndex int) string {
 	return fmt.Sprintf("content:%d:%s:%s:%d", OID, ContentItemUri, ContentSubTypeUri, pageIndex)
@@ -33,12 +43,12 @@ func newRedisContentDataKey(OID dao.PrimaryKey, ContentItemUri, ContentSubTypeUr
 func newRedisGoodsDataKey(OID dao.PrimaryKey, ContentItemUri, ContentSubTypeUri string, pageIndex int) string {
 	return fmt.Sprintf("goods:%d:%s:%s:%d", OID, ContentItemUri, ContentSubTypeUri, pageIndex)
 }
-func (m Service) menus(OID dao.PrimaryKey, hide uint) extends.MenusData {
+func (m Service) menus(OID dao.PrimaryKey, showType MenuShowType) extends.MenusData {
 	Orm := db.Orm()
 
 	var contentItemList []model.ContentItem
 
-	switch hide {
+	switch showType {
 	case 0: //all
 		Orm.Model(model.ContentItem{}).Where(map[string]interface{}{
 			"OID": OID,
@@ -86,121 +96,143 @@ func (m Service) menus(OID dao.PrimaryKey, hide uint) extends.MenusData {
 
 	var menusData extends.MenusData
 
-	list := []extends.Menus{}
+	var rootMenusList []extends.Menus
 	for i := 0; i < len(contentItemList); i++ {
 		contentItem := contentItemList[i]
-		menussddddd := extends.Menus{
+		urlPath := path.Join(fmt.Sprintf("/%s", contentItem.Type), contentItem.Uri)
+		rootMenus := extends.Menus{
+			ParentMenus:  &extends.Menus{},
 			ID:           contentItem.ID,
-			Uri:          contentItem.Uri,
 			Name:         contentItem.Name,
 			TemplateName: contentItem.TemplateName,
 			Type:         contentItem.Type,
 			Introduction: contentItem.Introduction,
 			Image:        contentItem.Image,
 			Badge:        contentItem.Badge,
+			ShowAtMenu:   contentItem.ShowAtMenu,
+			UrlPath:      urlPath,
 			List:         nil,
 		}
-		if contentItem.Type == model.ContentTypeProducts {
-			//menussddddd.ID = 0
-			for ii := 0; ii < len(goodsTypeList); ii++ {
-				goodsType := goodsTypeList[ii]
+
+		if contentItem.Type == model.ContentTypeIndex {
+			rootMenus.UrlPath = "/"
+		} else if contentItem.Type == model.ContentTypeProducts {
+			rootMenus.List = lo.FilterMap[model.GoodsType, extends.Menus](goodsTypeList, func(goodsType model.GoodsType, index int) (extends.Menus, bool) {
 				subMenus := extends.Menus{
+					ParentMenus:  &rootMenus,
 					ID:           goodsType.ID,
-					Uri:          goodsType.Uri,
 					Name:         goodsType.Name,
 					TemplateName: contentItem.TemplateName,
 					Type:         contentItem.Type,
 					Introduction: contentItem.Introduction,
 					Image:        contentItem.Image,
 					Badge:        contentItem.Badge,
+					ShowAtMenu:   goodsType.ShowAtMenu,
+					UrlPath:      path.Join(urlPath, goodsType.Uri),
 					List:         nil,
 				}
-				for iii := 0; iii < len(goodsTypeChildList); iii++ {
-					goodsTypeChild := goodsTypeChildList[iii]
+
+				subMenus.List = lo.FilterMap[model.GoodsTypeChild, extends.Menus](goodsTypeChildList, func(goodsTypeChild model.GoodsTypeChild, index int) (extends.Menus, bool) {
 					if goodsType.ID == goodsTypeChild.GoodsTypeID {
-						subMenus.List = append(subMenus.List, extends.Menus{
+						return extends.Menus{
+							ParentMenus:  &subMenus,
 							ID:           goodsTypeChild.ID,
-							Uri:          goodsTypeChild.Uri,
 							Name:         goodsTypeChild.Name,
 							Image:        goodsTypeChild.Image,
 							TemplateName: contentItem.TemplateName,
 							Type:         contentItem.Type,
+							ShowAtMenu:   false,
+							UrlPath:      path.Join(urlPath, goodsTypeChild.Uri),
 							List:         nil,
-						})
+						}, true
+					} else {
+						return extends.Menus{}, false
 					}
-				}
-				menussddddd.List = append(menussddddd.List, subMenus)
-			}
+				})
+				return subMenus, true
+			})
 		} else {
-			for ii := 0; ii < len(contentSubTypeList); ii++ {
-				contentSubType := contentSubTypeList[ii]
-				if menussddddd.ID == contentSubType.ContentItemID && contentSubType.ParentContentSubTypeID == 0 {
-					subMenus := extends.Menus{
+			rootMenus.List = lo.FilterMap[model.ContentSubType, extends.Menus](contentSubTypeList, func(contentSubType model.ContentSubType, index int) (extends.Menus, bool) {
+				if rootMenus.ID == contentSubType.ContentItemID && contentSubType.ParentContentSubTypeID == 0 {
+					menus := extends.Menus{
+						ParentMenus:  &rootMenus,
 						ID:           contentSubType.ID,
-						Uri:          contentSubType.Uri,
 						Name:         contentSubType.Name,
 						TemplateName: contentItem.TemplateName,
 						Type:         contentItem.Type,
+						UrlPath:      path.Join(urlPath, contentSubType.Uri),
+						ShowAtMenu:   false,
 						List:         nil,
 					}
-					menussddddd.List = append(menussddddd.List, subMenus)
-				}
-			}
 
+					menus.List = lo.FilterMap[model.ContentSubType, extends.Menus](contentSubTypeList, func(contentSubType model.ContentSubType, index int) (extends.Menus, bool) {
+						if contentSubType.ParentContentSubTypeID != 0 && contentSubType.ParentContentSubTypeID == menus.ID {
+							subMenus := extends.Menus{
+								ParentMenus:  &menus,
+								ID:           contentSubType.ID,
+								Name:         contentSubType.Name,
+								TemplateName: contentItem.TemplateName,
+								Type:         contentItem.Type,
+								UrlPath:      path.Join(urlPath, contentSubType.Uri),
+								ShowAtMenu:   false,
+								List:         nil,
+							}
+							return subMenus, true
+						} else {
+							return extends.Menus{}, false
+						}
+					})
+					return menus, true
+				} else {
+					return extends.Menus{}, false
+				}
+			})
 		}
-		list = append(list, menussddddd)
+		rootMenusList = append(rootMenusList, rootMenus)
 
 	}
 
-	for i := 0; i < len(list); i++ {
-		menussddddd := list[i]
-		if menussddddd.Type == model.ContentTypeProducts {
-			continue
-		}
-		for ii := 0; ii < len(menussddddd.List); ii++ {
-			subMenus := menussddddd.List[ii]
-
-			for iii := 0; iii < len(contentSubTypeList); iii++ {
-				contentSubType := contentSubTypeList[iii]
-				if contentSubType.ParentContentSubTypeID != 0 && contentSubType.ParentContentSubTypeID == subMenus.ID {
-					subSubMenus := extends.Menus{
-						ID:           contentSubType.ID,
-						Uri:          contentSubType.Uri,
-						Name:         contentSubType.Name,
-						TemplateName: menussddddd.TemplateName,
-						Type:         menussddddd.Type,
-						List:         nil,
-					}
-					subMenus.List = append(subMenus.List[:], subSubMenus)
-				}
-			}
-			menussddddd.List[ii] = subMenus
-		}
-
-	}
-	menusData.List = list
+	showAtMenu := make([]extends.Menus, 0)
+	lo.ForEach(rootMenusList, func(item extends.Menus, index int) {
+		showAtMenu = append(showAtMenu, lo.FilterMap[extends.Menus, extends.Menus](item.List, func(item extends.Menus, index int) (extends.Menus, bool) {
+			return item, item.ShowAtMenu
+		})...)
+	})
+	menusData.List = append(rootMenusList, showAtMenu...)
 	return menusData
 
 }
-func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, GoodsTypeUri, GoodsTypeChildUri string, filterOption []serviceargument.Option,sortMethod *serviceargument.SortMethod, pageIndex, pageSize int) serviceargument.SiteData[*extends.GoodsDetail] {
+func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, ContentItemUri, GoodsTypeUri string, filterOption []serviceargument.Option, sortMethod *serviceargument.SortMethod, pageIndex, pageSize int) serviceargument.SiteData[*extends.GoodsDetail] {
 	var moduleContentData serviceargument.SiteData[*extends.GoodsDetail]
 
 	Orm := db.Orm()
+
+	contentItem := dao.GetBy(Orm, &model.ContentItem{}, map[string]interface{}{"OID": OID, "Uri": ContentItemUri}).(*model.ContentItem)
+
 	var item model.GoodsType
 	var itemSub model.GoodsTypeChild
 
 	Orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "Uri": GoodsTypeUri}).First(&item)
+	if item.IsZero() {
+		Orm.Model(model.GoodsTypeChild{}).Where(map[string]interface{}{"OID": OID, "Uri": GoodsTypeUri}).First(&itemSub)
+		if !itemSub.IsZero() {
+			Orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "ID": itemSub.GoodsTypeID}).First(&item)
+		}
+	}
 
-	Orm.Model(model.GoodsTypeChild{}).Where(map[string]interface{}{"OID": OID, "GoodsTypeID": item.ID, "Uri": GoodsTypeChildUri}).First(&itemSub)
-	if itemSub.IsZero() {
-		//itemSub.Uri = "all"
+	allMenusData := m.FindAllMenus(OID)
+	menusData := m.FindShowMenus(OID)
+
+	var currentMenus extends.Menus
+	if itemSub.IsZero() == false {
+		currentMenus = menusData.GetCurrentMenus(itemSub.ID)
+	} else if item.IsZero() == false {
+		currentMenus = menusData.GetCurrentMenus(item.ID)
+	} else {
+		currentMenus = menusData.GetCurrentMenus(contentItem.ID)
 	}
 
 	contentItemMap := repository.ContentItemDao.ListContentItemByOIDMap(OID)
-
-	allMenusData := m.FindAllMenus(OID)
-
-	menusData := m.FindShowMenus(OID)
 
 	currentMenuData := serviceargument.NewProductMenusData(item, itemSub)
 	for _, v := range menusData.List {
@@ -212,7 +244,7 @@ func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, Goods
 
 	menusPage := allMenusData.ListMenusByType(model.ContentTypePage)
 
-	pagination, options := m.GoodsService.PaginationGoodsDetail(context, OID, currentMenuData.TypeID, currentMenuData.SubTypeID, filterOption,sortMethod, pageIndex, pageSize)
+	pagination, options := m.GoodsService.PaginationGoodsDetail(context, OID, currentMenuData.TypeID, currentMenuData.SubTypeID, filterOption, sortMethod, pageIndex, pageSize)
 
 	var navigations []extends.Menus
 
@@ -243,7 +275,8 @@ func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, Goods
 		MenusData:       menusData,
 		PageMenus:       menusPage,
 		CurrentMenuData: currentMenuData,
-		ContentItem:     model.ContentItem{},
+		CurrentMenu:     currentMenus,
+		ContentItem:     contentItem,
 		ContentSubType:  model.ContentSubType{},
 		Pagination:      pagination,
 		Tags:            []extends.Tag{},
@@ -324,7 +357,7 @@ func (m Service) GoodsDetail(context constrain.IContext, OID dao.PrimaryKey, Goo
 		MenusData:       menusData,
 		PageMenus:       menusPage,
 		CurrentMenuData: currentMenuData,
-		ContentItem:     model.ContentItem{},
+		ContentItem:     &model.ContentItem{},
 		ContentSubType:  model.ContentSubType{},
 		Pagination:      serviceargument.Pagination[*extends.GoodsDetail]{}, //pagination,
 		Tags:            []extends.Tag{},
@@ -347,15 +380,17 @@ func (m Service) GoodsDetail(context constrain.IContext, OID dao.PrimaryKey, Goo
 func (m Service) GetContentTypeByUri(context constrain.IContext, OID dao.PrimaryKey, ContentItemUri, ContentSubTypeUri string, pageIndex int) serviceargument.SiteData[*model.Content] {
 	var moduleContentData serviceargument.SiteData[*model.Content]
 	Orm := db.Orm()
-	var item model.ContentItem
+
 	var itemSub model.ContentSubType
 
-	itemMap := map[string]interface{}{"OID": OID, "Uri": ContentItemUri}
-	Orm.Model(model.ContentItem{}).Where(itemMap).First(&item)
+	//itemMap := map[string]interface{}{"OID": OID, "Uri": ContentItemUri}
+	//Orm.Model(model.ContentItem{}).Where(itemMap).First(&item)
+
+	contentItem := dao.GetBy(Orm, &model.ContentItem{}, map[string]interface{}{"OID": OID, "Uri": ContentItemUri}).(*model.ContentItem)
 
 	itemSubMap := map[string]interface{}{
 		"OID":           OID,
-		"ContentItemID": item.ID,
+		"ContentItemID": contentItem.ID,
 		"Uri":           ContentSubTypeUri,
 	}
 	Orm.Model(model.ContentSubType{}).Where(itemSubMap).First(&itemSub)
@@ -365,7 +400,7 @@ func (m Service) GetContentTypeByUri(context constrain.IContext, OID dao.Primary
 
 	contentItemMap := repository.ContentItemDao.ListContentItemByOIDMap(OID)
 
-	currentMenuData := serviceargument.NewMenusData(item, itemSub)
+	currentMenuData := serviceargument.NewMenusData(contentItem, itemSub)
 
 	menusData := m.FindShowMenus(OID)
 
@@ -426,7 +461,7 @@ func (m Service) GetContentTypeByUri(context constrain.IContext, OID dao.Primary
 		MenusData:       menusData,
 		PageMenus:       menusPage,
 		CurrentMenuData: currentMenuData,
-		ContentItem:     item,
+		ContentItem:     contentItem,
 		ContentSubType:  itemSub,
 		Pagination:      pagination,
 		Tags:            tags,

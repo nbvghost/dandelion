@@ -154,7 +154,7 @@ func GetSiteData[T serviceargument.ListType](context constrain.IContext, OID dao
 	var item model.ContentItem
 	var subItem = model.ContentSubType{Uri: "all"}
 
-	currentMenuData := serviceargument.NewMenusData(item, subItem)
+	currentMenuData := serviceargument.NewMenusData(&item, subItem)
 
 	menusData := Site.FindShowMenus(OID)
 	for _, v := range menusData.List {
@@ -207,7 +207,7 @@ func GetSiteData[T serviceargument.ListType](context constrain.IContext, OID dao
 		MenusData:       menusData,
 		PageMenus:       menusPage,
 		CurrentMenuData: currentMenuData,
-		ContentItem:     item,
+		ContentItem:     &item,
 		ContentSubType:  subItem,
 		Pagination:      serviceargument.Pagination[T]{},
 		Tags:            tags,

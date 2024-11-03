@@ -37,6 +37,7 @@ require (
 )
 
 require (
+	github.com/samber/lo v1.47.0
 	go.etcd.io/etcd/client/v3 v3.5.16
 	golang.org/x/image v0.0.0-20190802002840-cff245a6509b
 )
@@ -79,7 +80,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
-	github.com/samber/lo v1.47.0 // indirect
 	github.com/tjfoc/gmsm v1.3.2 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect

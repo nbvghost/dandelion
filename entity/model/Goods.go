@@ -86,6 +86,7 @@ type GoodsType struct {
 	IsStickyTop  bool           `gorm:"column:IsStickyTop"`  //
 	Badge        string         `gorm:"column:Badge"`        //徽章
 	Image        string         `gorm:"column:Image"`
+	ShowAtMenu   bool           `gorm:"column:ShowAtMenu"`
 }
 
 func (GoodsType) TableName() string {

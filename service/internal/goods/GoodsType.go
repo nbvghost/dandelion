@@ -1,9 +1,6 @@
 package goods
 
 import (
-	"fmt"
-	"github.com/nbvghost/dandelion/domain/cache"
-
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -12,7 +9,6 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"log"
-	"time"
 )
 
 type TopGoodsTypeChild struct {
@@ -337,23 +333,14 @@ func (m GoodsTypeService) getGoodsTypeByName(orm *gorm.DB, OID dao.PrimaryKey, n
 	err := orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "Name": name}).First(&gt).Error
 	return gt, err
 }
-func (m GoodsTypeService) getGoodsTypeByUri(orm *gorm.DB, OID dao.PrimaryKey, uri string) (model.GoodsType, error) {
-	var gt model.GoodsType
-	err := orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "Uri": uri}).First(&gt).Error
-	return gt, err
-}
+
 func (m GoodsTypeService) AddGoodsType(OID dao.PrimaryKey, goodsType *model.GoodsType) (*model.GoodsType, error) {
 	orm := db.Orm()
 	gt, _ := m.getGoodsTypeByName(orm, OID, goodsType.Name)
 	if !gt.IsZero() {
 		return nil, errors.Errorf("重复的名字:%s", goodsType.Name)
 	}
-
-	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(goodsType.Name)
-	gt, _ = m.getGoodsTypeByUri(orm, OID, uri)
-	if !gt.IsZero() {
-		gt.Uri = fmt.Sprintf("%s-%d", gt.Uri, time.Now().Unix())
-	}
+	uri := m.CreateGoodsTypeUri(orm, OID, goodsType.Name)
 	gt.OID = OID
 	gt.Name = goodsType.Name
 	gt.Uri = uri
@@ -368,13 +355,13 @@ func (m GoodsTypeService) ChangeGoodsType(OID dao.PrimaryKey, goodsType *model.G
 		return errors.Errorf("重复的名字:%s", goodsType.Name)
 	}
 
-	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(goodsType.Name)
+	/*uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(goodsType.Name)
 	gt, _ = m.getGoodsTypeByUri(orm, OID, uri)
 	if !gt.IsZero() {
 		gt.Uri = fmt.Sprintf("%s-%d", gt.Uri, time.Now().Unix())
-	}
+	}*/
 	gt.Name = goodsType.Name
-	gt.Uri = uri
+	gt.Uri = m.CreateGoodsTypeUri(orm, OID, goodsType.Name)
 	return orm.Model(model.GoodsType{}).Where(`"ID"=?`, goodsType.ID).Updates(map[string]interface{}{
 		"Name":         gt.Name,
 		"Uri":          gt.Uri,
@@ -382,6 +369,7 @@ func (m GoodsTypeService) ChangeGoodsType(OID dao.PrimaryKey, goodsType *model.G
 		"Badge":        goodsType.Badge,
 		"Image":        goodsType.Image,
 		"IsStickyTop":  goodsType.IsStickyTop,
+		"ShowAtMenu":   goodsType.ShowAtMenu,
 	}).Error
 }
 func (m GoodsTypeService) getGoodsTypeChildByName(orm *gorm.DB, OID, GoodsTypeID dao.PrimaryKey, name string) (model.GoodsTypeChild, error) {
@@ -389,11 +377,7 @@ func (m GoodsTypeService) getGoodsTypeChildByName(orm *gorm.DB, OID, GoodsTypeID
 	err := orm.Model(model.GoodsTypeChild{}).Where(map[string]interface{}{"OID": OID, "GoodsTypeID": GoodsTypeID, "Name": name}).First(&gt).Error
 	return gt, err
 }
-func (m GoodsTypeService) getGoodsTypeChildByUri(orm *gorm.DB, OID, GoodsTypeID dao.PrimaryKey, uri string) (model.GoodsTypeChild, error) {
-	var gt model.GoodsTypeChild
-	err := orm.Model(model.GoodsTypeChild{}).Where(map[string]interface{}{"OID": OID, "GoodsTypeID": GoodsTypeID, "Uri": uri}).First(&gt).Error
-	return gt, err
-}
+
 func (m GoodsTypeService) AddGoodsTypeChild(OID, GoodsTypeID dao.PrimaryKey, name, image string) (*model.GoodsTypeChild, error) {
 	if GoodsTypeID == 0 {
 		return nil, errors.Errorf("没有指定父类ID")
@@ -409,11 +393,8 @@ func (m GoodsTypeService) AddGoodsTypeChild(OID, GoodsTypeID dao.PrimaryKey, nam
 		return nil, errors.Errorf("重复的名字:%s", name)
 	}
 
-	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(name)
-	gt, _ = m.getGoodsTypeChildByUri(orm, OID, GoodsTypeID, uri)
-	if !gt.IsZero() {
-		gt.Uri = fmt.Sprintf("%s-%d", gt.Uri, time.Now().Unix())
-	}
+	//uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(name)
+	uri := m.CreateGoodsTypeUri(orm, OID, name)
 	gt.OID = OID
 	gt.Name = name
 	gt.Uri = uri
@@ -435,13 +416,13 @@ func (m GoodsTypeService) ChangeGoodsTypeChild(OID, ID dao.PrimaryKey, name, ima
 		return errors.Errorf("重复的名字:%s", name)
 	}
 
-	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(name)
+	/*uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(name)
 	gt, _ = m.getGoodsTypeChildByUri(orm, OID, gtc.GoodsTypeID, uri)
 	if !gt.IsZero() {
 		gt.Uri = fmt.Sprintf("%s-%d", gt.Uri, time.Now().Unix())
-	}
+	}*/
 	gt.Name = name
-	gt.Uri = uri
+	gt.Uri = m.CreateGoodsTypeUri(orm, OID, name)
 	gt.Image = image
 	return orm.Model(model.GoodsTypeChild{}).Where(`"ID"=?`, ID).Updates(map[string]interface{}{
 		"Name":  gt.Name,

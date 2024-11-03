@@ -180,7 +180,7 @@ func (m ContentService) SaveContentItem(OID dao.PrimaryKey, item *model.ContentI
 	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(item.Name)
 	g := repository.ContentItemDao.GetContentItemByUri(OID, item.ID, uri)
 	if !g.IsZero() {
-		uri = fmt.Sprintf("%s-%d", uri, time.Now().Unix())
+		uri = fmt.Sprintf("%s-%s", uri, time.Now().Format("20060102150405"))
 	}
 	item.Uri = uri
 
