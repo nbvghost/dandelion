@@ -19,6 +19,8 @@ import (
 )
 
 func Register(route constrain.IRoute) {
+	route.RegisterRoute("subscribe", &Subscribe{})
+	route.RegisterRoute("language", &Language{})
 	route.RegisterRoute("leave-message", &LeaveMessage{})
 
 	route.RegisterRoute("account/mini_program_login", &account.MiniProgramLogin{})
