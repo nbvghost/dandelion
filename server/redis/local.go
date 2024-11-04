@@ -10,12 +10,25 @@ import (
 	"github.com/nbvghost/tool/object"
 	"log"
 	"reflect"
+	"regexp"
 	"sync"
 	"time"
 )
 
 type local struct {
 	data sync.Map
+}
+
+func (l *local) Keys(ctx context.Context, key string) []string {
+	arr := make([]string, 0)
+	l.data.Range(func(k, value any) bool {
+		ok, _ := regexp.Match(key, []byte(k.(string)))
+		if ok {
+			arr = append(arr, k.(string))
+		}
+		return true
+	})
+	return arr
 }
 
 type MapItem struct {
@@ -252,8 +265,8 @@ func (l *local) expiration() {
 					l.data.Delete(key)
 				}
 			}
-			if environments.Release()==false{
-				log.Println(fmt.Sprintf("local redis:%s\t%t",key,value))
+			if environments.Release() == false {
+				log.Println(fmt.Sprintf("local redis:%s\t%t", key, value))
 			}
 			return true
 		})

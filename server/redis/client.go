@@ -70,7 +70,11 @@ func (m *client) TryLock(parentCtx context.Context, key string, wait ...time.Dur
 	}
 	return false, nil
 }
+func (m *client) Keys(ctx context.Context, key string) []string {
+	return m.getClient().Keys(ctx, key).Val()
+}
 func (m *client) Del(ctx context.Context, keys ...string) (int64, error) {
+
 	return m.getClient().Del(ctx, keys...).Result()
 }
 func (m *client) Get(ctx context.Context, key string) (string, error) {
@@ -81,8 +85,8 @@ func (m *client) GenerateUID(ctx context.Context, maxID int64) (uint64, error) {
 	mUID := m.getClient().Get(ctx, key)
 	v, _ := mUID.Uint64()
 	if v == 0 {
-		if maxID<1000000{
-			maxID=1000001
+		if maxID < 1000000 {
+			maxID = 1000001
 		}
 		var err error
 		_, err = m.getClient().IncrBy(ctx, key, maxID).Uint64()
