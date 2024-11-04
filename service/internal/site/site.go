@@ -8,6 +8,7 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/repository"
+	"github.com/nbvghost/dandelion/service/internal/cache"
 	"github.com/nbvghost/dandelion/service/internal/company"
 	"github.com/nbvghost/dandelion/service/internal/content"
 	"github.com/nbvghost/dandelion/service/internal/goods"
@@ -31,11 +32,11 @@ const (
 	MenuShowTypeShow MenuShowType = 2
 )
 
-func (m Service) FindShowMenus(OID dao.PrimaryKey) extends.MenusData {
-	return m.menus(OID, MenuShowTypeShow)
+func (m Service) FindShowMenus(ctx constrain.IContext, OID dao.PrimaryKey) extends.MenusData {
+	return m.menus(ctx, OID, MenuShowTypeShow)
 }
-func (m Service) FindAllMenus(OID dao.PrimaryKey) extends.MenusData {
-	return m.menus(OID, MenuShowTypeAll)
+func (m Service) FindAllMenus(ctx constrain.IContext, OID dao.PrimaryKey) extends.MenusData {
+	return m.menus(ctx, OID, MenuShowTypeAll)
 }
 func newRedisContentDataKey(OID dao.PrimaryKey, ContentItemUri, ContentSubTypeUri string, pageIndex int) string {
 	return fmt.Sprintf("content:%d:%s:%s:%d", OID, ContentItemUri, ContentSubTypeUri, pageIndex)
@@ -43,34 +44,46 @@ func newRedisContentDataKey(OID dao.PrimaryKey, ContentItemUri, ContentSubTypeUr
 func newRedisGoodsDataKey(OID dao.PrimaryKey, ContentItemUri, ContentSubTypeUri string, pageIndex int) string {
 	return fmt.Sprintf("goods:%d:%s:%s:%d", OID, ContentItemUri, ContentSubTypeUri, pageIndex)
 }
-func (m Service) menus(OID dao.PrimaryKey, showType MenuShowType) extends.MenusData {
-	Orm := db.Orm()
+func (m Service) menus(ctx constrain.IContext, OID dao.PrimaryKey, showType MenuShowType) extends.MenusData {
+	//Orm := db.Orm()
 
 	var contentItemList []model.ContentItem
 
-	switch showType {
-	case 0: //all
-		Orm.Model(model.ContentItem{}).Where(map[string]interface{}{
-			"OID": OID,
-		}).Order(`"Sort"`).Find(&contentItemList)
-	case 1: //hide
-		Orm.Model(model.ContentItem{}).Where(map[string]interface{}{
-			"ShowAtMenu": false,
-			"OID":        OID,
-		}).Order(`"Sort"`).Find(&contentItemList)
-	case 2: //show
-		Orm.Model(model.ContentItem{}).Where(map[string]interface{}{
-			"ShowAtMenu": true,
-			"OID":        OID,
-		}).Order(`"Sort"`).Find(&contentItemList)
-	default:
-		Orm.Model(model.ContentItem{}).Where(map[string]interface{}{
-			"OID": OID,
-		}).Order(`"Sort"`).Find(&contentItemList)
+	{
+		var list = cache.GetCacheContentItem(ctx, OID)
 
+		switch showType {
+		case 0: //all
+			/*Orm.Model(model.ContentItem{}).Where(map[string]interface{}{
+				"OID": OID,
+			}).Order(`"Sort"`).Find(&contentItemList)*/
+			contentItemList = list
+		case 1: //hide
+			/*Orm.Model(model.ContentItem{}).Where(map[string]interface{}{
+				"ShowAtMenu": false,
+				"OID":        OID,
+			}).Order(`"Sort"`).Find(&contentItemList)*/
+			contentItemList = lo.Filter[model.ContentItem](list, func(item model.ContentItem, index int) bool {
+				return item.ShowAtMenu == false
+			})
+		case 2: //show
+			/*Orm.Model(model.ContentItem{}).Where(map[string]interface{}{
+				"ShowAtMenu": true,
+				"OID":        OID,
+			}).Order(`"Sort"`).Find(&contentItemList)*/
+			contentItemList = lo.Filter[model.ContentItem](list, func(item model.ContentItem, index int) bool {
+				return item.ShowAtMenu
+			})
+		default:
+			/*Orm.Model(model.ContentItem{}).Where(map[string]interface{}{
+				"OID": OID,
+			}).Order(`"Sort"`).Find(&contentItemList)*/
+			contentItemList = list
+
+		}
 	}
 
-	var contentItemIDs []dao.PrimaryKey
+	/*var contentItemIDs []dao.PrimaryKey
 	for i := 0; i < len(contentItemList); i++ {
 		contentItem := contentItemList[i]
 		var have bool
@@ -83,16 +96,28 @@ func (m Service) menus(OID dao.PrimaryKey, showType MenuShowType) extends.MenusD
 		if !have {
 			contentItemIDs = append(contentItemIDs, contentItem.ID)
 		}
-	}
+	}*/
 
 	var contentSubTypeList []model.ContentSubType
-	Orm.Model(model.ContentSubType{}).Where(`"ContentItemID" in ?`, contentItemIDs).Order(`"Sort"`).Order(`"ID"`).Find(&contentSubTypeList)
+	{
+		var list = cache.GetCacheContentSubType(ctx, OID)
+		contentSubTypeList = list
+		//Orm.Model(model.ContentSubType{}).Where(`"OID"=?`, OID).Where(`"ContentItemID" in ?`, contentItemIDs).Order(`"Sort"`).Order(`"ID"`).Find(&contentSubTypeList)
+	}
 
 	var goodsTypeList []model.GoodsType
-	Orm.Model(model.GoodsType{}).Where(`"OID"=?`, OID).Order(`"ID"`).Find(&goodsTypeList)
+	{
+		var list = cache.GetCacheGoodsType(ctx, OID)
+		//Orm.Model(model.GoodsType{}).Where(`"OID"=?`, OID).Order(`"ID"`).Find(&goodsTypeList)
+		goodsTypeList = list
+	}
 
 	var goodsTypeChildList []model.GoodsTypeChild
-	Orm.Model(model.GoodsTypeChild{}).Where(`"OID" = ?`, OID).Order(`"ID"`).Find(&goodsTypeChildList)
+	{
+		var list = cache.GetCacheGoodsTypeChild(ctx, OID)
+		goodsTypeChildList = list
+		//Orm.Model(model.GoodsTypeChild{}).Where(`"OID" = ?`, OID).Order(`"ID"`).Find(&goodsTypeChildList)
+	}
 
 	var menusData extends.MenusData
 
@@ -212,16 +237,35 @@ func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, Conte
 	var item model.GoodsType
 	var itemSub model.GoodsTypeChild
 
-	Orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "Uri": GoodsTypeUri}).First(&item)
-	if item.IsZero() {
-		Orm.Model(model.GoodsTypeChild{}).Where(map[string]interface{}{"OID": OID, "Uri": GoodsTypeUri}).First(&itemSub)
-		if !itemSub.IsZero() {
-			Orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "ID": itemSub.GoodsTypeID}).First(&item)
+	{
+		list := cache.GetCacheGoodsType(context, OID)
+
+		item, _ = lo.Find[model.GoodsType](list, func(a model.GoodsType) bool {
+			return a.Uri == GoodsTypeUri
+		})
+		if item.IsZero() {
+			clist := cache.GetCacheGoodsTypeChild(context, OID)
+			itemSub, _ = lo.Find[model.GoodsTypeChild](clist, func(a model.GoodsTypeChild) bool {
+				return a.Uri == GoodsTypeUri
+			})
+			if !itemSub.IsZero() {
+				item, _ = lo.Find[model.GoodsType](list, func(a model.GoodsType) bool {
+					return a.ID == itemSub.GoodsTypeID
+				})
+			}
 		}
+
+		/*Orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "Uri": GoodsTypeUri}).First(&item)
+		if item.IsZero() {
+			Orm.Model(model.GoodsTypeChild{}).Where(map[string]interface{}{"OID": OID, "Uri": GoodsTypeUri}).First(&itemSub)
+			if !itemSub.IsZero() {
+				Orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "ID": itemSub.GoodsTypeID}).First(&item)
+			}
+		}*/
 	}
 
-	allMenusData := m.FindAllMenus(OID)
-	menusData := m.FindShowMenus(OID)
+	allMenusData := m.FindAllMenus(context, OID)
+	menusData := m.FindShowMenus(context, OID)
 
 	var currentMenus extends.Menus
 	if itemSub.IsZero() == false {
@@ -312,9 +356,9 @@ func (m Service) GoodsDetail(context constrain.IContext, OID dao.PrimaryKey, Goo
 
 	contentItemMap := repository.ContentItemDao.ListContentItemByOIDMap(OID)
 
-	allMenusData := m.FindAllMenus(OID)
+	allMenusData := m.FindAllMenus(context, OID)
 
-	menusData := m.FindShowMenus(OID)
+	menusData := m.FindShowMenus(context, OID)
 
 	currentMenuData := serviceargument.NewProductMenusData(item, itemSub)
 	for _, v := range menusData.List {
@@ -402,9 +446,9 @@ func (m Service) GetContentTypeByUri(context constrain.IContext, OID dao.Primary
 
 	currentMenuData := serviceargument.NewMenusData(contentItem, itemSub)
 
-	menusData := m.FindShowMenus(OID)
+	menusData := m.FindShowMenus(context, OID)
 
-	allMenusData := m.FindAllMenus(OID)
+	allMenusData := m.FindAllMenus(context, OID)
 	for _, v := range allMenusData.List {
 		if v.ID == currentMenuData.TypeID {
 			currentMenuData.Menus = v

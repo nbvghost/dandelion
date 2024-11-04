@@ -9,6 +9,7 @@ import (
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service/internal/activity"
 	"github.com/nbvghost/dandelion/service/internal/admin"
+	"github.com/nbvghost/dandelion/service/internal/cache"
 	"github.com/nbvghost/dandelion/service/internal/catch"
 	"github.com/nbvghost/dandelion/service/internal/company"
 	"github.com/nbvghost/dandelion/service/internal/configuration"
@@ -33,6 +34,18 @@ import (
 	"github.com/nbvghost/dandelion/service/internal/wechat"
 	"github.com/nbvghost/dandelion/service/serviceargument"
 )
+
+var Cache = struct {
+	GetCacheContentItem    func(ctx constrain.IContext, oid dao.PrimaryKey) []model.ContentItem
+	GetCacheGoodsTypeChild func(ctx constrain.IContext, oid dao.PrimaryKey) []model.GoodsTypeChild
+	GetCacheGoodsType      func(ctx constrain.IContext, oid dao.PrimaryKey) []model.GoodsType
+	GetCacheContentSubType func(ctx constrain.IContext, oid dao.PrimaryKey) []model.ContentSubType
+}{
+	GetCacheContentItem:    cache.GetCacheContentItem,
+	GetCacheGoodsTypeChild: cache.GetCacheGoodsTypeChild,
+	GetCacheGoodsType:      cache.GetCacheGoodsType,
+	GetCacheContentSubType: cache.GetCacheContentSubType,
+}
 
 var Catch = struct {
 	Catch1688 catch.Catch1688Service
@@ -156,7 +169,7 @@ func GetSiteData[T serviceargument.ListType](context constrain.IContext, OID dao
 
 	currentMenuData := serviceargument.NewMenusData(&item, subItem)
 
-	menusData := Site.FindShowMenus(OID)
+	menusData := Site.FindShowMenus(context,OID)
 	for _, v := range menusData.List {
 		if v.ID == currentMenuData.TypeID {
 			currentMenuData.Menus = v
@@ -166,7 +179,7 @@ func GetSiteData[T serviceargument.ListType](context constrain.IContext, OID dao
 
 	contentItemMap := repository.ContentItemDao.ListContentItemByOIDMap(OID)
 
-	allMenusData := Site.FindAllMenus(OID)
+	allMenusData := Site.FindAllMenus(context,OID)
 
 	tags := Content.FindContentTagsByContentItemID(OID, currentMenuData.TypeID)
 

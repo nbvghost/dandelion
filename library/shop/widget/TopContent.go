@@ -35,7 +35,7 @@ func (m *TopContent) Render(ctx constrain.IContext) (map[string]any, error) {
 	}*/
 
 	var templateName string
-	menusData := service.Site.FindAllMenus(m.Organization.ID)
+	menusData := service.Site.FindAllMenus(ctx, m.Organization.ID)
 	for i := 0; i < len(menusData.List); i++ {
 		if menusData.List[i].ID == contentItem.ID {
 			templateName = menusData.List[i].TemplateName
