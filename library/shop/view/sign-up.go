@@ -29,16 +29,18 @@ type SignUpReply struct {
 }
 
 func (m *SignUpReply) GetResult(context constrain.IContext, viewHandler constrain.IViewHandler) constrain.IResult {
-	contextValue := contexext.FromContext(context)
 	if strings.Contains(m.Redirect, "/sign-in") || strings.Contains(m.Redirect, "/sign-up") {
 		m.Redirect = ""
 		return nil
 	}
-	redirect := contextValue.Request.URL.Query().Get("redirect")
-	if len(redirect) > 0 {
-		return nil
+	{
+		//如果已经带有redirect，则不要求在跳转
+		contextValue := contexext.FromContext(context)
+		redirect := contextValue.Request.URL.Query().Get("redirect")
+		if len(redirect) > 0 {
+			return nil
+		}
 	}
-
 	if len(m.Redirect) == 0 {
 		return nil
 	}
@@ -51,8 +53,14 @@ func (m *SignUpRequest) Render(context constrain.IContext) (r constrain.IViewRes
 	contextValue := contexext.FromContext(context)
 	reply := &SignUpReply{
 		ViewBase: extends.ViewBase{},
-		Redirect: contextValue.Request.Header.Get("Referer"),
+		Redirect: "",
 	}
+
+	redirect := contextValue.Request.URL.Query().Get("redirect")
+	if len(redirect) == 0 {
+		redirect = contextValue.Request.Header.Get("Referer")
+	}
+	reply.Redirect = redirect
 	contentItem := repository.ContentItemDao.GetContentItemOfIndex(db.Orm(), m.Organization.ID)
 	reply.SiteData = service.Site.GetContentTypeByUri(context, m.Organization.ID, contentItem.Uri, "", 0)
 
