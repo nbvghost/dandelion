@@ -7,7 +7,7 @@ func BenchmarkAddAttributes(b *testing.B) {
 		Attributes: make([]Option, 0),
 	}
 	for i := 0; i < b.N; i++ {
-		m.AddAttributes(OptionsTypeAttribute, "dd","dd", "vv")
+		m.AddAttributes(OptionsTypeAttribute, "dd", "dd", "vv")
 	}
 }
 func TestOptions_AddAttributes(t *testing.T) {
@@ -25,7 +25,7 @@ func TestOptions_AddAttributes(t *testing.T) {
 		fields fields
 		args   args
 	}{
-		{name: "TestOptions_AddAttributes#1", fields: fields{Attributes: make([]Option, 0)},args: args{optionsType: OptionsTypeAttribute,key: "dd",label: "dd",value: "vv"}},
+		{name: "TestOptions_AddAttributes#1", fields: fields{Attributes: make([]Option, 0)}, args: args{optionsType: OptionsTypeAttribute, key: "dd", label: "dd", value: "vv"}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

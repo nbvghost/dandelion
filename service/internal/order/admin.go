@@ -21,7 +21,7 @@ func (m OrdersService) CancelOk(context constrain.IServiceContext, OrdersID dao.
 		return "", errors.New("订单不存在")
 	}
 
-	pm := payment.NewPayment(context,orders.OID, orders.PayMethod)
+	pm := payment.NewPayment(context, orders.OID, orders.PayMethod)
 
 	//下单状态
 	if orders.Status == model.OrdersStatusCancel || orders.Status == model.OrdersStatusPay {

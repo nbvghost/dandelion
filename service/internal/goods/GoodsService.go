@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/lib/pq"
 	"github.com/nbvghost/dandelion/domain/cache"
-
 	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/activity"
@@ -233,6 +232,7 @@ func (m GoodsService) getGoodsByUri(OID dao.PrimaryKey, uri string) model.Goods 
 	Orm.Model(model.Goods{}).Where(map[string]interface{}{"OID": goods.OID, "Uri": goods.Uri}).First(&goods)
 	return goods
 }
+
 func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Goods, specifications []model.Specification) (*model.Goods, error) {
 	if goods.Tags == nil {
 		goods.Tags = make(pq.StringArray, 0)
@@ -244,7 +244,7 @@ func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Go
 	}
 
 	g := m.FindGoodsByTitle(OID, goods.Title)
-	if !g.IsZero() && g.ID != goods.ID {
+	if g.IsZero() == false && g.ID != goods.ID {
 		return &g, errors.Errorf("重复的产品标题")
 	}
 

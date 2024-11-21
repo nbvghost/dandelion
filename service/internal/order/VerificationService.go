@@ -168,7 +168,7 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 		if strings.EqualFold(cardItem.Type, play.CardItem_Type_ScoreGoods) {
 			var scoreGoods model.ScoreGoods
 			//err := util.JSONToMap(cardItem.Data, &scoreGoods)
-			err = json.Unmarshal([]byte(cardItem.Data),&scoreGoods)
+			err = json.Unmarshal([]byte(cardItem.Data), &scoreGoods)
 			if err != nil {
 				return err
 			}
@@ -182,7 +182,7 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 			var voucher model.Voucher
 			//err := service.Voucher.Get(DB, cardItem.VoucherID, &voucher)
 			//err := util.JSONToStruct(cardItem.Data, &voucher)
-			err = json.Unmarshal([]byte(cardItem.Data),&voucher)
+			err = json.Unmarshal([]byte(cardItem.Data), &voucher)
 			if err != nil {
 				return err
 			}

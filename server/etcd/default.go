@@ -22,11 +22,11 @@ func (m *DefaultEtcd) Register(desc *config.MicroServerConfig) (*config.MicroSer
 }
 
 func (m *DefaultEtcd) SelectInsideServer(appName *config.MicroServer) (string, error) {
-	return environments.GetENV(fmt.Sprintf("microserver.%s",appName.Name), "127.0.0.1"), nil
+	return environments.GetENV(fmt.Sprintf("microserver.%s", appName.Name), "127.0.0.1"), nil
 }
 
 func (m *DefaultEtcd) SelectOutsideServer(appName *config.MicroServer) (string, error) {
-	return environments.GetENV(fmt.Sprintf("microserver.%s",appName.Name), "127.0.0.1"), nil
+	return environments.GetENV(fmt.Sprintf("microserver.%s", appName.Name), "127.0.0.1"), nil
 }
 
 func (m *DefaultEtcd) GetMicroServer(domainName string) (*config.MicroServer, error) {

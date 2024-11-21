@@ -71,7 +71,7 @@ func (m *WorkGroupBot) SendText(text string) error {
 		Text    map[string]any `json:"text"`
 	}{
 		MsgType: "text",
-		Text:    map[string]any{"content": text+fmt.Sprintf("\n\n通知时间：%s\n",time.Now().Format(time.DateTime))},
+		Text:    map[string]any{"content": text + fmt.Sprintf("\n\n通知时间：%s\n", time.Now().Format(time.DateTime))},
 	}
 
 	return m.baseRequest(&body)

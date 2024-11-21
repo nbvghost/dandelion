@@ -13,7 +13,7 @@ import (
 )
 
 type IMetaType interface {
-	int64 | dao.PrimaryKey | string | CustomerService | CustomizeField | FocusPicture | Route | SocialAccount | Discount
+	int64 | dao.PrimaryKey | string | CustomerService | CustomizeField | FocusPicture | Route | SocialAccount | Discount | any
 }
 
 type Array[T IMetaType] []T

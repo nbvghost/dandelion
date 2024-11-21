@@ -35,6 +35,3 @@ type OrderQueryResult struct {
 type OrderResult struct {
 	PrepayId string
 }
-
-
-

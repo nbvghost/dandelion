@@ -187,15 +187,19 @@ func (m UserService) GetUserInfo(UserID dao.PrimaryKey) *UserInfoValue {
 		sourceData[v.Key] = v.Value
 		oldD[v.Key] = v.Value
 	}
-	return &UserInfoValue{UserID: UserID, SourceData: sourceData, OldData: oldD}
+	return &UserInfoValue{UserID: UserID, SourceData: sourceData, OldData: oldD, UserInfoList: userInfo}
 }
 
 type UserInfoValue struct {
-	UserID     dao.PrimaryKey
-	SourceData map[model.UserInfoKey]string
-	OldData    map[model.UserInfoKey]string
+	UserID       dao.PrimaryKey
+	SourceData   map[model.UserInfoKey]string
+	OldData      map[model.UserInfoKey]string
+	UserInfoList []*model.UserInfo
 }
 
+func (m *UserInfoValue) List() []*model.UserInfo {
+	return m.UserInfoList
+}
 func (m *UserInfoValue) Data() map[model.UserInfoKey]string {
 	return m.SourceData
 }
@@ -290,8 +294,6 @@ func (m *UserInfoValue) SetBrokerageLeve(v configuration.Brokerage) {
 	m.SourceData[serviceargument.UserInfoKeyBrokerageLeve5] = object.ParseString(v.Leve5)
 	m.SourceData[serviceargument.UserInfoKeyBrokerageLeve6] = object.ParseString(v.Leve6)
 }
-
-
 
 func (m *UserInfoValue) SetState(v serviceargument.UserInfoKeyStateType) {
 	m.SourceData[model.UserInfoKeyState] = string(v)

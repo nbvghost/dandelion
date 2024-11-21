@@ -43,8 +43,9 @@ const (
 type OrdersPayMethod string
 
 const (
-	OrdersPayMethodWechat OrdersPayMethod = "wechatpay" //邮寄
-	OrdersPayMethodPaypal OrdersPayMethod = "paypal"    //线下使用
+	OrdersPayMethodWechat  OrdersPayMethod = "wechatpay" //邮寄
+	OrdersPayMethodPaypal  OrdersPayMethod = "paypal"    //paypal
+	OrdersPayMethodOffline OrdersPayMethod = "offline"   //线下转帐
 )
 
 type OrdersType string
