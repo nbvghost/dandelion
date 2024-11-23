@@ -2,13 +2,10 @@ package model
 
 import (
 	"encoding/json"
-	"errors"
-	"github.com/nbvghost/dandelion/entity/sqltype"
-	"log"
-	"runtime/debug"
-
 	"github.com/lib/pq"
+	"github.com/nbvghost/dandelion/entity/sqltype"
 	"gorm.io/gorm"
+	"log"
 
 	"github.com/nbvghost/dandelion/library/dao"
 )
@@ -54,7 +51,8 @@ func (u *Goods) GetParams() any {
 	return v
 }
 func (u *Goods) BeforeCreate(scope *gorm.DB) (err error) {
-	var gt Goods
+	//todo 在上层调用时去判断
+	/*var gt Goods
 	scope.Model(u).Where(map[string]interface{}{
 		"OID":   u.OID,
 		"Title": u.Title,
@@ -70,7 +68,7 @@ func (u *Goods) BeforeCreate(scope *gorm.DB) (err error) {
 		}()
 		panic(errors.New(u.TableName() + ":OID不能为空"))
 
-	}
+	}*/
 	return
 }
 func (u *Goods) TableName() string {

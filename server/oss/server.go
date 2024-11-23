@@ -301,7 +301,6 @@ func (m *Server) Listen(ip string, port int) error {
 }
 
 func NewServer(etcdService constrain.IEtcd) *Server {
-
 	engine := mux.NewRouter()
 	/*engine.HandleFunc("/browse", func(writer http.ResponseWriter, request *http.Request) {
 		t, err := template.ParseFiles("browse.html")
@@ -316,121 +315,121 @@ func NewServer(etcdService constrain.IEtcd) *Server {
 		}
 	})*/
 	engine.PathPrefix("/assets/").Handler(http.StripPrefix("/assets/", &TemplateDir{}))
-	engine.HandleFunc("/upload", func(writer http.ResponseWriter, request *http.Request) {
-
-		writer.Header().Set("Access-Control-Allow-Origin", request.Header.Get("Origin"))
-		writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		writer.Header().Set("Access-Control-Allow-Methods", "GET,POST")
-		writer.Header().Set("Access-Control-Allow-Credentials", "true")
-
-		upload := Upload{}
-		var err error
-		defer func() {
-			var b []byte
-			b, err = json.Marshal(&upload)
-			if err != nil {
-				upload.Code = 9907
-				upload.Message = err.Error()
-				return
-			}
-			writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-			_, err := writer.Write(b)
-			if err != nil {
-				upload.Code = 9907
-				upload.Message = err.Error()
-				return
-			}
-		}()
-
-		defer func() {
-			log.Println("upload status", upload)
-		}()
-
-		err = request.ParseMultipartForm(10 * 1024 * 1024)
-		if err != nil {
-			upload.Code = 9906
-			upload.Message = err.Error()
-			return
-		}
-
-		var file multipart.File
-		var fileHeader *multipart.FileHeader
-		file, fileHeader, err = request.FormFile("file")
-		if err != nil {
-			upload.Code = 9905
-			upload.Message = err.Error()
-			return
-		}
-
-		fileByte, err := io.ReadAll(file)
-		if err != nil {
-			upload.Code = 9904
-			upload.Message = err.Error()
-			return
-		}
-
-		path := strings.Trim(request.FormValue("path"), "/")
-		fileType := request.FormValue("fileType")
-		override := strings.EqualFold(request.FormValue("override"), "true")
-		name := request.FormValue("name")
-		if len(name) == 0 {
-			name = strings.ToLower(encryption.Md5ByBytes(fileByte)) + fileType
-		}
-
-		filePath := fmt.Sprintf("assets/%s", path)
-
-		{
-			assetsPath, err := filepath.Abs("assets")
-			if err != nil {
-				upload.Code = 9904
-				upload.Message = err.Error()
-				return
-			}
-			savePath, err := filepath.Abs(filepath.Join(filePath, name))
-			if len(savePath) < len(assetsPath) || !strings.EqualFold(savePath[:len(assetsPath)], assetsPath) {
-				upload.Code = 9904
-				upload.Message = "路径不对"
-				return
-			}
-		}
-
-		if err = os.MkdirAll(filePath, os.ModePerm); err != nil {
-			pathErr, ok := err.(*fs.PathError)
-			if !ok && pathErr != nil {
-				upload.Code = 9901
-				upload.Message = pathErr.Error()
-				return
-			}
-		}
-
-		fileName := fmt.Sprintf("%s/%s", filePath, name)
-		if override {
-			//如果覆盖，则检查这个文件是否存在
-			/*fileInfo, err := os.Stat(fileName)
-			if err == nil && fileInfo != nil {
-				err := os.Rename(fileName, fmt.Sprintf("%s-%s", fileName, time.Now().Format("20060102150405")))
-				if err != nil {
-					upload.Code = 9902
-					upload.Message = err.Error()
-				}
-			}*/
-		}
-
-		err = os.WriteFile(fileName, fileByte, os.ModePerm)
-		if err != nil {
-			upload.Code = 9903
-			upload.Message = err.Error()
-			return
-		}
-
-		if len(path) == 0 {
-			upload.Data.Path = fmt.Sprintf("/%s", name)
-		} else {
-			upload.Data.Path = fmt.Sprintf("/%s/%s", path, name)
-		}
-		upload.Code = 0
-		log.Println("上传文件", fileHeader.Filename, upload.Data.Path)
-	})
-
+	engine.Handle("/upload", &UploadHandle{})
 	return &Server{etcdService: etcdService, engine: engine}
+}
+
+type UploadHandle struct {
+}
+
+func (m *UploadHandle) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set("Access-Control-Allow-Origin", request.Header.Get("Origin"))
+	writer.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	writer.Header().Set("Access-Control-Allow-Methods", "GET,POST")
+	writer.Header().Set("Access-Control-Allow-Credentials", "true")
+
+	err := request.ParseMultipartForm(10 * 1024 * 1024)
+	if err != nil {
+		//result.Code = 9906
+		//result.Message = err.Error()
+		m.writeResult(&Upload{Code: 9906, Message: err.Error()}, writer)
+		return
+	}
+
+	var file multipart.File
+	var fileHeader *multipart.FileHeader
+	file, fileHeader, err = request.FormFile("file")
+	if err != nil {
+		//result.Code = 9905
+		//result.Message = err.Error()
+		m.writeResult(&Upload{Code: 9905, Message: err.Error()}, writer)
+		return
+	}
+	fileByte, err := io.ReadAll(file)
+	if err != nil {
+		//result.Code = 9904
+		//result.Message = err.Error()
+		m.writeResult(&Upload{Code: 9904, Message: err.Error()}, writer)
+		return
+	}
+
+	path := strings.Trim(request.FormValue("path"), "/")
+	override := strings.EqualFold(request.FormValue("override"), "true")
+	name := request.FormValue("name")
+	if len(name) == 0 {
+		fileType := request.FormValue("fileType")
+		name = strings.ToLower(encryption.Md5ByBytes(fileByte)) + fileType
+	}
+	result := m.upload(fileByte, path, name, override)
+	m.writeResult(result, writer)
+	log.Println("上传文件", fileHeader.Filename, result.Data.Path)
+}
+
+func (m *UploadHandle) writeResult(result *Upload, writer http.ResponseWriter) {
+	var body []byte
+	var err error
+	body, err = json.Marshal(result)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+	_, err = writer.Write(body)
+	if err != nil {
+		log.Println(err)
+	}
+}
+func (m *UploadHandle) upload(fileByte []byte, path string, name string, override bool) *Upload {
+	filePath := fmt.Sprintf("assets/%s", path)
+	{
+		assetsPath, err := filepath.Abs("assets")
+		if err != nil {
+			//result.Code = 9904
+			//result.Message = err.Error()
+			return &Upload{Code: 9904, Message: err.Error()}
+		}
+		savePath, err := filepath.Abs(filepath.Join(filePath, name))
+		if len(savePath) < len(assetsPath) || !strings.EqualFold(savePath[:len(assetsPath)], assetsPath) {
+			//result.Code = 9904
+			//result.Message = "路径不对"
+			return &Upload{Code: 9904, Message: "路径不对"}
+		}
+	}
+	if err := os.MkdirAll(filePath, os.ModePerm); err != nil {
+		pathErr, ok := err.(*fs.PathError)
+		if !ok && pathErr != nil {
+			//result.Code = 9901
+			//result.Message = pathErr.Error()
+			return &Upload{Code: 9901, Message: pathErr.Error()}
+		}
+	}
+	fileName := fmt.Sprintf("%s/%s", filePath, name)
+	if override {
+		//如果覆盖，则检查这个文件是否存在
+		/*fileInfo, err := os.Stat(fileName)
+		if err == nil && fileInfo != nil {
+			err := os.Rename(fileName, fmt.Sprintf("%s-%s", fileName, time.Now().Format("20060102150405")))
+			if err != nil {
+				upload.Code = 9902
+				upload.Message = err.Error()
+			}
+		}*/
+	}
+	err := os.WriteFile(fileName, fileByte, os.ModePerm)
+	if err != nil {
+		//result.Code = 9903
+		//result.Message = err.Error()
+		return &Upload{Code: 9903, Message: err.Error()}
+	}
+	if len(path) == 0 {
+		u := &Upload{Code: 0, Message: "OK"}
+		u.Data.Path = fmt.Sprintf("/%s", name)
+		return u
+		//result.Data.Path = fmt.Sprintf("/%s", name)
+	} else {
+		//result.Data.Path = fmt.Sprintf("/%s/%s", path, name)
+		u := &Upload{Code: 0, Message: "OK"}
+		u.Data.Path = fmt.Sprintf("/%s/%s", path, name)
+		return u
+	}
 }

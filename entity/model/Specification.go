@@ -15,7 +15,7 @@ type Specification struct {
 	LabelIndex  sqltype.Array[dao.PrimaryKey] `gorm:"column:LabelIndex;type:JSON"` //
 	Num         uint                          `gorm:"column:Num"`                  //这个规格里面包含多少个小件
 	Unit        string                        `gorm:"column:Unit"`                 //单位
-	Weight      uint                          `gorm:"column:Weight"`               //每件 多少重 g
+	Weight      uint                          `gorm:"column:Weight"`               //单个规格多少重g,如果Num是多件的话，Weight=Num*(每小件的重量)
 	Stock       uint                          `gorm:"column:Stock"`                //
 	CostPrice   uint                          `gorm:"column:CostPrice"`            //成本价
 	MarketPrice uint                          `gorm:"column:MarketPrice"`          //市场价
