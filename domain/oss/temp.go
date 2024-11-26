@@ -6,14 +6,16 @@ import (
 	"strings"
 )
 
+const TempFilePrefix string = "temp-file:"
+
 func CreateTempWithExt(fileByte []byte, ext string) (string, error) {
-	fileMD5 := strings.ToLower(encryption.Md5ByBytes(fileByte)) + ext
-	filePath := os.TempDir() + "/" + fileMD5
+	fileName := TempFilePrefix + strings.ToLower(encryption.Md5ByBytes(fileByte)) + ext
+	filePath := os.TempDir() + "/" + fileName
 	err := os.WriteFile(filePath, fileByte, os.ModePerm)
 	if err != nil {
 		return "", err
 	}
-	return fileMD5, nil
+	return fileName, nil
 }
 
 func CreateTempFilename(fileByte []byte) (string, error) {
