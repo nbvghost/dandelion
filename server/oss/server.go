@@ -31,23 +31,6 @@ import (
 	"strings"
 )
 
-func init() {
-	if err := os.Mkdir("assets", os.ModePerm); err != nil {
-		var pathErr *fs.PathError
-		ok := errors.As(err, &pathErr)
-		if !ok {
-			log.Fatalln(pathErr)
-		}
-	}
-
-	_ = bmp.Decode
-	_ = tiff.Decode
-	_ = jpeg.Decode
-	_ = png.Decode
-	_ = gif.Decode
-	_ = webp.Decode
-}
-
 type Upload struct {
 	Code int
 	Data struct {
@@ -301,6 +284,21 @@ func (m *Server) Listen(ip string, port int) error {
 }
 
 func NewServer(etcdService constrain.IEtcd) *Server {
+	if err := os.Mkdir("assets", os.ModePerm); err != nil {
+		var pathErr *fs.PathError
+		ok := errors.As(err, &pathErr)
+		if !ok {
+			log.Fatalln(pathErr)
+		}
+	}
+
+	_ = bmp.Decode
+	_ = tiff.Decode
+	_ = jpeg.Decode
+	_ = png.Decode
+	_ = gif.Decode
+	_ = webp.Decode
+
 	engine := mux.NewRouter()
 	/*engine.HandleFunc("/browse", func(writer http.ResponseWriter, request *http.Request) {
 		t, err := template.ParseFiles("browse.html")
