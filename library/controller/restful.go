@@ -18,11 +18,11 @@ import (
 	"github.com/nbvghost/tool/object"
 )
 
-type IAdminTable interface {
+type IOIDMapping interface {
 	GetOID() dao.PrimaryKey
 }
 
-type Restful[T IAdminTable] struct {
+type Restful[T IOIDMapping] struct {
 	Admin T `mapping:""`
 	Get   struct {
 		Model       string `uri:"model"`

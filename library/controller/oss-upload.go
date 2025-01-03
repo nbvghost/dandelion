@@ -62,7 +62,7 @@ func (m *OSSUpload) HandlePost(context constrain.IContext) (constrain.IResult, e
 	if err != nil {
 		return nil, err
 	}
-	return result.NewData(map[string]any{"Path": fileName}), nil
+	return result.NewData(map[string]any{"Path": fileName, "Name": fileHeader.Filename}), nil
 }
 
 func (m *OSSUpload) Handle(context constrain.IContext) (constrain.IResult, error) {

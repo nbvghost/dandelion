@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/nbvghost/dandelion/domain/logger"
 	"io"
-	"io/ioutil"
+	"log"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -69,11 +69,25 @@ func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contex
 		vv = v.Elem()
 	}
 
+	var err error
+
 	body, err := io.ReadAll(contextValue.Request.Body)
 	if err != nil {
 		return err
 	}
-	contextValue.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+	contextValue.Request.Body.Close()
+
+	contentType := m.filterFlags(contextValue.Request.Header.Get("Content-Type"))
+
+	if environments.Release() == false {
+		//contextValue.Request.Body.Close()
+		if strings.EqualFold(contentType, binding.MIMEMultipartPOSTForm) {
+			log.Println(fmt.Sprintf("%s %s %s", m.serverName, contextValue.Request.URL.Path, contextValue.Request.Method))
+		} else {
+			log.Println(fmt.Sprintf("%s %s %s %s", m.serverName, contextValue.Request.URL.Path, contextValue.Request.Method, string(body)))
+		}
+		contextValue.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+	}
 
 	var bodyValue reflect.Value
 	var hasBodyField bool
@@ -95,7 +109,7 @@ func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contex
 		bodyValue = vv
 	}
 
-	err = binding.Default(contextValue.Request.Method, m.filterFlags(contextValue.Request.Header.Get("Content-Type"))).Bind(contextValue.Request.Clone(contextValue.Request.Context()), bodyValue.Addr().Interface())
+	err = binding.Default(contextValue.Request.Method, contentType).Bind(contextValue.Request.Clone(contextValue.Request.Context()), bodyValue.Addr().Interface())
 	if err != nil {
 		ctx.Logger().With(zap.Error(err))
 		return err
@@ -127,7 +141,7 @@ func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contex
 		ctx.Logger().With(zap.Error(err))
 		return err
 	}
-	contextValue.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+	contextValue.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 	return nil
 }
 
@@ -308,15 +322,6 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 	var isWriteHttpResponse bool
 
 	if ctxValue.IsApi {
-		isWriteHttpResponse, err = router.ExecuteInterceptors(ctx, apiHandler)
-		if err != nil {
-			if isWriteHttpResponse {
-				ctx.Logger().Error("ExecuteInterceptors Api", zap.Error(err))
-				return nil
-			}
-			return err
-		}
-
 		if beforeViewRender != nil {
 			var canNext bool
 			err = beforeViewRender.Api(ctx, r, w, func() {
@@ -328,6 +333,15 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			if !canNext {
 				return nil
 			}
+		}
+
+		isWriteHttpResponse, err = router.ExecuteInterceptors(ctx, apiHandler)
+		if err != nil {
+			if isWriteHttpResponse {
+				ctx.Logger().Error("ExecuteInterceptors Api", zap.Error(err))
+				return nil
+			}
+			return err
 		}
 
 		//注入路由mapping
@@ -388,30 +402,15 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 		var returnResult constrain.IResult
 		returnResult, err = handle(ctx)
 		if err == nil && returnResult == nil {
-			returnResult = result.NewError(err)
+			returnResult = result.NewSuccess("OK")
 		} else {
 			if err != nil {
-				return err
-			}
-			if returnResult == nil {
-				return errors.Errorf("对Api访问的类型：%v不支持", apiHandler)
-			}
-			if err != nil {
-				return err
+				returnResult = result.NewError(err)
 			}
 		}
 		returnResult.Apply(ctx)
 
 	} else {
-		isWriteHttpResponse, err = router.ExecuteInterceptors(ctx, apiHandler)
-		if err != nil {
-			if isWriteHttpResponse {
-				ctx.Logger().Error("ExecuteInterceptors View", zap.Error(err))
-				return nil
-			}
-			return err
-		}
-
 		if beforeViewRender != nil {
 			var canNext bool
 			err = beforeViewRender.View(ctx, r, w, func() {
@@ -423,6 +422,15 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			if !canNext {
 				return nil
 			}
+		}
+
+		isWriteHttpResponse, err = router.ExecuteInterceptors(ctx, apiHandler)
+		if err != nil {
+			if isWriteHttpResponse {
+				ctx.Logger().Error("ExecuteInterceptors View", zap.Error(err))
+				return nil
+			}
+			return err
 		}
 
 		//注入路由mapping

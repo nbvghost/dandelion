@@ -64,12 +64,7 @@ func NewSuccess(msg string) *ActionResult {
 }
 func NewError(err error) *ActionResult {
 	if err == nil {
-		return &ActionResult{
-			Code:    Success,
-			Message: "OK",
-			Data:    nil,
-			Now:     time.Now().UnixMilli(),
-		}
+		return NewSuccess("OK")
 	} else {
 		if v, ok := err.(*ActionResult); ok {
 			return v
@@ -101,7 +96,7 @@ func NewCodeWithMessage(code ActionResultCode, message string) *ActionResult {
 	}
 }
 
-func NewDataMessage(data interface{},msg string) *ActionResult {
+func NewDataMessage(data interface{}, msg string) *ActionResult {
 	return &ActionResult{
 		Code:    Success,
 		Message: msg,

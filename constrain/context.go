@@ -12,13 +12,12 @@ import (
 // 用于注入的回调方法
 type IMappingCallback interface {
 	Mapping(context IContext, handler interface{}) error
-	// Deprecated: 好像没有用
-	//ViewAfter(context IContext, r IViewResult) error
 	AddMapping(mapping IMapping) IMappingCallback
+	//todo 好像没有用
+	//ViewAfter(context IContext, r IViewResult) error
 }
 
 type IService interface {
-
 }
 type IServiceContext interface {
 	context.Context

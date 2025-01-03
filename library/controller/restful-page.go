@@ -20,7 +20,7 @@ type Query struct {
 	Value     any
 }
 
-type RestfulPage[T IAdminTable] struct {
+type RestfulPage[T IOIDMapping] struct {
 	Admin T `mapping:""`
 	Post  struct {
 		Model    string
@@ -37,9 +37,14 @@ type Where struct {
 }
 
 func (m *RestfulPage[T]) condition(ctx constrain.IContext, key string, tableType reflect.Type) ([]Where, error) {
+	if m.Post.Query == nil {
+		return nil, nil
+	}
 	queryValue := m.Post.Query[key] //
+	if queryValue == nil {
+		return nil, nil
+	}
 	valueType := reflect.TypeOf(queryValue)
-	log.Println(queryValue, valueType.Kind())
 
 	whereList := make([]Where, 0)
 
@@ -59,13 +64,13 @@ func (m *RestfulPage[T]) condition(ctx constrain.IContext, key string, tableType
 	}
 	if valueType.Kind() == reflect.Slice {
 		var ok bool
-		var arr []map[string]any
-		arr, ok = queryValue.([]map[string]any)
+		var arr []any
+		arr, ok = queryValue.([]any)
 		if !ok {
 			return nil, errors.New("无效的查询参数")
 		}
 		for i := range arr {
-			qMap := arr[i]
+			qMap := arr[i].(map[string]any)
 			queryList = append(queryList, Query{
 				Field:     qMap["Field"].(string),
 				Condition: qMap["Condition"].(string),
@@ -161,7 +166,11 @@ func (m *RestfulPage[T]) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 		index = 0
 	}
 	var total int64
-	d.Limit(m.Post.PageSize).Offset(index * m.Post.PageSize).Count(&total)
+	if index == 0 && m.Post.PageSize == 0 {
+		d.Count(&total)
+	} else {
+		d.Limit(m.Post.PageSize).Offset(index * m.Post.PageSize).Count(&total)
+	}
 	for i := range m.Post.Sort {
 		sort := m.Post.Sort[i]
 		d.Order(fmt.Sprintf(`"%s" %s`, sort.SortField(), sort.SortMethod()))
