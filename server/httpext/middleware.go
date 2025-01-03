@@ -71,13 +71,12 @@ func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contex
 
 	var err error
 
+	contentType := m.filterFlags(contextValue.Request.Header.Get("Content-Type"))
+
 	body, err := io.ReadAll(contextValue.Request.Body)
 	if err != nil {
 		return err
 	}
-	contextValue.Request.Body.Close()
-
-	contentType := m.filterFlags(contextValue.Request.Header.Get("Content-Type"))
 
 	if environments.Release() == false {
 		//contextValue.Request.Body.Close()
@@ -86,9 +85,10 @@ func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contex
 		} else {
 			log.Println(fmt.Sprintf("%s %s %s %s", m.serverName, contextValue.Request.URL.Path, contextValue.Request.Method, string(body)))
 		}
+		contextValue.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 	}
 
-	contextValue.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+	//contextValue.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 
 	var bodyValue reflect.Value
 	var hasBodyField bool
@@ -142,6 +142,7 @@ func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contex
 		ctx.Logger().With(zap.Error(err))
 		return err
 	}
+	contextValue.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 	return nil
 }
 
