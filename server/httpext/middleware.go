@@ -86,8 +86,9 @@ func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contex
 		} else {
 			log.Println(fmt.Sprintf("%s %s %s %s", m.serverName, contextValue.Request.URL.Path, contextValue.Request.Method, string(body)))
 		}
-		contextValue.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 	}
+
+	contextValue.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 
 	var bodyValue reflect.Value
 	var hasBodyField bool
@@ -141,7 +142,6 @@ func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contex
 		ctx.Logger().With(zap.Error(err))
 		return err
 	}
-	contextValue.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 	return nil
 }
 
