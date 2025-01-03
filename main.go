@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	log.Println("main")
+	log.Println("main1")
 }
