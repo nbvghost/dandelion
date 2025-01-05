@@ -1,0 +1,620 @@
+package api
+
+import (
+	"errors"
+	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/gweb"
+	"net/http"
+	"path/filepath"
+	"strconv"
+	"strings"
+
+	"github.com/nbvghost/dandelion/entity/model"
+
+	"github.com/nbvghost/dandelion_admin/app/service/activity"
+
+	"github.com/nbvghost/dandelion/entity/sqltype"
+	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion_admin/app/service/admin"
+	"github.com/nbvghost/dandelion_admin/app/service/company"
+	"github.com/nbvghost/dandelion_admin/app/service/configuration"
+	"github.com/nbvghost/dandelion_admin/app/service/content"
+	"github.com/nbvghost/dandelion_admin/app/service/express"
+	"github.com/nbvghost/dandelion_admin/app/service/goods"
+	"github.com/nbvghost/dandelion_admin/app/service/order"
+	"github.com/nbvghost/dandelion_admin/app/service/user"
+
+	"github.com/nbvghost/dandelion/library/play"
+	"github.com/nbvghost/dandelion/library/result"
+	"github.com/nbvghost/dandelion/library/util"
+	"github.com/nbvghost/gpa/types"
+	"github.com/nbvghost/tool/encryption"
+	"github.com/nbvghost/tool/object"
+
+	"github.com/nbvghost/glog"
+)
+
+type Interceptor struct {
+	AdminService admin.AdminService
+	Organization company.OrganizationService
+	Admin        *model.Admin `mapping:""`
+}
+
+/*func (controller Interceptor) ActionBefore(context constrain.IContext) (bool, constrain.IResult) {
+	//util.Trace(context.Session,"context.Session")
+	if context.Session.Attributes.Get(play.SessionAdmin) == nil {
+		//http.SetCookie(context.Response, &http.Cookie{Name: "UID", MaxAge:-1, Path: "/"})
+		//fmt.Println(context.Request.URL.Path)
+		//fmt.Println(context.Request.URL.Query().Encode())
+		var redirect string
+
+		u, err := url.Parse(config.Config.AppInfos.Admin.Host)
+		glog.Panic(err)
+		if len(context.Request.URL.Query().Encode()) == 0 {
+			redirect = fmt.Sprintf("%v://%v", u.Scheme, u.Host) + context.Request.URL.Path
+		} else {
+			redirect = fmt.Sprintf("%v://%v", u.Scheme, u.Host) + context.Request.URL.Path + "?" + context.Request.URL.Query().Encode()
+		}
+
+		sessionKeyAdminCookie, err := context.Request.Cookie(string(play.CookieKeyAdmin))
+		if err == nil {
+
+			adminIDText := encryption.CipherDecrypter(encryption.NewSecretKey(config.Config.SecureKey), sessionKeyAdminCookie.Value)
+			adminID := object.ParseInt(adminIDText)
+			admin := controller.Admin.GetAdmin(uint(adminID))
+			context.Session.Attributes.Put(play.SessionAdmin, admin)
+
+			var _organization model.Organization
+			controller.Organization.Get(db.Orm(), admin.OID, &_organization)
+			context.Session.Attributes.Put(play.SessionOrganization, &_organization)
+
+			return true, nil
+		}
+
+		//fmt.Println(url.QueryEscape(redirect))
+		//http.Redirect(context.Response, context.Request, "/account/loginAdminPage?redirect="+url.QueryEscape(redirect), http.StatusFound)
+		return false, &gweb.RedirectToUrlResult{Url: config.Config.AppInfos.Account.Host + "/loginAdminPage?redirect=" + url.QueryEscape(redirect)}
+	} else {
+		return true, nil
+	}
+}*/
+func (controller Interceptor) ActionService(context constrain.IContext) gweb.ServiceConfig {
+	return gweb.ServiceConfig{}
+}
+func (controller Interceptor) ActionAfter(context constrain.IContext, result constrain.IResult) (r constrain.IResult) {
+	return nil
+}
+
+type Controller struct {
+	gweb.Controller
+	Admin admin.AdminService
+	Goods goods.GoodsService
+
+	ExpressTemplate express.ExpressTemplateService
+	Voucher         activity.VoucherService
+	Orders          order.OrdersService
+	ScoreGoods      activity.ScoreGoodsService
+	Configuration   configuration.ConfigurationService
+	GiveVoucher     activity.GiveVoucherService
+	User            user.UserService
+	CardItem        activity.CardItemService
+	Content         content.ContentService
+	Collage         activity.CollageService
+}
+
+func (controller *Controller) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+	panic("implement me")
+}
+
+func (controller *Controller) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+	admin := context.Session.Attributes.Get(play.SessionAdmin).(*model.Admin)
+
+	item := &model.Admin{}
+	item.OID = admin.OID
+	err = util.RequestBodyToJSON(context.Request.Body, item)
+	if err != nil {
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, err
+	}
+
+	if strings.EqualFold(item.Account, "") {
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("账号不允许为空"), "", nil)}, err
+	}
+
+	item.Account = strings.ToLower(item.Account)
+	item.PassWord = encryption.Md5ByString(item.PassWord)
+
+	if strings.EqualFold(item.Account, "admin") || strings.EqualFold(item.Account, "manager") || strings.EqualFold(item.Account, "administrator") {
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("此账号不允许注册"), "", nil)}, err
+	}
+
+	err = controller.Admin.Add(db.Orm(), item)
+	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}, err
+}
+
+func (controller *Controller) Init() {
+	//controller.AddInterceptor(&Interceptor{})
+
+	/*controller.AddHandler(gweb.NewFunction("/", func(context constrain.IContext) (r constrain.IResult,err error) {
+		return &gweb.RedirectToUrlResult{Url: "index"}
+	}))
+	controller.AddHandler(gweb.NewFunction("index", func(context constrain.IContext) (r constrain.IResult,err error) {
+		return &gweb.HTMLResult{}
+	}))
+
+	controller.AddHandler(gweb.NewFunction("goods/attributes", controller.deleteGoodsAttributesAction, []gweb.HttpMethod{
+		gweb.MethodDelete,
+	}...))
+	controller.AddHandler(gweb.NewFunction("goods/attributes", controller.postGoodsAttributesAction, []gweb.HttpMethod{
+		gweb.MethodPost,
+	}...))
+
+	controller.AddHandler(gweb.NewFunction("goods", controller.GoodsAction, []gweb.HttpMethod{
+		gweb.MethodGet,
+		gweb.MethodHead,
+		gweb.MethodPost,
+		gweb.MethodPut,
+		gweb.MethodPatch,
+		gweb.MethodDelete,
+		gweb.MethodConnect,
+		gweb.MethodOptions,
+		gweb.MethodTrace,
+	}...))
+
+
+
+	controller.AddHandler(gweb.NewFunction("store_journal/list", controller.storeJournalListAction, gweb.MethodPost))
+
+
+	controller.AddHandler(gweb.NewFunction("order/list", controller.listOrderAction, gweb.MethodPost))
+	controller.AddHandler(gweb.NewFunction("order/change", controller.orderChangeAction, gweb.MethodPut))
+	controller.AddHandler(gweb.NewFunction("configuration/list", controller.configurationListAction, gweb.MethodPost))
+	controller.AddHandler(gweb.NewFunction("configuration/change", controller.configurationChangeAction, gweb.MethodPost))
+	controller.AddHandler(gweb.NewFunction("carditem/list", controller.carditemListAction, gweb.MethodPost))
+	//去掉功能
+	//controller.AddHandler(gweb.DELMethod("give_voucher/:GiveVoucherID", controller.giveVoucherDeleteAction))
+	controller.AddHandler(gweb.NewFunction("situation", controller.situationAction, gweb.MethodPost))
+	controller.AddHandler(gweb.NewFunction("admin", controller.Admin.AddItem, gweb.MethodPost))
+
+	controller.AddHandler(gweb.NewFunction("admin/{ID}", controller.Admin.GetItem))
+	controller.AddHandler(gweb.NewFunction("admin/list", controller.Admin.ListItem, gweb.MethodPost))
+	controller.AddHandler(gweb.NewFunction("admin/{ID}", controller.Admin.DeleteItem, gweb.MethodDelete))
+	controller.AddHandler(gweb.NewFunction("admin/{ID}", controller.Admin.ChangePassWork, gweb.MethodPut))
+
+	controller.AddHandler(gweb.NewFunction("admin/authority/{ID}", controller.Admin.ChangeAuthority, gweb.MethodPut))
+	controller.AddHandler(gweb.NewFunction("loginOut", controller.loginOutAction))
+
+	//--------------content------------------
+
+	store := &store.Controller{}
+	controller.NewController(store, "store")
+
+	content := &contentAction.Controller{}
+	controller.NewController(content, "content")
+
+	company := &company.Controller{}
+	controller.NewController(company, "company")
+
+	activity := &activityAction.Controller{}
+	controller.NewController(activity, "activity")
+
+
+	controller.AddHandler(gweb.NewFunction("express_template/save", controller.saveExpressTemplate, gweb.MethodPost))
+	controller.AddHandler(gweb.NewFunction("express_template/list", controller.listExpressTemplate))
+	controller.AddHandler(gweb.NewFunction("express_template/{ID:[0-9]+}", controller.deleteExpressTemplate, gweb.MethodDelete))
+	controller.AddHandler(gweb.NewFunction("express_template/{ID:[0-9]+}", controller.getExpressTemplate))
+	controller.AddHandler(gweb.NewFunction("express_template/datatables/list", controller.datatablesExpressTemplate, gweb.MethodPost))*/
+
+	//controller.AddStaticHandler(gweb.NewFunction("/template/", controller.template))
+}
+
+func (controller *Controller) template(context constrain.IContext) (r constrain.IResult, err error) {
+	return &gweb.HTMLResult{}, err
+}
+func (controller *Controller) deleteGoodsAttributesAction(context constrain.IContext) (r constrain.IResult, err error) {
+	ID := object.ParseUint(context.Request.URL.Query().Get("ID"))
+	err = controller.Goods.DeleteGoodsAttributes(types.PrimaryKey(ID))
+	return &result.JsonResult{Data: result.New(err, "属性删除成功")}, err
+}
+
+/*func (controller *Controller) postGoodsAttributesAction(context constrain.IContext) (r constrain.IResult, err error) {
+
+	GoodsID := object.ParseUint(context.Request.FormValue("GoodsID"))
+	Name := object.ParseString(context.Request.FormValue("Name"))
+	Value := object.ParseString(context.Request.FormValue("Value"))
+
+	err = controller.Goods.AddGoodsAttributes(types.PrimaryKey(GoodsID), Name, Value)
+	return &result.JsonResult{Data: result.New(err, "属性添加成功")}, err
+}*/
+func (controller *Controller) GoodsAction(context constrain.IContext) (r constrain.IResult, err error) {
+	company := context.Attributes().Get(play.SessionOrganization).(*model.Organization)
+	action := context.Query().Get("action")
+	Orm := db.Orm()
+	switch action {
+	case "del_goods":
+		//ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+		ID := object.ParseUint(context.Query().Get("ID"))
+		return &result.JsonResult{Data: controller.Goods.DeleteGoods(types.PrimaryKey(ID))}, err
+	case "list_specification":
+		//GoodsID, _ := strconv.ParseUint(context.Request.URL.Query().Get("GoodsID"), 10, 64)
+		GoodsID := object.ParseUint(context.Query().Get("GoodsID"))
+		var gts []model.Specification
+		err := controller.Goods.FindWhere(Orm, &gts, company.ID, model.Specification{GoodsID: types.PrimaryKey(GoodsID)})
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", gts)}, err
+	case "delete_specification":
+		//ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+		ID := object.ParseUint(context.Query().Get("ID"))
+		err := controller.Goods.DeleteSpecification(types.PrimaryKey(ID))
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}, err
+	case "get_goods":
+		//ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+		ID := object.ParseUint(context.Query().Get("ID"))
+		goodsInfo := controller.Goods.GetGoods(Orm, context, types.PrimaryKey(ID), false)
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", goodsInfo)}, err
+	case "change_goods":
+		//todo
+		//context.Request.ParseForm()
+		goods_str := ""          // context.Request.FormValue("goods")
+		specifications_str := "" // context.Request.FormValue("specifications")
+		params_str := ""         // context.Request.FormValue("params")
+
+		var specifications []model.Specification
+		var item model.Goods
+		err := util.JSONToStruct(goods_str, &item)
+		glog.Trace(err)
+
+		var gps []model.GoodsAttributes
+		err = util.JSONToStruct(params_str, &gps)
+		glog.Trace(err)
+
+		var videos []string
+		err = util.JSONToStruct(item.Videos, &videos)
+		glog.Trace(err)
+		item.Videos = util.StructToJSON(&videos)
+
+		var pictures []string
+		err = util.JSONToStruct(item.Pictures, &pictures)
+		glog.Trace(err)
+		item.Pictures = util.StructToJSON(&pictures)
+
+		var images []string
+		err = util.JSONToStruct(item.Images, &images)
+		glog.Trace(err)
+		item.Images = util.StructToJSON(&images)
+
+		err = util.JSONToStruct(specifications_str, &specifications)
+		glog.Trace(err)
+
+		err = controller.Goods.SaveGoods(item, specifications, gps)
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
+
+	case "add_goods":
+		//context.Request.ParseForm()
+		goodsStr := ""          // context.Request.FormValue("goods")
+		specificationsStr := "" // context.Request.FormValue("specifications")
+		paramsStr := ""         // context.Request.FormValue("params")
+
+		var specifications []model.Specification
+		var item model.Goods
+		err := util.JSONToStruct(goodsStr, &item)
+		glog.Trace(err)
+
+		var gps []model.GoodsAttributes
+		err = util.JSONToStruct(paramsStr, &gps)
+		glog.Trace(err)
+
+		//content_item.Params = util.StructToJSON(&gps)
+
+		var videos []string
+		err = util.JSONToStruct(item.Videos, &videos)
+		glog.Trace(err)
+		item.Videos = util.StructToJSON(&videos)
+
+		var pictures []string
+		err = util.JSONToStruct(item.Pictures, &pictures)
+		glog.Trace(err)
+		item.Pictures = util.StructToJSON(&pictures)
+
+		var images []string
+		err = util.JSONToStruct(item.Images, &images)
+		glog.Trace(err)
+		item.Images = util.StructToJSON(&images)
+
+		err = util.JSONToStruct(specificationsStr, &specifications)
+		glog.Trace(err)
+
+		item.OID = company.ID
+		err = controller.Goods.SaveGoods(item, specifications, gps)
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}, err
+	case "activity_goods":
+		//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
+		//Hash := context.Request.URL.Query().Get("Hash")
+		dts := &model.Datatables{}
+		//dts.Draw = 10
+		//dts.Length = play.Paging
+		//todo
+		//util.RequestBodyToJSON(context.Request.Body, dts)
+		var TimeSellGoodsIDs []uint
+		Orm.Model(&model.TimeSellGoods{}).Where("OID=?", company.ID).Pluck("GoodsID", &TimeSellGoodsIDs)
+		var CollageGoodsIDs []uint
+		Orm.Model(&model.CollageGoods{}).Where("OID=?", company.ID).Pluck("GoodsID", &CollageGoodsIDs)
+		ActivityGoods := make([]uint, 0)
+		ActivityGoods = append(ActivityGoods, TimeSellGoodsIDs...)
+		ActivityGoods = append(ActivityGoods, CollageGoodsIDs...)
+		dts.NotIDs = ActivityGoods
+		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]model.Goods{}, company.ID, "")
+		return &result.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}, err
+	case "list_goods":
+		dts := &model.Datatables{}
+		//todo
+		//util.RequestBodyToJSON(context.Request.Body, dts)
+		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]model.Goods{}, company.ID, "")
+		return &result.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}, err
+	case "get_goods_type_child":
+		//ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+		ID := object.ParseUint(context.Query().Get("ID"))
+		var goods model.GoodsTypeChild
+		controller.Goods.Get(Orm, types.PrimaryKey(ID), &goods)
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", goods)}, err
+	case "list_goods_type_child":
+		var gts []model.GoodsTypeChild
+		controller.Goods.FindAll(Orm, &gts)
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", gts)}, err
+	case "list_goods_type_child_id":
+		//ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+		ID := object.ParseUint(context.Query().Get("ID"))
+		gts := controller.Goods.ListAllGoodsTypeChild(types.PrimaryKey(ID))
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", gts)}, err
+	case "list_goods_type_all":
+		gts := controller.Goods.ListGoodsTypeForAdmin()
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", gts)}, err
+	case "list_goods_type":
+		dts := &model.Datatables{}
+		//todo
+		//util.RequestBodyToJSON(context.Request.Body, dts)
+		draw, recordsTotal, recordsFiltered, list := controller.Goods.DatatablesListOrder(Orm, dts, &[]model.GoodsType{}, company.ID, "")
+		return &result.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}, err
+
+	//--------------------------------------
+	case "del_goods_type":
+		//ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+		ID := object.ParseUint(context.Query().Get("ID"))
+		return &result.JsonResult{Data: controller.Goods.DeleteGoodsType(types.PrimaryKey(ID))}, err
+	case "add_goods_type":
+		/*content_item := &model.GoodsType{}
+		content_item.OID = company.ID
+		err := util.RequestBodyToJSON(context.Request.Body, content_item)
+		glog.Trace(err)
+		err = controller.Goods.Add(Orm, content_item)*/
+		//return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}
+	case "change_goods_type":
+		item := &model.GoodsType{}
+		//todo
+		//err := util.RequestBodyToJSON(context.Request.Body, item)
+		//glog.Trace(err)
+		err = controller.Goods.ChangeModel(Orm, item.ID, &model.GoodsType{Name: item.Name})
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
+
+	case "del_goods_type_child":
+		//ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
+		ID := object.ParseUint(context.Query().Get("ID"))
+		return &result.JsonResult{Data: controller.Goods.DeleteGoodsTypeChild(types.PrimaryKey(ID))}, err
+	case "add_goods_type_child":
+		item := &model.GoodsTypeChild{}
+		//todo
+		//err := util.RequestBodyToJSON(context.Request.Body, item)
+		//glog.Trace(err)
+		err = controller.Goods.Add(Orm, item)
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}, err
+	case "change_goods_type_child":
+		item := &model.GoodsTypeChild{}
+		//todo
+		//err := util.RequestBodyToJSON(context.Request.Body, item)
+		//glog.Trace(err)
+		err = controller.Goods.ChangeModel(Orm, item.ID, &model.GoodsTypeChild{Name: item.Name, Image: item.Image})
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
+
+	}
+
+	return &result.JsonResult{}, err
+}
+func (controller *Controller) carditemListAction(context constrain.IContext) (r constrain.IResult, err error) {
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
+	Orm := db.Orm()
+	dts := &model.Datatables{}
+	util.RequestBodyToJSON(context.Request.Body, dts)
+	draw, recordsTotal, recordsFiltered, list := controller.CardItem.DatatablesListOrder(Orm, dts, &[]model.CardItem{}, 0, "")
+	return &result.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}, err
+}
+func (controller *Controller) situationAction(context constrain.IContext) (r constrain.IResult, err error) {
+	context.Request.ParseForm()
+	StartTime, _ := strconv.ParseInt(context.Request.FormValue("StartTime"), 10, 64)
+	EndTime, _ := strconv.ParseInt(context.Request.FormValue("EndTime"), 10, 64)
+
+	results := make(map[string]interface{})
+
+	results["Orders"] = controller.Orders.Situation(StartTime, EndTime)
+	results["Voucher"] = controller.Voucher.Situation(StartTime, EndTime)
+	results["ScoreGoods"] = controller.ScoreGoods.Situation(StartTime, EndTime)
+	results["User"] = controller.User.Situation(StartTime, EndTime)
+
+	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", results)}, err
+}
+
+/*func (controller *Controller) giveVoucherDeleteAction(context constrain.IContext) (r constrain.IResult,err error) {
+
+	GiveVoucherID, _ := strconv.ParseUint(context.PathParams["GiveVoucherID"], 10, 64)
+
+	err := controller.Rank.Delete(db.Orm(), &model.GiveVoucher{}, GiveVoucherID)
+
+	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}
+}*/
+
+func (controller *Controller) configurationChangeAction(context constrain.IContext) (r constrain.IResult, err error) {
+	company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
+	item := model.Configuration{}
+	util.RequestBodyToJSON(context.Request.Body, &item)
+	err = controller.Configuration.ChangeConfiguration(company.ID, item.K, item.V)
+	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
+}
+func (controller *Controller) configurationListAction(context constrain.IContext) (r constrain.IResult, err error) {
+	company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
+	var ks []sqltype.ConfigurationKey
+	util.RequestBodyToJSON(context.Request.Body, &ks)
+	list := controller.Configuration.GetConfigurations(company.ID, ks)
+	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", list)}, err
+}
+
+func (controller *Controller) orderChangeAction(context constrain.IContext) (r constrain.IResult, err error) {
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
+	Orm := db.Orm()
+	context.Request.ParseForm()
+	Action := context.Request.FormValue("Action")
+	switch Action {
+	case "RefundComplete":
+		//OrdersGoodsID, _ := strconv.ParseUint(context.Request.FormValue("OrdersGoodsID"), 10, 64)
+		//RefundType, _ := strconv.ParseUint(context.Request.FormValue("RefundType"), 10, 64)
+		OrdersGoodsID := object.ParseUint(context.Request.FormValue("OrdersGoodsID"))
+		RefundType := object.ParseUint(context.Request.FormValue("RefundType"))
+		err, info := controller.Orders.RefundComplete(types.PrimaryKey(OrdersGoodsID), RefundType)
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, err
+	case "RefundOk":
+		//OrdersGoodsID, _ := strconv.ParseUint(context.Request.FormValue("OrdersGoodsID"), 10, 64)
+		OrdersGoodsID := object.ParseUint(context.Request.FormValue("OrdersGoodsID"))
+		err, info := controller.Orders.RefundOk(types.PrimaryKey(OrdersGoodsID))
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, err
+	case "RefundNo":
+		//OrdersGoodsID, _ := strconv.ParseUint(context.Request.FormValue("OrdersGoodsID"), 10, 64)
+		OrdersGoodsID := object.ParseUint(context.Request.FormValue("OrdersGoodsID"))
+		err, info := controller.Orders.RefundNo(types.PrimaryKey(OrdersGoodsID))
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, err
+	case "Cancel":
+		//ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
+		ID := object.ParseUint(context.Request.FormValue("ID"))
+		err, info := controller.Orders.Cancel(types.PrimaryKey(ID))
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, err
+	case "CancelOk":
+		//ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
+		//RefundType, _ := strconv.ParseUint(context.Request.FormValue("RefundType"), 10, 64) //退款资金来源	 0=未结算资金退款,1=可用余额退款
+
+		ID := object.ParseUint(context.Request.FormValue("ID"))
+		RefundType := object.ParseUint(context.Request.FormValue("RefundType"))
+
+		err, info := controller.Orders.CancelOk(types.PrimaryKey(ID), RefundType)
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, err
+	case "Deliver":
+		ShipName := context.Request.FormValue("ShipName")
+		ShipNo := context.Request.FormValue("ShipNo")
+		//ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
+		ID := object.ParseUint(context.Request.FormValue("ID"))
+		err := controller.Orders.Deliver(ShipName, ShipNo, types.PrimaryKey(ID))
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "发货成功", nil)}, err
+	case "PayMoney":
+		PayMoney, _ := strconv.ParseFloat(context.Request.FormValue("PayMoney"), 64)
+		//ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
+		ID := object.ParseUint(context.Request.FormValue("ID"))
+		err := controller.Orders.ChangeMap(Orm, types.PrimaryKey(ID), &model.Orders{}, map[string]interface{}{"PayMoney": uint(PayMoney * 100)})
+		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
+		success, message := controller.Orders.ChangeOrdersPayMoney(PayMoney, types.PrimaryKey(ID))
+		return &result.JsonResult{Data: &result.ActionResult{Code: success, Message: message, Data: nil}}, err
+
+	}
+
+	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("999"), "OK", nil)}, err
+
+}
+func (controller *Controller) storeJournalListAction(context constrain.IContext) (r constrain.IResult, err error) {
+	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
+	Orm := db.Orm()
+	dts := &model.Datatables{}
+	util.RequestBodyToJSON(context.Request.Body, dts)
+	draw, recordsTotal, recordsFiltered, list := controller.CardItem.DatatablesListOrder(Orm, dts, &[]model.StoreJournal{}, 0, "")
+	return &result.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}, err
+
+}
+func (controller *Controller) listOrderAction(context constrain.IContext) (r constrain.IResult, err error) {
+
+	company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
+
+	//Orm := db.Orm()
+	dts := &model.Datatables{}
+	util.RequestBodyToJSON(context.Request.Body, dts)
+
+	//UserID, _ := strconv.ParseUint(dts.Columns[0].Search.Value, 10, 64)
+	UserID := object.ParseUint(dts.Columns[0].Search.Value)
+	PostType, _ := strconv.ParseInt(dts.Columns[1].Search.Value, 10, 64)
+	Status := dts.Columns[2].Search.Value
+
+	var StatusList []string
+	if !strings.EqualFold(Status, "") {
+		StatusList = strings.Split(Status, ",")
+	}
+	//fmt.Println(dts)
+	list, recordsTotal := controller.Orders.ListOrders(types.PrimaryKey(UserID), company.ID, int(PostType), StatusList, dts.Length, dts.Start)
+	return &result.JsonResult{Data: map[string]interface{}{"data": list, "draw": dts.Draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsTotal}}, err
+}
+
+func (controller *Controller) getExpressTemplate(context constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.Orm()
+	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
+	ID := object.ParseUint(context.PathParams["ID"])
+	var item model.ExpressTemplate
+	err = controller.ExpressTemplate.Get(Orm, types.PrimaryKey(ID), &item)
+	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", item)}, err
+	//2002
+}
+func (controller *Controller) deleteExpressTemplate(context constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.Orm()
+	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
+	ID := object.ParseUint(context.PathParams["ID"])
+	err = controller.ExpressTemplate.Delete(Orm, &model.ExpressTemplate{}, types.PrimaryKey(ID))
+
+	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}, err
+}
+func (controller *Controller) saveExpressTemplate(context constrain.IContext) (r constrain.IResult, err error) {
+	company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
+	item := &model.ExpressTemplate{}
+	err = util.RequestBodyToJSON(context.Request.Body, item)
+	glog.Trace(err)
+	item.OID = company.ID
+	err = controller.ExpressTemplate.SaveExpressTemplate(item)
+	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "保存成功", nil)}, err
+}
+func (controller *Controller) listExpressTemplate(context constrain.IContext) (r constrain.IResult, err error) {
+	company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
+	Orm := db.Orm()
+	var list []model.ExpressTemplate
+	err = controller.ExpressTemplate.FindAllByOID(Orm, &list, company.ID)
+	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", list)}, err
+}
+func (controller *Controller) datatablesExpressTemplate(context constrain.IContext) (r constrain.IResult, err error) {
+	company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
+	Orm := db.Orm()
+	dts := &model.Datatables{}
+	util.RequestBodyToJSON(context.Request.Body, dts)
+	draw, recordsTotal, recordsFiltered, list := controller.ExpressTemplate.DatatablesListOrder(Orm, dts, &[]model.ExpressTemplate{}, company.ID, "")
+	return &result.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}, err
+
+}
+
+func (controller *Controller) loginOutAction(context constrain.IContext) (r constrain.IResult, err error) {
+	context.Session.Attributes.Delete(play.SessionAdmin)
+	http.SetCookie(context.Response, &http.Cookie{Name: string(play.CookieKeyAdmin), Path: "/", MaxAge: -1})
+
+	return &gweb.RedirectToUrlResult{Url: "/admin/"}, err
+}
+
+func (controller *Controller) DefaultHandle(context constrain.IContext) (r constrain.IResult, err error) {
+	path, filename := filepath.Split(context.Request.URL.Path)
+	if strings.EqualFold(path, "/") {
+		return &gweb.RedirectToUrlResult{Url: path + filename + "/"}, err
+	} else {
+		return &gweb.HTMLResult{}, err
+	}
+
+}
+
+func (controller *Controller) rootPage(context constrain.IContext) (r constrain.IResult, err error) {
+
+	return &gweb.RedirectToUrlResult{"index"}, err
+	//return &gweb.HTMLResult{Name: "admin/index.html"}
+}

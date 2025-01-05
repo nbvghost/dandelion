@@ -17,6 +17,9 @@ const (
 	OrdersGoodsStatusOGRefundOk       OrdersGoodsStatus = "OGRefundOk"       // OGRefundOK=允许子商品，确认退货款
 	OrdersGoodsStatusOGRefundInfo     OrdersGoodsStatus = "OGRefundInfo"     // OGRefundInfo=用户填写信息，允许子商品，确认退货款
 	OrdersGoodsStatusOGRefundComplete OrdersGoodsStatus = "OGRefundComplete" // OGRefund=完成子商品，用户邮寄商品，商家待收货
+	//重新定义
+	OrdersGoodsStatusProduction OrdersGoodsStatus = "PRODUCTION" //
+	OrdersGoodsStatusComplete   OrdersGoodsStatus = "COMPLETE"   //
 )
 
 type RefundStatus string

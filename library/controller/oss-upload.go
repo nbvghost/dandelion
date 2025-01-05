@@ -1,13 +1,23 @@
 package controller
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/oss"
+	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/contexext"
+	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
+	"github.com/nbvghost/tool/object"
+	"image"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"net/http/httputil"
@@ -16,26 +26,32 @@ import (
 	"strings"
 )
 
-type OSSUpload struct {
-	Get struct {
+type OSSUpload[T IOIDMapping] struct {
+	Admin T `mapping:""`
+	Get   struct {
 		//TempFilename string `form:"filename"`
 		Path string `form:"path"`
 	} `method:"Get"`
 }
 
-func (m *OSSUpload) HandlePost(context constrain.IContext) (constrain.IResult, error) {
+func (m *OSSUpload[T]) HandlePost(context constrain.IContext) (constrain.IResult, error) {
 	contextValue := contexext.FromContext(context)
 	err := contextValue.Request.ParseMultipartForm(10 * 1024 * 1024)
 	if err != nil {
 		return nil, err
 	}
-
 	var file multipart.File
-	file, fileHeader, err := contextValue.Request.FormFile("file")
+	var fileHeader *multipart.FileHeader
+	file, fileHeader, err = contextValue.Request.FormFile("file")
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(file)
 
 	fileByte, err := io.ReadAll(file)
 	if err != nil {
@@ -56,16 +72,80 @@ func (m *OSSUpload) HandlePost(context constrain.IContext) (constrain.IResult, e
 	if err != nil {
 		return nil, errors.Errorf("不支持的图片格式，请确认图片是否合格,%s", err.Error())
 	}*/
-
 	//fileByte := buffer.Bytes()
-	fileName, err := oss.CreateTempWithExt(fileByte, strings.ToLower(ext))
-	if err != nil {
-		return nil, err
+
+	path := contextValue.Request.FormValue("path")
+	override := strings.EqualFold(contextValue.Request.FormValue("override"), "true")
+	name := contextValue.Request.FormValue("name")
+	fileType := contextValue.Request.FormValue("fileType")
+	direct := strings.EqualFold(contextValue.Request.FormValue("direct"), "true")
+	if direct {
+		TargetID := object.ParseUint(contextValue.Request.FormValue("TargetID"))
+		Target := contextValue.Request.FormValue("Target")
+		if TargetID == 0 {
+			return nil, errors.New("TargetID不能为空")
+		}
+		if len(Target) == 0 {
+			return nil, errors.New("Target不能为空")
+		}
+		Title := contextValue.Request.FormValue("Title")
+
+		uploadFile, err := oss.UploadFile(context, fileByte, path, fileType, override, name)
+		if err != nil {
+			return nil, err
+		}
+		if uploadFile.Code != 0 {
+			return nil, result.NewCodeWithMessage(result.ActionResultCode(uploadFile.Code), uploadFile.Message)
+		}
+
+		s := sha256.New()
+		s.Write(fileByte)
+		sha256Text := hex.EncodeToString(s.Sum(nil))
+		/*hasMedia := dao.GetBy(db.Orm(), &model.Media{}, map[string]any{"SHA256": sha256Text})
+		if hasMedia.IsZero() {
+
+		} else {
+
+		}*/
+		media := dao.GetBy(db.Orm(), &model.Media{}, map[string]any{"OID": m.Admin.GetOID(), "TargetID": TargetID, "Target": Target, "SHA256": sha256Text}).(*model.Media)
+		if media.IsZero() {
+			media = &model.Media{
+				OID:      m.Admin.GetOID(),
+				TargetID: dao.PrimaryKey(TargetID),
+				Target:   model.MediaTarget(Target),
+				Title:    Title,
+				Src:      uploadFile.Data.Path,
+				Size:     0,
+				Width:    0,
+				Height:   0,
+				FileName: fileHeader.Filename,
+				Format:   "",
+				SHA256:   sha256Text,
+			}
+			img, Format, err := image.Decode(bytes.NewReader(fileByte))
+			if err == nil {
+				media.Size = len(fileByte)
+				media.Width = img.Bounds().Dx()
+				media.Height = img.Bounds().Dy()
+				media.Format = Format //filepath.Ext(fileHeader.Filename)
+			}
+
+			err = dao.Create(db.Orm(), media)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return nil, nil
+	} else {
+		fileName, err := oss.CreateTempWithExt(fileByte, strings.ToLower(ext))
+		if err != nil {
+			return nil, err
+		}
+		return result.NewData(map[string]any{"Path": fileName, "Name": fileHeader.Filename}), nil
 	}
-	return result.NewData(map[string]any{"Path": fileName, "Name": fileHeader.Filename}), nil
 }
 
-func (m *OSSUpload) Handle(context constrain.IContext) (constrain.IResult, error) {
+func (m *OSSUpload[T]) Handle(context constrain.IContext) (constrain.IResult, error) {
 	if strings.HasPrefix(m.Get.Path, oss.TempFilePrefix) {
 		b, err := oss.GetTempFile(m.Get.Path)
 		if err != nil {
@@ -82,7 +162,7 @@ func (m *OSSUpload) Handle(context constrain.IContext) (constrain.IResult, error
 
 }
 
-func (m *OSSUpload) ossLoad(ctx constrain.IContext) (constrain.IResult, error) {
+func (m *OSSUpload[T]) ossLoad(ctx constrain.IContext) (constrain.IResult, error) {
 	contextValue := contexext.FromContext(ctx)
 	server, err := ctx.Etcd().SelectInsideServer(config.MicroServerOSS) //config.MicroServerOSS.SelectInsideServer() //ctx.SelectInsideServer(config.MicroServerOSS)
 	if err != nil {
