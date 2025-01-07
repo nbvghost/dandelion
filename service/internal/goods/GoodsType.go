@@ -51,10 +51,11 @@ func (m GoodsTypeService) ListGoodsByOID(OID dao.PrimaryKey) []model.GoodsType {
 	return menus
 }
 
-func (m GoodsTypeService) DeleteGoodsType(ID dao.PrimaryKey) *result.ActionResult {
+func (m GoodsTypeService) DeleteGoodsType(ID dao.PrimaryKey) error {
 	Orm := db.Orm()
 	tx := Orm.Begin()
-	var gtcs []model.GoodsTypeChild
+
+	/*var gtcs []model.GoodsTypeChild
 	tx.Where(&model.GoodsTypeChild{GoodsTypeID: ID}).Find(&gtcs) //Updates(map[string]interface{}{"GoodsTypeID": 0})
 
 	var err error
@@ -62,17 +63,32 @@ func (m GoodsTypeService) DeleteGoodsType(ID dao.PrimaryKey) *result.ActionResul
 		err = dao.DeleteByPrimaryKey(tx, &model.GoodsType{}, ID)
 		if err != nil {
 			tx.Rollback()
+			return result.NewError(err)
 		}
 	} else {
+		tx.Rollback()
 		return (&result.ActionResult{}).SmartError(err, "包含子类数据，不能删除", nil)
+	}*/
+
+	childrens := dao.Find(tx, &model.GoodsType{}).Where(`"ParentID"=?`, ID).List()
+	if len(childrens) > 0 {
+		tx.Rollback()
+		return errors.New("包含子类数据，不能删除")
 	}
 
-	defer func() {
-		if err == nil {
-			tx.Commit()
-		}
-	}()
-	return (&result.ActionResult{}).SmartError(err, "删除成功", nil)
+	goodsList := dao.Find(tx, &model.Goods{}).Where(`"GoodsTypeID"=?`, ID).List()
+	if len(goodsList) > 0 {
+		tx.Rollback()
+		return errors.New("类型被商品使用,无法删除")
+	}
+
+	err := dao.DeleteByPrimaryKey(tx, &model.GoodsType{}, ID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return err
 }
 func (m GoodsTypeService) DeleteGoodsTypeChild(GoodsTypeChildID dao.PrimaryKey) *result.ActionResult {
 	Orm := db.Orm()
