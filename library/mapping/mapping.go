@@ -5,6 +5,7 @@ import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/pkg/errors"
+	"log"
 	"reflect"
 )
 
@@ -13,7 +14,8 @@ type mapping struct {
 }
 
 func (m *mapping) register(mapping constrain.IMapping) error {
-	path := util.GetPkgPath(mapping.Instance())
+	var ins = mapping.Instance()
+	path := util.GetPkgPath(reflect.TypeOf(ins))
 	if _, ok := m.poolList[path]; !ok {
 		m.poolList[path] = make(map[string]constrain.IMapping)
 	}
@@ -39,7 +41,7 @@ func (m *mapping) Mapping(context constrain.IContext, handler interface{}) error
 		fieldT := t.Field(i)
 		if tag, ok := fieldT.Tag.Lookup("mapping"); ok {
 			fieldV := v.Field(i)
-			name := util.GetPkgPath(fieldV.Interface())
+			name := util.GetPkgPath(fieldV.Type())
 			if mp, has := m.poolList[name][tag]; has {
 				cacheKey := fmt.Sprintf("mapping:%s.%s", name, tag)
 
@@ -70,6 +72,8 @@ func (m *mapping) Mapping(context constrain.IContext, handler interface{}) error
 					}
 				}
 
+			} else {
+				log.Println("找不到Mapping:" + name)
 			}
 		}
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/oss"
+	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -26,15 +27,15 @@ import (
 	"strings"
 )
 
-type OSSUpload[T IOIDMapping] struct {
-	Admin T `mapping:""`
+type OSSUpload struct {
+	Admin *entity.SessionMappingData `mapping:""`
 	Get   struct {
 		//TempFilename string `form:"filename"`
 		Path string `form:"path"`
 	} `method:"Get"`
 }
 
-func (m *OSSUpload[T]) HandlePost(context constrain.IContext) (constrain.IResult, error) {
+func (m *OSSUpload) HandlePost(context constrain.IContext) (constrain.IResult, error) {
 	contextValue := contexext.FromContext(context)
 	err := contextValue.Request.ParseMultipartForm(10 * 1024 * 1024)
 	if err != nil {
@@ -107,10 +108,10 @@ func (m *OSSUpload[T]) HandlePost(context constrain.IContext) (constrain.IResult
 		} else {
 
 		}*/
-		media := dao.GetBy(db.Orm(), &model.Media{}, map[string]any{"OID": m.Admin.GetOID(), "TargetID": TargetID, "Target": Target, "SHA256": sha256Text}).(*model.Media)
+		media := dao.GetBy(db.Orm(), &model.Media{}, map[string]any{"OID": m.Admin.OID, "TargetID": TargetID, "Target": Target, "SHA256": sha256Text}).(*model.Media)
 		if media.IsZero() {
 			media = &model.Media{
-				OID:      m.Admin.GetOID(),
+				OID:      m.Admin.OID,
 				TargetID: dao.PrimaryKey(TargetID),
 				Target:   model.MediaTarget(Target),
 				Title:    Title,
@@ -145,7 +146,7 @@ func (m *OSSUpload[T]) HandlePost(context constrain.IContext) (constrain.IResult
 	}
 }
 
-func (m *OSSUpload[T]) Handle(context constrain.IContext) (constrain.IResult, error) {
+func (m *OSSUpload) Handle(context constrain.IContext) (constrain.IResult, error) {
 	if strings.HasPrefix(m.Get.Path, oss.TempFilePrefix) {
 		b, err := oss.GetTempFile(m.Get.Path)
 		if err != nil {
@@ -162,7 +163,7 @@ func (m *OSSUpload[T]) Handle(context constrain.IContext) (constrain.IResult, er
 
 }
 
-func (m *OSSUpload[T]) ossLoad(ctx constrain.IContext) (constrain.IResult, error) {
+func (m *OSSUpload) ossLoad(ctx constrain.IContext) (constrain.IResult, error) {
 	contextValue := contexext.FromContext(ctx)
 	server, err := ctx.Etcd().SelectInsideServer(config.MicroServerOSS) //config.MicroServerOSS.SelectInsideServer() //ctx.SelectInsideServer(config.MicroServerOSS)
 	if err != nil {

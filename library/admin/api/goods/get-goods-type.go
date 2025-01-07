@@ -3,7 +3,6 @@ package goods
 import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity"
-	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 
 	"github.com/nbvghost/dandelion/library/db"
@@ -11,7 +10,7 @@ import (
 )
 
 type GetGoodsType struct {
-	Organization *model.Organization `mapping:""`
+	Organization *entity.SessionMappingData `mapping:""`
 	Get          struct {
 		ID   uint   `form:"ID"`
 		Name string `form:"Name"`
@@ -20,7 +19,7 @@ type GetGoodsType struct {
 
 func (g *GetGoodsType) Handle(context constrain.IContext) (r constrain.IResult, err error) {
 	where := make(map[string]any)
-	where["OID"] = g.Organization.ID
+	where["OID"] = g.Organization.GetOID()
 	if g.Get.ID > 0 {
 		where["ID"] = g.Get.ID
 	}

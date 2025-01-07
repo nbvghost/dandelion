@@ -71,7 +71,7 @@ func (m *service) GetMappingCallback() constrain.IMappingCallback {
 }
 func (m *service) encodingViewData(ctx constrain.IContext, r constrain.IViewResult) ([]byte, string, error) {
 	buffer := bytes.NewBuffer(nil)
-	structName := util.GetPkgPath(r)
+	structName := util.GetPkgPath(reflect.TypeOf(r))
 	//todo r.SetPkgPath(structName) 问题：grpc 到http 模板渲染时，无法得到struct结构，具体值的类型无法确定（map也不行），目前内部服务采用http,考虑内部可能是grpc的。
 	if err := gob.NewEncoder(buffer).Encode(r); err != nil {
 		return nil, "", err

@@ -8,7 +8,6 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"log"
 	"reflect"
 )
 
@@ -20,8 +19,8 @@ type Query struct {
 	Value     any
 }
 
-type RestfulPage[T IOIDMapping] struct {
-	Admin T `mapping:""`
+type RestfulPage struct {
+	Admin entity.SessionMappingData `mapping:""`
 	Post  struct {
 		Model    string
 		PageNo   int
@@ -36,7 +35,7 @@ type Where struct {
 	Args  []any
 }
 
-func (m *RestfulPage[T]) condition(ctx constrain.IContext, key string, tableType reflect.Type) ([]Where, error) {
+func (m *RestfulPage) condition(ctx constrain.IContext, key string, tableType reflect.Type) ([]Where, error) {
 	if m.Post.Query == nil {
 		return nil, nil
 	}
@@ -98,7 +97,6 @@ func (m *RestfulPage[T]) condition(ctx constrain.IContext, key string, tableType
 				continue
 				//return nil, errors.New(fmt.Sprintf("not find field <%s>", query.Field))
 			}
-			log.Println(field.Type.Kind())
 			if field.Type.Kind() == reflect.Struct {
 				continue
 			}
@@ -115,7 +113,7 @@ func (m *RestfulPage[T]) condition(ctx constrain.IContext, key string, tableType
 		if query.Condition == "like" {
 			whereList = append(whereList, Where{
 				Query: fmt.Sprintf(`"%s" ilike ?`, query.Field),
-				Args:  []any{query.Value},
+				Args:  []any{fmt.Sprintf("%%%v%%", query.Value)},
 			})
 		} else {
 			whereList = append(whereList, Where{
@@ -128,7 +126,7 @@ func (m *RestfulPage[T]) condition(ctx constrain.IContext, key string, tableType
 	return whereList, nil
 }
 
-func (m *RestfulPage[T]) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
+func (m *RestfulPage) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	table, err := entity.GetModel(m.Post.Model)
 	if err != nil {
 		return nil, err
@@ -158,7 +156,7 @@ func (m *RestfulPage[T]) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 
 	_, exist := tableType.FieldByName("OID")
 	if exist {
-		d.Where(`"OID"=?`, m.Admin.GetOID())
+		d.Where(`"OID"=?`, m.Admin.OID)
 	}
 
 	index := m.Post.PageNo - 1
@@ -166,10 +164,10 @@ func (m *RestfulPage[T]) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 		index = 0
 	}
 	var total int64
-	if index == 0 && m.Post.PageSize == 0 {
+	if m.Post.PageSize == 0 {
 		d.Count(&total)
 	} else {
-		d.Limit(m.Post.PageSize).Offset(index * m.Post.PageSize).Count(&total)
+		d.Count(&total).Limit(m.Post.PageSize).Offset(index * m.Post.PageSize)
 	}
 	for i := range m.Post.Sort {
 		sort := m.Post.Sort[i]
@@ -180,6 +178,6 @@ func (m *RestfulPage[T]) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 	d.Find(list.Interface())
 	return result.NewData(result.NewPagination(index+1, m.Post.PageSize, total, list.Interface())), nil
 }
-func (m *RestfulPage[T]) Handle(ctx constrain.IContext) (constrain.IResult, error) {
+func (m *RestfulPage) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	return nil, nil
 }

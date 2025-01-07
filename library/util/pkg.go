@@ -3,8 +3,8 @@ package util
 import "reflect"
 
 // GetPkgPath from encoding/gob/type.go:836
-func GetPkgPath(value interface{}) string {
-	rt := reflect.TypeOf(value)
+func GetPkgPath(rt reflect.Type) string {
+	//rt := reflect.TypeOf(value)
 	if rt.Kind() == reflect.Ptr {
 		rt = rt.Elem()
 	}

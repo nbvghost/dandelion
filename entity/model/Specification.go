@@ -12,9 +12,9 @@ type SpecificationLanguage struct {
 // Specification 商品规格
 type Specification struct {
 	dao.Entity
-	OID         dao.PrimaryKey                `gorm:"column:OID;index"`
-	GoodsID     dao.PrimaryKey                `gorm:"column:GoodsID;index"`                      //
-	Name        string                        `gorm:"column:Name"`                               //
+	OID     dao.PrimaryKey `gorm:"column:OID;index"`
+	GoodsID dao.PrimaryKey `gorm:"column:GoodsID;index"` //
+	//Name        string                        `gorm:"column:Name"`                               //
 	Label       string                        `gorm:"column:Label"`                              //
 	LabelIndex  sqltype.Array[dao.PrimaryKey] `gorm:"column:LabelIndex;type:JSON"`               //
 	Num         uint                          `gorm:"column:Num"`                                //这个规格里面包含多少个小件
@@ -26,6 +26,7 @@ type Specification struct {
 	Brokerage   uint                          `gorm:"column:Brokerage"`                          //总佣金
 	Pictures    sqltype.Array[sqltype.Image]  `gorm:"column:Pictures;type:JSON"`                 //规格的多张图片
 	Language    SpecificationLanguage         `gorm:"column:Language;serializer:json;type:json"` //其它语言信息
+	Remark      string                        `gorm:"column:Remark"`                             //备注
 }
 
 func (m *Specification) GetMarketPrice(quantity uint) uint {

@@ -20,6 +20,10 @@ type Admin struct {
 	//Authority   string         `gorm:"column:Authority;default:''"` //json 权限
 }
 
+func (m Admin) GetOID() dao.PrimaryKey {
+	return m.OID
+}
+
 func (Admin) TableName() string {
 	return "Admin"
 }

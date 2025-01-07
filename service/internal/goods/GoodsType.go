@@ -336,17 +336,16 @@ func (m GoodsTypeService) getGoodsTypeByName(orm *gorm.DB, OID dao.PrimaryKey, n
 
 func (m GoodsTypeService) AddGoodsType(OID dao.PrimaryKey, goodsType *model.GoodsType) (*model.GoodsType, error) {
 	orm := db.Orm()
-	gt, _ := m.getGoodsTypeByName(orm, OID, goodsType.Name)
-	if !gt.IsZero() {
+	has, _ := m.getGoodsTypeByName(orm, OID, goodsType.Name)
+	if !has.IsZero() {
 		return nil, errors.Errorf("重复的名字:%s", goodsType.Name)
 	}
-	uri := m.CreateGoodsTypeUri(orm, OID, goodsType.Name)
-	gt.OID = OID
-	gt.Name = goodsType.Name
-	gt.Uri = uri
-	gt.Introduction = goodsType.Introduction
-	err := orm.Model(model.GoodsType{}).Create(&gt).Error
-	return &gt, err
+	goodsType.OID = OID
+	//goodsType.Name = goodsType.Name
+	goodsType.Uri = m.CreateGoodsTypeUri(orm, OID, goodsType.Name)
+	//goodsType.Introduction = goodsType.Introduction
+	err := orm.Model(model.GoodsType{}).Create(&goodsType).Error
+	return goodsType, err
 }
 func (m GoodsTypeService) ChangeGoodsType(OID dao.PrimaryKey, goodsType *model.GoodsType) error {
 	orm := db.Orm()

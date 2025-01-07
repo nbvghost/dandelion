@@ -11,6 +11,7 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
+	"gorm.io/gorm"
 	"net/url"
 	"reflect"
 	"strings"
@@ -18,39 +19,63 @@ import (
 	"github.com/nbvghost/tool/object"
 )
 
-type IOIDMapping interface {
-	GetOID() dao.PrimaryKey
-}
-
-type Restful[T IOIDMapping] struct {
-	Admin T `mapping:""`
+type Restful struct {
+	Admin *entity.SessionMappingData `mapping:""`
 	Get   struct {
-		Model       string `uri:"model"`
-		PageNo      int    `form:"Page-No"`
-		PageSize    int    `form:"Page-Size"`
-		OrderField  string `form:"Order-Field"`
-		OrderMethod string `form:"Order-Method"`
+		Model string         `uri:"model"`
+		ID    dao.PrimaryKey `uri:"id"`
+		//PageNo      int    `form:"Page-No"`
+		//PageSize    int    `form:"Page-Size"`
+		//OrderField  string `form:"Order-Field"`
+		//OrderMethod string `form:"Order-Method"`
 	} `method:"get"`
 	Post struct {
 		Model string `uri:"model"`
-		Body  any    `body:""`
+		Body  []byte `body:""`
 	} `method:"post"`
 	Put struct {
 		Model string         `uri:"model"`
 		ID    dao.PrimaryKey `uri:"id"`
-		Body  any            `body:""`
+		Body  []byte         `body:""`
 	} `method:"put"`
 	Del struct {
 		Model string         `uri:"model"`
 		ID    dao.PrimaryKey `uri:"id"`
 	} `method:"del"`
-	Query url.Values
 }
 
-func (m *Restful[T]) bindQuery(ctx constrain.IContext) {
+func (m *Restful) bindQuery(ctx constrain.IContext, tableType reflect.Type) url.Values {
 	contextValue := contexext.FromContext(ctx)
 	query := contextValue.Request.URL.Query()
-	m.Query = url.Values{}
+	queryValues := url.Values{}
+	for key := range query {
+		if strings.Contains(strings.ToLower(key), "page-") {
+			continue
+		}
+		if strings.Contains(strings.ToLower(key), "order-") {
+			continue
+		}
+		_, ok := tableType.FieldByName(key)
+		if !ok {
+			continue
+		}
+		v := query[key]
+		var hasList []string
+		for i := range v {
+			if len(v[i]) > 0 {
+				hasList = append(hasList, v[i])
+			}
+		}
+		if len(hasList) > 0 {
+			queryValues[key] = hasList
+		}
+	}
+	return queryValues
+}
+func (m *Restful) bindQueryScopes(ctx constrain.IContext, tableType reflect.Type) func(*gorm.DB) *gorm.DB {
+	contextValue := contexext.FromContext(ctx)
+	query := contextValue.Request.URL.Query()
+	queryValues := url.Values{}
 	for key := range query {
 		if strings.Contains(strings.ToLower(key), "page-") {
 			continue
@@ -68,12 +93,42 @@ func (m *Restful[T]) bindQuery(ctx constrain.IContext) {
 		}
 
 		if len(hasList) > 0 {
-			m.Query[key] = hasList
+			queryValues[key] = hasList
 		}
 	}
+	return func(d *gorm.DB) *gorm.DB {
+
+		//分析url参数作为where条件
+		for k := range queryValues {
+			if len(queryValues[k]) > 1 {
+				d.Where(fmt.Sprintf(`"%s" in ?`, k), queryValues[k])
+			} else {
+				field, ok := tableType.FieldByName(k)
+				if !ok {
+					continue
+				}
+				val := queryValues.Get(k)
+
+				if strings.EqualFold(field.Type.Name(), "PrimaryKey") {
+					if object.ParseUint(val) > 0 {
+						d.Where(fmt.Sprintf(`"%s"='%s'`, k, val))
+					}
+					continue
+				}
+
+				if strings.Contains(val, "%") {
+					d.Where(fmt.Sprintf(`"%s" like '%s'`, k, val))
+				} else {
+					d.Where(fmt.Sprintf(`"%s"='%s'`, k, val))
+				}
+			}
+		}
+
+		return d
+	}
 }
-func (m *Restful[T]) Handle(ctx constrain.IContext) (constrain.IResult, error) {
-	m.bindQuery(ctx)
+
+func (m *Restful) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	table, err := entity.GetModel(m.Get.Model)
 	if err != nil {
 		return nil, err
@@ -81,51 +136,16 @@ func (m *Restful[T]) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
 	tableType := reflect.TypeOf(table).Elem()
 
-	d := dao.Find(db.Orm(), table)
-	//分析url参数作为where条件
-	for k := range m.Query {
-		if len(m.Query[k]) > 1 {
-			d.Where(fmt.Sprintf(`"%s" in ?`, k), m.Query[k])
-		} else {
-			field, ok := tableType.FieldByName(k)
-			if !ok {
-				continue
-			}
-			val := m.Query.Get(k)
-
-			if strings.EqualFold(field.Type.Name(), "PrimaryKey") {
-				if object.ParseUint(val) > 0 {
-					d.Where(fmt.Sprintf(`"%s"='%s'`, k, val))
-				}
-				continue
-			}
-
-			if strings.Contains(val, "%") {
-				d.Where(fmt.Sprintf(`"%s" like '%s'`, k, val))
-			} else {
-				d.Where(fmt.Sprintf(`"%s"='%s'`, k, val))
-			}
-		}
-	}
-
+	d := db.Orm().Model(table)
 	_, exist := tableType.FieldByName("OID")
 	if exist {
-		d.Where(`"OID"=?`, m.Admin.GetOID())
+		d.Where(`"OID"=?`, m.Admin.OID)
 	}
-
-	index := m.Get.PageNo - 1
-	if index < 0 {
-		index = 0
-	}
-	total := d.Limit(index, m.Get.PageSize)
-	if len(m.Get.OrderField) > 0 && len(m.Get.OrderMethod) > 0 {
-		d.Order(fmt.Sprintf(`"%s" %s`, m.Get.OrderField, m.Get.OrderMethod))
-	}
-	list := d.List()
-	return result.NewData(result.NewPagination(m.Get.PageNo, m.Get.PageSize, total, list)), nil
+	newData := reflect.New(tableType)
+	d.First(newData.Interface(), m.Get.ID)
+	return result.NewData(newData.Interface()), nil
 }
-func (m *Restful[T]) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
-	m.bindQuery(ctx)
+func (m *Restful) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	table, err := entity.GetModel(m.Post.Model)
 	if err != nil {
 		return nil, err
@@ -135,12 +155,13 @@ func (m *Restful[T]) HandlePost(ctx constrain.IContext) (constrain.IResult, erro
 		return nil, err
 	}*/
 
-	where := map[string]any{}
-	for k := range m.Query {
-		where[k] = m.Query.Get(k)
-	}
-
 	modelType := reflect.TypeOf(table).Elem()
+
+	query := m.bindQuery(ctx, modelType)
+	where := map[string]any{}
+	for k := range query {
+		where[k] = query.Get(k)
+	}
 
 	_, exist := modelType.FieldByName("OID")
 	if exist {
@@ -148,8 +169,26 @@ func (m *Restful[T]) HandlePost(ctx constrain.IContext) (constrain.IResult, erro
 	}
 
 	newData := reflect.New(modelType).Interface().(dao.IEntity)
-
-	if body, ok := m.Post.Body.(map[string]any); ok {
+	postItemData := reflect.New(modelType).Interface().(dao.IEntity)
+	err = json.Unmarshal(m.Post.Body, postItemData)
+	if err != nil {
+		return nil, err
+	}
+	if postItemData != nil {
+		v := reflect.ValueOf(newData).Elem()
+		postItemDataV := reflect.ValueOf(postItemData).Elem()
+		for key := range v.NumField() {
+			fv := v.Field(key)
+			if fv.CanSet() == false {
+				continue
+			}
+			setv := postItemDataV.Field(key)
+			if setv.CanConvert(fv.Type()) && setv.IsZero() == false {
+				fv.Set(setv.Convert(fv.Type()))
+			}
+		}
+	}
+	/*if body, ok := m.Post.Body.(map[string]any); ok {
 		v := reflect.ValueOf(newData).Elem()
 		for key := range body {
 			fv := v.FieldByName(key)
@@ -161,7 +200,7 @@ func (m *Restful[T]) HandlePost(ctx constrain.IContext) (constrain.IResult, erro
 				fv.Set(setv.Convert(fv.Type()))
 			}
 		}
-	}
+	}*/
 	/*err = json.Unmarshal(body, newData)
 	if err != nil {
 		return nil, err
@@ -172,23 +211,23 @@ func (m *Restful[T]) HandlePost(ctx constrain.IContext) (constrain.IResult, erro
 	if newData.Primary() > 0 {
 		oldData := dao.GetByPrimaryKey(db.Orm(), table, newData.Primary())
 		if oldData.IsZero() {
-			reflect.ValueOf(newData).Elem().FieldByName("OID").Set(reflect.ValueOf(m.Admin.GetOID()))
+			reflect.ValueOf(newData).Elem().FieldByName("OID").Set(reflect.ValueOf(m.Admin.OID))
 			err = dao.Create(db.Orm(), newData)
 			primaryId = newData.Primary()
 		} else {
 			changeMap := com.Diff(oldData, newData)
 			where["ID"] = newData.Primary()
-			where["OID"] = m.Admin.GetOID()
+			where["OID"] = m.Admin.OID
 			err = dao.UpdateBy(db.Orm(), table, changeMap, where)
 			primaryId = newData.Primary()
 		}
 	} else {
-		where["OID"] = m.Admin.GetOID()
+		where["OID"] = m.Admin.OID
 		oldData := dao.GetBy(db.Orm(), table, where)
 		if oldData.IsZero() {
 			field := reflect.ValueOf(newData).Elem().FieldByName("OID")
 			if field.CanSet() {
-				field.Set(reflect.ValueOf(m.Admin.GetOID()))
+				field.Set(reflect.ValueOf(m.Admin.OID))
 			}
 			err = dao.Create(db.Orm(), newData)
 			primaryId = newData.Primary()
@@ -211,28 +250,27 @@ func (m *Restful[T]) HandlePost(ctx constrain.IContext) (constrain.IResult, erro
 	if err != nil {
 		return nil, err
 	}
-	return result.NewData(map[string]any{"Item": dao.GetByPrimaryKey(db.Orm(), table, primaryId)}), err
+	return result.NewDataMessage(dao.GetByPrimaryKey(db.Orm(), table, primaryId), "添加成功"), err
 }
-func (m *Restful[T]) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
-	m.bindQuery(ctx)
+func (m *Restful) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
+	//m.bindQuery(ctx)
 	table, err := entity.GetModel(m.Put.Model)
 	if err != nil {
 		return nil, err
 	}
-	body, err := json.Marshal(m.Put.Body)
+
+	modelType := reflect.TypeOf(table).Elem()
+
+	newData := reflect.New(modelType).Interface().(dao.IEntity)
+	err = json.Unmarshal(m.Put.Body, &newData)
 	if err != nil {
 		return nil, err
 	}
 
-	newMap := make(map[string]any)
-	err = json.Unmarshal(body, &newMap)
-	if err != nil {
-		return nil, err
-	}
-
+	query := m.bindQuery(ctx, modelType)
 	where := map[string]any{}
-	for k := range m.Query {
-		where[k] = m.Query.Get(k)
+	for k := range query {
+		where[k] = query.Get(k)
 	}
 
 	oldData := dao.GetByPrimaryKey(db.Orm(), table, m.Put.ID)
@@ -240,7 +278,7 @@ func (m *Restful[T]) HandlePut(ctx constrain.IContext) (constrain.IResult, error
 		return nil, errors.New("数据不存在")
 	}
 
-	bytes, err := json.Marshal(oldData)
+	/*bytes, err := json.Marshal(oldData)
 	if err != nil {
 		return nil, err
 	}
@@ -248,23 +286,35 @@ func (m *Restful[T]) HandlePut(ctx constrain.IContext) (constrain.IResult, error
 	err = json.Unmarshal(bytes, &oldMap)
 	if err != nil {
 		return nil, err
-	}
+	}*/
 
-	changeMap := com.Diff(&oldMap, &newMap)
+	changeMap := make(map[string]any) //com.Diff(&oldMap, &newMap)
 
-	newData := reflect.New(reflect.TypeOf(table).Elem()).Interface().(dao.IEntity)
+	//newData := reflect.New(reflect.TypeOf(table).Elem()).Interface().(dao.IEntity)
 	/*err = json.Unmarshal(body, newData)
 	if err != nil {
 		return nil, err
 	}*/
-	v := reflect.ValueOf(newData).Elem()
-	for key := range changeMap {
-		fv := v.FieldByName(key)
-		setv := reflect.ValueOf(changeMap[key])
+	nDv := reflect.ValueOf(newData).Elem()
+	oDv := reflect.ValueOf(oldData).Elem()
+	for key := range oDv.NumField() {
+		fv := nDv.Field(key)
+		ofv := oDv.Field(key)
+
+		if fv.IsZero() && fv.Kind() != reflect.Bool {
+			continue
+		}
+
+		if reflect.DeepEqual(fv.Interface(), ofv.Interface()) == false {
+			name := nDv.Type().Field(key).Name
+			changeMap[name] = fv.Interface()
+		}
+
+		/*setv := reflect.ValueOf(changeMap[key])
 		if setv.CanConvert(fv.Type()) {
 			fv.Set(setv.Convert(fv.Type()))
 		}
-		changeMap[key] = v.FieldByName(key).Interface()
+		changeMap[key] = nDv.FieldByName(key).Interface()*/
 	}
 
 	/*newData := reflect.New(reflect.TypeOf(model).Elem()).Interface().(dao.IEntity)
@@ -302,11 +352,9 @@ func (m *Restful[T]) HandlePut(ctx constrain.IContext) (constrain.IResult, error
 		}
 		tx.Commit()
 	}
-	return result.NewData(map[string]any{"Item": dao.GetByPrimaryKey(db.Orm(), table, m.Put.ID)}), err
+	return result.NewData(dao.GetByPrimaryKey(db.Orm(), table, m.Put.ID)), err
 }
-func (m *Restful[T]) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) {
-	m.bindQuery(ctx)
-
+func (m *Restful) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) {
 	table, err := entity.GetModel(m.Put.Model)
 	if err != nil {
 		return nil, err
@@ -317,9 +365,11 @@ func (m *Restful[T]) HandleDelete(ctx constrain.IContext) (constrain.IResult, er
 			return nil, err
 		}
 	} else {
+		modelType := reflect.TypeOf(table).Elem()
+		query := m.bindQuery(ctx, modelType)
 		where := map[string]any{}
-		for k := range m.Query {
-			where[k] = m.Query.Get(k)
+		for k := range query {
+			where[k] = query.Get(k)
 		}
 		if len(where) > 0 {
 			err = dao.DeleteBy(db.Orm(), table, where)
@@ -328,6 +378,5 @@ func (m *Restful[T]) HandleDelete(ctx constrain.IContext) (constrain.IResult, er
 			}
 		}
 	}
-
 	return result.NewData(map[string]any{}), nil
 }

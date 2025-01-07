@@ -14,10 +14,10 @@ func (m GoodsTypeService) CreateGoodsTypeUri(orm *gorm.DB, OID dao.PrimaryKey, t
 	var gt model.GoodsType
 	orm.Model(model.GoodsType{}).Where(map[string]interface{}{"OID": OID, "Uri": uri}).First(&gt)
 
-	var gtc model.GoodsTypeChild
-	orm.Model(model.GoodsTypeChild{}).Where(map[string]interface{}{"OID": OID, "Uri": uri}).First(&gtc)
+	//var gtc model.GoodsTypeChild
+	//orm.Model(model.GoodsTypeChild{}).Where(map[string]interface{}{"OID": OID, "Uri": uri}).First(&gtc)
 
-	if gt.IsZero() && gtc.IsZero() {
+	if gt.IsZero() {
 		return uri
 	}
 	return fmt.Sprintf("%s-%s", uri, time.Now().Format("20060102150405"))

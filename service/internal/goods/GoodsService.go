@@ -385,21 +385,16 @@ func (m GoodsService) GetGoods(DB *gorm.DB, context constrain.IContext, ID dao.P
 func (m GoodsService) DeleteGoods(ID dao.PrimaryKey) *result.ActionResult {
 	Orm := db.Orm()
 	tx := Orm.Begin()
+	list := dao.Find(tx, &model.Specification{}).Where(`"GoodsID"=?`, ID).List()
+	if len(list) > 0 {
+		tx.Rollback()
+		return result.NewErrorText("商品规格不是空的,无法删除")
+	}
 	err := dao.DeleteByPrimaryKey(tx, &model.Goods{}, ID)
 	if err != nil {
 		tx.Rollback()
 	}
-	err = tx.Where(`"GoodsID"=?`, ID).Delete(model.Specification{}).Error
-	if err != nil {
-		tx.Rollback()
-	}
-
-	defer func() {
-		if err == nil {
-			tx.Commit()
-		}
-	}()
-
+	tx.Commit()
 	return (&result.ActionResult{}).SmartError(err, "删除成功", nil)
 }
 

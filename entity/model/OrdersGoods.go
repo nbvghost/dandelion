@@ -18,6 +18,7 @@ const (
 	OrdersGoodsStatusOGRefundInfo     OrdersGoodsStatus = "OGRefundInfo"     // OGRefundInfo=用户填写信息，允许子商品，确认退货款
 	OrdersGoodsStatusOGRefundComplete OrdersGoodsStatus = "OGRefundComplete" // OGRefund=完成子商品，用户邮寄商品，商家待收货
 	//重新定义
+	OrdersGoodsStatusPending    OrdersGoodsStatus = "PENDING"    //
 	OrdersGoodsStatusProduction OrdersGoodsStatus = "PRODUCTION" //
 	OrdersGoodsStatusComplete   OrdersGoodsStatus = "COMPLETE"   //
 )
@@ -62,13 +63,15 @@ type OrdersGoods struct {
 	Specification   Specification                   `gorm:"column:Specification;serializer:json;type:json"` //json,快照使用
 	GoodsSkus       Array[GoodsSku]                 `gorm:"column:GoodsSkus;type:json"`                     //json,只是对Specification进行分组选择使用的
 	Discounts       sqltype.Array[sqltype.Discount] `gorm:"column:Discounts;type:json"`
-	Quantity        uint                            `gorm:"column:Quantity"`           //数量
-	CostPrice       uint                            `gorm:"column:CostPrice"`          //单价-原价
-	SellPrice       uint                            `gorm:"column:SellPrice"`          //单价-销售价
-	TotalBrokerage  uint                            `gorm:"column:TotalBrokerage"`     //总佣金
-	Error           string                          `gorm:"column:Error"`              //
-	Image           string                          `gorm:"column:Image"`              //Deprecated:当前规格的图片，如果规格没有图片，使用产品主图的第一张
-	Pictures        sqltype.Array[sqltype.Image]    `gorm:"column:Pictures;type:JSON"` //规格的多张图片,当前规格的图片，如果规格没有图片，使用产品主图的第一张
+	Quantity        uint                            `gorm:"column:Quantity"`       //数量
+	CostPrice       uint                            `gorm:"column:CostPrice"`      //单价-原价
+	SellPrice       uint                            `gorm:"column:SellPrice"`      //单价-销售价
+	TotalBrokerage  uint                            `gorm:"column:TotalBrokerage"` //总佣金
+	Error           string                          `gorm:"column:Error"`          //
+	Image           string                          `gorm:"column:Image"`          //Deprecated:当前规格的图片，如果规格没有图片，使用产品主图的第一张
+	TotalCostPrice  uint                            `gorm:"column:TotalCostPrice"` //总价-原价
+	TotalSellPrice  uint                            `gorm:"column:TotalSellPrice"` //总价-销售价
+	//Pictures        sqltype.Array[sqltype.Image]    `gorm:"column:Pictures;type:JSON"` //规格的多张图片,当前规格的图片，如果规格没有图片，使用产品主图的第一张
 	//SpecificationID uint `gorm:"column:SpecificationID"`             //
 	//CollageNo     string `gorm:"column:CollageNo"` //拼团码，每个订单都是唯一
 	//TimeSellID     uint `gorm:"column:TimeSellID"`             //限时抢购ID

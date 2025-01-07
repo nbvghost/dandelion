@@ -1421,7 +1421,7 @@ func (m OrdersService) AddCartOrders(ctx constrain.IContext, UserID dao.PrimaryK
 		return errors.New(specification.Label + "库存不足")
 	}
 
-	botMessage.WriteString(fmt.Sprintf("规格：%s\n", specification.Name))
+	botMessage.WriteString(fmt.Sprintf("规格：%s\n", specification.Label))
 	botMessage.WriteString(fmt.Sprintf("数量：%d\n", Quantity))
 
 	have := false

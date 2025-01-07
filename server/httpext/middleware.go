@@ -51,23 +51,6 @@ func (m *httpMiddleware) filterFlags(content string) string {
 	return content
 }
 func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contextValue *contexext.ContextValue) error {
-	v := reflect.ValueOf(apiHandler)
-	t := reflect.TypeOf(apiHandler).Elem()
-	num := t.NumField()
-	fieldIndex := -1
-	for i := 0; i < num; i++ {
-		method := t.Field(i).Tag.Get("method")
-		if strings.EqualFold(method, contextValue.Request.Method) {
-			fieldIndex = i
-			break
-		}
-	}
-	var vv reflect.Value
-	if fieldIndex >= 0 {
-		vv = v.Elem().Field(fieldIndex)
-	} else {
-		vv = v.Elem()
-	}
 
 	var err error
 
@@ -90,32 +73,54 @@ func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contex
 	contextValue.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 
 	var bodyValue reflect.Value
-	var hasBodyField bool
-
-	vvNum := vv.NumField()
-	for i := 0; i < vvNum; i++ {
-		_, ok := vv.Type().Field(i).Tag.Lookup("body")
-		if ok {
-			hasBodyField = true
-			bodyValue = vv.Field(i)
-			if bodyValue.Kind() == reflect.Ptr {
-				//bodyValue = bodyValue.Elem()
+	var methodStruct reflect.Value
+	{
+		v := reflect.ValueOf(apiHandler)
+		t := reflect.TypeOf(apiHandler).Elem()
+		num := t.NumField()
+		fieldIndex := -1
+		for i := 0; i < num; i++ {
+			method := t.Field(i).Tag.Get("method")
+			if strings.EqualFold(method, contextValue.Request.Method) {
+				fieldIndex = i
+				break
 			}
-			break
+		}
+
+		var hasBodyField bool
+
+		if fieldIndex >= 0 {
+			methodStruct = v.Elem().Field(fieldIndex)
+		} else {
+			methodStruct = v.Elem()
+		}
+		vvNum := methodStruct.NumField()
+		for i := 0; i < vvNum; i++ {
+			_, ok := methodStruct.Type().Field(i).Tag.Lookup("body")
+			if ok {
+				hasBodyField = true
+				bodyValue = methodStruct.Field(i)
+				if bodyValue.Kind() == reflect.Ptr {
+					//bodyValue = bodyValue.Elem()
+				}
+				break
+			}
+		}
+
+		if !hasBodyField {
+			err = binding.Default(contextValue.Request.Method, contentType).Bind(contextValue.Request.Clone(contextValue.Request.Context()), methodStruct.Addr().Interface())
+			if err != nil {
+				ctx.Logger().With(zap.Error(err))
+				return err
+			}
+		} else {
+			if bodyValue.Kind() == reflect.Slice && bodyValue.Type().Elem().Kind() == reflect.Uint8 {
+				bodyValue.SetBytes(body)
+			}
 		}
 	}
 
-	if !hasBodyField {
-		bodyValue = vv
-	}
-
-	err = binding.Default(contextValue.Request.Method, contentType).Bind(contextValue.Request.Clone(contextValue.Request.Context()), bodyValue.Addr().Interface())
-	if err != nil {
-		ctx.Logger().With(zap.Error(err))
-		return err
-	}
-
-	err = binding.Header.Bind(contextValue.Request, vv.Addr().Interface())
+	err = binding.Header.Bind(contextValue.Request, methodStruct.Addr().Interface())
 	if err != nil {
 		ctx.Logger().With(zap.Error(err))
 		return err
@@ -128,7 +133,7 @@ func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contex
 			uriMap[uriKey] = []string{uriVars[uriKey]}
 		}
 		if len(uriMap) > 0 {
-			err = binding.Uri.BindUri(uriMap, vv.Addr().Interface())
+			err = binding.Uri.BindUri(uriMap, methodStruct.Addr().Interface())
 			if err != nil {
 				ctx.Logger().With(zap.Error(err))
 				return err
@@ -136,7 +141,7 @@ func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contex
 		}
 	}
 
-	err = binding.Query.Bind(contextValue.Request, vv.Addr().Interface())
+	err = binding.Query.Bind(contextValue.Request, methodStruct.Addr().Interface())
 	if err != nil {
 		ctx.Logger().With(zap.Error(err))
 		return err

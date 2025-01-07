@@ -3,6 +3,7 @@ package goods
 import (
 	"errors"
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/entity/sqltype"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -12,8 +13,8 @@ import (
 )
 
 type Specification struct {
-	Organization *model.Organization `mapping:""`
-	Get          struct {
+	OIDMapping *entity.SessionMappingData `mapping:""`
+	Get        struct {
 		GoodsID uint `form:"goods-id"`
 	} `method:"get"`
 	Delete struct {
@@ -22,8 +23,8 @@ type Specification struct {
 	Post struct {
 		GoodsID dao.PrimaryKey
 		List    []struct {
-			Label       string
-			Name        string
+			Label string
+			//Name        string
 			LabelIndex  sqltype.Array[dao.PrimaryKey]
 			Num         uint
 			Weight      uint
@@ -31,6 +32,7 @@ type Specification struct {
 			CostPrice   uint
 			MarketPrice uint
 			Brokerage   uint
+			Language    model.SpecificationLanguage
 		}
 	} `method:"Post"`
 	Put model.Specification `method:"Put"`
@@ -49,9 +51,9 @@ func (g *Specification) HandlePut(context constrain.IContext) (r constrain.IResu
 	if len(g.Put.Label) > 0 {
 		s["Label"] = g.Put.Label
 	}
-	if len(g.Put.Name) > 0 {
+	/*if len(g.Put.Name) > 0 {
 		s["Name"] = g.Put.Name
-	}
+	}*/
 	if len(g.Put.LabelIndex) > 0 {
 		s["LabelIndex"] = g.Put.LabelIndex
 	}
@@ -72,6 +74,9 @@ func (g *Specification) HandlePut(context constrain.IContext) (r constrain.IResu
 	}
 	if g.Put.Brokerage > 0 {
 		s["Brokerage"] = g.Put.Brokerage
+	}
+	if len(g.Put.Language.Label) > 0 {
+		s["Language"] = g.Put.Language
 	}
 
 	err = dao.UpdateByPrimaryKey(db.Orm(), &model.Specification{}, g.Put.ID, s)
@@ -94,7 +99,7 @@ func (g *Specification) HandlePost(context constrain.IContext) (r constrain.IRes
 		var hasIndex = false
 		for ii := range g.Post.List {
 			items := g.Post.List[ii]
-			if item.Name == items.Name {
+			if item.Label == items.Label {
 				hasIndex = true
 				break
 			}
@@ -113,24 +118,27 @@ func (g *Specification) HandlePost(context constrain.IContext) (r constrain.IRes
 		var hasIndex = -1
 		for ii := range specificationList {
 			items := specificationList[ii].(*model.Specification)
-			if item.Name == items.Name {
+			if item.Label == items.Label {
 				hasIndex = ii
 				break
 			}
 		}
 		if hasIndex == -1 {
 			err = dao.Create(tx, &model.Specification{
-				OID:         g.Organization.ID,
-				GoodsID:     g.Post.GoodsID,
-				Name:        item.Name,
+				OID:     g.OIDMapping.OID,
+				GoodsID: g.Post.GoodsID,
+				//Name:        item.Name,
 				Label:       item.Label,
 				LabelIndex:  item.LabelIndex,
 				Num:         item.Num,
+				Unit:        "",
 				Weight:      item.Weight,
 				Stock:       item.Stock,
 				CostPrice:   item.CostPrice,
 				MarketPrice: item.MarketPrice,
 				Brokerage:   item.Brokerage,
+				Pictures:    nil,
+				Language:    item.Language,
 			})
 			if err != nil {
 				tx.Rollback()

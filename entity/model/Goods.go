@@ -16,6 +16,7 @@ type GoodsAttribute struct {
 }
 type GoodsLanguage struct {
 	Title     string
+	Summary   string
 	Introduce string
 }
 
