@@ -125,8 +125,8 @@ func (g *Index) HandlePut(context constrain.IContext) (r constrain.IResult, err 
 				g.Put.Specification.Pictures[i].Src = file.Data.Path
 			}
 		}
-		s["Pictures"] = g.Put.Specification.Pictures
 	}
+	s["Pictures"] = g.Put.Specification.Pictures
 
 	err = dao.UpdateByPrimaryKey(db.Orm(), &model.Specification{}, g.Put.Specification.ID, s)
 	if err != nil {
