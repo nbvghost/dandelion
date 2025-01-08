@@ -221,11 +221,11 @@ func (g *Index) HandlePost(context constrain.IContext) (r constrain.IResult, err
 	tx.Commit()
 	return result.NewData(map[string]any{"Specifications": dao.Find(db.Orm(), &model.Specification{}).Where(`"GoodsID"=?`, g.Post.Specification.GoodsID).Order(`"LabelIndex"::text asc`).List()}), err
 }
-func (g *Index) HandleDelete(context constrain.IContext) (r constrain.IResult, err error) {
-	if g.Delete.ID == 0 {
+func (m *Index) HandleDelete(context constrain.IContext) (r constrain.IResult, err error) {
+	if m.Delete.ID == 0 {
 		return nil, errors.New("没找到记录")
 	}
-	has := dao.GetByPrimaryKey(db.Orm(), &model.Specification{}, g.Delete.ID).(*model.Specification)
+	has := dao.GetByPrimaryKey(db.Orm(), &model.Specification{}, m.Delete.ID).(*model.Specification)
 	err = service.Goods.Specification.DeleteSpecification(has.ID)
 	if err != nil {
 		return nil, err

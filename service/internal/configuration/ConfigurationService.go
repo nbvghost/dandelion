@@ -17,10 +17,7 @@ type ConfigurationService struct {
 
 func (m ConfigurationService) GetConfiguration(tx *gorm.DB, OID dao.PrimaryKey, Key model.ConfigurationKey) model.Configuration {
 	var item model.Configuration
-	err := tx.Where(`"K"=? and "OID"=?`, Key, OID).First(&item).Error
-	if err != nil {
-		log.Println(err)
-	}
+	tx.Where(`"K"=? and "OID"=?`, Key, OID).First(&item)
 	return item
 }
 func (m ConfigurationService) GetConfigurations(OID dao.PrimaryKey, keys ...model.ConfigurationKey) map[model.ConfigurationKey]string {

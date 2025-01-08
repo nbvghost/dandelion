@@ -163,10 +163,7 @@ func (m *Restful) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 		where[k] = query.Get(k)
 	}
 
-	_, exist := modelType.FieldByName("OID")
-	if exist {
-
-	}
+	_, existOID := modelType.FieldByName("OID")
 
 	newData := reflect.New(modelType).Interface().(dao.IEntity)
 	postItemData := reflect.New(modelType).Interface().(dao.IEntity)
@@ -222,30 +219,33 @@ func (m *Restful) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 			primaryId = newData.Primary()
 		}
 	} else {
-		where["OID"] = m.Admin.OID
-		oldData := dao.GetBy(db.Orm(), table, where)
-		if oldData.IsZero() {
+		if existOID && len(where) > 0 {
+			where["OID"] = m.Admin.OID
+			oldData := dao.GetBy(db.Orm(), table, where)
+			if !oldData.IsZero() {
+				var fieldValue string
+				if len(where) > 0 {
+					for k := range where {
+						if strings.EqualFold("OID", k) {
+							continue
+						}
+						fieldValue = object.ParseString(where[k])
+						break
+					}
+				}
+				return nil, fmt.Errorf("存在相同的记录:%s", fieldValue)
+			}
+		}
+
+		if existOID {
 			field := reflect.ValueOf(newData).Elem().FieldByName("OID")
 			if field.CanSet() {
 				field.Set(reflect.ValueOf(m.Admin.OID))
 			}
-			err = dao.Create(db.Orm(), newData)
-			primaryId = newData.Primary()
-		} else {
-			var fieldValue string
-			if len(where) > 0 {
-				for k := range where {
-					if strings.EqualFold("OID", k) {
-						continue
-					}
-					fieldValue = object.ParseString(where[k])
-					break
-				}
-			}
-			return nil, fmt.Errorf("存在相同的记录:%s", fieldValue)
-			//err = dao.UpdateByPrimaryKey(singleton.Orm(), table, oldData.Primary(), newData)
-			//primaryId = oldData.Primary()
 		}
+		err = dao.Create(db.Orm(), newData)
+		primaryId = newData.Primary()
+
 	}
 	if err != nil {
 		return nil, err
