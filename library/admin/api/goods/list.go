@@ -22,9 +22,12 @@ type List struct {
 }
 
 type ListQuery struct {
-	Title       string
-	GoodsTypeID dao.PrimaryKey
-	Introduce   string
+	Title         string
+	GoodsTypeID   dao.PrimaryKey
+	Introduce     string
+	Specification struct {
+		Label string
+	}
 }
 
 func (m *List) Handle(ctx constrain.IContext) (constrain.IResult, error) {
@@ -47,6 +50,9 @@ func (m *List) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	}
 	if len(m.Post.Query.Introduce) > 0 {
 		orm.Where(`"Goods"."Introduce" ilike ?`, fmt.Sprintf("%%%s%%", m.Post.Query.Introduce))
+	}
+	if len(m.Post.Query.Specification.Label) > 0 {
+		orm.Where(`"Specification"."Label" ilike ? or "Specification"."Language"->>'Label' ilike ?`, fmt.Sprintf("%%%s%%", m.Post.Query.Specification.Label), fmt.Sprintf("%%%s%%", m.Post.Query.Specification.Label))
 	}
 
 	var total int64

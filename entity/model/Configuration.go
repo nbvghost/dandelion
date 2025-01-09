@@ -1,11 +1,6 @@
 package model
 
 import (
-	"errors"
-	"runtime/debug"
-
-	"gorm.io/gorm"
-
 	"github.com/nbvghost/dandelion/library/dao"
 )
 
@@ -155,18 +150,6 @@ type Configuration struct {
 	Description string           `gorm:"column:Description"`
 }
 
-func (u *Configuration) BeforeCreate(scope *gorm.DB) (err error) {
-	if u.OID == 0 {
-		defer func() {
-			if err := recover(); err != nil {
-				debug.PrintStack()
-			}
-		}()
-		panic(errors.New(u.TableName() + ":OID不能为空"))
-
-	}
-	return nil
-}
 func (Configuration) TableName() string {
 	return "Configuration"
 }
