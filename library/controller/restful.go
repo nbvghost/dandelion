@@ -352,7 +352,7 @@ func (m *Restful) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
 		}
 		tx.Commit()
 	}
-	return result.NewData(dao.GetByPrimaryKey(db.Orm(), table, m.Put.ID)), err
+	return result.NewDataMessage(dao.GetByPrimaryKey(db.Orm(), table, m.Put.ID), "更新成功"), err
 }
 func (m *Restful) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) {
 	table, err := entity.GetModel(m.Put.Model)
@@ -378,5 +378,5 @@ func (m *Restful) HandleDelete(ctx constrain.IContext) (constrain.IResult, error
 			}
 		}
 	}
-	return result.NewData(map[string]any{}), nil
+	return result.NewSuccess("删除成功"), nil
 }
