@@ -15,6 +15,10 @@ type Media struct {
 		TargetID dao.PrimaryKey `form:"TargetID"`
 		Target   string         `form:"Target"`
 	} `method:"Get"`
+	Post struct {
+		TargetIDList []dao.PrimaryKey `form:"TargetIDList"`
+		Target       string           `form:"Target"`
+	} `method:"Post"`
 	Delete struct {
 		ID dao.PrimaryKey `form:"ID"`
 	} `method:"Delete"`
@@ -26,6 +30,10 @@ func (m *Media) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) 
 		return nil, err
 	}
 	return result.NewData(map[string]any{}), nil
+}
+func (m *Media) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
+	list := dao.Find(db.Orm(), &model.Media{}).Where(`"OID"=? and "TargetID" in (?) and "Target"=?`, m.Admin.OID, m.Post.TargetIDList, m.Post.Target).List()
+	return result.NewData(map[string]any{"List": list}), nil
 }
 func (m *Media) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	list := dao.Find(db.Orm(), &model.Media{}).Where(`"OID"=? and "TargetID"=? and "Target"=?`, m.Admin.OID, m.Get.TargetID, m.Get.Target).List()

@@ -12,9 +12,10 @@ const (
 
 type Media struct {
 	dao.Entity
-	OID      dao.PrimaryKey `gorm:"column:OID;index"`
-	TargetID dao.PrimaryKey `gorm:"column:TargetID"`
-	Target   MediaTarget    `gorm:"column:Target"`
+	OID      dao.PrimaryKey `gorm:"column:OID;uniqueIndex:otts"`
+	TargetID dao.PrimaryKey `gorm:"column:TargetID;uniqueIndex:otts"`
+	Target   MediaTarget    `gorm:"column:Target;uniqueIndex:otts"`
+	SHA256   string         `gorm:"column:SHA256;uniqueIndex:otts"`
 	Title    string         `gorm:"column:Title"`
 	Src      string         `gorm:"column:Src"`
 	Size     int            `gorm:"column:Size"`
@@ -22,7 +23,6 @@ type Media struct {
 	Height   int            `gorm:"column:Height"`
 	FileName string         `gorm:"column:FileName"`
 	Format   string         `gorm:"column:Format"`
-	SHA256   string         `gorm:"column:SHA256;unique"`
 }
 
 func (Media) TableName() string {
