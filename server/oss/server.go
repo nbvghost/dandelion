@@ -2,15 +2,18 @@ package oss
 
 import (
 	"bytes"
+	"crypto/sha256"
 	_ "embed"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/domain/oss"
+	"github.com/nbvghost/dandelion/domain/webpicture"
 	"github.com/nbvghost/dandelion/server/httpext"
-	"github.com/nbvghost/tool/encryption"
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/draw"
 	"golang.org/x/image/tiff"
@@ -29,15 +32,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
-
-type Upload struct {
-	Code int
-	Data struct {
-		Path string
-	}
-	Message string
-}
 
 //go:embed default.png
 var defaultImageBytes []byte
@@ -330,7 +326,7 @@ func (m *UploadHandle) ServeHTTP(writer http.ResponseWriter, request *http.Reque
 	if err != nil {
 		//result.Code = 9906
 		//result.Message = err.Error()
-		m.writeResult(&Upload{Code: 9906, Message: err.Error()}, writer)
+		m.writeResult(&oss.Upload{Code: 9906, Message: err.Error()}, writer)
 		return
 	}
 
@@ -340,30 +336,184 @@ func (m *UploadHandle) ServeHTTP(writer http.ResponseWriter, request *http.Reque
 	if err != nil {
 		//result.Code = 9905
 		//result.Message = err.Error()
-		m.writeResult(&Upload{Code: 9905, Message: err.Error()}, writer)
-		return
-	}
-	fileByte, err := io.ReadAll(file)
-	if err != nil {
-		//result.Code = 9904
-		//result.Message = err.Error()
-		m.writeResult(&Upload{Code: 9904, Message: err.Error()}, writer)
+		m.writeResult(&oss.Upload{Code: 9905, Message: err.Error()}, writer)
 		return
 	}
 
-	path := strings.Trim(request.FormValue("path"), "/")
+	saveDir := strings.Trim(request.FormValue("path"), "/")
 	override := strings.EqualFold(request.FormValue("override"), "true")
 	name := request.FormValue("name")
 	if len(name) == 0 {
-		fileType := request.FormValue("fileType")
-		name = strings.ToLower(encryption.Md5ByBytes(fileByte)) + fileType
+		name = fileHeader.Filename
+		/*fileType := request.FormValue("fileType")
+		fileByte, err := io.ReadAll(file)
+		if err != nil {
+			//result.Code = 9904
+			//result.Message = err.Error()
+			m.writeResult(&oss.Upload{Code: 9904, Message: err.Error()}, writer)
+			return
+		}
+		name = strings.ToLower(encryption.Md5ByBytes(fileByte)) + fileType*/
 	}
-	result := m.upload(fileByte, path, name, override)
+	result := m.upload(file, fileHeader, saveDir, name, override)
 	m.writeResult(result, writer)
-	log.Println("上传文件", fileHeader.Filename, result.Data.Path)
+	log.Println("上传文件", name, result.Data.Path)
 }
 
-func (m *UploadHandle) writeResult(result *Upload, writer http.ResponseWriter) {
+func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHeader, saveDir string, name string, override bool) *oss.Upload {
+	fileRootDir := filepath.Join("assets", saveDir) //fmt.Sprintf("assets/%s", path)
+	{
+		assetsPath, err := filepath.Abs("assets")
+		if err != nil {
+			//result.Code = 9904
+			//result.Message = err.Error()
+			return &oss.Upload{Code: 9904, Message: err.Error()}
+		}
+		savePath, err := filepath.Abs(filepath.Join(fileRootDir, name))
+		if len(savePath) < len(assetsPath) || !strings.EqualFold(savePath[:len(assetsPath)], assetsPath) {
+			//result.Code = 9904
+			//result.Message = "路径不对"
+			return &oss.Upload{Code: 9904, Message: "路径不对"}
+		}
+	}
+	if err := os.MkdirAll(fileRootDir, os.ModePerm); err != nil {
+		pathErr, ok := err.(*fs.PathError)
+		if !ok && pathErr != nil {
+			//result.Code = 9901
+			//result.Message = pathErr.Error()
+			return &oss.Upload{Code: 9901, Message: pathErr.Error()}
+		}
+	}
+
+	openFile, err := fileHeader.Open()
+	if err != nil {
+		return &oss.Upload{Code: 9901, Message: err.Error()}
+	}
+	body, err := io.ReadAll(openFile)
+	if err != nil {
+		return &oss.Upload{Code: 9901, Message: err.Error()}
+	}
+
+	var upload = &oss.Upload{Code: 0, Message: "OK"}
+
+	sha := sha256.New()
+	sha.Write(body)
+	SHA256 := hex.EncodeToString(sha.Sum(nil))
+
+	ext := filepath.Ext(name)
+	{
+		oldFileName := filepath.Join(fileRootDir, name)
+		if fileInfo, _ := os.Stat(oldFileName); fileInfo != nil {
+			readFile, err := os.ReadFile(oldFileName)
+			if err != nil {
+				return nil
+			}
+
+			sha.Reset()
+			sha.Write(readFile)
+			oldSHA256 := hex.EncodeToString(sha.Sum(nil))
+			if oldSHA256 == SHA256 {
+				//相同直接返回
+				upload.Data.Ext = ext
+				upload.Data.Format = ""
+				upload.Data.SHA256 = SHA256
+				upload.Data.Filename = name
+				upload.Data.Size = len(body)
+				upload.Data.Width = 0
+				upload.Data.Height = 0
+				upload.Data.Path = fmt.Sprintf("/%s", filepath.Join(saveDir, name))
+				return upload
+			}
+
+			if len(ext) == 0 {
+				name = name + "-" + time.Now().Format("20060102150405")
+			} else {
+				name = strings.ReplaceAll(name, ext, "-"+time.Now().Format("20060102150405")+ext)
+			}
+
+		}
+	}
+
+	now := time.Now().UnixMilli()
+	img, format, err := image.Decode(bytes.NewReader(body))
+	log.Println("image.Decode", time.Now().UnixMilli()-now)
+	if err != nil {
+		err = os.WriteFile(filepath.Join(fileRootDir, name), body, os.ModePerm)
+		if err != nil {
+			return &oss.Upload{Code: 9903, Message: err.Error()}
+		}
+		upload.Data.Ext = ext
+		upload.Data.Format = ""
+		upload.Data.SHA256 = SHA256
+		upload.Data.Filename = name
+		upload.Data.Size = len(body)
+		upload.Data.Width = 0
+		upload.Data.Height = 0
+	} else {
+		switch strings.ToUpper(format) {
+		case "WEBP":
+		case "JPEG":
+		case "PNG":
+		case "GIF":
+		default:
+			return &oss.Upload{Code: 9903, Message: fmt.Errorf("不支持图片格式:%s", format).Error()}
+		}
+
+		if len(ext) == 0 {
+			name = name + "." + format
+		}
+		ext = filepath.Ext(name)
+		name = strings.ReplaceAll(name, ext, ".webp")
+
+		//now = time.Now().UnixMilli()
+		//var imgBuf = bytes.NewBuffer(nil)
+		//_ = png.Encode(imgBuf, img)
+		//log.Println("png.Encode", time.Now().UnixMilli()-now)
+		now = time.Now().UnixMilli()
+		//imgBytes := imgBuf.Bytes()
+		err = os.WriteFile(filepath.Join(fileRootDir, name), body, os.ModePerm)
+		if err != nil {
+			return &oss.Upload{Code: 9903, Message: err.Error()}
+		}
+		log.Println("os.WriteFile", time.Now().UnixMilli()-now)
+
+		now = time.Now().UnixMilli()
+		//改用webp图片格式,如果webp不支持的格式,直接保存
+		if strings.ToUpper(format) == "GIF" {
+			if err := webpicture.EncodeGIF(filepath.Join(fileRootDir, name), filepath.Join(fileRootDir, name)); err != nil {
+				return &oss.Upload{Code: 9903, Message: err.Error()}
+			}
+		} else {
+			if err := webpicture.Encode(filepath.Join(fileRootDir, name), filepath.Join(fileRootDir, name)); err != nil {
+				return &oss.Upload{Code: 9903, Message: err.Error()}
+			}
+		}
+
+		log.Println("webpicture.Encode", time.Now().UnixMilli()-now)
+
+		upload.Data.Ext = ext
+		upload.Data.Format = format
+		upload.Data.SHA256 = SHA256
+		upload.Data.Filename = name
+		upload.Data.Size = len(body)
+		upload.Data.Width = img.Bounds().Dx()
+		upload.Data.Height = img.Bounds().Dy()
+	}
+
+	upload.Data.Path = fmt.Sprintf("/%s", filepath.Join(saveDir, name))
+	return upload
+
+	/*if len(saveDir) == 0 {
+		upload.Data.Path = fmt.Sprintf("/%s", name)
+		upload.Data.Ext = filepath.Ext(filepath.Ext(fileHeader.Filename))
+		return upload
+	} else {
+		upload.Data.Path = fmt.Sprintf("/%s", filepath.Join(saveDir, name))
+		upload.Data.Ext = filepath.Ext(filepath.Ext(fileHeader.Filename))
+		return upload
+	}*/
+}
+func (m *UploadHandle) writeResult(result *oss.Upload, writer http.ResponseWriter) {
 	var body []byte
 	var err error
 	body, err = json.Marshal(result)
@@ -375,59 +525,5 @@ func (m *UploadHandle) writeResult(result *Upload, writer http.ResponseWriter) {
 	_, err = writer.Write(body)
 	if err != nil {
 		log.Println(err)
-	}
-}
-func (m *UploadHandle) upload(fileByte []byte, path string, name string, override bool) *Upload {
-	filePath := fmt.Sprintf("assets/%s", path)
-	{
-		assetsPath, err := filepath.Abs("assets")
-		if err != nil {
-			//result.Code = 9904
-			//result.Message = err.Error()
-			return &Upload{Code: 9904, Message: err.Error()}
-		}
-		savePath, err := filepath.Abs(filepath.Join(filePath, name))
-		if len(savePath) < len(assetsPath) || !strings.EqualFold(savePath[:len(assetsPath)], assetsPath) {
-			//result.Code = 9904
-			//result.Message = "路径不对"
-			return &Upload{Code: 9904, Message: "路径不对"}
-		}
-	}
-	if err := os.MkdirAll(filePath, os.ModePerm); err != nil {
-		pathErr, ok := err.(*fs.PathError)
-		if !ok && pathErr != nil {
-			//result.Code = 9901
-			//result.Message = pathErr.Error()
-			return &Upload{Code: 9901, Message: pathErr.Error()}
-		}
-	}
-	fileName := fmt.Sprintf("%s/%s", filePath, name)
-	if override {
-		//如果覆盖，则检查这个文件是否存在
-		/*fileInfo, err := os.Stat(fileName)
-		if err == nil && fileInfo != nil {
-			err := os.Rename(fileName, fmt.Sprintf("%s-%s", fileName, time.Now().Format("20060102150405")))
-			if err != nil {
-				upload.Code = 9902
-				upload.Message = err.Error()
-			}
-		}*/
-	}
-	err := os.WriteFile(fileName, fileByte, os.ModePerm)
-	if err != nil {
-		//result.Code = 9903
-		//result.Message = err.Error()
-		return &Upload{Code: 9903, Message: err.Error()}
-	}
-	if len(path) == 0 {
-		u := &Upload{Code: 0, Message: "OK"}
-		u.Data.Path = fmt.Sprintf("/%s", name)
-		return u
-		//result.Data.Path = fmt.Sprintf("/%s", name)
-	} else {
-		//result.Data.Path = fmt.Sprintf("/%s/%s", path, name)
-		u := &Upload{Code: 0, Message: "OK"}
-		u.Data.Path = fmt.Sprintf("/%s/%s", path, name)
-		return u
 	}
 }

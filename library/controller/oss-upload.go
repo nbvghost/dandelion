@@ -1,9 +1,6 @@
 package controller
 
 import (
-	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/nbvghost/dandelion/config"
@@ -15,8 +12,8 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
+	"github.com/nbvghost/tool"
 	"github.com/nbvghost/tool/object"
-	"image"
 	"io"
 	"log"
 	"mime/multipart"
@@ -37,48 +34,7 @@ type OSSUpload struct {
 
 func (m *OSSUpload) HandlePost(context constrain.IContext) (constrain.IResult, error) {
 	contextValue := contexext.FromContext(context)
-	err := contextValue.Request.ParseMultipartForm(10 * 1024 * 1024)
-	if err != nil {
-		return nil, err
-	}
-	var file multipart.File
-	var fileHeader *multipart.FileHeader
-	file, fileHeader, err = contextValue.Request.FormFile("file")
-	if err != nil {
-		return nil, err
-	}
-	defer func(file multipart.File) {
-		err := file.Close()
-		if err != nil {
-			log.Println(err)
-		}
-	}(file)
 
-	fileByte, err := io.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-	ext := filepath.Ext(fileHeader.Filename)
-	/*if strings.EqualFold(filepath.Ext(fileHeader.Filename), ".mp4") {
-
-	} else {
-
-	}
-	buffer := bytes.NewBuffer(nil)
-	img, _, err := image.Decode(file)
-	if err != nil {
-		return nil, errors.Errorf("不支持的图片格式，请确认图片是否合格,%s", err.Error())
-	}
-	err = jpeg.Encode(buffer, img, nil)
-	if err != nil {
-		return nil, errors.Errorf("不支持的图片格式，请确认图片是否合格,%s", err.Error())
-	}*/
-	//fileByte := buffer.Bytes()
-
-	path := contextValue.Request.FormValue("path")
-	override := strings.EqualFold(contextValue.Request.FormValue("override"), "true")
-	name := contextValue.Request.FormValue("name")
-	fileType := contextValue.Request.FormValue("fileType")
 	direct := strings.EqualFold(contextValue.Request.FormValue("direct"), "true")
 	if direct {
 		TargetID := object.ParseUint(contextValue.Request.FormValue("TargetID"))
@@ -91,7 +47,7 @@ func (m *OSSUpload) HandlePost(context constrain.IContext) (constrain.IResult, e
 		}
 		Title := contextValue.Request.FormValue("Title")
 
-		uploadFile, err := oss.UploadFile(context, fileByte, path, fileType, override, name)
+		uploadFile, err := oss.UploadFileProxy(context)
 		if err != nil {
 			return nil, err
 		}
@@ -99,9 +55,9 @@ func (m *OSSUpload) HandlePost(context constrain.IContext) (constrain.IResult, e
 			return nil, result.NewCodeWithMessage(result.ActionResultCode(uploadFile.Code), uploadFile.Message)
 		}
 
-		s := sha256.New()
-		s.Write(fileByte)
-		sha256Text := hex.EncodeToString(s.Sum(nil))
+		//s := sha256.New()
+		//s.Write(fileByte)
+		sha256Text := tool.UUID() //hex.EncodeToString(s.Sum(nil))
 		/*hasMedia := dao.GetBy(db.Orm(), &model.Media{}, map[string]any{"SHA256": sha256Text})
 		if hasMedia.IsZero() {
 
@@ -116,21 +72,13 @@ func (m *OSSUpload) HandlePost(context constrain.IContext) (constrain.IResult, e
 				Target:   model.MediaTarget(Target),
 				Title:    Title,
 				Src:      uploadFile.Data.Path,
-				Size:     0,
-				Width:    0,
-				Height:   0,
-				FileName: fileHeader.Filename,
-				Format:   "",
+				Size:     uploadFile.Data.Size,
+				Width:    uploadFile.Data.Width,
+				Height:   uploadFile.Data.Height,
+				FileName: uploadFile.Data.Filename,
+				Format:   uploadFile.Data.Format,
 				SHA256:   sha256Text,
 			}
-			img, Format, err := image.Decode(bytes.NewReader(fileByte))
-			if err == nil {
-				media.Size = len(fileByte)
-				media.Width = img.Bounds().Dx()
-				media.Height = img.Bounds().Dy()
-				media.Format = Format //filepath.Ext(fileHeader.Filename)
-			}
-
 			err = dao.Create(db.Orm(), media)
 			if err != nil {
 				return nil, err
@@ -138,6 +86,30 @@ func (m *OSSUpload) HandlePost(context constrain.IContext) (constrain.IResult, e
 		}
 		return nil, nil
 	} else {
+
+		err := contextValue.Request.ParseMultipartForm(10 * 1024 * 1024)
+		if err != nil {
+			return nil, err
+		}
+		var file multipart.File
+		var fileHeader *multipart.FileHeader
+		file, fileHeader, err = contextValue.Request.FormFile("file")
+		if err != nil {
+			return nil, err
+		}
+		defer func(file multipart.File) {
+			err := file.Close()
+			if err != nil {
+				log.Println(err)
+			}
+		}(file)
+
+		fileByte, err := io.ReadAll(file)
+		if err != nil {
+			return nil, err
+		}
+		ext := filepath.Ext(fileHeader.Filename)
+
 		fileName, err := oss.CreateTempWithExt(fileByte, strings.ToLower(ext))
 		if err != nil {
 			return nil, err
@@ -164,7 +136,7 @@ func (m *OSSUpload) Handle(context constrain.IContext) (constrain.IResult, error
 }
 
 func (m *OSSUpload) ossLoad(ctx constrain.IContext) (constrain.IResult, error) {
-	contextValue := contexext.FromContext(ctx)
+	/*contextValue := contexext.FromContext(ctx)
 	server, err := ctx.Etcd().SelectInsideServer(config.MicroServerOSS) //config.MicroServerOSS.SelectInsideServer() //ctx.SelectInsideServer(config.MicroServerOSS)
 	if err != nil {
 		return nil, err
@@ -196,8 +168,30 @@ func (m *OSSUpload) ossLoad(ctx constrain.IContext) (constrain.IResult, error) {
 		}
 		director(request)
 	}
-	reverseProxy.ServeHTTP(contextValue.Response, contextValue.Request)
+	reverseProxy.ServeHTTP(contextValue.Response, contextValue.Request)*/
 
+	contextValue := contexext.FromContext(ctx)
+	server, err := ctx.Etcd().SelectInsideServer(config.MicroServerOSS) //config.MicroServerOSS.SelectInsideServer() //ctx.SelectInsideServer(config.MicroServerOSS)
+	if err != nil {
+		return nil, err
+	}
+	ossUrl, err := url.Parse(fmt.Sprintf("http://%s/assets%s", server, m.Get.Path))
+	if err != nil {
+		return nil, err
+	}
+
+	reverseProxy := httputil.NewSingleHostReverseProxy(ossUrl)
+	reverseProxy.Director = func(req *http.Request) {
+		req.URL = ossUrl
+	}
+	reverseProxy.ModifyResponse = func(response *http.Response) error {
+		response.Header.Del("Access-Control-Allow-Origin")
+		response.Header.Del("Access-Control-Allow-Headers")
+		response.Header.Del("Access-Control-Allow-Methods")
+		response.Header.Del("Access-Control-Allow-Credentials")
+		return nil
+	}
+	reverseProxy.ServeHTTP(contextValue.Response, contextValue.Request)
 	return &result.NoneResult{}, nil
 }
 func singleJoiningSlash(a, b string) string {

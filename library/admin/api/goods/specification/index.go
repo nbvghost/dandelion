@@ -117,10 +117,13 @@ func (g *Index) HandlePut(context constrain.IContext) (r constrain.IResult, err 
 					//tx.Rollback()
 					return nil, err
 				}
-				file, err := oss.UploadFile(context, fileBytes, fmt.Sprintf("goods/specification/%d", g.Put.Specification.ID), "", true, "")
+				file, err := oss.UploadFile(context, fileBytes, fmt.Sprintf("goods/specification/%d", g.Put.Specification.ID), "", true, item.Alt)
 				if err != nil {
 					//tx.Rollback()
 					return nil, err
+				}
+				if file.Code != 0 {
+					return nil, errors.New(file.Message)
 				}
 				g.Put.Specification.Pictures[i].Src = file.Data.Path
 			}
@@ -205,7 +208,7 @@ func (g *Index) HandlePost(context constrain.IContext) (r constrain.IResult, err
 				tx.Rollback()
 				return nil, err
 			}
-			file, err := oss.UploadFile(context, fileBytes, fmt.Sprintf("goods/specification/%d", newSpecification.ID), "", true, "")
+			file, err := oss.UploadFile(context, fileBytes, fmt.Sprintf("goods/specification/%d", newSpecification.ID), "", true, item.Alt)
 			if err != nil {
 				tx.Rollback()
 				return nil, err
