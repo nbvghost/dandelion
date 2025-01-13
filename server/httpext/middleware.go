@@ -178,7 +178,11 @@ func (m *httpMiddleware) getToken(w http.ResponseWriter, r *http.Request) string
 				http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 23), SameSite: http.SameSiteNoneMode})
 			}*/
 			//http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 23), SameSite: http.SameSiteNoneMode, Secure: true})
-			http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 23)})
+			if environments.Release() {
+				http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 24 * 15)})
+			} else {
+				http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 24 * 15), Secure: true, SameSite: http.SameSiteNoneMode})
+			}
 		}
 	} else {
 		token = cookie.Value
