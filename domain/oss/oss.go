@@ -9,7 +9,6 @@ import (
 	"github.com/nbvghost/tool/encryption"
 	"io"
 	"io/ioutil"
-	"log"
 	"mime/multipart"
 	"net/http"
 	"net/http/httputil"
@@ -135,8 +134,24 @@ func UploadFile(context constrain.IServiceContext, file []byte, path string, fil
 	}
 	return UploadFileBase(ossUrl, file, path, fileType, override, name)
 }
-func UploadFileProxy(context constrain.IServiceContext) (*Upload, error) {
-	contextValue := contexext.FromContext(context)
+
+type ProxyResponse struct {
+}
+
+func (m *ProxyResponse) Header() http.Header {
+	return http.Header{}
+}
+
+func (m *ProxyResponse) Write(i []byte) (int, error) {
+
+	return len(i), nil
+}
+
+func (m *ProxyResponse) WriteHeader(statusCode int) {
+}
+
+func UploadFileProxy(context constrain.IServiceContext, writer http.ResponseWriter, request *http.Request) (*Upload, error) {
+	//contextValue := contexext.FromContext(context)
 	server, err := context.Etcd().SelectInsideServer(config.MicroServerOSS) //config.MicroServerOSS.SelectInsideServer() //ctx.SelectInsideServer(config.MicroServerOSS)
 	if err != nil {
 		return nil, err
@@ -151,39 +166,36 @@ func UploadFileProxy(context constrain.IServiceContext) (*Upload, error) {
 		req.URL = ossUrl
 	}
 
-	var upload Upload
-	var callback = make(chan bool)
+	response := &ProxyResponse{}
+	var callback = make(chan *Upload, 1)
 	reverseProxy.ModifyResponse = func(response *http.Response) error {
 		var body []byte
 		body, err = io.ReadAll(response.Body)
 		if err != nil {
 			return err
 		}
-		defer func(Body io.ReadCloser) {
-			err := Body.Close()
-			if err != nil {
-				log.Println(err)
-			}
-		}(response.Body)
+		var upload Upload
 		err = json.Unmarshal(body, &upload)
 		if err != nil {
 			return err
 		}
-		callback <- true
+		callback <- &upload
 		//response.Header.Del("Access-Control-Allow-Origin")
 		//response.Header.Del("Access-Control-Allow-Headers")
 		//response.Header.Del("Access-Control-Allow-Methods")
 		//response.Header.Del("Access-Control-Allow-Credentials")
 		return nil
 	}
-
-	reverseProxy.ServeHTTP(contextValue.Response, contextValue.Request)
+	reverseProxy.ErrorHandler = func(writer http.ResponseWriter, request *http.Request, err error) {
+		callback <- &Upload{Code: 9077, Message: err.Error()}
+	}
+	reverseProxy.ServeHTTP(response, request)
 
 	t := time.NewTicker(time.Second * 60)
 	for {
 		select {
-		case <-callback:
-			return &upload, nil
+		case upload := <-callback:
+			return upload, nil
 		case <-t.C:
 			return nil, errors.New("oss upload file timeout")
 		}
