@@ -36,6 +36,6 @@ func (m *Media) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	return result.NewData(map[string]any{"List": list}), nil
 }
 func (m *Media) Handle(ctx constrain.IContext) (constrain.IResult, error) {
-	list := dao.Find(db.Orm(), &model.Media{}).Where(`"OID"=? and "TargetID"=? and "Target"=?`, m.Admin.OID, m.Get.TargetID, m.Get.Target).List()
+	list := dao.Find(db.Orm(), &model.Media{}).Where(`"OID"=? and "TargetID"=? and "Target"=?`, m.Admin.OID, m.Get.TargetID, m.Get.Target).Order(`"CreatedAt" desc`).List()
 	return result.NewData(map[string]any{"List": list}), nil
 }
