@@ -27,6 +27,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	_ "net/http/pprof"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -234,7 +235,7 @@ func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHea
 		if fileInfo, _ := os.Stat(oldFileName); fileInfo != nil {
 			readFile, err := os.ReadFile(oldFileName)
 			if err != nil {
-				return nil
+				return &oss.Upload{Code: 9901, Message: err.Error()}
 			}
 
 			sha.Reset()
@@ -249,7 +250,12 @@ func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHea
 				upload.Data.Size = len(body)
 				upload.Data.Width = 0
 				upload.Data.Height = 0
-				upload.Data.Path = fmt.Sprintf("/%s", filepath.Join(saveDir, name))
+
+				urlPath, err := url.JoinPath(saveDir, name)
+				if err != nil {
+					return &oss.Upload{Code: 9901, Message: err.Error()}
+				}
+				upload.Data.Path = fmt.Sprintf("/%s", urlPath)
 				return upload
 			}
 
@@ -328,18 +334,12 @@ func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHea
 		upload.Data.Height = img.Bounds().Dy()
 	}
 
-	upload.Data.Path = fmt.Sprintf("/%s", filepath.Join(saveDir, name))
+	urlPath, err := url.JoinPath(saveDir, name)
+	if err != nil {
+		return &oss.Upload{Code: 9901, Message: err.Error()}
+	}
+	upload.Data.Path = fmt.Sprintf("/%s", urlPath)
 	return upload
-
-	/*if len(saveDir) == 0 {
-		upload.Data.Path = fmt.Sprintf("/%s", name)
-		upload.Data.Ext = filepath.Ext(filepath.Ext(fileHeader.Filename))
-		return upload
-	} else {
-		upload.Data.Path = fmt.Sprintf("/%s", filepath.Join(saveDir, name))
-		upload.Data.Ext = filepath.Ext(filepath.Ext(fileHeader.Filename))
-		return upload
-	}*/
 }
 func (m *UploadHandle) writeResult(result *oss.Upload, writer http.ResponseWriter) {
 	var body []byte
