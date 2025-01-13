@@ -56,9 +56,9 @@ func (t *TemplateDir) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 	writer.Header().Set("Access-Control-Allow-Methods", "GET")
 	writer.Header().Set("Access-Control-Allow-Credentials", "true")
 
-	//dir, fileName := filepath.Split(request.URL.Path)
+	request.URL.Path = strings.Split(request.URL.Path, "@")[0]
 
-	fp := filepath.Join("assets", strings.Split(request.URL.Path, "@")[0])
+	fp := filepath.Join("assets", request.URL.Path)
 	//log.Println("fp", fp)
 	fileInfo, err := os.Stat(fp)
 	if os.IsNotExist(err) || fileInfo.IsDir() {
