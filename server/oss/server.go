@@ -58,7 +58,7 @@ func (t *TemplateDir) ServeHTTP(writer http.ResponseWriter, request *http.Reques
 
 	//dir, fileName := filepath.Split(request.URL.Path)
 
-	fp := filepath.Join("assets", request.URL.Path)
+	fp := filepath.Join("assets", strings.Split(request.URL.Path, "@")[0])
 	//log.Println("fp", fp)
 	fileInfo, err := os.Stat(fp)
 	if os.IsNotExist(err) || fileInfo.IsDir() {
