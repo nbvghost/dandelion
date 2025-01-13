@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 )
 
 var cwebpPath string = ""
@@ -21,13 +22,24 @@ func init() {
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		log.Printf("can't create user cache dir: %v", err)
 	}
-	cwebpPath = filepath.Join(dir, "cwebp")
+
+	if runtime.GOOS == "windows" {
+		cwebpPath = filepath.Join(dir, "cwebp.exe")
+	} else {
+		cwebpPath = filepath.Join(dir, "cwebp")
+	}
+
 	err := os.WriteFile(cwebpPath, cwebpBytes, os.ModePerm)
 	if err != nil {
 		panic(err)
 	}
 
-	gif2webpPath = filepath.Join(dir, "gif2webp")
+	if runtime.GOOS == "windows" {
+		gif2webpPath = filepath.Join(dir, "gif2webp.exe")
+	} else {
+		gif2webpPath = filepath.Join(dir, "gif2webp")
+	}
+
 	err = os.WriteFile(gif2webpPath, gif2webpBytes, os.ModePerm)
 	if err != nil {
 		panic(err)
