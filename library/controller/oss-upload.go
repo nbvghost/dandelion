@@ -12,8 +12,6 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/tool"
-	"github.com/nbvghost/tool/object"
 	"io"
 	"log"
 	"mime/multipart"
@@ -27,57 +25,47 @@ import (
 type OSSUpload struct {
 	Admin *entity.SessionMappingData `mapping:""`
 	Get   struct {
-		//TempFilename string `form:"filename"`
 		Path string `form:"path"`
 	} `method:"Get"`
+	Post struct {
+		Direct   bool           `form:"Direct"`
+		TargetID dao.PrimaryKey `form:"TargetID"`
+		Target   string         `form:"Target"`
+		Title    string         `form:"Title"`
+	} `method:"Post"`
 }
 
 func (m *OSSUpload) HandlePost(context constrain.IContext) (constrain.IResult, error) {
 	contextValue := contexext.FromContext(context)
 
-	direct := strings.EqualFold(contextValue.Request.FormValue("direct"), "true")
-	if direct {
-		TargetID := object.ParseUint(contextValue.Request.FormValue("TargetID"))
-		Target := contextValue.Request.FormValue("Target")
-		if TargetID == 0 {
+	if m.Post.Direct {
+		if m.Post.TargetID == 0 {
 			return nil, errors.New("TargetID不能为空")
 		}
-		if len(Target) == 0 {
+		if len(m.Post.Target) == 0 {
 			return nil, errors.New("Target不能为空")
 		}
-		Title := contextValue.Request.FormValue("Title")
-
-		uploadFile, err := oss.UploadFileProxy(context)
+		uploadFile, err := oss.UploadFileProxy(context, contextValue.Response, contextValue.Request)
 		if err != nil {
 			return nil, err
 		}
 		if uploadFile.Code != 0 {
 			return nil, result.NewCodeWithMessage(result.ActionResultCode(uploadFile.Code), uploadFile.Message)
 		}
-
-		//s := sha256.New()
-		//s.Write(fileByte)
-		sha256Text := tool.UUID() //hex.EncodeToString(s.Sum(nil))
-		/*hasMedia := dao.GetBy(db.Orm(), &model.Media{}, map[string]any{"SHA256": sha256Text})
-		if hasMedia.IsZero() {
-
-		} else {
-
-		}*/
-		media := dao.GetBy(db.Orm(), &model.Media{}, map[string]any{"OID": m.Admin.OID, "TargetID": TargetID, "Target": Target, "SHA256": sha256Text}).(*model.Media)
+		media := dao.GetBy(db.Orm(), &model.Media{}, map[string]any{"OID": m.Admin.OID, "TargetID": m.Post.TargetID, "Target": m.Post.Target, "SHA256": uploadFile.Data.SHA256}).(*model.Media)
 		if media.IsZero() {
 			media = &model.Media{
 				OID:      m.Admin.OID,
-				TargetID: dao.PrimaryKey(TargetID),
-				Target:   model.MediaTarget(Target),
-				Title:    Title,
+				TargetID: m.Post.TargetID,
+				Target:   model.MediaTarget(m.Post.Target),
+				Title:    m.Post.Title,
 				Src:      uploadFile.Data.Path,
 				Size:     uploadFile.Data.Size,
 				Width:    uploadFile.Data.Width,
 				Height:   uploadFile.Data.Height,
 				FileName: uploadFile.Data.Filename,
 				Format:   uploadFile.Data.Format,
-				SHA256:   sha256Text,
+				SHA256:   uploadFile.Data.SHA256,
 			}
 			err = dao.Create(db.Orm(), media)
 			if err != nil {
