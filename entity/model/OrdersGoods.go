@@ -71,13 +71,17 @@ type OrdersGoods struct {
 	Image           string                          `gorm:"column:Image"`          //Deprecated:当前规格的图片，如果规格没有图片，使用产品主图的第一张
 	TotalCostPrice  uint                            `gorm:"column:TotalCostPrice"` //总价-原价
 	TotalSellPrice  uint                            `gorm:"column:TotalSellPrice"` //总价-销售价
-	TotalNetWeight  uint                            `gorm:"column:TotalNetWeight"` //总的净重,包含所有的数量,在收到货盘点得出
+	//TotalNetWeight  uint                            `gorm:"column:TotalNetWeight"` //总的净重,包含所有的数量,在收到货盘点得出
 	//Pictures        sqltype.Array[sqltype.Image]    `gorm:"column:Pictures;type:JSON"` //规格的多张图片,当前规格的图片，如果规格没有图片，使用产品主图的第一张
 	//SpecificationID uint `gorm:"column:SpecificationID"`             //
 	//CollageNo     string `gorm:"column:CollageNo"` //拼团码，每个订单都是唯一
 	//TimeSellID     uint `gorm:"column:TimeSellID"`             //限时抢购ID
 	//TimeSell       string `gorm:"column:TimeSell;type:text"` //json
 	//GoodsID         uint `gorm:"column:GoodsID"`                     //
+}
+
+func (m *OrdersGoods) GetTotalNetWeight() uint {
+	return m.Quantity * m.Specification.Weight
 }
 
 /*
