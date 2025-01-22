@@ -87,19 +87,19 @@ func (g *Index) HandlePut(context constrain.IContext) (r constrain.IResult, err 
 		s["Unit"] = g.Put.Specification.Unit
 	}
 	if g.Put.Specification.Weight > 0 {
-		s["Weight"] = object.ParseUint(g.Put.Specification.Weight * 1000.0)
+		s["Weight"] = object.ParseUint(object.Decimal((g.Put.Specification.Weight)*1000.0, 0))
 	}
 	if g.Put.Specification.Stock > 0 {
 		s["Stock"] = g.Put.Specification.Stock
 	}
 	if g.Put.Specification.CostPrice > 0 {
-		s["CostPrice"] = object.ParseUint(g.Put.Specification.CostPrice * 100.0)
+		s["CostPrice"] = object.ParseUint(object.Decimal((g.Put.Specification.CostPrice)*100.0, 0))
 	}
 	if g.Put.Specification.MarketPrice > 0 {
-		s["MarketPrice"] = object.ParseUint(g.Put.Specification.MarketPrice * 100.0)
+		s["MarketPrice"] = object.ParseUint(object.Decimal(g.Put.Specification.MarketPrice*100.0, 0))
 	}
 	if g.Put.Specification.Brokerage > 0 {
-		s["Brokerage"] = object.ParseUint(g.Put.Specification.Brokerage * 100.0)
+		s["Brokerage"] = object.ParseUint(object.Decimal(g.Put.Specification.Brokerage*100.0, 0))
 	}
 	if len(g.Put.Specification.Remark) > 0 {
 		s["Remark"] = g.Put.Specification.Remark
