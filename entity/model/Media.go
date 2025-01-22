@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/lib/pq"
 	"github.com/nbvghost/dandelion/library/dao"
 )
 
@@ -23,6 +24,7 @@ type Media struct {
 	Height   int            `gorm:"column:Height"`
 	FileName string         `gorm:"column:FileName"`
 	Format   string         `gorm:"column:Format"`
+	Tags     pq.StringArray `gorm:"column:Tags;type:text[]"`
 }
 
 func (Media) TableName() string {
