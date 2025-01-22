@@ -58,6 +58,7 @@ func (m *OSSUpload) HandlePost(context constrain.IContext) (constrain.IResult, e
 				OID:      m.Admin.OID,
 				TargetID: m.Post.TargetID,
 				Target:   model.MediaTarget(m.Post.Target),
+				SHA256:   uploadFile.Data.SHA256,
 				Title:    m.Post.Title,
 				Src:      uploadFile.Data.Path,
 				Size:     uploadFile.Data.Size,
@@ -65,7 +66,7 @@ func (m *OSSUpload) HandlePost(context constrain.IContext) (constrain.IResult, e
 				Height:   uploadFile.Data.Height,
 				FileName: uploadFile.Data.Filename,
 				Format:   uploadFile.Data.Format,
-				SHA256:   uploadFile.Data.SHA256,
+				Tags:     []string{},
 			}
 			err = dao.Create(db.Orm(), media)
 			if err != nil {

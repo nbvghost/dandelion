@@ -54,6 +54,9 @@ func New(err error, msg string) *ActionResult {
 		}
 	}
 }
+func NewNotFound() *ActionResult {
+	return NewCodeWithMessage(NotFound, "not found")
+}
 func NewSuccess(msg string) *ActionResult {
 	return &ActionResult{
 		Code:    Success,
