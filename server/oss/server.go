@@ -31,7 +31,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 //go:embed default.png
@@ -206,7 +205,8 @@ func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHea
 		}
 	}
 	if err := os.MkdirAll(fileRootDir, os.ModePerm); err != nil {
-		pathErr, ok := err.(*fs.PathError)
+		var pathErr *fs.PathError
+		ok := errors.As(err, &pathErr)
 		if !ok && pathErr != nil {
 			//result.Code = 9901
 			//result.Message = pathErr.Error()
@@ -230,49 +230,53 @@ func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHea
 	SHA256 := hex.EncodeToString(sha.Sum(nil))
 
 	ext := filepath.Ext(name)
-	{
-		oldFileName := filepath.Join(fileRootDir, name)
-		if fileInfo, _ := os.Stat(oldFileName); fileInfo != nil {
-			readFile, err := os.ReadFile(oldFileName)
-			if err != nil {
-				return &oss.Upload{Code: 9901, Message: err.Error()}
-			}
 
-			sha.Reset()
-			sha.Write(readFile)
-			oldSHA256 := hex.EncodeToString(sha.Sum(nil))
-			if oldSHA256 == SHA256 {
-				//相同直接返回
-				upload.Data.Ext = ext
-				upload.Data.Format = ""
-				upload.Data.SHA256 = SHA256
-				upload.Data.Filename = name
-				upload.Data.Size = len(body)
-				upload.Data.Width = 0
-				upload.Data.Height = 0
-
-				urlPath, err := url.JoinPath(saveDir, name)
+	//now := time.Now().UnixMilli()
+	img, format, err := image.Decode(bytes.NewReader(body))
+	//log.Println("image.Decode", time.Now().UnixMilli()-now)
+	if err != nil {
+		/*{
+			//判断是否有一样的数据
+			oldFileName := filepath.Join(fileRootDir, name)
+			if fileInfo, _ := os.Stat(oldFileName); fileInfo != nil {
+				readFile, err := os.ReadFile(oldFileName)
 				if err != nil {
 					return &oss.Upload{Code: 9901, Message: err.Error()}
 				}
-				upload.Data.Path = fmt.Sprintf("/%s", urlPath)
-				return upload
+
+				sha.Reset()
+				sha.Write(readFile)
+				oldSHA256 := hex.EncodeToString(sha.Sum(nil))
+				if oldSHA256 == SHA256 {
+					//相同直接返回
+					upload.Data.Ext = ext
+					upload.Data.Format = ""
+					upload.Data.SHA256 = SHA256
+					upload.Data.Filename = name
+					upload.Data.Size = len(body)
+					upload.Data.Width = 0
+					upload.Data.Height = 0
+
+					urlPath, err := url.JoinPath(saveDir, name)
+					if err != nil {
+						return &oss.Upload{Code: 9901, Message: err.Error()}
+					}
+					upload.Data.Path = fmt.Sprintf("/%s", urlPath)
+					return upload
+				}
+
+				if len(ext) == 0 {
+					name = name + "-" + time.Now().Format("20060102150405")
+				} else {
+					name = strings.ReplaceAll(name, ext, "-"+time.Now().Format("20060102150405")+ext)
+				}
+
 			}
+		}*/
 
-			if len(ext) == 0 {
-				name = name + "-" + time.Now().Format("20060102150405")
-			} else {
-				name = strings.ReplaceAll(name, ext, "-"+time.Now().Format("20060102150405")+ext)
-			}
+		path := filepath.Join(fileRootDir, name)
 
-		}
-	}
-
-	now := time.Now().UnixMilli()
-	img, format, err := image.Decode(bytes.NewReader(body))
-	log.Println("image.Decode", time.Now().UnixMilli()-now)
-	if err != nil {
-		err = os.WriteFile(filepath.Join(fileRootDir, name), body, os.ModePerm)
+		err = os.WriteFile(path, body, os.ModePerm)
 		if err != nil {
 			return &oss.Upload{Code: 9903, Message: err.Error()}
 		}
@@ -303,15 +307,13 @@ func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHea
 		//var imgBuf = bytes.NewBuffer(nil)
 		//_ = png.Encode(imgBuf, img)
 		//log.Println("png.Encode", time.Now().UnixMilli()-now)
-		now = time.Now().UnixMilli()
 		//imgBytes := imgBuf.Bytes()
-		err = os.WriteFile(filepath.Join(fileRootDir, name), body, os.ModePerm)
+		path := filepath.Join(fileRootDir, name)
+		err = os.WriteFile(path, body, os.ModePerm)
 		if err != nil {
 			return &oss.Upload{Code: 9903, Message: err.Error()}
 		}
-		log.Println("os.WriteFile", time.Now().UnixMilli()-now)
 
-		now = time.Now().UnixMilli()
 		//改用webp图片格式,如果webp不支持的格式,直接保存
 		if strings.ToUpper(format) == "GIF" {
 			if err := webpicture.EncodeGIF(filepath.Join(fileRootDir, name), filepath.Join(fileRootDir, name)); err != nil {
@@ -322,8 +324,6 @@ func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHea
 				return &oss.Upload{Code: 9903, Message: err.Error()}
 			}
 		}
-
-		log.Println("webpicture.Encode", time.Now().UnixMilli()-now)
 
 		upload.Data.Ext = ext
 		upload.Data.Format = format
