@@ -185,7 +185,7 @@ func (m *UploadHandle) ServeHTTP(writer http.ResponseWriter, request *http.Reque
 	}
 	result := m.upload(file, fileHeader, saveDir, name, override)
 	m.writeResult(result, writer)
-	log.Println("上传文件", name, fmt.Sprintf("%t", result))
+	log.Println("上传文件", name, fmt.Sprintf("%+v", result))
 }
 
 func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHeader, saveDir string, name string, override bool) *oss.Upload {
@@ -276,7 +276,7 @@ func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHea
 
 		path := filepath.Join(fileRootDir, name)
 		_, err := os.Stat(path)
-		if err == nil {
+		if err == nil && !override {
 			upload.Code = 9523
 			upload.Message = "文件已存在"
 			return upload
@@ -316,7 +316,7 @@ func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHea
 		//imgBytes := imgBuf.Bytes()
 		path := filepath.Join(fileRootDir, name)
 		_, err := os.Stat(path)
-		if err == nil {
+		if err == nil && !override {
 			upload.Code = 9523
 			upload.Message = "文件已存在"
 			return upload
