@@ -22,6 +22,7 @@ type List struct {
 }
 
 type ListQuery struct {
+	Keyword       string
 	Title         string
 	GoodsTypeID   dao.PrimaryKey
 	Introduce     string
@@ -53,6 +54,27 @@ func (m *List) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	}
 	if len(m.Post.Query.Specification.Label) > 0 {
 		orm.Where(`"Specification"."Label" ilike ? or "Specification"."Language"->>'Label' ilike ?`, fmt.Sprintf("%%%s%%", m.Post.Query.Specification.Label), fmt.Sprintf("%%%s%%", m.Post.Query.Specification.Label))
+	}
+
+	if len(m.Post.Query.Keyword) > 0 {
+		orm.Where(`
+"Goods"."Title" ilike ? or
+"Goods"."Summary" ilike ? or
+"Goods"."Introduce" ilike ? or
+"Goods"."Language"->>'Title' ilike ? or
+"Goods"."Language"->>'Summary' ilike ? or
+"Goods"."Language"->>'Introduce' ilike ? or
+"Specification"."Label" ilike ? or 
+"Specification"."Language"->>'Label' ilike ?
+`,
+			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword),
+			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword),
+			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword),
+			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword),
+			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword),
+			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword),
+			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword),
+			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword))
 	}
 
 	var total int64
