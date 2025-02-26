@@ -74,13 +74,14 @@ func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contex
 
 	var bodyValue reflect.Value
 	var methodStruct reflect.Value
-	{
+	var apiHandlerTypeElem = reflect.TypeOf(apiHandler).Elem()
+	if apiHandlerTypeElem.NumField() > 0 {
 		v := reflect.ValueOf(apiHandler)
-		t := reflect.TypeOf(apiHandler).Elem()
-		num := t.NumField()
+		//t := reflect.TypeOf(apiHandler).Elem()
+		num := apiHandlerTypeElem.NumField()
 		fieldIndex := -1
 		for i := 0; i < num; i++ {
-			method := t.Field(i).Tag.Get("method")
+			method := apiHandlerTypeElem.Field(i).Tag.Get("method")
 			if strings.EqualFold(method, contextValue.Request.Method) {
 				fieldIndex = i
 				break
@@ -118,34 +119,34 @@ func (m *httpMiddleware) bindData(apiHandler any, ctx constrain.IContext, contex
 				bodyValue.SetBytes(body)
 			}
 		}
-	}
 
-	err = binding.Header.Bind(contextValue.Request, methodStruct.Addr().Interface())
-	if err != nil {
-		ctx.Logger().With(zap.Error(err))
-		return err
-	}
-
-	uriVars := mux.Vars(contextValue.Request)
-	if len(uriVars) > 0 {
-		uriMap := make(map[string][]string)
-		for uriKey := range uriVars {
-			uriMap[uriKey] = []string{uriVars[uriKey]}
+		err = binding.Header.Bind(contextValue.Request, methodStruct.Addr().Interface())
+		if err != nil {
+			ctx.Logger().With(zap.Error(err))
+			return err
 		}
-		if len(uriMap) > 0 {
-			err = binding.Uri.BindUri(uriMap, methodStruct.Addr().Interface())
-			if err != nil {
-				ctx.Logger().With(zap.Error(err))
-				return err
+		uriVars := mux.Vars(contextValue.Request)
+		if len(uriVars) > 0 {
+			uriMap := make(map[string][]string)
+			for uriKey := range uriVars {
+				uriMap[uriKey] = []string{uriVars[uriKey]}
+			}
+			if len(uriMap) > 0 {
+				err = binding.Uri.BindUri(uriMap, methodStruct.Addr().Interface())
+				if err != nil {
+					ctx.Logger().With(zap.Error(err))
+					return err
+				}
 			}
 		}
+
+		err = binding.Query.Bind(contextValue.Request, methodStruct.Addr().Interface())
+		if err != nil {
+			ctx.Logger().With(zap.Error(err))
+			return err
+		}
 	}
 
-	err = binding.Query.Bind(contextValue.Request, methodStruct.Addr().Interface())
-	if err != nil {
-		ctx.Logger().With(zap.Error(err))
-		return err
-	}
 	contextValue.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 	return nil
 }
