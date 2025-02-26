@@ -66,12 +66,13 @@ func (g *Index) Handle(context constrain.IContext) (r constrain.IResult, err err
 	return result.NewData(dao.GetByPrimaryKey(db.Orm(), &model.Specification{}, g.Get.ID)), err
 }
 func (g *Index) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
-	if g.Put.Specification.ID == 0 {
+	has := dao.GetByPrimaryKey(db.Orm(), &model.Specification{}, g.Put.Specification.ID).(*model.Specification)
+	if has.IsZero() {
 		return nil, errors.New("数据错误")
 	}
 
 	s := make(map[string]any)
-	if len(g.Put.Specification.Label) > 0 {
+	if g.Put.Specification.Label != has.Label {
 		s["Label"] = g.Put.Specification.Label
 	}
 	/*if len(g.Put.Name) > 0 {
@@ -80,31 +81,29 @@ func (g *Index) HandlePut(context constrain.IContext) (r constrain.IResult, err 
 	/*if len(g.Put.Specification.LabelIndex) > 0 {
 		s["LabelIndex"] = g.Put.Specification.LabelIndex
 	}*/
-	if g.Put.Specification.Num > 0 {
+	if g.Put.Specification.Num != has.Num {
 		s["Num"] = g.Put.Specification.Num
 	}
-	if len(g.Put.Specification.Unit) > 0 {
+	if g.Put.Specification.Unit != has.Unit {
 		s["Unit"] = g.Put.Specification.Unit
 	}
-	if g.Put.Specification.Weight > 0 {
-		s["Weight"] = object.ParseUint(object.Decimal((g.Put.Specification.Weight)*1000.0, 0))
-	}
-	if g.Put.Specification.Stock > 0 {
+
+	s["Weight"] = object.ParseUint(object.Decimal((g.Put.Specification.Weight)*1000.0, 0))
+
+	if g.Put.Specification.Stock != has.Stock {
 		s["Stock"] = g.Put.Specification.Stock
 	}
-	if g.Put.Specification.CostPrice > 0 {
-		s["CostPrice"] = object.ParseUint(object.Decimal((g.Put.Specification.CostPrice)*100.0, 0))
-	}
-	if g.Put.Specification.MarketPrice > 0 {
-		s["MarketPrice"] = object.ParseUint(object.Decimal(g.Put.Specification.MarketPrice*100.0, 0))
-	}
-	if g.Put.Specification.Brokerage > 0 {
-		s["Brokerage"] = object.ParseUint(object.Decimal(g.Put.Specification.Brokerage*100.0, 0))
-	}
-	if len(g.Put.Specification.Remark) > 0 {
+
+	s["CostPrice"] = object.ParseUint(object.Decimal((g.Put.Specification.CostPrice)*100.0, 0))
+
+	s["MarketPrice"] = object.ParseUint(object.Decimal(g.Put.Specification.MarketPrice*100.0, 0))
+
+	s["Brokerage"] = object.ParseUint(object.Decimal(g.Put.Specification.Brokerage*100.0, 0))
+
+	if g.Put.Specification.Remark != has.Remark {
 		s["Remark"] = g.Put.Specification.Remark
 	}
-	if len(g.Put.Specification.Language.Label) > 0 {
+	if g.Put.Specification.Language.Label != has.Language.Label {
 		s["Language"] = g.Put.Specification.Language
 	}
 
@@ -135,7 +134,7 @@ func (g *Index) HandlePut(context constrain.IContext) (r constrain.IResult, err 
 	if err != nil {
 		return nil, err
 	}
-	return result.NewData(map[string]any{"Specifications": dao.Find(db.Orm(), &model.Specification{}).Where(`"GoodsID"=?`, g.Put.Specification.GoodsID).Order(`"LabelIndex"::text asc`).List()}), err
+	return result.NewDataMessage(map[string]any{"Specifications": dao.Find(db.Orm(), &model.Specification{}).Where(`"GoodsID"=?`, g.Put.Specification.GoodsID).Order(`"LabelIndex"::text asc`).List()}, "修改成功"), err
 }
 func (g *Index) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
 	if g.Post.Specification.GoodsID == 0 {
@@ -222,7 +221,7 @@ func (g *Index) HandlePost(context constrain.IContext) (r constrain.IResult, err
 		return nil, err
 	}
 	tx.Commit()
-	return result.NewData(map[string]any{"Specifications": dao.Find(db.Orm(), &model.Specification{}).Where(`"GoodsID"=?`, g.Post.Specification.GoodsID).Order(`"LabelIndex"::text asc`).List()}), err
+	return result.NewDataMessage(map[string]any{"Specifications": dao.Find(db.Orm(), &model.Specification{}).Where(`"GoodsID"=?`, g.Post.Specification.GoodsID).Order(`"LabelIndex"::text asc`).List()}, "添加成功"), err
 }
 func (m *Index) HandleDelete(context constrain.IContext) (r constrain.IResult, err error) {
 	if m.Delete.ID == 0 {
@@ -233,5 +232,5 @@ func (m *Index) HandleDelete(context constrain.IContext) (r constrain.IResult, e
 	if err != nil {
 		return nil, err
 	}
-	return result.NewData(map[string]any{"Specifications": dao.Find(db.Orm(), &model.Specification{}).Where(`"GoodsID"=?`, has.GoodsID).Order(`"LabelIndex"::text asc`).List()}), err
+	return result.NewDataMessage(map[string]any{"Specifications": dao.Find(db.Orm(), &model.Specification{}).Where(`"GoodsID"=?`, has.GoodsID).Order(`"LabelIndex"::text asc`).List()}, "删除成功"), err
 }
