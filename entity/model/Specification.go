@@ -16,6 +16,7 @@ type Specification struct {
 	GoodsID dao.PrimaryKey `gorm:"column:GoodsID;index"` //
 	//Name        string                        `gorm:"column:Name"`                               //
 	Label       string                        `gorm:"column:Label"`                              //
+	CodeNo      string                        `gorm:"column:CodeNo"`                             //
 	LabelIndex  sqltype.Array[dao.PrimaryKey] `gorm:"column:LabelIndex;type:JSON"`               //
 	Num         uint                          `gorm:"column:Num"`                                //这个规格里面包含多少个小件
 	Unit        string                        `gorm:"column:Unit"`                               //单位

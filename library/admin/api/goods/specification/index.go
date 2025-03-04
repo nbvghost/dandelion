@@ -30,6 +30,7 @@ type Index struct {
 			ID          dao.PrimaryKey
 			GoodsID     dao.PrimaryKey
 			Label       string
+			CodeNo      string
 			Num         uint
 			Unit        string
 			Weight      float64
@@ -47,6 +48,7 @@ type Index struct {
 			ID          dao.PrimaryKey
 			GoodsID     dao.PrimaryKey
 			Label       string
+			CodeNo      string
 			Num         uint
 			Unit        string
 			Weight      float64
@@ -83,6 +85,9 @@ func (g *Index) HandlePut(context constrain.IContext) (r constrain.IResult, err 
 	}*/
 	if g.Put.Specification.Num != has.Num {
 		s["Num"] = g.Put.Specification.Num
+	}
+	if g.Put.Specification.CodeNo != has.CodeNo {
+		s["CodeNo"] = g.Put.Specification.CodeNo
 	}
 	if g.Put.Specification.Unit != has.Unit {
 		s["Unit"] = g.Put.Specification.Unit
@@ -186,6 +191,7 @@ func (g *Index) HandlePost(context constrain.IContext) (r constrain.IResult, err
 		//LabelIndex:  specification.LabelIndex,
 		Num:         specification.Num,
 		Unit:        specification.Unit,
+		CodeNo:      specification.CodeNo,
 		Weight:      object.ParseUint(specification.Weight * 1000.0),
 		Stock:       specification.Stock,
 		CostPrice:   object.ParseUint(specification.CostPrice * 100.0),

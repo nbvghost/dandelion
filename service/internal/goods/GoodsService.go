@@ -3,29 +3,28 @@ package goods
 import (
 	"fmt"
 	"github.com/lib/pq"
+	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/cache"
+	"github.com/nbvghost/dandelion/domain/com"
+	"github.com/nbvghost/dandelion/entity/extends"
+	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/entity/sqltype"
+	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/library/result"
+	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/internal/activity"
 	"github.com/nbvghost/dandelion/service/internal/express"
 	"github.com/nbvghost/dandelion/service/serviceargument"
 	"github.com/nbvghost/tool/object"
+	"github.com/pkg/errors"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"log"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
-
-	"gorm.io/gorm"
-
-	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/entity/extends"
-	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/library/util"
-	"github.com/pkg/errors"
 )
 
 type GoodsService struct {
@@ -238,40 +237,47 @@ func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Go
 		goods.Tags = make(pq.StringArray, 0)
 	}
 
-	goods.OID = OID
 	if len(goods.Title) == 0 {
-		return goods, errors.Errorf("请指定产品标题")
+		return nil, errors.Errorf("请指定产品标题")
 	}
 
-	g := m.FindGoodsByTitle(OID, goods.Title)
-	if g.IsZero() == false && g.ID != goods.ID {
-		return &g, errors.Errorf("重复的产品标题")
+	{
+		has := m.FindGoodsByTitle(OID, goods.Title)
+		if has.IsZero() == false && has.ID != goods.ID {
+			return nil, errors.Errorf("重复的产品标题")
+		}
 	}
 
-	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(goods.Title)
-	g = m.getGoodsByUri(OID, uri)
-	if !g.IsZero() {
-		uri = fmt.Sprintf("%s-%d", uri, time.Now().Unix())
-	}
-	goods.Uri = uri
-	if goods.ID.IsZero() {
+	if goods.ID == 0 {
+		goods.OID = OID
 		err := tx.Create(goods).Error
 		if err != nil {
-			return goods, err
+			return nil, err
 		}
 	} else {
-		//err = tx.Save(goods).Error
-		err := tx.Model(goods).Updates(goods).Error
-		if err != nil {
-			return goods, err
+		has := dao.GetByPrimaryKey(tx, &model.Goods{}, goods.ID).(*model.Goods)
+		changeMap := com.Diff(has, goods, "ID", "OID", "Entity")
+		if len(changeMap) > 0 {
+			//tx.Model(&model.Goods{}).Updates(changeMap).Error
+			err := dao.UpdateByPrimaryKey(tx, &model.Goods{}, goods.ID, changeMap)
+			if err != nil {
+				return nil, err
+			}
+			goods = dao.GetByPrimaryKey(tx, &model.Goods{}, goods.ID).(*model.Goods)
 		}
 	}
 
-	//添加或修改的时候不删除规格
-	/*err=service.UnscopedDeleteWhere(tx,&model.Specification{},"GoodsID=?",goods.ID)
-	if err!=nil{
-		return err
-	}*/
+	changeMap := make(map[string]any)
+
+	{
+		uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(goods.Title)
+		has := m.getGoodsByUri(OID, uri)
+		if has.IsZero() == false && has.ID != goods.ID {
+			uri = fmt.Sprintf("%s-%d", uri, time.Now().Unix())
+		}
+		goods.Uri = fmt.Sprintf("%s-%d", uri, goods.ID)
+		changeMap["Uri"] = goods.Uri
+	}
 
 	if len(specifications) > 0 {
 		var total uint
@@ -282,30 +288,36 @@ func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Go
 			if value.ID.IsZero() {
 				err := tx.Create(&value).Error
 				if err != nil {
-					return goods, err
+					return nil, err
 				}
 				total = total + value.Stock
 			} else {
 				err := tx.Save(&value).Error
 				if err != nil {
-					return goods, err
+					return nil, err
 				}
-				//err = tx.Model(&goods).Updates(goods).Error
 				total = total + value.Stock
 			}
 		}
 		goods.Stock = total
+		changeMap["Stock"] = goods.Stock
 	}
 
 	if goods.ExpressTemplateID == 0 {
-		expressTemplate := m.ExpressTemplateService.GetExpressTemplateByOID(OID)
+		/*expressTemplate := m.ExpressTemplateService.GetExpressTemplateByOID(OID)
 		if expressTemplate.IsZero() {
-			return goods, errors.New("请设置快递信息")
+			return nil, errors.New("请设置快递信息")
 		}
 		goods.ExpressTemplateID = expressTemplate.ID
+		changeMap["ExpressTemplateID"] = goods.ExpressTemplateID*/
 	}
-	err := tx.Save(goods).Error
-	return goods, err
+	if len(changeMap) > 0 {
+		err := dao.UpdateByPrimaryKey(tx, &model.Goods{}, goods.ID, changeMap)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return goods, nil
 }
 
 func (m GoodsService) Rating(goodsID dao.PrimaryKey) *extends.GoodsRating {

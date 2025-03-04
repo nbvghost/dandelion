@@ -38,9 +38,19 @@ changePtr:为要修改的对象的数据
 */
 func Diff(fromPtr, changePtr any, ignoreField ...string) map[string]any {
 	ma := make(map[string]any)
-	vfrom := reflect.ValueOf(fromPtr).Elem()
+
+	var vfrom reflect.Value = reflect.ValueOf(fromPtr)
+	var vto reflect.Value = reflect.ValueOf(changePtr)
+	if vfrom.Kind() == reflect.Ptr {
+		vfrom = vfrom.Elem()
+	}
+	if vto.Kind() == reflect.Ptr {
+		vto = vto.Elem()
+	}
+	//log.Println(reflect.ValueOf(fromPtr).Kind())
+	//vfrom := reflect.ValueOf(fromPtr).Elem()
 	tfrom := vfrom.Type()
-	vto := reflect.ValueOf(changePtr).Elem()
+	//vto := reflect.ValueOf(changePtr).Elem()
 	tto := vfrom.Type()
 
 	//比较时，两个值 必须是同一种数据类型
@@ -98,7 +108,7 @@ func Diff(fromPtr, changePtr any, ignoreField ...string) map[string]any {
 			vtoField = vtoField.Elem()
 		}
 
-		if !vtoField.IsValid(){
+		if !vtoField.IsValid() {
 			continue
 		}
 		tv := vtoField.Interface()
@@ -108,6 +118,9 @@ func Diff(fromPtr, changePtr any, ignoreField ...string) map[string]any {
 			if !reflect.DeepEqual(fv, tv) {
 				ma[fieldName] = tv
 			}
+		case reflect.Struct:
+			//subChangeMap := Diff(fv, tv, ignoreField...)
+			ma[fieldName] = tv
 		default:
 			if fieldKind != reflect.Struct {
 				if fv != tv {

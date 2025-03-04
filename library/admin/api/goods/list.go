@@ -9,6 +9,7 @@ import (
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
+	"strings"
 )
 
 type List struct {
@@ -56,7 +57,8 @@ func (m *List) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 		orm.Where(`"Specification"."Label" ilike ? or "Specification"."Language"->>'Label' ilike ?`, fmt.Sprintf("%%%s%%", m.Post.Query.Specification.Label), fmt.Sprintf("%%%s%%", m.Post.Query.Specification.Label))
 	}
 
-	if len(m.Post.Query.Keyword) > 0 {
+	keyword := strings.TrimSpace(m.Post.Query.Keyword)
+	if len(keyword) > 0 {
 		orm.Where(`
 "Goods"."Title" ilike ? or
 "Goods"."Summary" ilike ? or
@@ -65,16 +67,18 @@ func (m *List) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 "Goods"."Language"->>'Summary' ilike ? or
 "Goods"."Language"->>'Introduce' ilike ? or
 "Specification"."Label" ilike ? or 
+"Specification"."CodeNo" ilike ? or 
 "Specification"."Language"->>'Label' ilike ?
 `,
-			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword),
-			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword),
-			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword),
-			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword),
-			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword),
-			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword),
-			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword),
-			fmt.Sprintf("%%%s%%", m.Post.Query.Keyword))
+			fmt.Sprintf("%%%s%%", keyword),
+			fmt.Sprintf("%%%s%%", keyword),
+			fmt.Sprintf("%%%s%%", keyword),
+			fmt.Sprintf("%%%s%%", keyword),
+			fmt.Sprintf("%%%s%%", keyword),
+			fmt.Sprintf("%%%s%%", keyword),
+			fmt.Sprintf("%%%s%%", keyword),
+			fmt.Sprintf("%%%s%%", keyword),
+			fmt.Sprintf("%%%s%%", keyword))
 	}
 
 	var total int64

@@ -56,7 +56,7 @@ type OrdersGoods struct {
 	OrdersGoodsNo   string                          `gorm:"column:OrdersGoodsNo;unique"` //
 	Status          OrdersGoodsStatus               `gorm:"column:Status"`               //OGAskRefund，OGRefundNo，OGRefundOk，OGRefundInfo，OGRefundComplete
 	RefundID        dao.PrimaryKey                  `gorm:"column:RefundID"`             //RefundInfo json 退款退货信息
-	OrdersID        dao.PrimaryKey                  `gorm:"column:OrdersID"`             //
+	OrdersID        dao.PrimaryKey                  `gorm:"column:OrdersID;index"`       //
 	GoodsID         dao.PrimaryKey                  `gorm:"column:GoodsID"`
 	SpecificationID dao.PrimaryKey                  `gorm:"column:SpecificationID"`
 	Goods           Goods                           `gorm:"column:Goods;serializer:json;type:json"`         //josn,快照使用

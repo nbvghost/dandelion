@@ -7,6 +7,10 @@ import (
 	"github.com/nbvghost/dandelion/entity/model"
 )
 
+type TestGoodsLanguage struct {
+	B model.GoodsLanguage
+}
+
 func Test_diff(t *testing.T) {
 	type args struct {
 		from any
@@ -33,6 +37,10 @@ func Test_diff(t *testing.T) {
 			from: &map[string]any{"B": 5},
 			to:   &map[string]any{"B": 53},
 		}, want: map[string]any{"B": 53}},
+		{name: "map-3", args: args{
+			from: &map[string]any{"B": TestGoodsLanguage{B: model.GoodsLanguage{Title: "t", Summary: "", Introduce: "i"}}},
+			to:   &map[string]any{"B": TestGoodsLanguage{B: model.GoodsLanguage{Title: "T", Summary: "", Introduce: "S"}}},
+		}, want: map[string]any{"B": TestGoodsLanguage{B: model.GoodsLanguage{Title: "T", Summary: "", Introduce: "S"}} /* map[string]any{"Title": "T", "Summary": "S", "Introduce": "I"}*/}},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
