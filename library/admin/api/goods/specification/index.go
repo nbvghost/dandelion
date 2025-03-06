@@ -37,6 +37,7 @@ type Index struct {
 			Stock       uint
 			CostPrice   float64
 			MarketPrice float64
+			Currency    model.SpecificationCurrency
 			Brokerage   float64
 			Pictures    sqltype.Array[sqltype.Image]
 			Language    model.SpecificationLanguage
@@ -183,6 +184,11 @@ func (g *Index) HandlePost(context constrain.IContext) (r constrain.IResult, err
 		return nil, errors.New(fmt.Sprintf("存在相同的规格:%s", hasItem.(*model.Specification).Label))
 	}
 
+	currency := g.Post.Specification.Currency
+	if len(currency) == 0 {
+		currency = "CNY"
+	}
+
 	newSpecification := &model.Specification{
 		OID:     g.OIDMapping.OID,
 		GoodsID: g.Post.Specification.GoodsID,
@@ -199,6 +205,7 @@ func (g *Index) HandlePost(context constrain.IContext) (r constrain.IResult, err
 		Brokerage:   object.ParseUint(specification.Brokerage * 100.0),
 		Language:    specification.Language,
 		Remark:      specification.Remark,
+		Currency:    currency,
 	}
 	err = dao.Create(tx, newSpecification)
 	if err != nil {

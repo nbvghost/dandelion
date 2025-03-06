@@ -8,6 +8,12 @@ import (
 type SpecificationLanguage struct {
 	Label string
 }
+type SpecificationCurrency string
+
+const (
+	SpecificationCurrencyUSD SpecificationCurrency = "USD"
+	SpecificationCurrencyCNY SpecificationCurrency = "CNY"
+)
 
 // Specification 商品规格
 type Specification struct {
@@ -22,8 +28,9 @@ type Specification struct {
 	Unit        string                        `gorm:"column:Unit"`                               //单位
 	Weight      uint                          `gorm:"column:Weight"`                             //单个规格多少重g,如果Num是多件的话，Weight=Num*(每小件的重量)
 	Stock       uint                          `gorm:"column:Stock"`                              //
-	CostPrice   uint                          `gorm:"column:CostPrice"`                          //成本价
+	CostPrice   uint                          `gorm:"column:CostPrice"`                          //成本价,默认是本国货币
 	MarketPrice uint                          `gorm:"column:MarketPrice"`                        //市场价
+	Currency    SpecificationCurrency         `gorm:"column:Currency"`                           //市场价货币
 	Brokerage   uint                          `gorm:"column:Brokerage"`                          //总佣金
 	Pictures    sqltype.Array[sqltype.Image]  `gorm:"column:Pictures;type:JSON"`                 //规格的多张图片
 	Language    SpecificationLanguage         `gorm:"column:Language;serializer:json;type:json"` //其它语言信息
