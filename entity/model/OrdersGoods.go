@@ -66,6 +66,7 @@ type OrdersGoods struct {
 	Quantity        uint                            `gorm:"column:Quantity"`       //数量
 	CostPrice       uint                            `gorm:"column:CostPrice"`      //单价-原价
 	SellPrice       uint                            `gorm:"column:SellPrice"`      //单价-销售价
+	Currency        Currency                        `gorm:"column:Currency"`       //销售价-货币
 	TotalBrokerage  uint                            `gorm:"column:TotalBrokerage"` //总佣金
 	Error           string                          `gorm:"column:Error"`          //
 	Image           string                          `gorm:"column:Image"`          //Deprecated:当前规格的图片，如果规格没有图片，使用产品主图的第一张

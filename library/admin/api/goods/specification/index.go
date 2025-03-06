@@ -37,7 +37,7 @@ type Index struct {
 			Stock       uint
 			CostPrice   float64
 			MarketPrice float64
-			Currency    model.SpecificationCurrency
+			Currency    model.Currency
 			Brokerage   float64
 			Pictures    sqltype.Array[sqltype.Image]
 			Language    model.SpecificationLanguage
