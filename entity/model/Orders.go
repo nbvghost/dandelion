@@ -13,7 +13,7 @@ import (
 type OrdersStatus string
 
 const (
-	OrdersStatusPending  OrdersStatus = "Pending"  // 下单成功，待付款
+	OrdersStatusPending  OrdersStatus = "Pending"  // 待定
 	OrdersStatusOrder    OrdersStatus = "Order"    // 下单成功，待付款
 	OrdersStatusPay      OrdersStatus = "Pay"      // 支付成功，待发货
 	OrdersStatusDeliver  OrdersStatus = "Deliver"  // 发货成功，待收货
