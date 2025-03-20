@@ -31,6 +31,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 //go:embed default.png
@@ -169,7 +170,7 @@ func (m *UploadHandle) ServeHTTP(writer http.ResponseWriter, request *http.Reque
 	}
 
 	saveDir := strings.Trim(request.FormValue("path"), "/")
-	override := strings.EqualFold(request.FormValue("override"), "true")
+	//override := strings.EqualFold(request.FormValue("override"), "true")
 	name := request.FormValue("name")
 	if len(name) == 0 {
 		name = fileHeader.Filename
@@ -183,12 +184,58 @@ func (m *UploadHandle) ServeHTTP(writer http.ResponseWriter, request *http.Reque
 		}
 		name = strings.ToLower(encryption.Md5ByBytes(fileByte)) + fileType*/
 	}
-	result := m.upload(file, fileHeader, saveDir, name, override)
+	result := m.upload(file, fileHeader, saveDir, name)
 	m.writeResult(result, writer)
 	log.Println("上传文件", name, fmt.Sprintf("%+v", result))
 }
 
-func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHeader, saveDir string, name string, override bool) *oss.Upload {
+type CheckResult struct {
+	FileRootDir, Name string
+	SHA256            string
+}
+
+func checkAndWrite(newBody []byte, fileRootDir, name string) (*CheckResult, error) {
+	ext := filepath.Ext(name)
+	path := filepath.Join(fileRootDir, name)
+
+	sha := sha256.New()
+	sha.Write(newBody)
+	newSha256 := hex.EncodeToString(sha.Sum(nil))
+
+	info, err := os.Stat(path)
+	if err == nil && info.Size() > 0 {
+		//存在
+		readFile, err := os.ReadFile(path)
+		if err != nil {
+			return nil, err
+		}
+
+		sha.Reset()
+		sha.Write(readFile)
+		oldSHA256 := hex.EncodeToString(sha.Sum(nil))
+		if oldSHA256 != newSha256 {
+			name = strings.ReplaceAll(name, ext, "-"+time.Now().Format("2006-01-02-150405.999999999")+ext)
+			path = filepath.Join(fileRootDir, name)
+
+			err = os.WriteFile(path, newBody, os.ModePerm)
+			if err != nil {
+				return nil, err
+			}
+		}
+	} else {
+		err = os.WriteFile(path, newBody, os.ModePerm)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &CheckResult{
+		FileRootDir: fileRootDir,
+		Name:        name,
+		SHA256:      newSha256,
+	}, nil
+}
+func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHeader, saveDir string, name string) *oss.Upload {
 	fileRootDir := filepath.Join("assets", saveDir) //fmt.Sprintf("assets/%s", path)
 	{
 		assetsPath, err := filepath.Abs("assets")
@@ -231,10 +278,12 @@ func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHea
 
 	ext := filepath.Ext(name)
 
+	var result *CheckResult
 	//now := time.Now().UnixMilli()
 	img, format, err := image.Decode(bytes.NewReader(body))
 	//log.Println("image.Decode", time.Now().UnixMilli()-now)
 	if err != nil {
+		//不是图片或,不支持的图片
 		/*{
 			//判断是否有一样的数据
 			oldFileName := filepath.Join(fileRootDir, name)
@@ -274,25 +323,19 @@ func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHea
 			}
 		}*/
 
-		path := filepath.Join(fileRootDir, name)
-		_, err := os.Stat(path)
-		if err == nil && !override {
-			upload.Code = 9523
-			upload.Message = "文件已存在"
-			return upload
+		result, err = checkAndWrite(body, fileRootDir, name)
+		if err != nil {
+			return &oss.Upload{Code: 9901, Message: err.Error()}
 		}
 
-		err = os.WriteFile(path, body, os.ModePerm)
-		if err != nil {
-			return &oss.Upload{Code: 9903, Message: err.Error()}
-		}
 		upload.Data.Ext = ext
 		upload.Data.Format = ""
 		upload.Data.SHA256 = SHA256
-		upload.Data.Filename = name
+		upload.Data.Filename = result.Name
 		upload.Data.Size = len(body)
 		upload.Data.Width = 0
 		upload.Data.Height = 0
+
 	} else {
 		switch strings.ToUpper(format) {
 		case "WEBP":
@@ -314,39 +357,56 @@ func (m *UploadHandle) upload(file multipart.File, fileHeader *multipart.FileHea
 		//_ = png.Encode(imgBuf, img)
 		//log.Println("png.Encode", time.Now().UnixMilli()-now)
 		//imgBytes := imgBuf.Bytes()
-		path := filepath.Join(fileRootDir, name)
-		_, err := os.Stat(path)
-		if err == nil && !override {
-			upload.Code = 9523
-			upload.Message = "文件已存在"
-			return upload
+
+		var tempFile *os.File
+		tempFile, err = os.CreateTemp(os.TempDir(), "oss.*.image")
+		if err != nil {
+			return &oss.Upload{Code: 9903, Message: err.Error()}
 		}
-		err = os.WriteFile(path, body, os.ModePerm)
+		_, err = tempFile.Write(body)
+		if err != nil {
+			return &oss.Upload{Code: 9903, Message: err.Error()}
+		}
+		tempFile.Close()
+
+		var preEncodeFile *os.File
+		preEncodeFile, err = os.CreateTemp(os.TempDir(), "oss.*.image")
+		if err != nil {
+			return &oss.Upload{Code: 9903, Message: err.Error()}
+		}
+		//改用webp图片格式,如果webp不支持的格式,直接保存
+		if strings.ToUpper(format) == "GIF" {
+			if err := webpicture.EncodeGIF(tempFile.Name(), preEncodeFile.Name()); err != nil {
+				return &oss.Upload{Code: 9903, Message: err.Error()}
+			}
+		} else {
+			if err := webpicture.Encode(tempFile.Name(), preEncodeFile.Name()); err != nil {
+				return &oss.Upload{Code: 9903, Message: err.Error()}
+			}
+		}
+
+		body, err = io.ReadAll(preEncodeFile)
 		if err != nil {
 			return &oss.Upload{Code: 9903, Message: err.Error()}
 		}
 
-		//改用webp图片格式,如果webp不支持的格式,直接保存
-		if strings.ToUpper(format) == "GIF" {
-			if err := webpicture.EncodeGIF(filepath.Join(fileRootDir, name), filepath.Join(fileRootDir, name)); err != nil {
-				return &oss.Upload{Code: 9903, Message: err.Error()}
-			}
-		} else {
-			if err := webpicture.Encode(filepath.Join(fileRootDir, name), filepath.Join(fileRootDir, name)); err != nil {
-				return &oss.Upload{Code: 9903, Message: err.Error()}
-			}
+		result, err = checkAndWrite(body, fileRootDir, name)
+		if err != nil {
+			return &oss.Upload{Code: 9901, Message: err.Error()}
 		}
+
+		preEncodeFile.Close()
 
 		upload.Data.Ext = ext
 		upload.Data.Format = format
 		upload.Data.SHA256 = SHA256
-		upload.Data.Filename = name
+		upload.Data.Filename = result.Name
 		upload.Data.Size = len(body)
 		upload.Data.Width = img.Bounds().Dx()
 		upload.Data.Height = img.Bounds().Dy()
 	}
 
-	urlPath, err := url.JoinPath(saveDir, name)
+	urlPath, err := url.JoinPath(saveDir, result.Name)
 	if err != nil {
 		return &oss.Upload{Code: 9901, Message: err.Error()}
 	}
