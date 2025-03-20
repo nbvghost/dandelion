@@ -150,10 +150,17 @@ func (m *PushJSON) ServeHTTP(writer http.ResponseWriter, request *http.Request) 
 	name := request.URL.Query().Get("name")
 	t := request.URL.Query().Get("t")
 	body, _ := io.ReadAll(request.Body)
+
+	var mp = make(map[string]any)
+	json.Unmarshal(body, &mp)
+	mp["Header"] = request.Header
+
+	jsonText, _ := json.Marshal(mp)
+
 	fileName := fmt.Sprintf("%s-%s-%s.json", name, t, time.Now().Format(time.RFC3339))
 	fileFullName := filepath.Join("assets", "push", "json", name, t, fileName)
 	os.MkdirAll(filepath.Dir(fileFullName), os.ModePerm)
-	os.WriteFile(fileFullName, body, os.ModePerm)
+	os.WriteFile(fileFullName, []byte(jsonText), os.ModePerm)
 	writer.Write([]byte("SUCCESS"))
 }
 
