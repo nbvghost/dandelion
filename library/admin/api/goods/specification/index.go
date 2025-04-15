@@ -31,6 +31,7 @@ type Index struct {
 			GoodsID     dao.PrimaryKey
 			Label       string
 			CodeNo      string
+			CodeHS      string
 			Num         uint
 			Unit        string
 			Weight      float64
@@ -50,6 +51,7 @@ type Index struct {
 			GoodsID     dao.PrimaryKey
 			Label       string
 			CodeNo      string
+			CodeHS      string
 			Num         uint
 			Unit        string
 			Weight      float64
@@ -99,6 +101,8 @@ func (g *Index) HandlePut(context constrain.IContext) (r constrain.IResult, err 
 	if g.Put.Specification.Stock != has.Stock {
 		s["Stock"] = g.Put.Specification.Stock
 	}
+
+	s["CodeHS"] = g.Put.Specification.CodeHS
 
 	s["CostPrice"] = object.ParseUint(object.Decimal((g.Put.Specification.CostPrice)*100.0, 0))
 
@@ -198,6 +202,7 @@ func (g *Index) HandlePost(context constrain.IContext) (r constrain.IResult, err
 		Num:         specification.Num,
 		Unit:        specification.Unit,
 		CodeNo:      specification.CodeNo,
+		CodeHS:      specification.CodeHS,
 		Weight:      object.ParseUint(specification.Weight * 1000.0),
 		Stock:       specification.Stock,
 		CostPrice:   object.ParseUint(specification.CostPrice * 100.0),
