@@ -23,6 +23,7 @@ type Specification struct {
 	//Name        string                        `gorm:"column:Name"`                               //
 	Label       string                        `gorm:"column:Label"`                              //
 	CodeNo      string                        `gorm:"column:CodeNo"`                             //
+	CodeHS      string                        `gorm:"column:CodeHS"`                             //
 	LabelIndex  sqltype.Array[dao.PrimaryKey] `gorm:"column:LabelIndex;type:JSON"`               //
 	Num         uint                          `gorm:"column:Num"`                                //这个规格里面包含多少个小件
 	Unit        string                        `gorm:"column:Unit"`                               //单位
