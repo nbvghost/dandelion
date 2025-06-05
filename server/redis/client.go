@@ -30,12 +30,12 @@ func (m *client) TryLock(parentCtx context.Context, key string, wait ...time.Dur
 
 	//log.Println(context.WithoutCancel(parentCtx).Err())
 
-	_ctx, ctxCancel := context.WithCancel(context.WithoutCancel(parentCtx))
+	_ctx, ctxCancel := context.WithCancel(context.WithoutCancel(context.Background()))
 	cancel := func() {
-		ctxCancel()
-		if err := m.getClient().Del(parentCtx, key).Err(); err != nil {
+		if err := m.getClient().Del(context.Background(), key).Err(); err != nil {
 			log.Println(err)
 		}
+		ctxCancel()
 	}
 	start := time.Now()
 
