@@ -23,8 +23,8 @@ func (m ConfigurationService) GetAllTrainFilePath() []model.Configuration {
 func (m ConfigurationService) SetTrainFilePath(oid dao.PrimaryKey, path string) error {
 	return m.ChangeConfiguration(db.Orm(), oid, "FaceRecognitionTrainFileUrl", path)
 }
-func (m ConfigurationService) GetTrainFilePath(oid dao.PrimaryKey) string {
-	return m.GetConfiguration(db.Orm(), oid, "FaceRecognitionTrainFileUrl").V
+func (m ConfigurationService) GetTrainFilePath(oid dao.PrimaryKey) model.Configuration {
+	return m.GetConfiguration(db.Orm(), oid, "FaceRecognitionTrainFileUrl")
 }
 func (m ConfigurationService) GetConfiguration(tx *gorm.DB, OID dao.PrimaryKey, Key model.ConfigurationKey) model.Configuration {
 	var item model.Configuration
