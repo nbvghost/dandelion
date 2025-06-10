@@ -15,6 +15,11 @@ type ConfigurationService struct {
 	//model.BaseDao
 }
 
+func (m ConfigurationService) GetFingerprintDevCapacity(oid dao.PrimaryKey) uint {
+	v := m.GetConfiguration(db.Orm(), oid, "FingerprintDevCapacity").V
+	return object.ParseUint(v)
+}
+
 func (m ConfigurationService) GetAllTrainFilePath() []model.Configuration {
 	var items []model.Configuration
 	db.Orm().Where(`"K" =? and "OID">0 and "V"<>''`, "FaceRecognitionTrainFileUrl").Find(&items)
