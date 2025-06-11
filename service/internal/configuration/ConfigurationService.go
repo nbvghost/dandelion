@@ -16,8 +16,8 @@ type ConfigurationService struct {
 }
 
 func (m ConfigurationService) GetFingerprintDevCapacity(oid dao.PrimaryKey) uint {
-	v := m.GetConfiguration(db.Orm(), oid, "FingerprintDevCapacity").V
-	return object.ParseUint(v)
+	c, _ := m.GetConfiguration(db.Orm(), oid, "FingerprintDevCapacity")
+	return object.ParseUint(c.V)
 }
 
 func (m ConfigurationService) GetAllTrainFilePath() []model.Configuration {
@@ -28,13 +28,22 @@ func (m ConfigurationService) GetAllTrainFilePath() []model.Configuration {
 func (m ConfigurationService) SetTrainFilePath(oid dao.PrimaryKey, path string) error {
 	return m.ChangeConfiguration(db.Orm(), oid, "FaceRecognitionTrainFileUrl", path)
 }
-func (m ConfigurationService) GetTrainFilePath(oid dao.PrimaryKey) model.Configuration {
-	return m.GetConfiguration(db.Orm(), oid, "FaceRecognitionTrainFileUrl")
+func (m ConfigurationService) GetTrainFilePath(oid dao.PrimaryKey) *model.Configuration {
+	c, _ := m.GetConfiguration(db.Orm(), oid, "FaceRecognitionTrainFileUrl")
+	return c
 }
-func (m ConfigurationService) GetConfiguration(tx *gorm.DB, OID dao.PrimaryKey, Key model.ConfigurationKey) model.Configuration {
+func (m ConfigurationService) GetConfiguration(tx *gorm.DB, OID dao.PrimaryKey, Key model.ConfigurationKey) (*model.Configuration, error) {
 	var item model.Configuration
 	tx.Where(`"K"=? and "OID"=?`, Key, OID).First(&item)
-	return item
+	if item.IsZero() {
+		item.K = Key
+		item.OID = OID
+		err := dao.Create(tx, &item)
+		if err != nil {
+			return &item, err
+		}
+	}
+	return &item, nil
 }
 func (m ConfigurationService) GetConfigurations(OID dao.PrimaryKey, keys ...model.ConfigurationKey) map[model.ConfigurationKey]string {
 	Orm := db.Orm()
@@ -62,7 +71,10 @@ func (m ConfigurationService) GetConfigurations(OID dao.PrimaryKey, keys ...mode
 }
 func (m ConfigurationService) ChangeConfiguration(db *gorm.DB, OID dao.PrimaryKey, Key model.ConfigurationKey, Value string) error {
 
-	item := m.GetConfiguration(db, OID, Key)
+	item, err := m.GetConfiguration(db, OID, Key)
+	if err != nil {
+		return err
+	}
 	item.V = Value
 	if item.ID == 0 {
 		item.K = Key
@@ -75,7 +87,7 @@ func (m ConfigurationService) ChangeConfiguration(db *gorm.DB, OID dao.PrimaryKe
 }
 
 func (m ConfigurationService) GetAdvertConfiguration(oid dao.PrimaryKey) []Advert {
-	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyAdvert)
+	c, _ := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyAdvert)
 	var h []Advert
 	_ = json.Unmarshal([]byte(c.V), &h)
 	return h
@@ -99,13 +111,13 @@ func (m ConfigurationService) GetEmailSTMP(oid dao.PrimaryKey) *EmailSTMP {
 }
 
 func (m ConfigurationService) GetPopConfiguration(oid dao.PrimaryKey) []Pop {
-	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyPop)
+	c, _ := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyPop)
 	var h []Pop
 	_ = json.Unmarshal([]byte(c.V), &h)
 	return h
 }
 func (m ConfigurationService) GetQuickLinkConfiguration(oid dao.PrimaryKey) []QuickLink {
-	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyQuickLink)
+	c, _ := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyQuickLink)
 	var h []QuickLink
 	_ = json.Unmarshal([]byte(c.V), &h)
 	return h
@@ -140,7 +152,7 @@ func (m ConfigurationService) GetAliyunConfiguration(oid dao.PrimaryKey) *servic
 	return &h
 }
 func (m ConfigurationService) GetHeaderConfiguration(oid dao.PrimaryKey) *Header {
-	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyHeader)
+	c, _ := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyHeader)
 	h := Header{}
 	_ = json.Unmarshal([]byte(c.V), &h)
 	return &h
