@@ -20,18 +20,18 @@ func (m ConfigurationService) GetFingerprintDevCapacity(oid dao.PrimaryKey) uint
 	return object.ParseUint(c.V)
 }
 
-func (m ConfigurationService) GetAllTrainFilePath() []model.Configuration {
+/*func (m ConfigurationService) GetAllTrainFilePath() []model.Configuration {
 	var items []model.Configuration
 	db.Orm().Where(`"K" =? and "OID">0 and "V"<>''`, "FaceRecognitionTrainFileUrl").Find(&items)
 	return items
-}
-func (m ConfigurationService) SetTrainFilePath(oid dao.PrimaryKey, path string) error {
+}*/
+/*func (m ConfigurationService) SetTrainFilePath(oid dao.PrimaryKey, path string) error {
 	return m.ChangeConfiguration(db.Orm(), oid, "FaceRecognitionTrainFileUrl", path)
 }
 func (m ConfigurationService) GetTrainFilePath(oid dao.PrimaryKey) *model.Configuration {
 	c := m.GetConfiguration(db.Orm(), oid, "FaceRecognitionTrainFileUrl")
 	return c
-}
+}*/
 func (m ConfigurationService) GetConfiguration(tx *gorm.DB, OID dao.PrimaryKey, Key model.ConfigurationKey) *model.Configuration {
 	var item model.Configuration
 	tx.Where(`"K"=? and "OID"=?`, Key, OID).First(&item)
