@@ -3,14 +3,38 @@ package cache
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
-	"log"
-	"time"
 )
 
+func Clear(ctx constrain.IContext, oid dao.PrimaryKey) error {
+	key := fmt.Sprintf("db:cache:ContentSubType:%d", oid)
+	_, err := ctx.Redis().Del(ctx, key)
+	if err != nil {
+		return err
+	}
+	key = fmt.Sprintf("db:cache:GoodsType:%d", oid)
+	_, err = ctx.Redis().Del(ctx, key)
+	if err != nil {
+		return err
+	}
+	key = fmt.Sprintf("db:cache:GoodsTypeChild:%d", oid)
+	_, err = ctx.Redis().Del(ctx, key)
+	if err != nil {
+		return err
+	}
+	key = fmt.Sprintf("db:cache:ContentItem:%d", oid)
+	_, err = ctx.Redis().Del(ctx, key)
+	if err != nil {
+		return err
+	}
+	return nil
+}
 func GetCacheContentSubType(ctx constrain.IContext, oid dao.PrimaryKey) []model.ContentSubType {
 	key := fmt.Sprintf("db:cache:ContentSubType:%d", oid)
 
@@ -67,7 +91,6 @@ func GetCacheGoodsType(ctx constrain.IContext, oid dao.PrimaryKey) []model.Goods
 	}
 }
 
-
 func GetCacheGoodsTypeChild(ctx constrain.IContext, oid dao.PrimaryKey) []model.GoodsTypeChild {
 	key := fmt.Sprintf("db:cache:GoodsTypeChild:%d", oid)
 
@@ -95,7 +118,6 @@ func GetCacheGoodsTypeChild(ctx constrain.IContext, oid dao.PrimaryKey) []model.
 		return contentSubTypeList
 	}
 }
-
 
 func GetCacheContentItem(ctx constrain.IContext, oid dao.PrimaryKey) []model.ContentItem {
 	key := fmt.Sprintf("db:cache:ContentItem:%d", oid)

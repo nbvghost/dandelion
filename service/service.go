@@ -40,11 +40,13 @@ var Cache = struct {
 	GetCacheGoodsTypeChild func(ctx constrain.IContext, oid dao.PrimaryKey) []model.GoodsTypeChild
 	GetCacheGoodsType      func(ctx constrain.IContext, oid dao.PrimaryKey) []model.GoodsType
 	GetCacheContentSubType func(ctx constrain.IContext, oid dao.PrimaryKey) []model.ContentSubType
+	Clear                  func(ctx constrain.IContext, oid dao.PrimaryKey) error
 }{
 	GetCacheContentItem:    cache.GetCacheContentItem,
 	GetCacheGoodsTypeChild: cache.GetCacheGoodsTypeChild,
 	GetCacheGoodsType:      cache.GetCacheGoodsType,
 	GetCacheContentSubType: cache.GetCacheContentSubType,
+	Clear:                  cache.Clear,
 }
 
 var Catch = struct {
@@ -169,7 +171,7 @@ func GetSiteData[T serviceargument.ListType](context constrain.IContext, OID dao
 
 	currentMenuData := serviceargument.NewMenusData(&item, subItem)
 
-	menusData := Site.FindShowMenus(context,OID)
+	menusData := Site.FindShowMenus(context, OID)
 	for _, v := range menusData.List {
 		if v.ID == currentMenuData.TypeID {
 			currentMenuData.Menus = v
@@ -179,7 +181,7 @@ func GetSiteData[T serviceargument.ListType](context constrain.IContext, OID dao
 
 	contentItemMap := repository.ContentItemDao.ListContentItemByOIDMap(OID)
 
-	allMenusData := Site.FindAllMenus(context,OID)
+	allMenusData := Site.FindAllMenus(context, OID)
 
 	tags := Content.FindContentTagsByContentItemID(OID, currentMenuData.TypeID)
 

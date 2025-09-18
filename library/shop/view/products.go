@@ -13,8 +13,8 @@ import (
 type ProductsRequest struct {
 	Organization *model.Organization `mapping:""`
 
-	GoodsTypeUri      string   `uri:"TypeUri"`
-	GoodsTypeChildUri string   `uri:"SubTypeUri"`
+	GoodsTypeUri      string   `uri:"TypeID"`
+	GoodsTypeChildUri string   `uri:"SubTypeID"`
 	SortName          string   `form:"sort_name"`
 	Sort              string   `form:"sort"`
 	PageIndex         int      `form:"page"`

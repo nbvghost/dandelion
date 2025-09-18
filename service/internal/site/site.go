@@ -2,6 +2,8 @@ package site
 
 import (
 	"fmt"
+	"path"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -14,7 +16,6 @@ import (
 	"github.com/nbvghost/dandelion/service/internal/goods"
 	"github.com/nbvghost/dandelion/service/serviceargument"
 	"github.com/samber/lo"
-	"path"
 )
 
 type Service struct {
@@ -105,20 +106,6 @@ func (m Service) menus(ctx constrain.IContext, OID dao.PrimaryKey, showType Menu
 		//Orm.Model(model.ContentSubType{}).Where(`"OID"=?`, OID).Where(`"ContentItemID" in ?`, contentItemIDs).Order(`"Sort"`).Order(`"ID"`).Find(&contentSubTypeList)
 	}
 
-	var goodsTypeList []model.GoodsType
-	{
-		var list = cache.GetCacheGoodsType(ctx, OID)
-		//Orm.Model(model.GoodsType{}).Where(`"OID"=?`, OID).Order(`"ID"`).Find(&goodsTypeList)
-		goodsTypeList = list
-	}
-
-	var goodsTypeChildList []model.GoodsTypeChild
-	{
-		var list = cache.GetCacheGoodsTypeChild(ctx, OID)
-		goodsTypeChildList = list
-		//Orm.Model(model.GoodsTypeChild{}).Where(`"OID" = ?`, OID).Order(`"ID"`).Find(&goodsTypeChildList)
-	}
-
 	var menusData extends.MenusData
 
 	var rootMenusList []extends.Menus
@@ -142,6 +129,18 @@ func (m Service) menus(ctx constrain.IContext, OID dao.PrimaryKey, showType Menu
 		if contentItem.Type == model.ContentTypeIndex {
 			rootMenus.UrlPath = "/"
 		} else if contentItem.Type == model.ContentTypeProducts {
+			var goodsTypeList []model.GoodsType
+			{
+				var list = cache.GetCacheGoodsType(ctx, OID)
+				//Orm.Model(model.GoodsType{}).Where(`"OID"=?`, OID).Order(`"ID"`).Find(&goodsTypeList)
+				goodsTypeList = list
+			}
+			var goodsTypeChildList []model.GoodsTypeChild
+			{
+				var list = cache.GetCacheGoodsTypeChild(ctx, OID)
+				goodsTypeChildList = list
+				//Orm.Model(model.GoodsTypeChild{}).Where(`"OID" = ?`, OID).Order(`"ID"`).Find(&goodsTypeChildList)
+			}
 			rootMenus.List = lo.FilterMap[model.GoodsType, extends.Menus](goodsTypeList, func(goodsType model.GoodsType, index int) (extends.Menus, bool) {
 				subMenus := extends.Menus{
 					ParentMenus:  &rootMenus,

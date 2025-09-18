@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/nbvghost/dandelion/domain/logger"
 	"io"
 	"log"
 	"net/http"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/nbvghost/dandelion/domain/logger"
 
 	"go.uber.org/zap"
 
@@ -182,7 +183,8 @@ func (m *httpMiddleware) getToken(w http.ResponseWriter, r *http.Request) string
 			if environments.Release() {
 				http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 24 * 15)})
 			} else {
-				http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 24 * 15), Secure: true, SameSite: http.SameSiteNoneMode})
+				//http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 24 * 15), Secure: false, SameSite: http.SameSiteNoneMode})
+				http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 24 * 15)})
 			}
 			//http.SetCookie(w, &http.Cookie{Name: "token", Value: token, Path: "/", Expires: time.Now().Add(time.Hour * 24)})
 		}
