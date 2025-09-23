@@ -12,6 +12,20 @@ import (
 
 type OrdersStatus string
 
+func (m OrdersStatus) CanUpdateOrder() bool {
+	switch m {
+	case OrdersStatusPending:
+		fallthrough
+	case OrdersStatusConfirm:
+		fallthrough
+	case OrdersStatusOrder:
+		fallthrough
+	case OrdersStatusPay:
+		return true
+	}
+	return false
+}
+
 const (
 	OrdersStatusPending  OrdersStatus = "Pending"  // 待定
 	OrdersStatusConfirm  OrdersStatus = "Confirm"  // 订单确认
