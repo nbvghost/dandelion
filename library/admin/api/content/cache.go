@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/nbvghost/dandelion/config"
+	"io"
+	"net/http"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/repository"
-	"io"
-	"net/http"
 )
 
 type CacheAction string
@@ -35,7 +35,11 @@ func (m *Cache) HandlePost(context constrain.IContext) (constrain.IResult, error
 	if dns.IsZero() {
 		return nil, result.NewErrorText("找不到DNS记录")
 	}
-	server, err := context.Etcd().SelectInsideServer(&config.MicroServer{Name: dns.Domain, ServerType: config.ServerTypeHttp})
+	microServer, err := context.Etcd().GetMicroServer(dns.Domain)
+	if err != nil {
+		return nil, err
+	}
+	server, err := context.Etcd().SelectInsideServer(microServer)
 	if err != nil {
 		return nil, err
 	}
