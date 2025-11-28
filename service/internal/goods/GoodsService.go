@@ -2,6 +2,12 @@ package goods
 
 import (
 	"fmt"
+	"log"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/lib/pq"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/cache"
@@ -20,11 +26,6 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"log"
-	"sort"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type GoodsService struct {
@@ -164,8 +165,8 @@ func (m GoodsService) goodsOptions(list []*extends.GoodsDetail) *serviceargument
 		marketPriceList := make([]int, 0)
 		for _, spec := range detail.Specification {
 			numList = append(numList, int(spec.Num))
-			weightList = append(weightList, int(spec.Weight))
-			weightList = append(weightList, int(spec.MarketPrice))
+			weightList = append(weightList, int(spec.Weight.IntPart()))
+			weightList = append(weightList, int(spec.MarketPrice.IntPart()))
 		}
 
 		sort.Ints(numList)

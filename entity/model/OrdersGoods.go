@@ -2,6 +2,8 @@ package model
 
 import (
 	"github.com/nbvghost/dandelion/entity/sqltype"
+	"github.com/shopspring/decimal"
+
 	"strings"
 	"time"
 
@@ -63,15 +65,15 @@ type OrdersGoods struct {
 	Specification   Specification                   `gorm:"column:Specification;serializer:json;type:json"` //json,快照使用
 	GoodsSkus       Array[GoodsSku]                 `gorm:"column:GoodsSkus;type:json"`                     //json,只是对Specification进行分组选择使用的
 	Discounts       sqltype.Array[sqltype.Discount] `gorm:"column:Discounts;type:json"`
-	Quantity        uint                            `gorm:"column:Quantity"`       //数量
-	CostPrice       uint                            `gorm:"column:CostPrice"`      //单价-原价
-	SellPrice       uint                            `gorm:"column:SellPrice"`      //单价-销售价
-	Currency        Currency                        `gorm:"column:Currency"`       //销售价-货币
-	TotalBrokerage  uint                            `gorm:"column:TotalBrokerage"` //总佣金
-	Error           string                          `gorm:"column:Error"`          //
-	Image           string                          `gorm:"column:Image"`          //Deprecated:当前规格的图片，如果规格没有图片，使用产品主图的第一张
-	TotalCostPrice  uint                            `gorm:"column:TotalCostPrice"` //总价-原价
-	TotalSellPrice  uint                            `gorm:"column:TotalSellPrice"` //总价-销售价
+	Quantity        uint                            `gorm:"column:Quantity"`                          //数量
+	CostPrice       decimal.Decimal                 `gorm:"column:CostPrice;type:numeric(24,6)"`      //单价-原价
+	SellPrice       decimal.Decimal                 `gorm:"column:SellPrice;type:numeric(24,6)"`      //单价-销售价
+	Currency        Currency                        `gorm:"column:Currency"`                          //销售价-货币
+	TotalBrokerage  decimal.Decimal                 `gorm:"column:TotalBrokerage;type:numeric(24,6)"` //总佣金
+	Error           string                          `gorm:"column:Error"`                             //
+	Image           string                          `gorm:"column:Image"`                             //Deprecated:当前规格的图片，如果规格没有图片，使用产品主图的第一张
+	TotalCostPrice  decimal.Decimal                 `gorm:"column:TotalCostPrice;type:numeric(24,6)"` //总价-原价
+	TotalSellPrice  decimal.Decimal                 `gorm:"column:TotalSellPrice;type:numeric(24,6)"` //总价-销售价
 	//TotalNetWeight  uint                            `gorm:"column:TotalNetWeight"` //总的净重,包含所有的数量,在收到货盘点得出
 	//Pictures        sqltype.Array[sqltype.Image]    `gorm:"column:Pictures;type:JSON"` //规格的多张图片,当前规格的图片，如果规格没有图片，使用产品主图的第一张
 	//SpecificationID uint `gorm:"column:SpecificationID"`             //
@@ -81,8 +83,8 @@ type OrdersGoods struct {
 	//GoodsID         uint `gorm:"column:GoodsID"`                     //
 }
 
-func (m *OrdersGoods) GetTotalNetWeight() uint {
-	return m.Quantity * m.Specification.Weight
+func (m *OrdersGoods) GetTotalNetWeight() decimal.Decimal {
+	return m.Specification.Weight.Mul(decimal.NewFromUint64(uint64(m.Quantity)))
 }
 
 /*

@@ -2,6 +2,7 @@ package goods
 
 import (
 	"errors"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -10,6 +11,7 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service"
+	"github.com/shopspring/decimal"
 )
 
 type Specification struct {
@@ -27,11 +29,11 @@ type Specification struct {
 			//Name        string
 			LabelIndex  sqltype.Array[dao.PrimaryKey]
 			Num         uint
-			Weight      uint
+			Weight      decimal.Decimal
 			Stock       uint
-			CostPrice   uint
-			MarketPrice uint
-			Brokerage   uint
+			CostPrice   decimal.Decimal
+			MarketPrice decimal.Decimal
+			Brokerage   decimal.Decimal
 			Language    model.SpecificationLanguage
 		}
 	} `method:"Post"`
@@ -60,19 +62,19 @@ func (g *Specification) HandlePut(context constrain.IContext) (r constrain.IResu
 	if g.Put.Num > 0 {
 		s["Num"] = g.Put.Num
 	}
-	if g.Put.Weight > 0 {
+	if g.Put.Weight.GreaterThan(decimal.NewFromInt(0)) {
 		s["Weight"] = g.Put.Weight
 	}
 	if g.Put.Stock > 0 {
 		s["Stock"] = g.Put.Stock
 	}
-	if g.Put.CostPrice > 0 {
+	if g.Put.CostPrice.GreaterThan(decimal.NewFromInt(0)) {
 		s["CostPrice"] = g.Put.CostPrice
 	}
-	if g.Put.MarketPrice > 0 {
+	if g.Put.MarketPrice.GreaterThan(decimal.NewFromInt(0)) {
 		s["MarketPrice"] = g.Put.MarketPrice
 	}
-	if g.Put.Brokerage > 0 {
+	if g.Put.Brokerage.GreaterThan(decimal.NewFromInt(0)) {
 		s["Brokerage"] = g.Put.Brokerage
 	}
 	if len(g.Put.Language.Label) > 0 {

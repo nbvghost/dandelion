@@ -5,6 +5,8 @@ import (
 	"github.com/nbvghost/dandelion/service/internal/journal"
 	"github.com/nbvghost/dandelion/service/internal/user"
 	"github.com/nbvghost/dandelion/service/internal/wechat"
+	"github.com/shopspring/decimal"
+
 	"log"
 	"math"
 	"strconv"
@@ -44,17 +46,17 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, ordersGoodsList []
 
 	brokerage := service.Configuration.GetBrokerageConfiguration(orders.OID) //service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageType)
 
-	var Brokerage uint
+	var Brokerage = decimal.NewFromFloat(0)
 	for i := range ordersGoodsList {
 		value := ordersGoodsList[i]
 		//var specification model.Specification
 		//util.JSONToStruct(value.Specification, &specification)
 
 		if brokerage.Type == configuration.BrokeragePRODUCT {
-			Brokerage = Brokerage + value.SellPrice
+			Brokerage = Brokerage.Add(value.SellPrice)
 		}
 		if brokerage.Type == configuration.BrokerageCUSTOM {
-			Brokerage = Brokerage + value.TotalBrokerage
+			Brokerage = Brokerage.Add(value.TotalBrokerage)
 		}
 	}
 
@@ -97,7 +99,7 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, ordersGoodsList []
 			return nil
 		}
 
-		leveMenoy := int64(math.Floor(value/float64(100)*float64(Brokerage) + 0.5))
+		leveMenoy := Brokerage.Mul(decimal.NewFromFloat(value / float64(100))).Div(decimal.NewFromInt(100)) //int64(math.Floor(value/float64(100)*float64(Brokerage) + 0.5))
 
 		//err = service.User.AddUserBlockAmount(Orm, _user.ID, -leveMenoy)
 		err = service.Journal.UnFreezeUserAmount(Orm, _user.ID, journal.NewDataTypeOrder(orders.ID), orders.UserID)
@@ -113,7 +115,7 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, ordersGoodsList []
 		}*/
 
 		workTime := time.Now().Unix() - orders.CreatedAt.Unix()
-		service.MessageNotify.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "收入："+strconv.FormatFloat(float64(leveMenoy)/float64(100), 'f', 2, 64)+"元")
+		service.MessageNotify.INComeNotify(_user, "来自"+strconv.Itoa(index+1)+"级用户，现金收入", strconv.Itoa(int(workTime/60/60))+"小时", "收入："+leveMenoy.StringFixed(2)+"元")
 
 		u = _user
 	}

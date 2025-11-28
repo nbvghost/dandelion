@@ -22,7 +22,7 @@ func Register(value interface{}) {
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
-	name := util.GetPkgPath(value)
+	name := util.GetPkgPath(v.Type())
 	structMap[name] = v.Type()
 	gob.RegisterName(name, value)
 }

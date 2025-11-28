@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/shopspring/decimal"
 	"gorm.io/gorm"
 
 	"github.com/nbvghost/dandelion/library/dao"
@@ -32,12 +33,13 @@ func (cardItem CardItem) GetNameLabel(DB *gorm.DB) (Name, Label string) {
 	case "OrdersGoods":
 		var item OrdersGoods
 		DB.First(&item, cardItem.OrdersGoodsID)
-	/*	var goods Goods
-		var specification Specification
-		util.JSONToStruct(item.Goods, &goods)
-		util.JSONToStruct(item.Specification, &specification)*/
+		/*	var goods Goods
+			var specification Specification
+			util.JSONToStruct(item.Goods, &goods)
+			util.JSONToStruct(item.Specification, &specification)*/
 		Name = item.Goods.Title
-		Label = "规格：" + item.Specification.Label + "(" + strconv.FormatFloat(float64(item.Specification.Num)*float64(item.Specification.Weight)/1000, 'f', 2, 64) + "Kg)"
+		wt := item.Specification.Weight.Div(decimal.NewFromFloat(1000)).Mul(decimal.NewFromUint64(uint64(item.Specification.Num)))
+		Label = "规格：" + item.Specification.Label + "(" + wt.StringFixed(3) + "Kg)"
 	case "Voucher":
 		var item Voucher
 		DB.First(&item, cardItem.VoucherID)

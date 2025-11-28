@@ -6,6 +6,13 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -15,17 +22,12 @@ import (
 	"github.com/nbvghost/tool"
 	"github.com/nbvghost/tool/collections"
 	"github.com/nbvghost/tool/encryption"
+	"github.com/shopspring/decimal"
 	"github.com/wechatpay-apiv3/wechatpay-go/core"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/option"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/payments/jsapi"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/refunddomestic"
 	"github.com/wechatpay-apiv3/wechatpay-go/utils"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type Service struct {
@@ -245,7 +247,7 @@ func (m *Service) Refund(order *model.Orders, ordersGoods *model.OrdersGoods, re
 		goods := ordersGoods.Goods
 		specification := ordersGoods.Specification
 
-		refundAmount := ordersGoods.SellPrice * ordersGoods.Quantity
+		refundAmount := ordersGoods.SellPrice.Mul(decimal.NewFromUint64(uint64(ordersGoods.Quantity)))
 
 		createRequest = refunddomestic.CreateRequest{
 			OutTradeNo:   core.String(order.OrderNo),
@@ -254,7 +256,7 @@ func (m *Service) Refund(order *model.Orders, ordersGoods *model.OrdersGoods, re
 			NotifyUrl:    core.String(m.GetConfig().RefundNotifyUrl),
 			FundsAccount: refunddomestic.REQFUNDSACCOUNT_AVAILABLE.Ptr(),
 			Amount: &refunddomestic.AmountReq{
-				Refund:   core.Int64(int64(refundAmount)),
+				Refund:   core.Int64(int64(refundAmount.IntPart())),
 				Total:    core.Int64(int64(order.PayMoney)),
 				From:     nil,
 				Currency: core.String("CNY"),
@@ -264,8 +266,8 @@ func (m *Service) Refund(order *model.Orders, ordersGoods *model.OrdersGoods, re
 					MerchantGoodsId: core.String(fmt.Sprintf("%d", goods.ID)),
 					//WechatpayGoodsId: core.String(fmt.Sprintf("%d",goods.ID)),
 					GoodsName:      core.String(goods.Title + "/" + specification.Label),
-					UnitPrice:      core.Int64(int64(specification.MarketPrice)),
-					RefundAmount:   core.Int64(int64(refundAmount)),
+					UnitPrice:      core.Int64(int64(specification.MarketPrice.IntPart())),
+					RefundAmount:   core.Int64(int64(refundAmount.IntPart())),
 					RefundQuantity: core.Int64(int64(ordersGoods.Quantity)),
 				},
 			},
@@ -327,7 +329,7 @@ func (m *Service) GetWXAConfig(prepay_id string) (map[string]string, error) {
 }
 func (m *Service) MPOrder(OrderNo string, title, description string, ogs []model.OrdersGoods, openid string, IP string, Money uint, ordersType model.OrdersType) (*serviceargument.OrderResult, error) {
 
-	CostGoodsPrice := uint(0)
+	CostGoodsPrice := int64(0)
 
 	goods_detail := make([]map[string]interface{}, 0)
 	for _, value := range ogs {
@@ -338,7 +340,7 @@ func (m *Service) MPOrder(OrderNo string, title, description string, ogs []model
 		goodsObj["price"] = value.SellPrice
 		goods_detail = append(goods_detail, goodsObj)
 
-		CostGoodsPrice = CostGoodsPrice + value.CostPrice
+		CostGoodsPrice = CostGoodsPrice + value.CostPrice.IntPart()
 	}
 
 	detail := make(map[string]interface{})

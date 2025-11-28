@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/nbvghost/dandelion/service/internal/payment"
+	"github.com/shopspring/decimal"
+
 	"log"
-	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -143,17 +145,17 @@ func (m OrdersService) FirstSettlementUserBrokerage(tx *gorm.DB, orders model.Or
 	brokerage := m.Configuration.GetBrokerageConfiguration(orders.OID)
 
 	ogs, err := m.FindOrdersGoodsByOrdersID(tx, orders.ID)
-	var Brokerage uint
+	var Brokerage = decimal.NewFromFloat(0)
 	for i := range ogs {
 		value := ogs[i]
 		//var specification model.Specification
 		//util.JSONToStruct(value.Specification, &specification)
 		//Brokerage = Brokerage + value.TotalBrokerage
 		if brokerage.Type == configuration.BrokeragePRODUCT {
-			Brokerage = Brokerage + value.SellPrice
+			Brokerage = Brokerage.Add(value.SellPrice)
 		}
 		if brokerage.Type == configuration.BrokerageCUSTOM {
-			Brokerage = Brokerage + value.TotalBrokerage
+			Brokerage = Brokerage.Add(value.TotalBrokerage)
 		}
 	}
 
@@ -179,7 +181,7 @@ func (m OrdersService) FirstSettlementUserBrokerage(tx *gorm.DB, orders model.Or
 		if _user.ID <= 0 {
 			return nil
 		}
-		leveAmount := int64(math.Floor(value/float64(100)*float64(Brokerage) + 0.5))
+		leveAmount := Brokerage.Mul(decimal.NewFromFloat(value / float64(100))).IntPart() //int64(math.Floor(value/float64(100)*float64(Brokerage) + 0.5))
 		/*err = service.User.AddUserBlockAmount(tx, _user.ID, leveMenoy)
 		if err != nil {
 			log.Println(err)
@@ -974,7 +976,7 @@ func (m OrdersService) createOrdersGoods(goodsID dao.PrimaryKey, specificationID
 	} else {
 
 	}*/
-	ordersGoods.TotalBrokerage = uint(ordersGoods.Quantity) * specification.Brokerage
+	ordersGoods.TotalBrokerage = specification.Brokerage.Mul(decimal.NewFromUint64(uint64(ordersGoods.Quantity))) //uint(ordersGoods.Quantity) * specification.Brokerage
 
 	return ordersGoods, nil
 }
@@ -1247,7 +1249,7 @@ func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, li
 		//value.Goods = util.StructToJSON(goods)
 		//value.Specification = util.StructToJSON(specification)
 
-		Price := value.Specification.MarketPrice * uint(value.Quantity)
+		Price := value.Specification.MarketPrice.Mul(decimal.NewFromUint64(uint64(value.Quantity))) //* uint(value.Quantity)
 
 		value.CostPrice = value.Specification.MarketPrice
 		value.SellPrice = value.Specification.MarketPrice
@@ -1264,25 +1266,26 @@ func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, li
 		if len(value.Discounts) > 0 {
 			for i := range value.Discounts {
 				discount := value.Discounts[i]
-				Price = uint(util.Rounding45(float64(Price)-(float64(Price)*(float64(discount.Discount)/float64(100))), 2))
-				analyseResult.GoodsPrice = analyseResult.GoodsPrice + Price
-				Favoured := uint(util.Rounding45(float64(value.SellPrice)*(float64(discount.Discount)/float64(100)), 2))
-				analyseResult.FavouredPrice = analyseResult.FavouredPrice + (Favoured * uint(value.Quantity))
+				Price = Price.Sub(Price.Mul(decimal.NewFromUint64(uint64(discount.Discount)).Div(decimal.NewFromInt(100)))) //uint(util.Rounding45(float64(Price)-(float64(Price)*(float64(discount.Discount)/float64(100))), 2))
+				analyseResult.GoodsPrice = analyseResult.GoodsPrice + uint(Price.IntPart())
 
-				value.SellPrice = value.SellPrice - Favoured
+				Favoured := value.SellPrice.Mul(decimal.NewFromUint64(uint64(discount.Discount)).Div(decimal.NewFromInt(100))) //uint(util.Rounding45(float64(value.SellPrice)*(float64(discount.Discount)/float64(100)), 2))
+				analyseResult.FavouredPrice = analyseResult.FavouredPrice + uint((Favoured.Mul(decimal.NewFromUint64(uint64(value.Quantity)))).IntPart())
+
+				value.SellPrice = value.SellPrice.Sub(Favoured)
 			}
 			//value.Discounts = make([]sqltype.Discount, 0)
 			//value.Discounts = value.Discounts
 
 		} else {
-			analyseResult.GoodsPrice = analyseResult.GoodsPrice + Price
-			FullCutPrice = FullCutPrice + Price
+			analyseResult.GoodsPrice = analyseResult.GoodsPrice + uint(Price.IntPart())
+			FullCutPrice = FullCutPrice + uint(Price.IntPart())
 		}
 		oggs = append(oggs, value)
 		//ogss=append(ogss,ogs)
 
 		//计算快递费，重量要加上数量,先计算规格的重，再计算购买的重量
-		weight := (value.Specification.Num * value.Specification.Weight) * uint(value.Quantity)
+		weight := value.Specification.Weight.Mul(decimal.NewFromInt(int64(value.Specification.Num))).Mul(decimal.NewFromUint64(uint64(value.Quantity))) //(value.Specification.Num * value.Specification.Weight) * uint(value.Quantity)
 
 		if value.Goods.ExpressTemplateID == 0 {
 			//Error = errors.New("找不到快递模板")
@@ -1293,14 +1296,14 @@ func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, li
 			if _, o := expresstemplateMap[value.Goods.ExpressTemplateID]; o == false {
 				nmw := model.ExpressTemplateNMW{}
 				nmw.N = nmw.N + int(value.Quantity)
-				nmw.M = nmw.M + int(Price) //市场价X数量
-				nmw.W = nmw.W + int(weight)
+				nmw.M = nmw.M + int(Price.IntPart()) //市场价X数量
+				nmw.W = nmw.W + int(weight.IntPart())
 				expresstemplateMap[value.Goods.ExpressTemplateID] = nmw
 			} else {
 				nmw := expresstemplateMap[value.Goods.ExpressTemplateID]
 				nmw.N = nmw.N + int(value.Quantity)
-				nmw.M = nmw.M + int(Price) //市场价X数量
-				nmw.W = nmw.W + int(weight)
+				nmw.M = nmw.M + int(Price.IntPart()) //市场价X数量
+				nmw.W = nmw.W + int(weight.IntPart())
 				expresstemplateMap[value.Goods.ExpressTemplateID] = nmw
 			}
 		}

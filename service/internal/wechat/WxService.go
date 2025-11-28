@@ -11,14 +11,15 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/oss"
 	"github.com/nbvghost/dandelion/service/internal/company"
 	"github.com/nbvghost/dandelion/service/internal/file"
 	"github.com/nbvghost/dandelion/service/internal/user"
+	"github.com/shopspring/decimal"
 	"github.com/wechatpay-apiv3/wechatpay-go/services/transferbatch"
 
-	"github.com/nbvghost/dandelion/library/db"
 	"io"
 	"io/ioutil"
 	"log"
@@ -27,6 +28,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/nbvghost/dandelion/library/db"
 
 	"gorm.io/gorm"
 
@@ -359,7 +362,7 @@ func (m WxService) Order(ctx context.Context, OrderNo string, title, description
 }
 func (m WxService) MPOrder(ctx context.Context, OrderNo string, title, description string, ogs []model.OrdersGoods, openid string, IP string, Money uint, attach string, wxConfig *model.WechatConfig) (Success result.ActionResultCode, Message string, wxResult *jsapi.PrepayWithRequestPaymentResponse) {
 
-	CostGoodsPrice := uint(0)
+	CostGoodsPrice := int64(0)
 
 	goods_detail := make([]map[string]interface{}, 0)
 	for _, value := range ogs {
@@ -377,7 +380,7 @@ func (m WxService) MPOrder(ctx context.Context, OrderNo string, title, descripti
 		goodsObj["price"] = value.SellPrice
 		goods_detail = append(goods_detail, goodsObj)
 
-		CostGoodsPrice = CostGoodsPrice + value.CostPrice
+		CostGoodsPrice = CostGoodsPrice + value.CostPrice.IntPart()
 	}
 
 	detail := make(map[string]interface{})
@@ -688,7 +691,7 @@ func (m WxService) Refund(ctx context.Context, order *model.Orders, ordersGoods 
 		goods := ordersGoods.Goods
 		specification := ordersGoods.Specification
 
-		refundAmount := ordersGoods.SellPrice * ordersGoods.Quantity
+		refundAmount := ordersGoods.SellPrice.Mul(decimal.NewFromUint64(uint64(ordersGoods.Quantity)))
 
 		createRequest = refunddomestic.CreateRequest{
 			OutTradeNo:   core.String(order.OrderNo),
@@ -697,7 +700,7 @@ func (m WxService) Refund(ctx context.Context, order *model.Orders, ordersGoods 
 			NotifyUrl:    core.String(m.getConfig().RefundNotifyUrl),
 			FundsAccount: refunddomestic.REQFUNDSACCOUNT_AVAILABLE.Ptr(),
 			Amount: &refunddomestic.AmountReq{
-				Refund:   core.Int64(int64(refundAmount)),
+				Refund:   core.Int64(int64(refundAmount.IntPart())),
 				Total:    core.Int64(int64(order.PayMoney)),
 				From:     nil,
 				Currency: core.String("CNY"),
@@ -707,8 +710,8 @@ func (m WxService) Refund(ctx context.Context, order *model.Orders, ordersGoods 
 					MerchantGoodsId: core.String(fmt.Sprintf("%d", goods.ID)),
 					//WechatpayGoodsId: core.String(fmt.Sprintf("%d",goods.ID)),
 					GoodsName:      core.String(goods.Title + "/" + specification.Label),
-					UnitPrice:      core.Int64(int64(specification.MarketPrice)),
-					RefundAmount:   core.Int64(int64(refundAmount)),
+					UnitPrice:      core.Int64(int64(specification.MarketPrice.IntPart())),
+					RefundAmount:   core.Int64(int64(refundAmount.IntPart())),
 					RefundQuantity: core.Int64(int64(ordersGoods.Quantity)),
 				},
 			},

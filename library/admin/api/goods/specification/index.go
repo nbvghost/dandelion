@@ -3,6 +3,7 @@ package specification
 import (
 	"errors"
 	"fmt"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/oss"
 	"github.com/nbvghost/dandelion/entity"
@@ -12,8 +13,9 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service"
-	"github.com/nbvghost/tool/object"
 	"github.com/samber/lo"
+	"github.com/shopspring/decimal"
+
 	"strings"
 )
 
@@ -34,12 +36,12 @@ type Index struct {
 			CodeHS      string
 			Num         uint
 			Unit        string
-			Weight      float64
+			Weight      decimal.Decimal
 			Stock       uint
-			CostPrice   float64
-			MarketPrice float64
+			CostPrice   decimal.Decimal
+			MarketPrice decimal.Decimal
 			Currency    model.Currency
-			Brokerage   float64
+			Brokerage   decimal.Decimal
 			Pictures    sqltype.Array[sqltype.Image]
 			Language    model.SpecificationLanguage
 			Remark      string
@@ -54,11 +56,11 @@ type Index struct {
 			CodeHS      string
 			Num         uint
 			Unit        string
-			Weight      float64
+			Weight      decimal.Decimal
 			Stock       uint
-			CostPrice   float64
-			MarketPrice float64
-			Brokerage   float64
+			CostPrice   decimal.Decimal
+			MarketPrice decimal.Decimal
+			Brokerage   decimal.Decimal
 			Pictures    sqltype.Array[sqltype.Image]
 			Language    model.SpecificationLanguage
 			Remark      string
@@ -96,7 +98,7 @@ func (g *Index) HandlePut(context constrain.IContext) (r constrain.IResult, err 
 		s["Unit"] = g.Put.Specification.Unit
 	}
 
-	s["Weight"] = object.ParseUint(object.Decimal((g.Put.Specification.Weight)*1000.0, 0))
+	s["Weight"] = g.Put.Specification.Weight.Mul(decimal.NewFromInt(1000)) //object.ParseUint(object.Decimal((g.Put.Specification.Weight)*1000.0, 0))
 
 	if g.Put.Specification.Stock != has.Stock {
 		s["Stock"] = g.Put.Specification.Stock
@@ -104,11 +106,11 @@ func (g *Index) HandlePut(context constrain.IContext) (r constrain.IResult, err 
 
 	s["CodeHS"] = g.Put.Specification.CodeHS
 
-	s["CostPrice"] = object.ParseUint(object.Decimal((g.Put.Specification.CostPrice)*100.0, 0))
+	s["CostPrice"] = g.Put.Specification.CostPrice.Mul(decimal.NewFromInt(100)) //object.ParseUint(object.Decimal((g.Put.Specification.CostPrice)*100.0, 0))
 
-	s["MarketPrice"] = object.ParseUint(object.Decimal(g.Put.Specification.MarketPrice*100.0, 0))
+	s["MarketPrice"] = g.Put.Specification.MarketPrice.Mul(decimal.NewFromInt(100)) //object.ParseUint(object.Decimal(g.Put.Specification.MarketPrice*100.0, 0))
 
-	s["Brokerage"] = object.ParseUint(object.Decimal(g.Put.Specification.Brokerage*100.0, 0))
+	s["Brokerage"] = g.Put.Specification.Brokerage.Mul(decimal.NewFromInt(100)) //object.ParseUint(object.Decimal(g.Put.Specification.Brokerage*100.0, 0))
 
 	if g.Put.Specification.Remark != has.Remark {
 		s["Remark"] = g.Put.Specification.Remark
@@ -203,11 +205,11 @@ func (g *Index) HandlePost(context constrain.IContext) (r constrain.IResult, err
 		Unit:        specification.Unit,
 		CodeNo:      specification.CodeNo,
 		CodeHS:      specification.CodeHS,
-		Weight:      object.ParseUint(specification.Weight * 1000.0),
+		Weight:      specification.Weight.Mul(decimal.NewFromInt(1000)), //object.ParseUint(specification.Weight * 1000.0),
 		Stock:       specification.Stock,
-		CostPrice:   object.ParseUint(specification.CostPrice * 100.0),
-		MarketPrice: object.ParseUint(specification.MarketPrice * 100.0),
-		Brokerage:   object.ParseUint(specification.Brokerage * 100.0),
+		CostPrice:   specification.CostPrice.Mul(decimal.NewFromInt(100)),   //object.ParseUint(specification.CostPrice * 100.0),
+		MarketPrice: specification.MarketPrice.Mul(decimal.NewFromInt(100)), //object.ParseUint(specification.MarketPrice * 100.0),
+		Brokerage:   specification.Brokerage.Mul(decimal.NewFromInt(100)),   //object.ParseUint(specification.Brokerage * 100.0),
 		Language:    specification.Language,
 		Remark:      specification.Remark,
 		Currency:    currency,

@@ -4,12 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/activity"
 	"github.com/nbvghost/dandelion/service/internal/company"
 	"github.com/nbvghost/dandelion/service/internal/goods"
 	"github.com/nbvghost/dandelion/service/internal/journal"
 	"github.com/nbvghost/dandelion/service/internal/user"
+	"github.com/shopspring/decimal"
+
 	"log"
 	"strings"
 	"time"
@@ -111,13 +114,13 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 
 		if orders.PostType == 1 {
 			//邮寄订单，给利润给
-			_, err = service.Journal.AddStoreJournal(DB, store.ID, "商品核销", goods.Title+"("+specification.Label+")", play.StoreJournal_Type_HX, int64(specification.MarketPrice-specification.CostPrice), cardItem.ID)
+			_, err = service.Journal.AddStoreJournal(DB, store.ID, "商品核销", goods.Title+"("+specification.Label+")", play.StoreJournal_Type_HX, specification.MarketPrice.Sub(specification.CostPrice).IntPart(), cardItem.ID)
 			if err != nil {
 				return err
 			}
 		} else if orders.PostType == 2 {
 			//线下订单，给成本价
-			_, err = service.Journal.AddStoreJournal(DB, store.ID, "商品核销", goods.Title+"("+specification.Label+")", play.StoreJournal_Type_HX, int64(specification.MarketPrice-specification.CostPrice), cardItem.ID)
+			_, err = service.Journal.AddStoreJournal(DB, store.ID, "商品核销", goods.Title+"("+specification.Label+")", play.StoreJournal_Type_HX, specification.MarketPrice.Sub(specification.CostPrice).IntPart(), cardItem.ID)
 			if err != nil {
 				return err
 			}
@@ -241,9 +244,10 @@ func (service VerificationService) VerificationSelf(StoreID, StoreStockID dao.Pr
 		} else {
 			//判断金额,
 
-			if specification.CostPrice*Quantity > store.Amount {
+			tc := specification.CostPrice.Mul(decimal.NewFromInt(int64(Quantity))).IntPart()
+			if uint(tc) > store.Amount {
 				//金额不足
-				return (&result.ActionResult{}).SmartError(errors.New("门店金额不足"), "", specification.CostPrice*Quantity-store.Amount)
+				return (&result.ActionResult{}).SmartError(errors.New("门店金额不足"), "", uint(tc)-store.Amount)
 			} else {
 
 				tx := Orm.Begin()
@@ -253,8 +257,8 @@ func (service VerificationService) VerificationSelf(StoreID, StoreStockID dao.Pr
 					tx.Rollback()
 					return (&result.ActionResult{}).SmartError(err, "", 0)
 				} else {
-					detail := fmt.Sprintf("%v,规格：%v(%v)kg成本价：%v，数量：%v", goods.Title, specification.Label, float64(specification.Num)*float64(specification.Weight)/1000, specification.CostPrice, Quantity)
-					_, err = service.Journal.AddStoreJournal(tx, StoreID, "自主核销商品库存", detail, play.StoreJournal_Type_ZZHX, -int64(specification.CostPrice*Quantity), ss.ID)
+					detail := fmt.Sprintf("%v,规格：%v(%v)kg成本价：%v，数量：%v", goods.Title, specification.Label, specification.Weight.Mul(decimal.NewFromUint64(uint64(specification.Num))).Div(decimal.NewFromInt(1000)), specification.CostPrice, Quantity)
+					_, err = service.Journal.AddStoreJournal(tx, StoreID, "自主核销商品库存", detail, play.StoreJournal_Type_ZZHX, specification.CostPrice.Mul(decimal.NewFromInt(int64(Quantity))).Neg().IntPart(), ss.ID)
 					if err != nil {
 						tx.Rollback()
 						return (&result.ActionResult{}).SmartError(err, "", 0)

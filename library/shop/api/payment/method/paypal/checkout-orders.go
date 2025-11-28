@@ -3,9 +3,12 @@ package paypal
 import (
 	"errors"
 	"fmt"
+
 	"github.com/nbvghost/dandelion/domain/oss"
 	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal"
 	"github.com/nbvghost/dandelion/service/serviceargument"
+	"github.com/shopspring/decimal"
+
 	"regexp"
 	"strconv"
 	"strings"
@@ -99,7 +102,7 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 			summary = ordersGoods.Goods.Summary[:126]
 		}
 
-		amount := strconv.FormatFloat(float64(ordersGoods.SellPrice*ordersGoods.Quantity)/100.0, 'f', 2, 64)
+		amount := ordersGoods.SellPrice.Mul(decimal.NewFromUint64(uint64(ordersGoods.Quantity))).Div(decimal.NewFromInt(100)) //strconv.FormatFloat(float64(ordersGoods.SellPrice*ordersGoods.Quantity)/100.0, 'f', 2, 64)
 
 		items = append(items, internal.CheckoutOrdersUnitItem{
 			Name:        title,
@@ -112,7 +115,7 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 			//ImageUrl: "https://oss.dev.com/assets/usokay.com/goods/143/image/c000af85aeaf74aeee732ec303da31ba.png@convert_from=webp",
 			UnitAmount: internal.CheckoutOrdersUnitItemUnitAmount{
 				CurrencyCode: "USD",
-				Value:        amount,
+				Value:        amount.StringFixed(2),
 			},
 		})
 
@@ -159,7 +162,7 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 				Address: shippingAddress,
 			},
 		})
-		
+
 		checkoutOrders, err := internal.CheckoutOrders(ctx, m.User.OID, &internal.CheckoutOrdersRequest{
 			Intent:        "CAPTURE",
 			PurchaseUnits: units,

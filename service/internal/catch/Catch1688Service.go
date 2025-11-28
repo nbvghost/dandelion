@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/activity"
 	"github.com/nbvghost/dandelion/service/internal/admin"
 	"github.com/nbvghost/dandelion/service/internal/company"
 	"github.com/nbvghost/dandelion/service/internal/express"
 	"github.com/nbvghost/dandelion/service/internal/goods"
+	"github.com/shopspring/decimal"
+
 	"html"
 	"io"
 	"io/ioutil"
@@ -55,8 +58,6 @@ type NameValue struct {
 	Name  string
 	Value string
 }
-
-
 
 func (m *Catch1688Service) Api(catchDir string) error {
 	http.HandleFunc("/push-temu", func(writer http.ResponseWriter, request *http.Request) {
@@ -704,12 +705,12 @@ func (m *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 
 			specification := model.Specification{}
 			specification.Label = html.UnescapeString(key)
-			specification.MarketPrice = uint(_price)
-			specification.Brokerage = uint(brokerage)
-			specification.CostPrice = uint(costPrice)
+			specification.MarketPrice = decimal.NewFromFloat(_price) //uint(_price)
+			specification.Brokerage = decimal.NewFromFloat(brokerage)
+			specification.CostPrice = decimal.NewFromFloat(costPrice)
 			specification.Stock = uint(_canBookCount)
 			specification.Num = 1
-			specification.Weight = 200
+			specification.Weight = decimal.NewFromFloat(200)
 			specification.OID = haveAdmin.OID
 			specifications = append(specifications, specification)
 
@@ -731,12 +732,12 @@ func (m *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 
 		specification := model.Specification{}
 		specification.Label = html.UnescapeString(goods.Title)
-		specification.MarketPrice = uint(minPrice)
-		specification.Brokerage = uint(brokerage)
-		specification.CostPrice = uint(costPrice)
+		specification.MarketPrice = decimal.NewFromFloat(minPrice)
+		specification.Brokerage = decimal.NewFromFloat(brokerage)
+		specification.CostPrice = decimal.NewFromFloat(costPrice)
 		specification.Stock = uint(totlStock)
 		specification.Num = 1
-		specification.Weight = 200
+		specification.Weight = decimal.NewFromFloat(200)
 		specification.OID = haveAdmin.OID
 		specifications = append(specifications, specification)
 
