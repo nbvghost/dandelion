@@ -606,15 +606,15 @@ func (Api) AddGoods(Title string, GoodsTypeID dao.PrimaryKey, GoodsTypeChildID d
 	return ar.Data.Goods, nil
 }
 
-func (Api) AddGoodsAttributes(GoodsID dao.PrimaryKey, Name string) (*model.GoodsAttributes, error) {
-	goodsType := &model.GoodsAttributes{Name: Name, GoodsID: GoodsID}
+func (Api) AddGoodsAttributes(GoodsID dao.PrimaryKey, GroupID dao.PrimaryKey, Name string, Value string) (*model.GoodsAttributes, error) {
+	goodsType := &model.GoodsAttributes{Name: Name, GoodsID: GoodsID, GroupID: GroupID, Value: Value}
 
 	goodsBytes, err := json.Marshal(goodsType)
 	if err != nil {
 		return nil, err
 	}
 
-	form, err := client.Post(baseUrl+"/api/goods/attributes-group", "application/json", bytes.NewReader(goodsBytes))
+	form, err := client.Post(baseUrl+"/api/goods/attributes", "application/json", bytes.NewReader(goodsBytes))
 	if err != nil {
 		return nil, err
 	}
