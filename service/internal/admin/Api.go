@@ -5,14 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/result"
 	"io"
 	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+
+	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/result"
 )
 
 var client = &http.Client{}
@@ -32,9 +33,10 @@ func SetBaseURL(url string) {
 }
 
 type Api struct{}
-func (Api) Translate(query []string,from,to string) ([]string, error) {
 
-	goodsBytes, err := json.Marshal(map[string]any{"Query":query,"From":from,"To":to})
+func (Api) Translate(query []string, from, to string) ([]string, error) {
+
+	goodsBytes, err := json.Marshal(map[string]any{"Query": query, "From": from, "To": to})
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +276,6 @@ func (Api) GetSKULabel(GoodsID dao.PrimaryKey) ([]*model.GoodsSkuLabel, error) {
 	//https://admin.sites.ink/api/goods/sku-label
 	params := url.Values{}
 	params.Set("goods-id", fmt.Sprintf("%d", GoodsID))
-
 
 	request, err := http.NewRequest("GET", baseUrl+"/api/goods/sku-label?"+params.Encode(), nil)
 	if err != nil {
@@ -604,6 +605,77 @@ func (Api) AddGoods(Title string, GoodsTypeID dao.PrimaryKey, GoodsTypeChildID d
 	}
 	return ar.Data.Goods, nil
 }
+
+func (Api) AddGoodsAttributes(GoodsID dao.PrimaryKey, Name string) (*model.GoodsAttributes, error) {
+	goodsType := &model.GoodsAttributes{Name: Name, GoodsID: GoodsID}
+
+	goodsBytes, err := json.Marshal(goodsType)
+	if err != nil {
+		return nil, err
+	}
+
+	form, err := client.Post(baseUrl+"/api/goods/attributes-group", "application/json", bytes.NewReader(goodsBytes))
+	if err != nil {
+		return nil, err
+	}
+	defer form.Body.Close()
+
+	body, err := io.ReadAll(form.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	ar := struct {
+		Code    result.ActionResultCode
+		Message string
+		Data    *model.GoodsAttributes
+		Now     int64
+	}{}
+	err = json.Unmarshal(body, &ar)
+	if err != nil {
+		return ar.Data, err
+	}
+	if ar.Code != 0 {
+		return ar.Data, errors.New(ar.Message)
+	}
+	return ar.Data, nil
+}
+
+func (Api) AddGoodsAttributesGroup(GoodsID dao.PrimaryKey, Name string) (*model.GoodsAttributesGroup, error) {
+	goodsType := &model.GoodsAttributesGroup{Name: Name, GoodsID: GoodsID}
+
+	goodsBytes, err := json.Marshal(goodsType)
+	if err != nil {
+		return nil, err
+	}
+
+	form, err := client.Post(baseUrl+"/api/goods/attributes-group", "application/json", bytes.NewReader(goodsBytes))
+	if err != nil {
+		return nil, err
+	}
+	defer form.Body.Close()
+
+	body, err := io.ReadAll(form.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	ar := struct {
+		Code    result.ActionResultCode
+		Message string
+		Data    *model.GoodsAttributesGroup
+		Now     int64
+	}{}
+	err = json.Unmarshal(body, &ar)
+	if err != nil {
+		return ar.Data, err
+	}
+	if ar.Code != 0 {
+		return ar.Data, errors.New(ar.Message)
+	}
+	return ar.Data, nil
+}
+
 func (Api) Login(account, password string) error {
 	params := url.Values{}
 	params.Set("account", account)

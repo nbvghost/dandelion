@@ -22,9 +22,12 @@ type Attributes struct {
 	} `method:"DELETE"`
 }
 
-func (g *Attributes) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
-	err = service.Goods.Attributes.AddGoodsAttributes(g.Organization.ID, g.POST.GoodsID, g.POST.GroupID, g.POST.Name, g.POST.Value)
-	return &result.JsonResult{Data: result.New(err, "属性添加成功")}, err
+func (g *Attributes) HandlePost(context constrain.IContext) (constrain.IResult, error) {
+	at, err := service.Goods.Attributes.AddGoodsAttributes(g.Organization.ID, g.POST.GoodsID, g.POST.GroupID, g.POST.Name, g.POST.Value)
+	if err != nil {
+		return nil, err
+	}
+	return &result.JsonResult{Data: result.NewDataMessage(at, "属性添加成功")}, err
 }
 
 func (g *Attributes) Handle(ctx constrain.IContext) (constrain.IResult, error) {
