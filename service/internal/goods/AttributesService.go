@@ -2,13 +2,14 @@ package goods
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
-	"strings"
 )
 
 type AttributesService struct {
@@ -48,9 +49,9 @@ func (m AttributesService) FindByGroupID(Orm *gorm.DB, groupID dao.PrimaryKey) [
 	Orm.Where(`"GroupID"=?`, groupID).Find(&list) //SelectOne(user, "select * from User where Tel=?", Tel)
 	return list
 }
-func (m AttributesService) GetByGoodsIDAndName(Orm *gorm.DB, oid, goodsID dao.PrimaryKey, name string) *model.GoodsAttributes {
+func (m AttributesService) GetByGoodsIDAndName(Orm *gorm.DB, oid, goodsID, groupID dao.PrimaryKey, name string) *model.GoodsAttributes {
 	item := &model.GoodsAttributes{}
-	Orm.Where(`"OID"=? and "GoodsID"=? and "Name"=?`, oid, goodsID, name).First(item) //SelectOne(user, "select * from User where Tel=?", Tel)
+	Orm.Where(`"OID"=? and "GoodsID"=? and "GroupID"=? and "Name"=?`, oid, goodsID, groupID, name).First(item) //SelectOne(user, "select * from User where Tel=?", Tel)
 	return item
 }
 
@@ -107,28 +108,29 @@ func (m AttributesService) DeleteGoodsAttributes(ID dao.PrimaryKey) error {
 	return dao.DeleteByPrimaryKey(db.Orm(), &model.GoodsAttributes{}, ID) //repository.GoodsAttributes.DeleteByID(ID).Err
 }
 
-func (m AttributesService) AddGoodsAttributes(oid, goodsID, groupID dao.PrimaryKey, name, value string) error {
+func (m AttributesService) AddGoodsAttributes(oid, goodsID, groupID dao.PrimaryKey, name, value string) (*model.GoodsAttributes, error) {
 	if goodsID == 0 || groupID == 0 {
-		return errors.New(fmt.Sprintf("产品ID不能为空或组ID不能为空"))
+		return nil, errors.New(fmt.Sprintf("产品ID不能为空或组ID不能为空"))
 	}
 	if strings.EqualFold(name, "") || strings.EqualFold(value, "") {
-		return nil
+		return nil, errors.New(fmt.Sprintf("名称不能为空"))
 	}
-	hasAttr := m.GetByGoodsIDAndName(db.Orm(), oid, goodsID, name) //repository.GoodsAttributes.GetByGoodsIDAndName(goodsID, name)
+	hasAttr := m.GetByGoodsIDAndName(db.Orm(), oid, goodsID, groupID, name) //repository.GoodsAttributes.GetByGoodsIDAndName(goodsID, name)
 	if hasAttr.IsZero() == false {
-		return errors.New(fmt.Sprintf("属性名：%v已经存在", name))
+		return hasAttr, errors.New(fmt.Sprintf("属性名：%v已经存在", name))
 	}
-	err := dao.Create(db.Orm(), &model.GoodsAttributes{
+	hasAttr = &model.GoodsAttributes{
 		OID:     oid,
 		GoodsID: goodsID,
 		GroupID: groupID,
 		Name:    name,
 		Value:   value,
-	})
-	if err != nil {
-		return err
 	}
-	return nil
+	err := dao.Create(db.Orm(), hasAttr)
+	if err != nil {
+		return nil, err
+	}
+	return hasAttr, nil
 }
 func (m AttributesService) ListGoodsAttributesGroupByGoodsID(goodsID dao.PrimaryKey) []*model.GoodsAttributesGroup {
 
@@ -165,22 +167,24 @@ func (m AttributesService) ChangeGoodsAttributesGroup(id dao.PrimaryKey, groupNa
 
 	return err
 }
-func (m AttributesService) AddGoodsAttributesGroup(oid, goodsID dao.PrimaryKey, groupName string) error {
+func (m AttributesService) AddGoodsAttributesGroup(oid, goodsID dao.PrimaryKey, groupName string) (*model.GoodsAttributesGroup, error) {
 	if goodsID == 0 {
-		return errors.New(fmt.Sprintf("产品ID不能为空"))
+		return nil, errors.New(fmt.Sprintf("产品ID不能为空"))
 	}
 	if strings.EqualFold(groupName, "") {
-		return nil
+		return nil, errors.New(fmt.Sprintf("名称不能为空"))
 	}
 	hasAttr := m.GetGroupByGoodsIDAndName(db.Orm(), goodsID, groupName) //repository.GoodsAttributesGroup.GetByGoodsIDAndName(goodsID, groupName)
 
 	if hasAttr.IsZero() == false {
-		return errors.New(fmt.Sprintf("属性名：%v已经存在", groupName))
+		return hasAttr, errors.New(fmt.Sprintf("属性名：%v已经存在", groupName))
 	}
-	err := dao.Create(db.Orm(), &model.GoodsAttributesGroup{
+
+	hasAttr = &model.GoodsAttributesGroup{
 		OID:     oid,
 		GoodsID: goodsID,
 		Name:    groupName,
-	})
-	return err
+	}
+	err := dao.Create(db.Orm(), hasAttr)
+	return hasAttr, err
 }
