@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/tool"
 
 	"github.com/nbvghost/dandelion/constrain"
@@ -201,7 +202,7 @@ func (fo *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 			makeFuncType = reflect.FuncOf(argsIn, []reflect.Type{reflect.TypeOf(new(interface{})).Elem()}, variadic)
 		}
 
-		//contextValue := contexext.FromContext(context)
+		contextValue := contexext.FromContext(context)
 		context.Mapping(function)
 
 		backCallFunc := reflect.MakeFunc(makeFuncType, func(args []reflect.Value) []reflect.Value {
@@ -228,7 +229,7 @@ func (fo *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 				}
 				if templateBytes == nil || len(templateBytes) == 0 {
 					//fileName := filepath.Join("view", contextValue.DomainName, "template", "widget", fmt.Sprintf("%s.%s", funcName, "gohtml"))
-					fileName := filepath.Join("view", "template", "widget", fmt.Sprintf("%s.%s", funcName, "gohtml"))
+					fileName := filepath.Join("view", contextValue.DomainName, "template", "widget", fmt.Sprintf("%s.%s", funcName, "gohtml"))
 					b, err = ioutil.ReadFile(fileName)
 					if err != nil {
 						b, err = embeds.ReadFile(fmt.Sprintf("template/%s.gohtml", funcName))
