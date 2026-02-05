@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 
@@ -112,6 +113,12 @@ func (r *JsonResult) WithStatusCode(statusCode int) *JsonResult {
 	return r
 }
 func (r *JsonResult) Apply(context constrain.IContext) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Println(err)
+		}
+	}()
+
 	v := contexext.FromContext(context)
 
 	var b []byte
