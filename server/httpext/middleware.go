@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/nbvghost/dandelion/domain/logger"
-
 	"go.uber.org/zap"
 
 	"github.com/gin-gonic/gin/binding"
@@ -252,7 +251,6 @@ func (m *httpMiddleware) CreateContext(etcdClient constrain.IEtcd, redisClient c
 		//PathTemplate: pathTemplate,
 		Query: r.URL.Query(),
 	}
-
 	{
 		var apiPath = "/api/"
 		var requestUrlPath = r.URL.Path
@@ -264,6 +262,7 @@ func (m *httpMiddleware) CreateContext(etcdClient constrain.IEtcd, redisClient c
 	appLogger = appLogger.With(zap.String("Path", r.URL.String()))
 
 	ctx := contexext.New(contexext.NewContext(parentCtx, contextValue), m.serverName, session.ID, r.URL.Path, mappingCallback, etcdClient, redisClient, session.Token, appLogger, key.Mode(mode))
+
 	return ctx
 }
 func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute, beforeViewRender constrain.IBeforeViewRender, afterViewRender constrain.IAfterViewRender, w http.ResponseWriter, r *http.Request) error {

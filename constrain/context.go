@@ -2,8 +2,10 @@ package constrain
 
 import (
 	"context"
-	"go.uber.org/zap"
+
 	"sync"
+
+	"go.uber.org/zap"
 
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/library/dao"

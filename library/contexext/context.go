@@ -3,13 +3,14 @@ package contexext
 import (
 	"context"
 	"errors"
-	"github.com/nbvghost/dandelion/library/dao"
+
 	"log"
 	"net/http"
 	"net/url"
 	"sync"
 	"time"
 
+	"github.com/nbvghost/dandelion/library/dao"
 	"go.uber.org/zap"
 
 	"github.com/nbvghost/dandelion/constrain"
@@ -121,7 +122,8 @@ func (m *handlerContext) Destroy() {
 	})
 }
 func New(parent context.Context, appName, uid string, route string, mapping constrain.IMappingCallback, etcd constrain.IEtcd, redis constrain.IRedis, token string, logger *zap.Logger, mode key.Mode) constrain.IContext {
-	return &handlerContext{parent: parent, uid: dao.NewFromString(uid), mapping: mapping, route: route, etcd: etcd, redis: redis, appName: appName, token: token, logger: logger, mode: mode, syncCache: &sync.Map{}}
+	x := &handlerContext{parent: parent, uid: dao.NewFromString(uid), mapping: mapping, route: route, etcd: etcd, redis: redis, appName: appName, token: token, logger: logger, mode: mode, syncCache: &sync.Map{}}
+	return x
 }
 
 type serviceContext struct {
@@ -163,5 +165,6 @@ func (m *serviceContext) Done() <-chan struct{} {
 }
 
 func NewServiceContext(parent context.Context, appName string, etcd constrain.IEtcd, redis constrain.IRedis, logger *zap.Logger) constrain.IServiceContext {
-	return &serviceContext{parent: parent, etcd: etcd, redis: redis, appName: appName, logger: logger, syncCache: &sync.Map{}}
+	x := &serviceContext{parent: parent, etcd: etcd, redis: redis, appName: appName, logger: logger, syncCache: &sync.Map{}}
+	return x
 }
