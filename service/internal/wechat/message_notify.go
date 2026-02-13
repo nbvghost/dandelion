@@ -1,16 +1,18 @@
 package wechat
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/library/db"
-	"github.com/nbvghost/dandelion/service/internal/company"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/service/internal/company"
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
@@ -71,13 +73,13 @@ func (m MessageNotify) NewUserJoinNotify(NewUser *model.User, notifyUser *model.
 }
 
 // 发货通知
-func (m MessageNotify) OrderDeliveryNotify(Order *model.Orders, OrdersGoods []dao.IEntity, OrdersShipping *model.OrdersShipping, wxConfig *model.WechatConfig) *result.ActionResult {
+func (m MessageNotify) OrderDeliveryNotify(ctx context.Context, Order *model.Orders, OrdersGoods []dao.IEntity, OrdersShipping *model.OrdersShipping, wxConfig *model.WechatConfig) *result.ActionResult {
 
 	if Order.ID == 0 {
 		return &result.ActionResult{Code: result.Fail, Message: "找不到订单", Data: nil}
 	}
 
-	notifyUser := dao.GetByPrimaryKey(db.Orm(), &model.User{}, Order.UserID).(*model.User)
+	notifyUser := dao.GetByPrimaryKey(db.GetDB(ctx), &model.User{}, Order.UserID).(*model.User)
 
 	var as *result.ActionResult
 
@@ -165,13 +167,13 @@ func (m MessageNotify) INComeNotify(slUser *model.User, itemName string, timeTex
 }
 
 // 新订单
-func (m MessageNotify) NewOrderNotify(Order model.Orders, ogs []model.OrdersGoods, wxConfig *model.WechatConfig) *result.ActionResult {
+func (m MessageNotify) NewOrderNotify(ctx context.Context, Order model.Orders, ogs []model.OrdersGoods, wxConfig *model.WechatConfig) *result.ActionResult {
 
 	if Order.ID == 0 {
 		return &result.ActionResult{Code: result.Fail, Message: "找不到订单", Data: nil}
 	}
 
-	notifyUser := dao.GetByPrimaryKey(db.Orm(), &model.User{}, Order.UserID).(*model.User)
+	notifyUser := dao.GetByPrimaryKey(db.GetDB(ctx), &model.User{}, Order.UserID).(*model.User)
 
 	var as *result.ActionResult
 
@@ -195,7 +197,7 @@ func (m MessageNotify) NewOrderNotify(Order model.Orders, ogs []model.OrdersGood
 
 	//var org model.Organization
 	//service.OrganizationService.Get(singleton.Orm(), Order.OID, &org)
-	org := dao.GetByPrimaryKey(db.Orm(), &model.Organization{}, Order.OID).(*model.Organization)
+	org := dao.GetByPrimaryKey(db.GetDB(ctx), &model.Organization{}, Order.OID).(*model.Organization)
 
 	data_data["keyword5"] = map[string]interface{}{"value": org.Name, "color": "#173177"}
 

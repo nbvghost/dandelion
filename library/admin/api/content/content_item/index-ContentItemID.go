@@ -20,8 +20,8 @@ func (m *IndexContentItemID) Handle(context constrain.IContext) (r constrain.IRe
 	panic("implement me")
 }
 
-func (m *IndexContentItemID) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
-	Orm := db.Orm()
+func (m *IndexContentItemID) HandlePut(ctx constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.GetDB(ctx)
 	//ID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	/*ID := object.ParseUint(context.PathParams["ContentItemID"])
 	item := &model.ContentItem{}

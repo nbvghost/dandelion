@@ -20,16 +20,16 @@ func (m *List) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
 	var address = &model.Address{}
 	if m.Get.AddressID > 0 {
-		address = dao.GetByPrimaryKey(db.Orm(), &model.Address{}, m.Get.AddressID).(*model.Address)
+		address = dao.GetByPrimaryKey(db.GetDB(ctx), &model.Address{}, m.Get.AddressID).(*model.Address)
 	} else {
-		addressList := dao.Find(db.Orm(), &model.Address{}).Where(`"UserID"=? and "DefaultShipping"=true`, ctx.UID()).List()
+		addressList := dao.Find(db.GetDB(ctx), &model.Address{}).Where(`"UserID"=? and "DefaultShipping"=true`, ctx.UID()).List()
 		if len(addressList) > 0 {
 			address = addressList[0].(*model.Address)
 		}
 	}
 
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
-	list, err := service.Order.Orders.FindShoppingCartListDetails(m.User.OID, m.User.ID, address)
+	list, err := service.Order.Orders.FindShoppingCartListDetails(ctx, m.User.OID, m.User.ID, address)
 	if err != nil {
 		return nil, err
 	}

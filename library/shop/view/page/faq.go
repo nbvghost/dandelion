@@ -2,6 +2,7 @@ package page
 
 import (
 	"fmt"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -16,14 +17,14 @@ type FaqReply struct {
 	extends.ViewBase
 }
 
-func (m *FaqRequest) Render(context constrain.IContext) (r constrain.IViewResult, err error) {
+func (m *FaqRequest) Render(ctx constrain.IContext) (r constrain.IViewResult, err error) {
 	reply := &FaqReply{
 		ViewBase: extends.ViewBase{
 			Name: "page/faq",
 		},
 	}
 	reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-		siteName := service.Content.GetTitle(db.Orm(), m.Organization.ID)
+		siteName := service.Content.GetTitle(db.GetDB(ctx), m.Organization.ID)
 		meta.SetBase(fmt.Sprintf("%s", "faq"), siteName, "fag", "fag")
 		return nil
 	}

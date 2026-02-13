@@ -2,6 +2,7 @@ package content_item
 
 import (
 	"errors"
+
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service"
 
@@ -28,12 +29,12 @@ type ContentItemID struct {
 	} `method:"Get"`
 }
 
-func (m *ContentItemID) HandleDelete(context constrain.IContext) (constrain.IResult, error) {
-	Orm := db.Orm()
+func (m *ContentItemID) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) {
+	Orm := db.GetDB(ctx)
 	//ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	//ContentItemID := object.ParseUint(context.PathParams["ContentItemID"])
 
-	css := repository.ContentSubTypeDao.FindContentSubTypesByContentItemID(m.Delete.ContentItemID)
+	css := repository.ContentSubTypeDao.FindContentSubTypesByContentItemID(ctx, m.Delete.ContentItemID)
 	if len(css) > 0 {
 
 		return nil, errors.New("包含子项内容无法删除")
@@ -53,8 +54,8 @@ func (m *ContentItemID) Handle(context constrain.IContext) (constrain.IResult, e
 	panic("implement me")
 }
 
-func (m *ContentItemID) HandlePut(context constrain.IContext) (constrain.IResult, error) {
-	//Orm := db.Orm()
+func (m *ContentItemID) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
+	//Orm := db.GetDB(ctx)
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	//ID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ContentItemID"])
@@ -64,11 +65,11 @@ func (m *ContentItemID) HandlePut(context constrain.IContext) (constrain.IResult
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, err
 	}*/
 
-	err := service.Content.SaveContentItem(m.Organization.ID, m.Put.ContentItem)
+	err := service.Content.SaveContentItem(ctx, m.Organization.ID, m.Put.ContentItem)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
 }
-func (m *ContentItemID) HandleGet(context constrain.IContext) (constrain.IResult, error) {
-	Orm := db.Orm()
+func (m *ContentItemID) HandleGet(ctx constrain.IContext) (constrain.IResult, error) {
+	Orm := db.GetDB(ctx)
 	//ID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ContentItemID"])
 	//item := &model.ContentItem{}

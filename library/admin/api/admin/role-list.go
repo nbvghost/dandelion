@@ -12,8 +12,8 @@ type RoleList struct {
 	Post  struct{}     `method:"Post"`
 }
 
-func (m *RoleList) Handle(context constrain.IContext) (r constrain.IResult, err error) {
-	admin := service.Admin.Service.GetAdmin(context.UID())
+func (m *RoleList) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
+	admin := service.Admin.Service.GetAdmin(ctx, ctx.UID())
 	if admin.Initiator {
 		return result.NewData(map[string]any{"RoleList": []model.Role{}}), nil
 	}

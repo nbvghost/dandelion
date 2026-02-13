@@ -2,6 +2,7 @@ package content
 
 import (
 	"fmt"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/oss"
 	"github.com/nbvghost/dandelion/entity/extends"
@@ -25,7 +26,7 @@ type DetailReply struct {
 	SiteData serviceargument.SiteData[*model.Content]
 }
 
-func (m *DetailRequest) Render(context constrain.IContext) (constrain.IViewResult, error) {
+func (m *DetailRequest) Render(ctx constrain.IContext) (constrain.IViewResult, error) {
 	reply := &DetailReply{}
 
 	var c *model.Content
@@ -38,26 +39,26 @@ func (m *DetailRequest) Render(context constrain.IContext) (constrain.IViewResul
 		return nil, errors.New("没有找到内容")
 	}*/
 
-	c = repository.ContentDao.GetContentByUri(m.Organization.ID, m.ContentUri)
+	c = repository.ContentDao.GetContentByUri(ctx, m.Organization.ID, m.ContentUri)
 
-	contentItem := repository.ContentItemDao.GetContentItemByID(c.ContentItemID)
-	contentSubType := repository.ContentSubTypeDao.GetContentSubTypeByID(c.ContentSubTypeID)
+	contentItem := repository.ContentItemDao.GetContentItemByID(ctx, c.ContentItemID)
+	contentSubType := repository.ContentSubTypeDao.GetContentSubTypeByID(ctx, c.ContentSubTypeID)
 
 	reply.Name = string(contentItem.Type) + "/detail/" + contentItem.TemplateName
 
-	reply.SiteData = service.Site.GetContentTypeByUri(context, m.Organization.ID, contentItem.Uri, contentSubType.Uri, 0)
+	reply.SiteData = service.Site.GetContentTypeByUri(ctx, m.Organization.ID, contentItem.Uri, contentSubType.Uri, 0)
 	reply.SiteData.Item = c
 	if len(reply.SiteData.Pagination.List) > 0 {
 		modelContent := reply.SiteData.Pagination.List[0]
 		reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-			siteName := service.Content.GetTitle(db.Orm(), m.Organization.ID)
+			siteName := service.Content.GetTitle(db.GetDB(ctx), m.Organization.ID)
 			meta.SetBase(fmt.Sprintf("%s | %s", modelContent.Title, reply.SiteData.CurrentMenuData.Menus.Name), siteName, modelContent.Keywords, modelContent.Description)
 
-			imgUrl, _ := oss.ReadUrl(context, modelContent.Picture)
+			imgUrl, _ := oss.ReadUrl(ctx, modelContent.Picture)
 			meta.SetOGImage(imgUrl, 0, 0, modelContent.Title, "")
 
 			for _, v := range modelContent.Images {
-				imgUrl, _ = oss.ReadUrl(context, v)
+				imgUrl, _ = oss.ReadUrl(ctx, v)
 				meta.SetOGImage(imgUrl, 0, 0, modelContent.Title, "")
 			}
 
@@ -81,7 +82,7 @@ func (m *DetailRequest) Render(context constrain.IContext) (constrain.IViewResul
 	}
 	reply.LeftRight = m.ContentService.FindContentListForLeftRight(c.ContentItemID, c.ContentSubTypeID, c.ID, c.CreatedAt)
 	reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-		siteName := m.ContentService.GetTitle(db.Orm(), m.Organization.ID)
+		siteName := m.ContentService.GetTitle(db.GetDB(ctx), m.Organization.ID)
 		meta.SetBase(fmt.Sprintf("%s | %s", reply.Content.Title, reply.MenusData.Menus.Name), siteName, reply.Content.Summary)
 		imgUrl, err := ossurl.CreateUrl(context, reply.Content.Picture)
 		if err != nil {

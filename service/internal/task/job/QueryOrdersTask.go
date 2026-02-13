@@ -2,12 +2,13 @@ package job
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/order"
 	"github.com/nbvghost/dandelion/service/internal/wechat"
 	"github.com/pkg/errors"
-	"log"
 
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -21,10 +22,10 @@ type QueryOrdersTask struct {
 }
 
 func (m *QueryOrdersTask) Run() error {
-	wxConfigList := m.WxService.MiniProgram(db.Orm())
+	wxConfigList := m.WxService.MiniProgram(db.GetDB(m.context))
 	for i := range wxConfigList {
 		config := wxConfigList[i].(*model.WechatConfig)
-		Orm := db.Orm()
+		Orm := db.GetDB(m.context)
 		//var ordersList []model.Orders
 		ordersList := dao.Find(Orm, entity.Orders).
 			Where(`"OID"=?`, config.OID).

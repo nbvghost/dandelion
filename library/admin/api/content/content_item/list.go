@@ -11,8 +11,8 @@ type List struct {
 	Organization *model.Organization `mapping:""`
 }
 
-func (m *List) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *List) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
-	dts := repository.ContentItemDao.ListContentItemByOID(m.Organization.ID)
+	dts := repository.ContentItemDao.ListContentItemByOID(ctx, m.Organization.ID)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", dts)}, nil
 }

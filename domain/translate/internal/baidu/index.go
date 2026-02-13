@@ -1,16 +1,18 @@
 package baidu
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/nbvghost/dandelion/service"
-	"github.com/nbvghost/dandelion/service/serviceargument"
-	"github.com/nbvghost/tool/encryption"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/nbvghost/dandelion/service"
+	"github.com/nbvghost/dandelion/service/serviceargument"
+	"github.com/nbvghost/tool/encryption"
 )
 
 type Index struct {
@@ -35,7 +37,7 @@ type Result struct {
 
 func (m *Index) translateBase(query string, from, to string) (*Result, error) {
 	if m.config == nil {
-		m.config = service.Configuration.GetBaiduTranslateConfiguration(0)
+		m.config = service.Configuration.GetBaiduTranslateConfiguration(context.Background(), 0)
 	}
 
 	salt := fmt.Sprintf("%d", time.Now().Unix())
@@ -109,7 +111,7 @@ func (m *Index) Translate(query []string, from, to string) (map[int]string, erro
 
 	//var translate model.Translate
 
-	/*tx := db.Orm().Begin()
+	/*tx := db.GetDB(ctx).Begin()
 	defer func() {
 		if err != nil {
 			tx.Rollback()

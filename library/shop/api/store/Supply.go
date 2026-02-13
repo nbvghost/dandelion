@@ -24,8 +24,8 @@ type Supply struct {
 	} `method:"Post"`
 }
 
-func (m *Supply) HandlePost(context constrain.IContext) (constrain.IResult, error) {
-	contextValue := contexext.FromContext(context)
+func (m *Supply) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
+	contextValue := contexext.FromContext(ctx)
 	//PayMoney, _ := strconv.ParseUint(context.Request.FormValue("PayMoney"), 10, 64)
 
 	if m.Post.PayMoney <= 0 {
@@ -42,14 +42,14 @@ func (m *Supply) HandlePost(context constrain.IContext) (constrain.IResult, erro
 
 	//WxConfig := m.WechatConfig
 
-	wechat := service.Payment.NewWechat(context, m.User.OID)
+	wechat := service.Payment.NewWechat(ctx, m.User.OID)
 
 	r, err := wechat.Order(supply.OrderNo, "门店", "充值", "", m.User.OpenID, ip, m.Post.PayMoney, model.OrdersTypeSupply)
 	if err != nil {
 		return result.NewError(err), nil //&result.JsonResult{Data: &result.ActionResult{Code: Success, Message: Message, Data: Result}}, nil
 	}
 
-	err = dao.Create(db.Orm(), &supply)
+	err = dao.Create(db.GetDB(ctx), &supply)
 	if err != nil {
 		return nil, err
 	}

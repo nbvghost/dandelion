@@ -1,6 +1,10 @@
 package wx
 
 import (
+	"log"
+	"net/http"
+	"strings"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -11,9 +15,6 @@ import (
 	"github.com/wechatpay-apiv3/wechatpay-go/core/auth/verifiers"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/downloader"
 	"github.com/wechatpay-apiv3/wechatpay-go/core/notify"
-	"log"
-	"net/http"
-	"strings"
 )
 
 type RefundNotify struct {
@@ -33,7 +34,7 @@ func (m *RefundNotify) HandlePost(context constrain.IContext) (r constrain.IResu
 }
 
 func (m *RefundNotify) handle(context constrain.IContext, OID dao.PrimaryKey) (r constrain.IResult, err error) {
-	wxConfig := service.Payment.NewWechat(context,OID).GetConfig()//service.Wechat.Wx.MiniProgramByOID(db.Orm(), OID)
+	wxConfig := service.Payment.NewWechat(context, OID).GetConfig() //service.Wechat.Wx.MiniProgramByOID(db.GetDB(ctx), OID)
 
 	certificateVisitor := downloader.MgrInstance().GetCertificateVisitor(wxConfig.MchID)
 
@@ -56,17 +57,17 @@ func (m *RefundNotify) handle(context constrain.IContext, OID dao.PrimaryKey) (r
 	log.Println(content)
 
 	if strings.EqualFold(content.RefundStatus, "SUCCESS") || strings.EqualFold(content.RefundStatus, "CLOSED") {
-		orders := repository.OrdersDao.GetOrdersByOrderNo(content.OutTradeNo)
+		orders := repository.OrdersDao.GetOrdersByOrderNo(context, content.OutTradeNo)
 		if orders.IsZero() {
 			return result.NewJsonResult(map[string]any{"code": "FAIL", "message": "订单不存在"}).WithStatusCode(http.StatusBadRequest), nil
 		}
 
 		//var ordersGoods *model.OrdersGoods
 		if !strings.EqualFold(content.OutTradeNo, content.OutRefundNo) {
-			//ordersGoods = m.OrdersService.GetOrdersGoodsByOrdersGoodsNo(db.Orm(), content.OutTradeNo)
+			//ordersGoods = m.OrdersService.GetOrdersGoodsByOrdersGoodsNo(db.GetDB(ctx), content.OutTradeNo)
 		}
 
-		err = service.Order.Orders.OrdersRefundSuccess(&orders)
+		err = service.Order.Orders.OrdersRefundSuccess(context, &orders)
 		if err != nil {
 			return result.NewJsonResult(map[string]any{"code": "FAIL", "message": err.Error()}).WithStatusCode(http.StatusBadRequest), nil
 		}

@@ -24,8 +24,8 @@ type ID struct {
 	} `method:"Get"`
 }
 
-func (m *ID) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
-	Orm := db.Orm()
+func (m *ID) HandlePut(ctx constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.GetDB(ctx)
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ID"])
 	//item := &model.Voucher{}
@@ -37,8 +37,8 @@ func (m *ID) HandlePut(context constrain.IContext) (r constrain.IResult, err err
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
 }
 
-func (m *ID) HandleDelete(context constrain.IContext) (r constrain.IResult, err error) {
-	Orm := db.Orm()
+func (m *ID) HandleDelete(ctx constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.GetDB(ctx)
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ID"])
 	//item := &model.Voucher{}
@@ -50,8 +50,8 @@ func (m *ID) Handle(context constrain.IContext) (r constrain.IResult, err error)
 	panic("implement me")
 }
 
-func (m *ID) HandleGet(context constrain.IContext) (r constrain.IResult, err error) {
-	Orm := db.Orm()
+func (m *ID) HandleGet(ctx constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.GetDB(ctx)
 	///ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ID"])
 	//item := &model.Voucher{}

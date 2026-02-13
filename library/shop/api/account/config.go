@@ -15,20 +15,20 @@ type Config struct {
 	Get  struct{}    `method:"Get"`
 }
 
-func (m *Config) Handle(context constrain.IContext) (r constrain.IResult, err error) {
-	defaultAddressList := dao.Find(db.Orm(), &model.Address{}).Where(`"UserID"=?`, context.UID()).Where(`"DefaultBilling"=true or "DefaultShipping"=true`).List()
-	user := dao.GetByPrimaryKey(db.Orm(), &model.User{}, context.UID())
+func (m *Config) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
+	defaultAddressList := dao.Find(db.GetDB(ctx), &model.Address{}).Where(`"UserID"=?`, ctx.UID()).Where(`"DefaultBilling"=true or "DefaultShipping"=true`).List()
+	user := dao.GetByPrimaryKey(db.GetDB(ctx), &model.User{}, ctx.UID())
 
-	userInfo := service.User.GetUserInfo(context.UID())
+	userInfo := service.User.GetUserInfo(ctx, ctx.UID())
 
-	data := service.Configuration.GetConfigurations(
+	data := service.Configuration.GetConfigurations(ctx,
 		m.User.OID,
 		model.ConfigurationKeyAdvert,
 		model.ConfigurationKeyPop,
 		model.ConfigurationKeyQuickLink,
 		model.ConfigurationKeyPaymentPaypalClientId,
 	)
-	ossUrl, err := oss.Url(context)
+	ossUrl, err := oss.Url(ctx)
 	if err != nil {
 		return nil, err
 	}

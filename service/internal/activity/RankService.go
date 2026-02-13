@@ -1,7 +1,9 @@
 package activity
 
 import (
+	"context"
 	"errors"
+
 	"github.com/nbvghost/dandelion/library/db"
 
 	"github.com/nbvghost/dandelion/entity/model"
@@ -12,14 +14,14 @@ type RankService struct {
 	model.BaseDao
 }
 
-func (service RankService) FindDESC() []model.Rank {
-	Orm := db.Orm()
+func (service RankService) FindDESC(ctx context.Context) []model.Rank {
+	Orm := db.GetDB(ctx)
 	var ranks []model.Rank
 	Orm.Model(&model.Rank{}).Order(`"GrowMaxValue" desc`).Find(&ranks)
 	return ranks
 }
-func (service RankService) AddRank(rank model.Rank) error {
-	Orm := db.Orm()
+func (service RankService) AddRank(ctx context.Context, rank model.Rank) error {
+	Orm := db.GetDB(ctx)
 	var hasRank model.Rank
 	Orm.Model(&model.Rank{}).Where(&model.Rank{GrowMaxValue: rank.GrowMaxValue}).First(&hasRank)
 	if hasRank.ID != 0 {

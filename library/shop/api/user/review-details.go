@@ -23,16 +23,16 @@ type GoodsReviewDetails struct {
 	GoodsRating       *extends.GoodsRating `gorm:"-"`
 }
 
-func (m *ReviewDetails) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *ReviewDetails) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	var item GoodsReviewDetails
-	db.Orm().Table(`"GoodsReview"`).
+	db.GetDB(ctx).Table(`"GoodsReview"`).
 		Select(`"GoodsReview".*,"Goods".*`).
 		Joins(`JOIN "Goods" on "Goods"."ID" = "GoodsReview"."GoodsID"`).
-		Where(`"GoodsReview"."UserID"=? and "GoodsReview"."ID"=?`, context.UID(), m.Get.ID).First(&item)
+		Where(`"GoodsReview"."UserID"=? and "GoodsReview"."ID"=?`, ctx.UID(), m.Get.ID).First(&item)
 
-	item.ReviewCount = dao.Find(db.Orm(), &model.GoodsReview{}).Where(`"GoodsID"=?`, item.GoodsReview.GoodsID).Count()
+	item.ReviewCount = dao.Find(db.GetDB(ctx), &model.GoodsReview{}).Where(`"GoodsID"=?`, item.GoodsReview.GoodsID).Count()
 
-	item.GoodsRating = service.Goods.Goods.Rating(item.Goods.ID)
+	item.GoodsRating = service.Goods.Goods.Rating(ctx, item.Goods.ID)
 
 	return result.NewData(item), nil
 }

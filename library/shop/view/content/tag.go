@@ -2,6 +2,7 @@ package content
 
 import (
 	"fmt"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/tag"
 	"github.com/nbvghost/dandelion/entity/extends"
@@ -27,7 +28,7 @@ type TagReply struct {
 	Order string
 }
 
-func (m *TagRequest) Render(context constrain.IContext) (r constrain.IViewResult, err error) {
+func (m *TagRequest) Render(ctx constrain.IContext) (r constrain.IViewResult, err error) {
 	reply := &TagReply{
 		ViewBase: extends.ViewBase{
 			Name: "content/tag",
@@ -36,7 +37,7 @@ func (m *TagRequest) Render(context constrain.IContext) (r constrain.IViewResult
 		//SubTypeMap: map[dao.PrimaryKey]extends.Menus{},
 	}
 
-	reply.SiteData = service.GetSiteData[*model.Content](context, m.Organization.ID)
+	reply.SiteData = service.GetSiteData[*model.Content](ctx, m.Organization.ID)
 
 	reply.Tag = tag.ToTagsName([]extends.Tag{{Uri: m.Tag}})[0]
 
@@ -67,13 +68,13 @@ func (m *TagRequest) Render(context constrain.IContext) (r constrain.IViewResult
 		reply.Order = "trending"
 	}
 
-	tags, err := service.Content.FindContentTags(m.Organization.ID)
+	tags, err := service.Content.FindContentTags(ctx, m.Organization.ID)
 	if err != nil {
 		return nil, err
 	}
 	reply.SiteData.Tags = tags
 
-	pageIndex, pageSize, total, list, err := service.Content.FindContentByTag(m.Organization.ID, reply.Tag, m.PageIndex, orderMethod...)
+	pageIndex, pageSize, total, list, err := service.Content.FindContentByTag(ctx, m.Organization.ID, reply.Tag, m.PageIndex, orderMethod...)
 	reply.SiteData.Pagination = serviceargument.NewPagination(pageIndex, pageSize, int(total), list)
 
 	//listContentItem := m.ContentService.ListContentItemByOID(m.Organization.ID)
@@ -91,7 +92,7 @@ func (m *TagRequest) Render(context constrain.IContext) (r constrain.IViewResult
 	}*/
 
 	reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-		siteName := service.Content.GetTitle(db.Orm(), m.Organization.ID)
+		siteName := service.Content.GetTitle(db.GetDB(ctx), m.Organization.ID)
 		meta.SetBase(fmt.Sprintf("%s", reply.Tag.Name), siteName, "", "")
 		return nil
 	}

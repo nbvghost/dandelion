@@ -18,12 +18,12 @@ type SortField struct {
 func (m *SortField) Handle(context constrain.IContext) (constrain.IResult, error) {
 	return nil, nil
 }
-func (m *SortField) HandlePut(context constrain.IContext) (constrain.IResult, error) {
-	/*customizeFieldGroup := dao.GetBy(db.Orm(), &model.CustomizeField{}, map[string]any{"GroupID": m.Put.GroupID, "Type": m.Put.Type, "Field": m.Put.Field}).(*model.CustomizeField)
+func (m *SortField) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
+	/*customizeFieldGroup := dao.GetBy(db.GetDB(ctx), &model.CustomizeField{}, map[string]any{"GroupID": m.Put.GroupID, "Type": m.Put.Type, "Field": m.Put.Field}).(*model.CustomizeField)
 	if customizeFieldGroup.IsZero() == false && customizeFieldGroup.ID != m.Put.ID {
 		return nil, errors.New(fmt.Sprintf("字段[%s]已经存在", m.Put.Field))
 	}*/
-	err := dao.UpdateByPrimaryKey(db.Orm(), &model.CustomizeField{}, m.Put.ID, map[string]any{
+	err := dao.UpdateByPrimaryKey(db.GetDB(ctx), &model.CustomizeField{}, m.Put.ID, map[string]any{
 		//"GroupID":  m.Put.GroupID,
 		//"Type":     m.Put.Type,
 		"Field": m.Put.Field,

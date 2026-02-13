@@ -46,7 +46,7 @@ func (m *GoodsChild) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
 	orderBy := &dao.Sort{}
 
-	return result.NewData(service.Goods.Goods.GoodsList(params, m.User.OID, orderBy.OrderByColumn(`"UpdatedAt"`, true), m.Get.Index+1, 10)), nil //&result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: m.GoodsService.GoodsList(`"UpdatedAt" desc`, m.Get.Index, 10, sqlWhere)}}, nil
+	return result.NewData(service.Goods.Goods.GoodsList(ctx, params, m.User.OID, orderBy.OrderByColumn(`"UpdatedAt"`, true), m.Get.Index+1, 10)), nil //&result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: m.GoodsService.GoodsList(`"UpdatedAt" desc`, m.Get.Index, 10, sqlWhere)}}, nil
 
 	/*if GoodsTypeChildID==0{
 		results := controller.Goods.ListGoodsByGoodsTypeID(GoodsTypeID)

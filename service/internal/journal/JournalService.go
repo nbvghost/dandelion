@@ -1,10 +1,12 @@
 package journal
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"github.com/nbvghost/dandelion/library/db"
 	"time"
+
+	"github.com/nbvghost/dandelion/library/db"
 
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -19,8 +21,8 @@ type JournalService struct {
 	//User user.UserService
 }
 
-func (service JournalService) StoreListJournal(StoreID dao.PrimaryKey, startDate string, endDate string) []model.StoreJournal {
-	Orm := db.Orm()
+func (service JournalService) StoreListJournal(ctx context.Context, StoreID dao.PrimaryKey, startDate string, endDate string) []model.StoreJournal {
+	Orm := db.GetDB(ctx)
 	//startDate
 	//endDate
 
@@ -71,8 +73,8 @@ type Result struct {
 	UserName    string         `gorm:"column:UserName"`
 }
 
-func (service JournalService) ListUserJournalLeveBrokerage(UserID dao.PrimaryKey, IDs []uint) []Result {
-	Orm := db.Orm()
+func (service JournalService) ListUserJournalLeveBrokerage(ctx context.Context, UserID dao.PrimaryKey, IDs []uint) []Result {
+	Orm := db.GetDB(ctx)
 
 	var result []Result
 

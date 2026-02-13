@@ -25,7 +25,7 @@ func (m *GoodsHotList) Handle(ctx constrain.IContext) (constrain.IResult, error)
 
 	//`"Hide"=?`, 0,
 
-	pagination := service.Goods.Goods.GoodsList(params, m.User.OID, orderBy.OrderByColumn(`"CountSale"`, true), m.Get.Index+1, 10)
+	pagination := service.Goods.Goods.GoodsList(ctx, params, m.User.OID, orderBy.OrderByColumn(`"CountSale"`, true), m.Get.Index+1, 10)
 	return result.NewData(pagination), nil
 	//return &gweb.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: controller.Goods.HotList()}}
 }

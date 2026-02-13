@@ -10,12 +10,12 @@ type Index struct {
 	Get struct{} `method:"get"`
 }
 
-func (m *Index) Handle(context constrain.IContext) (constrain.IResult, error) {
+func (m *Index) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	var err error
 
 	var cartCount uint
-	if context.UID() > 0 {
-		cartCount, err = service.Order.ShoppingCart.FindShoppingCartListCount(context.UID())
+	if ctx.UID() > 0 {
+		cartCount, err = service.Order.ShoppingCart.FindShoppingCartListCount(ctx, ctx.UID())
 		if err != nil {
 			return nil, err
 		}

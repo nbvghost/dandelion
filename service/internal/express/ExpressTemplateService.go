@@ -1,7 +1,9 @@
 package express
 
 import (
+	"context"
 	"errors"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -22,21 +24,21 @@ func (b ExpressTemplateService) GetExpressInfo(context constrain.IContext, Order
 		"WaybillToken": waybill,
 	}, nil
 }
-func (b ExpressTemplateService) GetExpressTemplateByName(Name string) model.ExpressTemplate {
-	Orm := db.Orm()
+func (b ExpressTemplateService) GetExpressTemplateByName(ctx context.Context, Name string) model.ExpressTemplate {
+	Orm := db.GetDB(ctx)
 	var list model.ExpressTemplate
 	Orm.Model(&model.ExpressTemplate{}).Where(`"Name"=?`, Name).Find(&list)
 	return list
 }
-func (b ExpressTemplateService) GetExpressTemplateByOID(OID dao.PrimaryKey) model.ExpressTemplate {
-	Orm := db.Orm()
+func (b ExpressTemplateService) GetExpressTemplateByOID(ctx context.Context, OID dao.PrimaryKey) model.ExpressTemplate {
+	Orm := db.GetDB(ctx)
 	var list model.ExpressTemplate
 	Orm.Model(&model.ExpressTemplate{}).Where(`"OID"=?`, OID).First(&list)
 	return list
 }
-func (b ExpressTemplateService) SaveExpressTemplate(target *model.ExpressTemplate) error {
-	Orm := db.Orm()
-	have := b.GetExpressTemplateByName(target.Name)
+func (b ExpressTemplateService) SaveExpressTemplate(ctx context.Context, target *model.ExpressTemplate) error {
+	Orm := db.GetDB(ctx)
+	have := b.GetExpressTemplateByName(ctx, target.Name)
 	if have.ID == 0 {
 		return dao.Save(Orm, target)
 	} else {

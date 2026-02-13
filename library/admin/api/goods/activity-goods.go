@@ -21,7 +21,7 @@ func (m *ActivityGoods) Handle(ctx constrain.IContext) (constrain.IResult, error
 	panic("implement me")
 }
 
-func (m *ActivityGoods) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *ActivityGoods) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	//Hash := context.Request.URL.Query().Get("Hash")
@@ -30,13 +30,13 @@ func (m *ActivityGoods) HandlePost(context constrain.IContext) (r constrain.IRes
 	//dts.Length = play.Paging
 	//util.RequestBodyToJSON(context.Request.Body, dts)
 	var TimeSellGoodsIDs []uint
-	db.Orm().Model(&model.TimeSellGoods{}).Where("OID=?", m.Organization.ID).Pluck("GoodsID", &TimeSellGoodsIDs)
+	db.GetDB(ctx).Model(&model.TimeSellGoods{}).Where("OID=?", m.Organization.ID).Pluck("GoodsID", &TimeSellGoodsIDs)
 	var CollageGoodsIDs []uint
-	db.Orm().Model(&model.CollageGoods{}).Where("OID=?", m.Organization.ID).Pluck("GoodsID", &CollageGoodsIDs)
+	db.GetDB(ctx).Model(&model.CollageGoods{}).Where("OID=?", m.Organization.ID).Pluck("GoodsID", &CollageGoodsIDs)
 	activityGoods := make([]uint, 0)
 	activityGoods = append(activityGoods, TimeSellGoodsIDs...)
 	activityGoods = append(activityGoods, CollageGoodsIDs...)
 	m.POST.Datatables.NotIDs = activityGoods
-	draw, recordsTotal, recordsFiltered, list := service.Goods.Goods.DatatablesListOrder(db.Orm(), m.POST.Datatables, &[]model.Goods{}, m.Organization.ID, "")
+	draw, recordsTotal, recordsFiltered, list := service.Goods.Goods.DatatablesListOrder(db.GetDB(ctx), m.POST.Datatables, &[]model.Goods{}, m.Organization.ID, "")
 	return &result.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}, err
 }

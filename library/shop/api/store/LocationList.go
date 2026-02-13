@@ -15,9 +15,9 @@ type LocationList struct {
 	} `method:"Get"`
 }
 
-func (m *LocationList) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *LocationList) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 
-	list := service.Company.Store.LocationList(m.Get.Latitude, m.Get.Longitude)
+	list := service.Company.Store.LocationList(ctx, m.Get.Latitude, m.Get.Longitude)
 
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: list}}, nil
 }

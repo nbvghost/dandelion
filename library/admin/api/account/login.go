@@ -40,7 +40,7 @@ func (m *Login) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 
 	contextValue := contexext.FromContext(ctx)
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 
 	account := strings.TrimSpace(m.Post.Account) //小写
 

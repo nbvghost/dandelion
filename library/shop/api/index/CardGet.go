@@ -25,9 +25,9 @@ func (m *CardGet) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//CardItemID, _ := strconv.ParseUint(context.PathParams["CardItemID"], 10, 64)
 	//CardItemID := object.ParseUint(context.PathParams["CardItemID"])
 	//var cardItem model.CardItem
-	cardItem := dao.GetByPrimaryKey(db.Orm(), entity.CardItem, dao.PrimaryKey(m.Get.CardItemID)).(*model.CardItem)
+	cardItem := dao.GetByPrimaryKey(db.GetDB(ctx), entity.CardItem, dao.PrimaryKey(m.Get.CardItemID)).(*model.CardItem)
 
-	dao.DeleteBy(db.Orm(), &model.Verification{}, map[string]interface{}{
+	dao.DeleteBy(db.GetDB(ctx), &model.Verification{}, map[string]interface{}{
 		"UserID":     m.User.ID,
 		"CardItemID": cardItem.Primary(),
 		"StoreID":    0,
@@ -38,9 +38,9 @@ func (m *CardGet) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	verification.CardItemID = cardItem.Primary()
 	verification.UserID = m.User.ID
 	verification.VerificationNo = tool.UUID()
-	verification.Name, verification.Label = cardItem.GetNameLabel(db.Orm())
+	verification.Name, verification.Label = cardItem.GetNameLabel(db.GetDB(ctx))
 
-	dao.Create(db.Orm(), &verification)
+	dao.Create(db.GetDB(ctx), &verification)
 
 	results := make(map[string]interface{})
 

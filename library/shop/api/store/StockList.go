@@ -14,9 +14,9 @@ type StockList struct {
 	} `method:"Get"`
 }
 
-func (m *StockList) Handle(context constrain.IContext) (constrain.IResult, error) {
+func (m *StockList) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
-	list := service.Company.Store.ListStoreStock(m.Store.ID)
+	list := service.Company.Store.ListStoreStock(ctx, m.Store.ID)
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: list}}, nil
 
 }

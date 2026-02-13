@@ -20,9 +20,9 @@ type GetOrder struct {
 func (m *GetOrder) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	pack := extends.OrdersDetail{}
 
-	pack.Orders = repository.OrdersDao.GetOrdersByID(m.Get.ID)
+	pack.Orders = repository.OrdersDao.GetOrdersByID(ctx, m.Get.ID)
 
-	ordersGoodsList, err := service.Order.Orders.FindOrdersGoodsByOrdersID(db.Orm(), pack.Orders.ID)
+	ordersGoodsList, err := service.Order.Orders.FindOrdersGoodsByOrdersID(db.GetDB(ctx), pack.Orders.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (m *GetOrder) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	}
 
 	ordersShippingList := make([]*model.OrdersShipping, 0)
-	dao.Find(db.Orm(), &model.OrdersShipping{}).Where(`"OrderNo"=?`, pack.Orders.OrderNo).Result(&ordersShippingList)
+	dao.Find(db.GetDB(ctx), &model.OrdersShipping{}).Where(`"OrderNo"=?`, pack.Orders.OrderNo).Result(&ordersShippingList)
 	pack.OrdersShippingList = ordersShippingList
 
 	//:todo ----

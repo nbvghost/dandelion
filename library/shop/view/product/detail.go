@@ -2,6 +2,8 @@ package product
 
 import (
 	"fmt"
+	"regexp"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/oss"
 	"github.com/nbvghost/dandelion/domain/tag"
@@ -11,7 +13,6 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/dandelion/service/serviceargument"
-	"regexp"
 )
 
 type DetailRequest struct {
@@ -27,7 +28,7 @@ type DetailReply struct {
 	SiteData serviceargument.SiteData[*extends.GoodsDetail]
 }
 
-func (m *DetailRequest) Render(context constrain.IContext) (constrain.IViewResult, error) {
+func (m *DetailRequest) Render(ctx constrain.IContext) (constrain.IViewResult, error) {
 	reply := &DetailReply{
 		ViewBase: extends.ViewBase{
 			Name: "product/detail",
@@ -36,16 +37,16 @@ func (m *DetailRequest) Render(context constrain.IContext) (constrain.IViewResul
 
 	var err error
 	var goodsInfo *extends.GoodsMix
-	goodsInfo, err = service.Goods.Goods.GetGoods(db.Orm(), context, m.GoodsID)
+	goodsInfo, err = service.Goods.Goods.GetGoods(ctx, db.GetDB(ctx), ctx, m.GoodsID)
 	if err != nil {
 		return nil, err
 	}
 	reply.GoodsInfo = *goodsInfo
 
-	reply.SiteData = service.Site.GoodsDetail(context, m.Organization.ID, goodsInfo.GoodsType.Uri, goodsInfo.GoodsTypeChild.Uri)
+	reply.SiteData = service.Site.GoodsDetail(ctx, m.Organization.ID, goodsInfo.GoodsType.Uri, goodsInfo.GoodsTypeChild.Uri)
 	reply.SiteData.Tags = tag.ToTagsUri(goodsInfo.Goods.Tags)
 
-	likeList := service.Goods.GoodsType.ListGoodsByType(m.Organization.ID, goodsInfo.Goods.GoodsTypeID, goodsInfo.Goods.GoodsTypeChildID)
+	likeList := service.Goods.GoodsType.ListGoodsByType(ctx, m.Organization.ID, goodsInfo.Goods.GoodsTypeID, goodsInfo.Goods.GoodsTypeChildID)
 	pi := 0
 	for i := range likeList {
 		if len(reply.LikeList) == 0 {
@@ -60,10 +61,10 @@ func (m *DetailRequest) Render(context constrain.IContext) (constrain.IViewResul
 		}
 	}
 	reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-		siteName := service.Content.GetTitle(db.Orm(), m.Organization.ID)
+		siteName := service.Content.GetTitle(db.GetDB(ctx), m.Organization.ID)
 		meta.SetBase(fmt.Sprintf("%s", reply.GoodsInfo.Goods.Title), siteName, s.ReplaceAllString(reply.GoodsInfo.Goods.Summary, ","), reply.GoodsInfo.Goods.Introduce)
 		if len(reply.GoodsInfo.Goods.Images) > 0 {
-			imgUrl, err := oss.ReadUrl(context, reply.GoodsInfo.Goods.Images[0])
+			imgUrl, err := oss.ReadUrl(ctx, reply.GoodsInfo.Goods.Images[0])
 			if err != nil {
 				return err
 			}

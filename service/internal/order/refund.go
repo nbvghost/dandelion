@@ -1,18 +1,20 @@
 package order
 
 import (
+	"context"
 	"errors"
+	"time"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/payment"
-	"time"
 )
 
-func (m OrdersService) RefundShip(OrdersID dao.PrimaryKey, ShipKey, ShipName, ShipNo string) (error, string) {
-	Orm := db.Orm()
+func (m OrdersService) RefundShip(ctx context.Context, OrdersID dao.PrimaryKey, ShipKey, ShipName, ShipNo string) (error, string) {
+	Orm := db.GetDB(ctx)
 
 	//var ordersGoods model.OrdersGoods
 	orders := dao.GetByPrimaryKey(Orm, &model.Orders{}, OrdersID).(*model.Orders)
@@ -39,8 +41,8 @@ func (m OrdersService) RefundShip(OrdersID dao.PrimaryKey, ShipKey, ShipName, Sh
 }
 
 // RefundComplete 后台执行的退款
-func (m OrdersService) RefundComplete(context constrain.IContext, ordersID dao.PrimaryKey, refundType uint) (string, error) {
-	tx := db.Orm().Begin()
+func (m OrdersService) RefundComplete(ctx constrain.IContext, ordersID dao.PrimaryKey, refundType uint) (string, error) {
+	tx := db.GetDB(ctx).Begin()
 
 	//var ordersGoods model.OrdersGoods
 	//ordersGoods := dao.GetByPrimaryKey(tx, entity.OrdersGoods, OrdersGoodsID).(*model.OrdersGoods)
@@ -64,20 +66,20 @@ func (m OrdersService) RefundComplete(context constrain.IContext, ordersID dao.P
 	//RefundInfo.RefundPrice = RefundPrice
 	//orders.RefundInfo.Status = sqltype.RefundStatusRefundComplete
 
-	pm := payment.NewPayment(context, orders.OID, orders.PayMethod)
+	pm := payment.NewPayment(ctx, orders.OID, orders.PayMethod)
 	err := dao.UpdateByPrimaryKey(tx, &model.OrdersGoodsRefund{}, orders.RefundID, map[string]interface{}{"Status": model.RefundStatusRefundComplete})
 	if err != nil {
 		tx.Rollback()
 		return "", err
 	}
 
-	err = pm.Refund(orders, nil, "用户申请退款")
+	err = pm.Refund(ctx, orders, nil, "用户申请退款")
 	if err != nil {
 		tx.Rollback()
 		return "", err
 	}
 	//扣除佣金
-	err = m.AfterSettlementUserBrokerage(tx, orders)
+	err = m.AfterSettlementUserBrokerage(ctx, tx, orders)
 	if err != nil {
 		tx.Rollback()
 		return "", err
@@ -120,24 +122,24 @@ func (m OrdersService) RefundComplete(context constrain.IContext, ordersID dao.P
 	//err := dao.UpdateByPrimaryKey(Orm, OrdersGoodsID, &model.OrdersGoods{}, map[string]interface{}{"Status": model.OrdersStatusOGRefundOk})
 	return "已经同意,并已退款", nil
 }
-func (m OrdersService) RefundAgree(OrdersID dao.PrimaryKey) (error, string) {
-	Orm := db.Orm()
+func (m OrdersService) RefundAgree(ctx context.Context, OrdersID dao.PrimaryKey) (error, string) {
+	Orm := db.GetDB(ctx)
 	orders := dao.GetByPrimaryKey(Orm, entity.Orders, OrdersID).(*model.Orders)
 	//orders.RefundInfo.Status = sqltype.RefundStatusRefundAgree
 	err := dao.UpdateByPrimaryKey(Orm, &model.OrdersGoodsRefund{}, orders.RefundID, map[string]interface{}{"Status": model.RefundStatusRefundAgree})
 	return err, "已经同意"
 }
-func (m OrdersService) RefundReject(OrdersID dao.PrimaryKey) (error, string) {
-	//Orm := db.Orm()
+func (m OrdersService) RefundReject(ctx context.Context, OrdersID dao.PrimaryKey) (error, string) {
+	//Orm := db.GetDB(ctx)
 	//err := dao.UpdateByPrimaryKey(Orm, entity.OrdersGoods, OrdersGoodsID, map[string]interface{}{"Status": model.OrdersGoodsStatusOGRefundNo})
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	orders := dao.GetByPrimaryKey(Orm, entity.Orders, OrdersID).(*model.Orders)
 	//orders.RefundInfo.Status = sqltype.RefundStatusRefundReject
 	err := dao.UpdateByPrimaryKey(Orm, &model.OrdersGoodsRefund{}, orders.RefundID, map[string]interface{}{"Status": model.RefundStatusRefundReject})
 	return err, "已经拒绝"
 }
-func (m OrdersService) AskRefund(OrdersID dao.PrimaryKey, OrdersGoodsID dao.PrimaryKey, HasGoods bool, Reason string) (error, string) {
-	tx := db.Orm().Begin()
+func (m OrdersService) AskRefund(ctx context.Context, OrdersID dao.PrimaryKey, OrdersGoodsID dao.PrimaryKey, HasGoods bool, Reason string) (error, string) {
+	tx := db.GetDB(ctx).Begin()
 
 	//var ordersGoods model.OrdersGoods
 	//ordersGoods := dao.GetByPrimaryKey(tx, entity.OrdersGoods, OrdersID).(*model.OrdersGoods)
@@ -220,7 +222,7 @@ func (m OrdersService) AskRefund(OrdersID dao.PrimaryKey, OrdersGoodsID dao.Prim
 OutTradeNo:   core.String(order.OrderNo),
 OutRefundNo:  core.String(ordersGoods.OrdersGoodsNo),
 */
-func (m OrdersService) OrdersRefundSuccess(orders *model.Orders) error {
+func (m OrdersService) OrdersRefundSuccess(ctx context.Context, orders *model.Orders) error {
 	if orders.Status == model.OrdersStatusCancelOk {
 		//说明已经退款
 		return nil
@@ -233,7 +235,7 @@ func (m OrdersService) OrdersRefundSuccess(orders *model.Orders) error {
 		//删除了，不处理
 		return nil
 	}
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 
 	if orders.Status == model.OrdersStatusRefund {
 
@@ -262,7 +264,7 @@ func (m OrdersService) OrdersRefundSuccess(orders *model.Orders) error {
 		tx.Rollback()
 		return err
 	}
-	err = m.AfterSettlementUserBrokerage(tx, orders)
+	err = m.AfterSettlementUserBrokerage(ctx, tx, orders)
 	if err != nil {
 		tx.Rollback()
 		return err

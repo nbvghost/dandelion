@@ -134,7 +134,7 @@ func (m *RestfulPage) HandlePost(ctx constrain.IContext) (constrain.IResult, err
 
 	tableType := reflect.TypeOf(table).Elem()
 
-	d := db.Orm().Table(m.Post.Model) //dao.Find(db.Orm(), table)
+	d := db.GetDB(ctx).Table(m.Post.Model) //dao.Find(db.GetDB(ctx), table)
 
 	wheres, err := m.condition(ctx, "and", tableType)
 	if err != nil {

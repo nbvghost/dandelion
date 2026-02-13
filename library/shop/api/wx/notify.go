@@ -1,11 +1,12 @@
 package wx
 
 import (
-	"github.com/nbvghost/dandelion/entity/model"
-	"github.com/nbvghost/dandelion/service"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/service"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/contexext"
@@ -34,7 +35,7 @@ func (m *Notify) HandlePost(context constrain.IContext) (r constrain.IResult, er
 }
 
 func (m *Notify) handle(context constrain.IContext, OID dao.PrimaryKey) (r constrain.IResult, err error) {
-	wxConfig := service.Payment.NewWechat(context, OID).GetConfig() //service.Wechat.Wx.MiniProgramByOID(db.Orm(), OID)
+	wxConfig := service.Payment.NewWechat(context, OID).GetConfig() //service.Wechat.Wx.MiniProgramByOID(db.GetDB(ctx), OID)
 
 	certificateVisitor := downloader.MgrInstance().GetCertificateVisitor(wxConfig.MchID)
 
@@ -61,7 +62,7 @@ func (m *Notify) handle(context constrain.IContext, OID dao.PrimaryKey) (r const
 		log.Println(err)
 		return result.NewJsonResult(map[string]any{"code": "FAIL", "message": err.Error()}).WithStatusCode(http.StatusBadRequest), nil
 	}
-	message, err := service.Order.Orders.OrderPaySuccess(uint(*content.Amount.PayerTotal), *content.OutTradeNo, *content.TransactionId, payTime, model.OrdersType(*content.Attach))
+	message, err := service.Order.Orders.OrderPaySuccess(context, uint(*content.Amount.PayerTotal), *content.OutTradeNo, *content.TransactionId, payTime, model.OrdersType(*content.Attach))
 	if err != nil {
 		return result.NewJsonResult(map[string]any{"code": "FAIL", "message": message}).WithStatusCode(http.StatusBadRequest), nil
 	} else {

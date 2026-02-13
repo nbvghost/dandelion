@@ -28,9 +28,9 @@ func (g *ListContentSubType) Handle(ctx constrain.IContext) (constrain.IResult, 
 	//PID, _ := strconv.ParseUint(context.Request.URL.Query().Get("PID"), 10, 64)
 	//PID := object.ParseUint(context.Request.URL.Query().Get("PID"))
 
-	content := repository.ContentItemDao.GetContentItemByID(dao.PrimaryKey(g.Get.ContentItemID))
+	content := repository.ContentItemDao.GetContentItemByID(ctx, dao.PrimaryKey(g.Get.ContentItemID))
 
-	csts := repository.ContentSubTypeDao.FindContentSubTypesByContentItemIDAndParentContentSubTypeID(content.ID, dao.PrimaryKey(g.Get.PID))
+	csts := repository.ContentSubTypeDao.FindContentSubTypesByContentItemIDAndParentContentSubTypeID(ctx, content.ID, dao.PrimaryKey(g.Get.PID))
 
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "OK", Data: csts}}, nil
 

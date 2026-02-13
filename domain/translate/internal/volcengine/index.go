@@ -1,14 +1,16 @@
 package volcengine
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
-	"github.com/nbvghost/dandelion/service"
-	"github.com/nbvghost/dandelion/service/serviceargument"
-	"github.com/volcengine/volc-sdk-golang/base"
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/nbvghost/dandelion/service"
+	"github.com/nbvghost/dandelion/service/serviceargument"
+	"github.com/volcengine/volc-sdk-golang/base"
 )
 
 func New() *Index {
@@ -81,7 +83,7 @@ func (m *Index) translateBase(query []string, from, to string) ([]string, error)
 func (m *Index) getClient() (*base.Client, error) {
 	if m.client == nil {
 		if m.config == nil {
-			m.config = service.Configuration.GetVolcengineConfiguration(0)
+			m.config = service.Configuration.GetVolcengineConfiguration(context.Background(), 0)
 		}
 
 		var (

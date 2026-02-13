@@ -43,7 +43,7 @@ func (m *CheckoutOrders) Handle(ctx constrain.IContext) (constrain.IResult, erro
 	panic("implement me")
 }
 func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
-	orders := repository.OrdersDao.GetOrdersByOrderNo(m.Post.OrderNo)
+	orders := repository.OrdersDao.GetOrdersByOrderNo(ctx, m.Post.OrderNo)
 	if orders.ID == 0 {
 		return nil, errors.New("no order found")
 	}
@@ -56,7 +56,7 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 		}
 	}
 
-	address := dao.GetByPrimaryKey(db.Orm(), &model.Address{}, m.Post.AddressID).(*model.Address)
+	address := dao.GetByPrimaryKey(db.GetDB(ctx), &model.Address{}, m.Post.AddressID).(*model.Address)
 	if address.ID == 0 {
 		return nil, errors.New("地址不能为空")
 	}
@@ -73,12 +73,12 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 	shippingAddress := &internal.Address{}
 	shippingAddress.SetAddress(address)
 
-	confirmOrdersGoods, err := service.Order.Orders.AnalyseOrdersGoodsListByOrders(&orders, address)
+	confirmOrdersGoods, err := service.Order.Orders.AnalyseOrdersGoodsListByOrders(ctx, &orders, address)
 	if err != nil {
 		return nil, err
 	}
 
-	dns := repository.DNSDao.GetDefaultDNS(orders.OID)
+	dns := repository.DNSDao.GetDefaultDNS(ctx, orders.OID)
 
 	items := make([]internal.CheckoutOrdersUnitItem, 0)
 
@@ -170,7 +170,7 @@ func (m *CheckoutOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, 
 		if err != nil {
 			return nil, err
 		}
-		err = dao.UpdateByPrimaryKey(db.Orm(), &model.Orders{}, orders.ID, map[string]any{"PrepayID": checkoutOrders.Id})
+		err = dao.UpdateByPrimaryKey(db.GetDB(ctx), &model.Orders{}, orders.ID, map[string]any{"PrepayID": checkoutOrders.Id})
 		return result.NewData(checkoutOrders), err
 	}
 

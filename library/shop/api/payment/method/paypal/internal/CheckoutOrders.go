@@ -2,14 +2,15 @@ package internal
 
 import (
 	"encoding/json"
-	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/constrain/key"
-	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/service"
 	"io"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/nbvghost/dandelion/constrain"
+	"github.com/nbvghost/dandelion/constrain/key"
+	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/service"
 )
 
 type CheckoutOrdersRequest struct {
@@ -27,8 +28,8 @@ type CheckoutOrdersResponse struct {
 }
 
 func CheckoutOrders(ctx constrain.IContext, oid dao.PrimaryKey, request *CheckoutOrdersRequest) (*CheckoutOrdersResponse, error) {
-	pp:=service.Payment.NewPaypal(ctx,oid)
-	token, err := pp.GetAccessToken()
+	pp := service.Payment.NewPaypal(ctx, oid)
+	token, err := pp.GetAccessToken(ctx)
 	//token, err := generateAccessToken(ctx, oid)
 	if err != nil {
 		return nil, err

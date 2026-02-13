@@ -18,14 +18,14 @@ func (m *Subscribe) Handle(context constrain.IContext) (r constrain.IResult, err
 	panic("implement me")
 }
 
-func (m *Subscribe) HandlePost(context constrain.IContext) (constrain.IResult, error) {
+func (m *Subscribe) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	subscribe := &model.Subscribe{}
-	err := db.Orm().Model(model.LeaveMessage{}).Where(map[string]any{"Email": m.Post.Email}).First(subscribe).Error
+	err := db.GetDB(ctx).Model(model.LeaveMessage{}).Where(map[string]any{"Email": m.Post.Email}).First(subscribe).Error
 	if !subscribe.IsZero() {
 		return &result.JsonResult{Data: result.ActionResult{}}, err
 	}
 	subscribe.OID = m.Organization.ID
 	subscribe.Email = m.Post.Email
-	err = db.Orm().Model(model.Subscribe{}).Create(subscribe).Error
+	err = db.GetDB(ctx).Model(model.Subscribe{}).Create(subscribe).Error
 	return &result.JsonResult{Data: result.ActionResult{}}, err
 }

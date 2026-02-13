@@ -1,9 +1,10 @@
 package user
 
 import (
+	"strings"
+
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
-	"strings"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -16,7 +17,7 @@ type GrowthList struct {
 	} `method:"Get"`
 }
 
-func (m *GrowthList) Handle(context constrain.IContext) (constrain.IResult, error) {
+func (m *GrowthList) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*entity.Organization)
 	var Order string
 	if strings.EqualFold(m.Get.Order, "asc") {
@@ -27,9 +28,9 @@ func (m *GrowthList) Handle(context constrain.IContext) (constrain.IResult, erro
 		Order = `"Growth" asc,"Score" asc,"Amount"+"BlockAmount" asc`
 	}
 	//var users []model.User
-	//err := m.UserService.FindOrderWhereLength(db.Orm(), Order, &users, 20)
+	//err := m.UserService.FindOrderWhereLength(db.GetDB(ctx), Order, &users, 20)
 	//DB.Model(target).Order(Order).Limit(Length).Find(target).Error
-	users := dao.Find(db.Orm(), &model.User{}).Order(Order).Where(`"Growth">0`).List()
+	users := dao.Find(db.GetDB(ctx), &model.User{}).Order(Order).Where(`"Growth">0`).List()
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", users)}, nil
 
 }

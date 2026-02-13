@@ -20,6 +20,6 @@ func (m *ScoreGoodsExchange) Handle(ctx constrain.IContext) (constrain.IResult, 
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 	//ScoreGoodsID, _ := strconv.ParseUint(context.PathParams["ScoreGoodsID"], 10, 64)
 	//ScoreGoodsID := object.ParseUint(context.PathParams["ScoreGoodsID"])
-	err := service.Activity.ScoreGoods.Exchange(m.User, dao.PrimaryKey(m.Get.ScoreGoodsID))
+	err := service.Activity.ScoreGoods.Exchange(ctx, m.User, dao.PrimaryKey(m.Get.ScoreGoodsID))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "兑换成功", nil)}, nil
 }

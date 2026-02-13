@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"html/template"
+	"strings"
+	"time"
+
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -17,9 +21,6 @@ import (
 	"github.com/nbvghost/tool"
 	"github.com/nbvghost/tool/object"
 	"go.uber.org/zap"
-	"html/template"
-	"strings"
-	"time"
 )
 
 type ResetPassword struct {
@@ -41,7 +42,7 @@ func (m *ResetPassword) HandlePost(ctx constrain.IContext) (constrain.IResult, e
 
 	var err error
 
-	u := service.User.GetByEmail(db.Orm(), m.Organization.ID, m.Post.Email)
+	u := service.User.GetByEmail(db.GetDB(ctx), m.Organization.ID, m.Post.Email)
 
 	if u.IsZero() == false {
 		err = m.sendEmail(ctx, u)
@@ -74,7 +75,7 @@ func (m *ResetPassword) sendEmail(ctx constrain.IContext, u *model.User) error {
 		return err
 	}
 
-	siteName := service.Content.GetTitle(db.Orm(), m.Organization.ID)
+	siteName := service.Content.GetTitle(db.GetDB(ctx), m.Organization.ID)
 
 	tBuf := bytes.NewBuffer(nil)
 	err = t.Execute(tBuf, map[string]any{
@@ -88,7 +89,7 @@ func (m *ResetPassword) sendEmail(ctx constrain.IContext, u *model.User) error {
 	if err != nil {
 		return err
 	}
-	err = service.Network.Email.SendEmailTLS(m.Organization.ID, serviceargument.EmailContent{
+	err = service.Network.Email.SendEmailTLS(ctx, m.Organization.ID, serviceargument.EmailContent{
 		Subject:    "Reset your password",
 		SenderName: siteName,
 		ToEmails:   []string{u.Email},

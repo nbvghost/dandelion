@@ -1,13 +1,15 @@
 package network
 
 import (
+	"context"
 	"crypto/tls"
-	"github.com/nbvghost/dandelion/library/dao"
-	"github.com/nbvghost/dandelion/service/internal/configuration"
-	"github.com/nbvghost/dandelion/service/serviceargument"
 	"log"
 	"net"
 	"net/smtp"
+
+	"github.com/nbvghost/dandelion/library/dao"
+	"github.com/nbvghost/dandelion/service/internal/configuration"
+	"github.com/nbvghost/dandelion/service/serviceargument"
 )
 
 type Email struct {
@@ -71,8 +73,8 @@ func (m Email) sendMailUsingTLS(addr string, auth smtp.Auth, from string, to []s
 	return c.Quit()
 }
 
-func (m Email) SendEmailTLS(oid dao.PrimaryKey, c serviceargument.EmailContent) error {
-	stmpInfo := m.Configuration.GetEmailSTMP(oid)
+func (m Email) SendEmailTLS(ctx context.Context, oid dao.PrimaryKey, c serviceargument.EmailContent) error {
+	stmpInfo := m.Configuration.GetEmailSTMP(ctx, oid)
 	addr := stmpInfo.EmailSTMPHost + ":" + stmpInfo.EmailSTMPPort
 	auth := smtp.PlainAuth("", stmpInfo.EmailSTMPFrom, stmpInfo.EmailSTMPPassword, stmpInfo.EmailSTMPHost)
 

@@ -1,9 +1,11 @@
 package wechat
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/nbvghost/dandelion/library/db"
 
 	"github.com/nbvghost/dandelion/entity/model"
@@ -16,31 +18,31 @@ type WXQRCodeParamsService struct {
 	model.BaseDao
 }
 
-func (service WXQRCodeParamsService) addParams(key string, params map[string]interface{}) (*model.WXQRCodeParams, error) {
+func (service WXQRCodeParamsService) addParams(ctx context.Context, key string, params map[string]interface{}) (*model.WXQRCodeParams, error) {
 	b, _ := json.Marshal(params)
 	wxParams := &model.WXQRCodeParams{}
 	wxParams.CodeKey = key
 	wxParams.Params = string(b)
-	err := dao.Create(db.Orm(), wxParams)
+	err := dao.Create(db.GetDB(ctx), wxParams)
 	if err != nil {
 		return wxParams, err
 	}
 	return wxParams, nil
 }
-func (service WXQRCodeParamsService) getParams(CodeKey string) (*model.WXQRCodeParams, error) {
+func (service WXQRCodeParamsService) getParams(ctx context.Context, CodeKey string) (*model.WXQRCodeParams, error) {
 	wxParams := &model.WXQRCodeParams{}
-	db.Orm().Model(&model.WXQRCodeParams{}).Where(`"CodeKey"=?`, CodeKey).First(wxParams)
+	db.GetDB(ctx).Model(&model.WXQRCodeParams{}).Where(`"CodeKey"=?`, CodeKey).First(wxParams)
 	if wxParams.ID == 0 {
 		return wxParams, errors.New("NOT FOUND")
 	}
 	return wxParams, nil
 }
-func (service WXQRCodeParamsService) EncodeShareKey(UserID dao.PrimaryKey, ProductID uint) string {
+func (service WXQRCodeParamsService) EncodeShareKey(ctx context.Context, UserID dao.PrimaryKey, ProductID uint) string {
 
 	key := encryption.Md5ByString(fmt.Sprintf("%v%v", UserID, ProductID))
-	wxParams, err := service.getParams(key)
+	wxParams, err := service.getParams(ctx, key)
 	if err != nil {
-		wxParams, _ := service.addParams(key, map[string]interface{}{
+		wxParams, _ := service.addParams(ctx, key, map[string]interface{}{
 			"UserID":    UserID,
 			"ProductID": ProductID,
 		})
@@ -49,8 +51,8 @@ func (service WXQRCodeParamsService) EncodeShareKey(UserID dao.PrimaryKey, Produ
 		return wxParams.CodeKey
 	}
 }
-func (service WXQRCodeParamsService) DecodeShareKey(ShareKey string) (UserID dao.PrimaryKey, ProductID uint) {
-	wxParams, _ := service.getParams(ShareKey)
+func (service WXQRCodeParamsService) DecodeShareKey(ctx context.Context, ShareKey string) (UserID dao.PrimaryKey, ProductID uint) {
+	wxParams, _ := service.getParams(ctx, ShareKey)
 
 	paramsMap := make(map[string]interface{})
 

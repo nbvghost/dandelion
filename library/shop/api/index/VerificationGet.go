@@ -18,11 +18,11 @@ type VerificationGet struct {
 func (m *VerificationGet) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
 	//VerificationNo := context.PathParams["VerificationNo"]
-	verification := service.Order.Verification.GetVerificationByVerificationNo(m.Get.VerificationNo)
+	verification := service.Order.Verification.GetVerificationByVerificationNo(ctx, m.Get.VerificationNo)
 
 	if verification.StoreID > 0 && verification.Quantity > 0 {
 		//var store model.Store
-		store := dao.GetByPrimaryKey(db.Orm(), entity.Store, verification.StoreID)
+		store := dao.GetByPrimaryKey(db.GetDB(ctx), entity.Store, verification.StoreID)
 		return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: store}}, nil
 	} else {
 		return &result.JsonResult{Data: &result.ActionResult{Code: result.Fail, Message: "", Data: nil}}, nil

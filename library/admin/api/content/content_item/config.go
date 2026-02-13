@@ -2,6 +2,7 @@ package content_item
 
 import (
 	"encoding/json"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -23,15 +24,15 @@ func (m *Config) Handle(context constrain.IContext) (r constrain.IResult, err er
 	panic("implement me")
 }
 
-func (m *Config) HandlePost(context constrain.IContext) (constrain.IResult, error) {
-	c := dao.GetByPrimaryKey(db.Orm(), entity.ContentItem, m.POST.ContentItemID).(*model.ContentItem)
+func (m *Config) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
+	c := dao.GetByPrimaryKey(db.GetDB(ctx), entity.ContentItem, m.POST.ContentItemID).(*model.ContentItem)
 	config, err := json.Marshal(map[string]any{"Type": m.POST.Type, "TemplateName": m.POST.TemplateName})
 	if err != nil {
 		return nil, err
 	}
 	c.Config = string(config)
 
-	err = dao.UpdateByPrimaryKey(db.Orm(), entity.ContentItem, c.ID, map[string]any{"Config": c.Config})
+	err = dao.UpdateByPrimaryKey(db.GetDB(ctx), entity.ContentItem, c.ID, map[string]any{"Config": c.Config})
 	if err != nil {
 		return nil, err
 	}

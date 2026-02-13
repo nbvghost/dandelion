@@ -16,7 +16,7 @@ func TestParseDomain(t *testing.T) {
 		want1 string
 	}{
 		{name: "#1", args: args{host: "bem.usokay.com"}, want: []string{"bem"}, want1: "usokay.com"},
-		{name: "#2", args: args{host: "asset.sites.ink"}, want: []string{"bem"}, want1: "usokay.com"},
+		{name: "#2", args: args{host: "asset.sites.ink"}, want: []string{"sites.ink"}, want1: "sites.ink"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

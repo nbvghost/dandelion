@@ -2,6 +2,8 @@ package view
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -10,7 +12,6 @@ import (
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/dandelion/service/serviceargument"
-	"strings"
 )
 
 type SearchRequest struct {
@@ -28,9 +29,9 @@ type SearchReply struct {
 	SiteData serviceargument.SiteData[*model.FullTextSearch]
 }
 
-func (m *SearchRequest) Render(context constrain.IContext) (r constrain.IViewResult, err error) {
+func (m *SearchRequest) Render(ctx constrain.IContext) (r constrain.IViewResult, err error) {
 	reply := &SearchReply{}
-	reply.SiteData = service.GetSiteData[*model.FullTextSearch](context, m.Organization.ID)
+	reply.SiteData = service.GetSiteData[*model.FullTextSearch](ctx, m.Organization.ID)
 
 	var isBlur bool
 
@@ -38,7 +39,7 @@ func (m *SearchRequest) Render(context constrain.IContext) (r constrain.IViewRes
 		isBlur = true
 	}
 
-	db := db.Orm().Model(model.FullTextSearch{})
+	db := db.GetDB(ctx).Model(model.FullTextSearch{})
 
 	switch m.Type {
 	case model.FullTextSearchTypeContent:
@@ -63,7 +64,7 @@ func (m *SearchRequest) Render(context constrain.IContext) (r constrain.IViewRes
 	db.Count(&total)
 
 	var typeNameMap = make(map[dao.PrimaryKey]extends.Menus)
-	listContentItem := repository.ContentItemDao.ListContentItemByOID(m.Organization.ID)
+	listContentItem := repository.ContentItemDao.ListContentItemByOID(ctx, m.Organization.ID)
 	for i := range listContentItem {
 		item := listContentItem[i]
 		typeNameMap[item.ID] = extends.NewMenusByContentItem(&item)
@@ -84,7 +85,7 @@ func (m *SearchRequest) Render(context constrain.IContext) (r constrain.IViewRes
 	reply.Type = string(m.Type)
 
 	/*reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-		siteName := m.ContentService.GetTitle(db.Orm(), m.Organization.ID)
+		siteName := m.ContentService.GetTitle(db.GetDB(ctx), m.Organization.ID)
 		meta.SetBase(fmt.Sprintf("search results for %s", reply.Keyword), siteName, "search")
 		return nil
 	}*/

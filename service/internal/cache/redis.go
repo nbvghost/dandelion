@@ -42,7 +42,7 @@ func GetCacheContentSubType(ctx constrain.IContext, oid dao.PrimaryKey) []model.
 
 	d, _ := ctx.Redis().Get(ctx, key)
 	if len(d) == 0 {
-		db.Orm().Model(&model.ContentSubType{}).Where(`"OID"=?`, oid).
+		db.GetDB(ctx).Model(&model.ContentSubType{}).Where(`"OID"=?`, oid).
 			Order(`"Sort"`).Order(`"ID"`).
 			Find(&contentSubTypeList)
 		bytes, err := json.Marshal(&contentSubTypeList)
@@ -70,7 +70,7 @@ func GetCacheGoodsType(ctx constrain.IContext, oid dao.PrimaryKey) []model.Goods
 
 	d, _ := ctx.Redis().Get(ctx, key)
 	if len(d) == 0 {
-		db.Orm().Model(&model.GoodsType{}).Where(`"OID"=?`, oid).
+		db.GetDB(ctx).Model(&model.GoodsType{}).Where(`"OID"=?`, oid).
 			Order(`"ID"`).
 			Find(&contentSubTypeList)
 		bytes, err := json.Marshal(&contentSubTypeList)
@@ -98,7 +98,7 @@ func GetCacheGoodsTypeChild(ctx constrain.IContext, oid dao.PrimaryKey) []model.
 
 	d, _ := ctx.Redis().Get(ctx, key)
 	if len(d) == 0 {
-		db.Orm().Model(&model.GoodsTypeChild{}).Where(`"OID"=?`, oid).
+		db.GetDB(ctx).Model(&model.GoodsTypeChild{}).Where(`"OID"=?`, oid).
 			Order(`"ID"`).
 			Find(&contentSubTypeList)
 		bytes, err := json.Marshal(&contentSubTypeList)
@@ -126,7 +126,7 @@ func GetCacheContentItem(ctx constrain.IContext, oid dao.PrimaryKey) []model.Con
 
 	d, _ := ctx.Redis().Get(ctx, key)
 	if len(d) == 0 {
-		db.Orm().Model(&model.ContentItem{}).Where(`"OID"=?`, oid).
+		db.GetDB(ctx).Model(&model.ContentItem{}).Where(`"OID"=?`, oid).
 			Order(`"Sort"`).
 			Find(&contentSubTypeList)
 		bytes, err := json.Marshal(&contentSubTypeList)

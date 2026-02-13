@@ -17,6 +17,6 @@ type GotoUrl struct {
 
 func (g *GotoUrl) Call(ctx constrain.IContext) funcmap.IFuncResult {
 
-	contentItem := repository.ContentItemDao.GetContentItemByTypeTemplateName(db.Orm(), g.Organization.ID, g.Type, g.TemplateName)
+	contentItem := repository.ContentItemDao.GetContentItemByTypeTemplateName(db.GetDB(ctx), g.Organization.ID, g.Type, g.TemplateName)
 	return funcmap.NewStringFuncResult(fmt.Sprintf("/page/%s", contentItem.Uri))
 }

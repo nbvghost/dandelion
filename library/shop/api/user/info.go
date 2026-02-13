@@ -21,11 +21,11 @@ type Info struct {
 	} `method:"Put"`
 }
 
-func (m *Info) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Info) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 
-	store := service.Company.Store.GetByPhone(m.User.Phone)
-	leve1UserIDs := service.User.Leve1(m.User.ID)
-	leve2UserIDs := service.User.Leve2(leve1UserIDs)
+	store := service.Company.Store.GetByPhone(ctx, m.User.Phone)
+	leve1UserIDs := service.User.Leve1(ctx, m.User.ID)
+	leve2UserIDs := service.User.Leve2(ctx, leve1UserIDs)
 
 	results := make(map[string]interface{})
 	results["Store"] = store
@@ -33,7 +33,7 @@ func (m *Info) Handle(context constrain.IContext) (r constrain.IResult, err erro
 	results["Leve1Count"] = len(leve1UserIDs)
 	results["Leve2Count"] = len(leve2UserIDs)
 
-	ranks := service.Activity.Rank.FindDESC()
+	ranks := service.Activity.Rank.FindDESC(ctx)
 	for i, v := range ranks {
 
 		if m.User.Growth >= v.GrowMaxValue {
@@ -67,11 +67,11 @@ func (m *Info) Handle(context constrain.IContext) (r constrain.IResult, err erro
 
 	}
 
-	ACount := service.Order.Orders.ListOrdersStatusCount(m.User.ID, []string{"Order"})
-	BCount := service.Order.Orders.ListOrdersStatusCount(m.User.ID, []string{"Pay"})
-	CCount := service.Order.Orders.ListOrdersStatusCount(m.User.ID, []string{"Deliver"})
-	DCount := service.Order.Orders.ListOrdersStatusCount(m.User.ID, []string{"OrderOk"})
-	ECount := service.Activity.CardItem.ListNewCount(m.User.ID)
+	ACount := service.Order.Orders.ListOrdersStatusCount(ctx, m.User.ID, []string{"Order"})
+	BCount := service.Order.Orders.ListOrdersStatusCount(ctx, m.User.ID, []string{"Pay"})
+	CCount := service.Order.Orders.ListOrdersStatusCount(ctx, m.User.ID, []string{"Deliver"})
+	DCount := service.Order.Orders.ListOrdersStatusCount(ctx, m.User.ID, []string{"OrderOk"})
+	ECount := service.Activity.CardItem.ListNewCount(ctx, m.User.ID)
 
 	results["ACount"] = ACount
 	results["BCount"] = BCount
@@ -86,7 +86,7 @@ func (m *Info) Handle(context constrain.IContext) (r constrain.IResult, err erro
 }
 
 func (m *Info) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
-	userInfo := service.User.GetUserInfo(context.UID())
+	userInfo := service.User.GetUserInfo(context, context.UID())
 	if m.Put.ChangeAllowAssistance {
 		userInfo.SetAllowAssistance(m.Put.AllowAssistance)
 		//changeMap["AllowAssistance"] = m.Put.AllowAssistance
@@ -96,7 +96,7 @@ func (m *Info) HandlePut(context constrain.IContext) (r constrain.IResult, err e
 		userInfo.SetSubscribe(m.Put.Subscribe)
 	}
 
-	err = userInfo.Update(db.Orm())
+	err = userInfo.Update(db.GetDB(context))
 	if err != nil {
 		return nil, err
 	}

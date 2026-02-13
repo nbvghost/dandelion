@@ -1,8 +1,10 @@
 package activity
 
 import (
-	"github.com/nbvghost/dandelion/library/db"
+	"context"
 	"log"
+
+	"github.com/nbvghost/dandelion/library/db"
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -12,25 +14,25 @@ type TimeSellService struct {
 	model.BaseDao
 }
 
-func (service TimeSellService) GetTimeSellByHash(Hash string, OID dao.PrimaryKey) *model.TimeSell {
+func (service TimeSellService) GetTimeSellByHash(ctx context.Context, Hash string, OID dao.PrimaryKey) *model.TimeSell {
 	var timesell model.TimeSell
-	db.Orm().Model(&model.TimeSell{}).Where("Hash=? and OID=?", Hash, OID).First(&timesell)
+	db.GetDB(ctx).Model(&model.TimeSell{}).Where("Hash=? and OID=?", Hash, OID).First(&timesell)
 	return &timesell
 }
 
-func (service TimeSellService) GetTimeSellByGoodsID(GoodsID dao.PrimaryKey, OID dao.PrimaryKey) *model.TimeSell {
+func (service TimeSellService) GetTimeSellByGoodsID(ctx context.Context, GoodsID dao.PrimaryKey, OID dao.PrimaryKey) *model.TimeSell {
 	//todo:考虑合并成一条sql语句
 	//timesellGoods := service.GetTimeSellGoodsByGoodsID(GoodsID, OID)
 	var timesellGoods model.TimeSellGoods
-	db.Orm().Model(&model.TimeSellGoods{}).Where(`"GoodsID"=? and "OID"=?`, GoodsID, OID).First(&timesellGoods)
+	db.GetDB(ctx).Model(&model.TimeSellGoods{}).Where(`"GoodsID"=? and "OID"=?`, GoodsID, OID).First(&timesellGoods)
 
 	var timesell model.TimeSell
-	db.Orm().Model(&model.TimeSell{}).Where(`"Hash"=? and "OID"=?`, timesellGoods.TimeSellHash, timesellGoods.OID).First(&timesell)
+	db.GetDB(ctx).Model(&model.TimeSell{}).Where(`"Hash"=? and "OID"=?`, timesellGoods.TimeSellHash, timesellGoods.OID).First(&timesell)
 	return &timesell
 }
-func (service TimeSellService) GetTimeSellGoodsByGoodsID(GoodsID dao.PrimaryKey, OID dao.PrimaryKey) model.TimeSellGoods {
+func (service TimeSellService) GetTimeSellGoodsByGoodsID(ctx context.Context, GoodsID dao.PrimaryKey, OID dao.PrimaryKey) model.TimeSellGoods {
 	var timesellGoods model.TimeSellGoods
-	db.Orm().Model(&model.TimeSellGoods{}).Where(`"GoodsID"=? and "OID"=?`, GoodsID, OID).First(&timesellGoods)
+	db.GetDB(ctx).Model(&model.TimeSellGoods{}).Where(`"GoodsID"=? and "OID"=?`, GoodsID, OID).First(&timesellGoods)
 	return timesellGoods
 }
 
@@ -43,12 +45,12 @@ func (service TimeSellService) AddTimeSellAction(context *gweb.Context) (r gweb.
 	return &gweb.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "", nil)}
 }*/
 
-func (service TimeSellService) DeleteTimeSell(TimeSellID dao.PrimaryKey) error {
+func (service TimeSellService) DeleteTimeSell(ctx context.Context, TimeSellID dao.PrimaryKey) error {
 	//timesell := TimeSellService{}.GetTimeSellByGoodsID(GoodsID)
 	//var ts model.TimeSell
-	ts := dao.GetByPrimaryKey(db.Orm(), &model.TimeSell{}, TimeSellID).(*model.TimeSell)
+	ts := dao.GetByPrimaryKey(db.GetDB(ctx), &model.TimeSell{}, TimeSellID).(*model.TimeSell)
 	//err := service.Delete(singleton.Orm(), &model.TimeSell{}, ts.ID)
-	err := dao.DeleteBy(db.Orm(), &model.TimeSell{}, map[string]interface{}{
+	err := dao.DeleteBy(db.GetDB(ctx), &model.TimeSell{}, map[string]interface{}{
 		"Hash": ts.Hash,
 	})
 	log.Println(err)

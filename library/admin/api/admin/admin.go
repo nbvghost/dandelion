@@ -19,9 +19,9 @@ func (m *Admin) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	panic("implement me")
 }
 
-func (m *Admin) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Admin) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 
 	//todo
-	err = service.Admin.Service.AddItem(m.Admin.OID, m.Post.Admin)
+	err = service.Admin.Service.AddItem(ctx, m.Admin.OID, m.Post.Admin)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}, err
 }

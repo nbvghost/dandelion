@@ -13,13 +13,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nbvghost/dandelion/domain/logger"
-	"go.uber.org/zap"
-
 	"github.com/gin-gonic/gin/binding"
 	"github.com/gorilla/mux"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
+	"github.com/nbvghost/dandelion/domain/logger"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/environments"
@@ -30,6 +28,7 @@ import (
 	"github.com/nbvghost/tool"
 	"github.com/nbvghost/tool/encryption"
 	"github.com/pkg/errors"
+	"go.uber.org/zap"
 )
 
 type httpMiddleware struct {
@@ -411,13 +410,21 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 		if handle == nil {
 			return result.NewCodeWithMessage(result.HttpError, fmt.Sprintf("找不到http方法:%s的handle", r.Method))
 		}
+
+		sc := ctx.(*contexext.HandlerContext)
+		sc.DB = sc.DB.Begin()
+
 		var returnResult constrain.IResult
 		returnResult, err = handle(ctx)
 		if err == nil && returnResult == nil {
 			returnResult = result.NewSuccess("OK")
+			sc.DB.Commit()
 		} else {
 			if err != nil {
+				sc.DB.Rollback()
 				returnResult = result.NewError(err)
+			} else {
+				sc.DB.Commit()
 			}
 		}
 		returnResult.Apply(ctx)
@@ -456,11 +463,17 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 		}
 
 		if v, ok := apiHandler.(constrain.IViewHandler); ok {
+			sc := ctx.(*contexext.HandlerContext)
+			sc.DB = sc.DB.Begin()
+
 			var viewResult constrain.IViewResult
 			viewResult, err = v.Render(ctx)
 			if err != nil {
+				sc.DB.Rollback()
 				return err
 			}
+			sc.DB.Commit()
+
 			if viewResult == nil {
 				return errors.New("没有返回数据")
 			}
@@ -488,9 +501,12 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 			if afterViewRender == nil {
 				return errors.New("没找开视图渲染器")
 			}
+			sc.DB = sc.DB.Begin()
 			if err = afterViewRender.Render(ctx, r, w, viewResult); err != nil {
+				sc.DB.Rollback()
 				return err
 			}
+			sc.DB.Commit()
 			return nil
 			/*vr := &DefaultViewRender{}
 			if err = vr.Render(ctx, r, w, viewResult); err != nil {

@@ -18,9 +18,9 @@ func (m *Save) Handle(context constrain.IContext) (r constrain.IResult, err erro
 	panic("implement me")
 }
 
-func (m *Save) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Save) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	isAdd := m.POST.Content.IsZero()
-	err = service.Content.SaveContent(m.Organization.ID, m.POST.Content)
+	err = service.Content.SaveContent(ctx, m.Organization.ID, m.POST.Content)
 	as := result.NewData(m.POST.Content)
 	if isAdd {
 		as.Message = "添加成功"

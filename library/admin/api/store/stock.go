@@ -34,8 +34,8 @@ func (m *Stock) Handle(context constrain.IContext) (r constrain.IResult, err err
 func (m *Stock) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
 	return m.updateStock(context, m.POST)
 }
-func (m *Stock) updateStock(context constrain.IContext, params stockParam) (r constrain.IResult, err error) {
-	Orm := db.Orm()
+func (m *Stock) updateStock(ctx constrain.IContext, params stockParam) (r constrain.IResult, err error) {
+	Orm := db.GetDB(ctx)
 	//context.Request.ParseForm()
 
 	//form.StoreID=parseInt($routeParams.ID);

@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -153,7 +155,7 @@ var Payment = struct {
 var Network = struct {
 	SMS    network.SMS
 	Email  network.Email
-	NewSMS func(oid dao.PrimaryKey) *network.SMS
+	NewSMS func(ctx context.Context, oid dao.PrimaryKey) *network.SMS
 }{
 	NewSMS: network.NewSMS,
 }
@@ -179,11 +181,11 @@ func GetSiteData[T serviceargument.ListType](context constrain.IContext, OID dao
 		}
 	}
 
-	contentItemMap := repository.ContentItemDao.ListContentItemByOIDMap(OID)
+	contentItemMap := repository.ContentItemDao.ListContentItemByOIDMap(context, OID)
 
 	allMenusData := Site.FindAllMenus(context, OID)
 
-	tags := Content.FindContentTagsByContentItemID(OID, currentMenuData.TypeID)
+	tags := Content.FindContentTagsByContentItemID(context, OID, currentMenuData.TypeID)
 
 	var navigations []extends.Menus
 
@@ -213,8 +215,8 @@ func GetSiteData[T serviceargument.ListType](context constrain.IContext, OID dao
 		}
 	}
 
-	organization := Company.Organization.GetOrganization(OID).(*model.Organization)
-	contentConfig := repository.ContentConfigDao.GetContentConfig(db.Orm(), OID)
+	organization := Company.Organization.GetOrganization(db.GetDB(context), OID).(*model.Organization)
+	contentConfig := repository.ContentConfigDao.GetContentConfig(db.GetDB(context), OID)
 
 	menusPage := allMenusData.ListMenusByType(model.ContentTypePage)
 	moduleContentData = serviceargument.SiteData[T]{

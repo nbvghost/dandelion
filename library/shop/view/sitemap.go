@@ -3,6 +3,9 @@ package view
 import (
 	"encoding/xml"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/lib/pq"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/tag"
@@ -16,8 +19,6 @@ import (
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service"
-	"strings"
-	"time"
 )
 
 type SitemapRequest struct {
@@ -52,8 +53,8 @@ type UrlSet struct {
 	Urls           []Url    `xml:"url"`
 }
 
-func (m *SitemapRequest) Render(context constrain.IContext) (r constrain.IViewResult, err error) {
-	contextValue := contexext.FromContext(context)
+func (m *SitemapRequest) Render(ctx constrain.IContext) (r constrain.IViewResult, err error) {
+	contextValue := contexext.FromContext(ctx)
 	domainName := contextValue.DomainName
 	if !environments.Release() {
 		//domainName = fmt.Sprintf("dev.%s", domainName)
@@ -80,7 +81,7 @@ func (m *SitemapRequest) Render(context constrain.IContext) (r constrain.IViewRe
 
 	var contentItemMap = map[dao.PrimaryKey]model.ContentItem{}
 	{
-		contentItemList := repository.ContentItemDao.ListContentItemByOID(m.Organization.ID)
+		contentItemList := repository.ContentItemDao.ListContentItemByOID(ctx, m.Organization.ID)
 		for i, v := range contentItemList {
 			contentItemMap[v.ID] = contentItemList[i]
 
@@ -94,7 +95,7 @@ func (m *SitemapRequest) Render(context constrain.IContext) (r constrain.IViewRe
 	}
 	var contentSubTypeMap = map[dao.PrimaryKey]model.ContentSubType{}
 	{
-		list := repository.ContentSubTypeDao.FindAllContentSubType(m.Organization.ID)
+		list := repository.ContentSubTypeDao.FindAllContentSubType(ctx, m.Organization.ID)
 		for i, v := range list {
 			contentSubTypeMap[v.ID] = list[i]
 			var contentItem = contentItemMap[v.ContentItemID]
@@ -109,8 +110,8 @@ func (m *SitemapRequest) Render(context constrain.IContext) (r constrain.IViewRe
 		}
 	}
 	//var contentList []model.Content
-	contentList := dao.Find(db.Orm(), &model.Content{}).Where(`"OID"=?`, m.Organization.ID).List()
-	/*err = m.ContentService.FindAllByOID(db.Orm(), &contentList, m.Organization.ID)
+	contentList := dao.Find(db.GetDB(ctx), &model.Content{}).Where(`"OID"=?`, m.Organization.ID).List()
+	/*err = m.ContentService.FindAllByOID(db.GetDB(ctx), &contentList, m.Organization.ID)
 	if err != nil {
 		return nil, err
 	}*/
@@ -171,11 +172,11 @@ func (m *SitemapRequest) Render(context constrain.IContext) (r constrain.IViewRe
 	var goodsTags pq.StringArray
 
 	/*var goodsList []model.Goods
-	err = m.GoodsService.FindAllByOID(db.Orm(), &goodsList, m.Organization.ID)
+	err = m.GoodsService.FindAllByOID(db.GetDB(ctx), &goodsList, m.Organization.ID)
 	if err != nil {
 		return nil, err
 	}*/
-	goodsTypeData := service.Goods.GoodsType.GetGoodsTypeData(m.Organization.ID)
+	goodsTypeData := service.Goods.GoodsType.GetGoodsTypeData(ctx, m.Organization.ID)
 	for i := range goodsTypeData.List {
 		goodsType := goodsTypeData.List[i].Item
 		urls = append(urls, Url{
@@ -194,7 +195,7 @@ func (m *SitemapRequest) Render(context constrain.IContext) (r constrain.IViewRe
 			})
 		}
 	}
-	goodsList := dao.Find(db.Orm(), &model.Goods{}).Where(`"OID"=?`, m.Organization.ID).List()
+	goodsList := dao.Find(db.GetDB(ctx), &model.Goods{}).Where(`"OID"=?`, m.Organization.ID).List()
 	for i := range goodsList {
 		v := goodsList[i].(*model.Goods)
 		urls = append(urls, Url{

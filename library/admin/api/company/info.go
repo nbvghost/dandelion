@@ -3,6 +3,7 @@ package company
 import (
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service"
 
 	"github.com/nbvghost/dandelion/library/result"
@@ -15,21 +16,21 @@ type Info struct {
 	} `method:"Post"`
 }
 
-func (m *Info) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Info) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//sessionCompany := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	//company := &model.Organization{}
 	//util.RequestBodyToJSON(context.Request.Body, company)
 
-	err = service.Company.Organization.ChangeOrganization(m.Organization.ID, m.Post.Organization)
+	err = service.Company.Organization.ChangeOrganization(db.GetDB(ctx), m.Organization.ID, m.Post.Organization)
 
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", m.Post.Organization)}, err
 
 }
 
-func (m *Info) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Info) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//sessionCompany := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 
-	company := service.Company.Organization.GetOrganization(m.Organization.ID)
+	company := service.Company.Organization.GetOrganization(db.GetDB(ctx), m.Organization.ID)
 
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", company)}, nil
 }

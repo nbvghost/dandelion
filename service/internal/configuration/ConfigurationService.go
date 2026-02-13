@@ -1,39 +1,41 @@
 package configuration
 
 import (
+	"context"
 	"encoding/json"
+	"log"
+	"time"
+
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/serviceargument"
 	"github.com/nbvghost/tool/object"
 	"gorm.io/gorm"
-	"log"
-	"time"
 )
 
 type ConfigurationService struct {
 	//model.BaseDao
 }
 
-func (m ConfigurationService) GetFingerprintDevCapacity(oid dao.PrimaryKey) uint {
-	c := m.GetConfiguration(db.Orm(), oid, "FingerprintDevCapacity")
+func (m ConfigurationService) GetFingerprintDevCapacity(ctx context.Context, oid dao.PrimaryKey) uint {
+	c := m.GetConfiguration(db.GetDB(ctx), oid, "FingerprintDevCapacity")
 	return object.ParseUint(c.V)
 }
 
 /*
 	func (m ConfigurationService) GetAllTrainFilePath() []model.Configuration {
 		var items []model.Configuration
-		db.Orm().Where(`"K" =? and "OID">0 and "V"<>''`, "FaceRecognitionTrainFileUrl").Find(&items)
+		db.GetDB(ctx).Where(`"K" =? and "OID">0 and "V"<>''`, "FaceRecognitionTrainFileUrl").Find(&items)
 		return items
 	}
 */
 
-func (m ConfigurationService) SetAdminInfoUpdateAt(oid dao.PrimaryKey) error {
-	return m.ChangeConfiguration(db.Orm(), oid, "AdminInfoUpdateAt", time.Now().Format(time.RFC3339))
+func (m ConfigurationService) SetAdminInfoUpdateAt(ctx context.Context, oid dao.PrimaryKey) error {
+	return m.ChangeConfiguration(db.GetDB(ctx), oid, "AdminInfoUpdateAt", time.Now().Format(time.RFC3339))
 }
-func (m ConfigurationService) GetAdminInfoUpdateAt(oid dao.PrimaryKey) time.Time {
-	c := m.GetConfiguration(db.Orm(), oid, "AdminInfoUpdateAt")
+func (m ConfigurationService) GetAdminInfoUpdateAt(ctx context.Context, oid dao.PrimaryKey) time.Time {
+	c := m.GetConfiguration(db.GetDB(ctx), oid, "AdminInfoUpdateAt")
 	t, _ := time.Parse(time.RFC3339, c.V)
 	return t
 }
@@ -51,8 +53,8 @@ func (m ConfigurationService) GetConfiguration(tx *gorm.DB, OID dao.PrimaryKey, 
 	}
 	return &item
 }
-func (m ConfigurationService) GetConfigurations(OID dao.PrimaryKey, keys ...model.ConfigurationKey) map[model.ConfigurationKey]string {
-	Orm := db.Orm()
+func (m ConfigurationService) GetConfigurations(ctx context.Context, OID dao.PrimaryKey, keys ...model.ConfigurationKey) map[model.ConfigurationKey]string {
+	Orm := db.GetDB(ctx)
 	var items []model.Configuration
 	err := Orm.Where(`"K" in (?) and "OID"=?`, keys, OID).Find(&items).Error
 	//db.Where([]int64{20, 21, 22}).Find(&users
@@ -88,8 +90,8 @@ func (m ConfigurationService) ChangeConfiguration(db *gorm.DB, OID dao.PrimaryKe
 	}
 }
 
-func (m ConfigurationService) GetAdvertConfiguration(oid dao.PrimaryKey) []Advert {
-	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyAdvert)
+func (m ConfigurationService) GetAdvertConfiguration(ctx context.Context, oid dao.PrimaryKey) []Advert {
+	c := m.GetConfiguration(db.GetDB(ctx), oid, model.ConfigurationKeyAdvert)
 	var h []Advert
 	_ = json.Unmarshal([]byte(c.V), &h)
 	return h
@@ -102,8 +104,8 @@ type EmailSTMP struct {
 	EmailSTMPPassword string
 }
 
-func (m ConfigurationService) GetEmailSTMP(oid dao.PrimaryKey) *EmailSTMP {
-	cs := m.GetConfigurations(oid, model.ConfigurationKeyEmailSTMPFrom, model.ConfigurationKeyEmailSTMPHost, model.ConfigurationKeyEmailSTMPPort, model.ConfigurationKeyEmailSTMPPassword)
+func (m ConfigurationService) GetEmailSTMP(ctx context.Context, oid dao.PrimaryKey) *EmailSTMP {
+	cs := m.GetConfigurations(ctx, oid, model.ConfigurationKeyEmailSTMPFrom, model.ConfigurationKeyEmailSTMPHost, model.ConfigurationKeyEmailSTMPPort, model.ConfigurationKeyEmailSTMPPassword)
 	return &EmailSTMP{
 		EmailSTMPFrom:     cs[model.ConfigurationKeyEmailSTMPFrom],
 		EmailSTMPHost:     cs[model.ConfigurationKeyEmailSTMPHost],
@@ -112,20 +114,20 @@ func (m ConfigurationService) GetEmailSTMP(oid dao.PrimaryKey) *EmailSTMP {
 	}
 }
 
-func (m ConfigurationService) GetPopConfiguration(oid dao.PrimaryKey) []Pop {
-	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyPop)
+func (m ConfigurationService) GetPopConfiguration(ctx context.Context, oid dao.PrimaryKey) []Pop {
+	c := m.GetConfiguration(db.GetDB(ctx), oid, model.ConfigurationKeyPop)
 	var h []Pop
 	_ = json.Unmarshal([]byte(c.V), &h)
 	return h
 }
-func (m ConfigurationService) GetQuickLinkConfiguration(oid dao.PrimaryKey) []QuickLink {
-	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyQuickLink)
+func (m ConfigurationService) GetQuickLinkConfiguration(ctx context.Context, oid dao.PrimaryKey) []QuickLink {
+	c := m.GetConfiguration(db.GetDB(ctx), oid, model.ConfigurationKeyQuickLink)
 	var h []QuickLink
 	_ = json.Unmarshal([]byte(c.V), &h)
 	return h
 }
-func (m ConfigurationService) GetBaiduTranslateConfiguration(oid dao.PrimaryKey) *serviceargument.BaiduTranslateConfig {
-	c := m.GetConfigurations(oid, model.ConfigurationKeyBaiduTranslateAppID, model.ConfigurationKeyBaiduTranslateAppKey)
+func (m ConfigurationService) GetBaiduTranslateConfiguration(ctx context.Context, oid dao.PrimaryKey) *serviceargument.BaiduTranslateConfig {
+	c := m.GetConfigurations(ctx, oid, model.ConfigurationKeyBaiduTranslateAppID, model.ConfigurationKeyBaiduTranslateAppKey)
 	h := serviceargument.BaiduTranslateConfig{
 		AppID:  c[model.ConfigurationKeyBaiduTranslateAppID],
 		AppKey: c[model.ConfigurationKeyBaiduTranslateAppKey],
@@ -137,31 +139,31 @@ func (m ConfigurationService) GetTranslate(db *gorm.DB, k string) *model.Configu
 	db.Model(&model.Configuration{}).Where(`"OID"=?`, 0).Where(`"K"=?`, k).First(list)
 	return list
 }
-func (m ConfigurationService) GetVolcengineConfiguration(oid dao.PrimaryKey) *serviceargument.Volcengine {
-	c := m.GetConfigurations(oid, model.ConfigurationKeyVolcengineAccessKeyID, model.ConfigurationKeyVolcengineAccessKeySecret)
+func (m ConfigurationService) GetVolcengineConfiguration(ctx context.Context, oid dao.PrimaryKey) *serviceargument.Volcengine {
+	c := m.GetConfigurations(ctx, oid, model.ConfigurationKeyVolcengineAccessKeyID, model.ConfigurationKeyVolcengineAccessKeySecret)
 	h := serviceargument.Volcengine{
 		AccessKeyID:     c[model.ConfigurationKeyVolcengineAccessKeyID],
 		AccessKeySecret: c[model.ConfigurationKeyVolcengineAccessKeySecret],
 	}
 	return &h
 }
-func (m ConfigurationService) GetAliyunConfiguration(oid dao.PrimaryKey) *serviceargument.AliyunConfig {
-	c := m.GetConfigurations(oid, model.ConfigurationKeyAliyunAccessKeyID, model.ConfigurationKeyAliyunAccessKeySecret)
+func (m ConfigurationService) GetAliyunConfiguration(ctx context.Context, oid dao.PrimaryKey) *serviceargument.AliyunConfig {
+	c := m.GetConfigurations(ctx, oid, model.ConfigurationKeyAliyunAccessKeyID, model.ConfigurationKeyAliyunAccessKeySecret)
 	h := serviceargument.AliyunConfig{
 		AccessKeyID:     c[model.ConfigurationKeyAliyunAccessKeyID],
 		AccessKeySecret: c[model.ConfigurationKeyAliyunAccessKeySecret],
 	}
 	return &h
 }
-func (m ConfigurationService) GetHeaderConfiguration(oid dao.PrimaryKey) *Header {
-	c := m.GetConfiguration(db.Orm(), oid, model.ConfigurationKeyHeader)
+func (m ConfigurationService) GetHeaderConfiguration(ctx context.Context, oid dao.PrimaryKey) *Header {
+	c := m.GetConfiguration(db.GetDB(ctx), oid, model.ConfigurationKeyHeader)
 	h := Header{}
 	_ = json.Unmarshal([]byte(c.V), &h)
 	return &h
 }
 
-func (m ConfigurationService) GetBrokerageConfiguration(oid dao.PrimaryKey) *Brokerage {
-	c := m.GetConfigurations(oid,
+func (m ConfigurationService) GetBrokerageConfiguration(ctx context.Context, oid dao.PrimaryKey) *Brokerage {
+	c := m.GetConfigurations(ctx, oid,
 		model.ConfigurationKeyBrokerageType,
 		model.ConfigurationKeyBrokerageLeve1,
 		model.ConfigurationKeyBrokerageLeve2,

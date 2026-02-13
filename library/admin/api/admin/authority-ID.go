@@ -26,9 +26,9 @@ func (m *AuthorityID) Handle(context constrain.IContext) (r constrain.IResult, e
 	panic("implement me")
 }
 
-func (m *AuthorityID) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *AuthorityID) HandlePut(ctx constrain.IContext) (r constrain.IResult, err error) {
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ID"])
 	/*item := &model.Admin{}

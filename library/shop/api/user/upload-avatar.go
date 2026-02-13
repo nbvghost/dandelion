@@ -1,6 +1,9 @@
 package user
 
 import (
+	"io"
+	"mime/multipart"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/oss"
 	"github.com/nbvghost/dandelion/entity"
@@ -9,8 +12,6 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/pkg/errors"
-	"io"
-	"mime/multipart"
 )
 
 type UploadAvatar struct {
@@ -24,7 +25,7 @@ type UploadAvatar struct {
 func (m *UploadAvatar) Handle(context constrain.IContext) (r constrain.IResult, err error) {
 	return nil, nil
 }
-func (m *UploadAvatar) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *UploadAvatar) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	f, err := m.Post.File.Open()
 	if err != nil {
 		return nil, err
@@ -38,21 +39,21 @@ func (m *UploadAvatar) HandlePost(context constrain.IContext) (r constrain.IResu
 	}
 
 	changeMap := map[string]any{}
-	avatar, err := oss.UploadAvatar(context, m.User.OID, m.User.ID, fBytes)
+	avatar, err := oss.UploadAvatar(ctx, m.User.OID, m.User.ID, fBytes)
 	if err != nil {
 		return nil, err
 	}
 	if avatar.Code != 0 {
 		return nil, errors.New(avatar.Message)
 	}
-	changeMap["Portrait"], err = oss.ReadUrl(context, avatar.Data.Path)
+	changeMap["Portrait"], err = oss.ReadUrl(ctx, avatar.Data.Path)
 
 	if len(changeMap) > 0 {
-		err := dao.UpdateByPrimaryKey(db.Orm(), entity.User, m.User.ID, changeMap)
+		err := dao.UpdateByPrimaryKey(db.GetDB(ctx), entity.User, m.User.ID, changeMap)
 		if err != nil {
 			return &result.JsonResult{Data: &result.ActionResult{Code: result.Fail, Message: err.Error(), Data: nil}}, err
 		}
 	}
-	user := dao.GetByPrimaryKey(db.Orm(), entity.User, m.User.ID)
+	user := dao.GetByPrimaryKey(db.GetDB(ctx), entity.User, m.User.ID)
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "OK", Data: map[string]any{"User": user}}}, nil
 }

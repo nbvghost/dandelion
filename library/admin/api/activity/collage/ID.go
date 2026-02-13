@@ -17,9 +17,9 @@ func (m *ID) Handle(context constrain.IContext) (r constrain.IResult, err error)
 	panic("implement me")
 }
 
-func (m *ID) HandleDelete(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *ID) HandleDelete(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ID"])
-	err = service.Activity.Collage.DeleteCollage(dao.PrimaryKey(m.Delete.ID))
+	err = service.Activity.Collage.DeleteCollage(ctx, dao.PrimaryKey(m.Delete.ID))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}, err
 }

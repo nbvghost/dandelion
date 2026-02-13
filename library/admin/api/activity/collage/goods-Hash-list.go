@@ -20,7 +20,7 @@ func (m *GoodsHashList) Handle(context constrain.IContext) (r constrain.IResult,
 	panic("implement me")
 }
 
-func (m *GoodsHashList) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *GoodsHashList) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 
 	//Hash := context.PathParams["Hash"]
 
@@ -37,11 +37,11 @@ func (m *GoodsHashList) HandlePost(context constrain.IContext) (r constrain.IRes
 	//dts.Length = play.Paging
 	//util.RequestBodyToJSON(context.Request.Body, dts)
 	var GoodsIDs []uint
-	db.Orm().Model(&model.CollageGoods{}).Where("CollageHash=? and OID=?", m.POST.Hash, m.Organization.ID).Pluck("GoodsID", &GoodsIDs)
+	db.GetDB(ctx).Model(&model.CollageGoods{}).Where("CollageHash=? and OID=?", m.POST.Hash, m.Organization.ID).Pluck("GoodsID", &GoodsIDs)
 	if len(GoodsIDs) == 0 {
 		GoodsIDs = []uint{0}
 	}
 	m.POST.Datatables.InIDs = GoodsIDs
-	draw, recordsTotal, recordsFiltered, list := service.Goods.Goods.DatatablesListOrder(db.Orm(), m.POST.Datatables, &[]model.Goods{}, m.Organization.ID, "")
+	draw, recordsTotal, recordsFiltered, list := service.Goods.Goods.DatatablesListOrder(db.GetDB(ctx), m.POST.Datatables, &[]model.Goods{}, m.Organization.ID, "")
 	return &result.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}, err
 }

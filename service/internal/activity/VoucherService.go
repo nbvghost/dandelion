@@ -1,8 +1,10 @@
 package activity
 
 import (
-	"github.com/nbvghost/dandelion/library/db"
+	"context"
 	"time"
+
+	"github.com/nbvghost/dandelion/library/db"
 
 	"github.com/nbvghost/dandelion/entity/model"
 )
@@ -11,14 +13,14 @@ type VoucherService struct {
 	model.BaseDao
 }
 
-func (service VoucherService) Situation(StartTime, EndTime int64) interface{} {
+func (service VoucherService) Situation(ctx context.Context, StartTime, EndTime int64) interface{} {
 
 	st := time.Unix(StartTime/1000, 0)
 	st = time.Date(st.Year(), st.Month(), st.Day(), 0, 0, 0, 0, st.Location())
 	et := time.Unix(EndTime/1000, 0).Add(24 * time.Hour)
 	et = time.Date(et.Year(), et.Month(), et.Day(), 0, 0, 0, 0, et.Location())
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 
 	type Result struct {
 		TotalMoney uint `gorm:"column:TotalMoney"`

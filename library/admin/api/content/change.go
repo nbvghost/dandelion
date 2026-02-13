@@ -18,7 +18,7 @@ type Change struct {
 	Get struct{} `method:"Get"`
 }
 
-func (m *Change) HandlePost(context constrain.IContext) (constrain.IResult, error) {
+func (m *Change) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 
 	//context.Request.ParseForm()
@@ -28,7 +28,7 @@ func (m *Change) HandlePost(context constrain.IContext) (constrain.IResult, erro
 		return nil, result.NewErrorText("设置失败")
 	}
 
-	err := repository.ContentDao.ChangeContentByField(m.POST.ID, m.POST.FieldName, m.POST.FieldValue)
+	err := repository.ContentDao.ChangeContentByField(ctx, m.POST.ID, m.POST.FieldName, m.POST.FieldValue)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "设置成功", nil)}, err
 }
 

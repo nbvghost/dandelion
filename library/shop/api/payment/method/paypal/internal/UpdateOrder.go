@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/service"
-	"net/http"
-	"strings"
 )
 
 type UpdateOrderChange struct {
@@ -23,8 +24,8 @@ type UpdateOrderRequest struct {
 }
 
 func UpdateOrder(ctx constrain.IContext, oid dao.PrimaryKey, request *UpdateOrderRequest) error {
-	pp:=service.Payment.NewPaypal(ctx,oid)
-	token, err := pp.GetAccessToken()
+	pp := service.Payment.NewPaypal(ctx, oid)
+	token, err := pp.GetAccessToken(ctx)
 	if err != nil {
 		return err
 	}

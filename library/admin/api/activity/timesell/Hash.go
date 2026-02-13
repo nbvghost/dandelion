@@ -18,10 +18,10 @@ func (m *Hash) Handle(context constrain.IContext) (r constrain.IResult, err erro
 	panic("implement me")
 }
 
-func (m *Hash) HandleGet(context constrain.IContext) (r constrain.IResult, err error) {
-	//Orm := db.Orm()
+func (m *Hash) HandleGet(ctx constrain.IContext) (r constrain.IResult, err error) {
+	//Orm := db.GetDB(ctx)
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	//Hash := context.PathParams["Hash"]
-	item := service.Activity.TimeSell.GetTimeSellByHash(m.Get.Hash, m.Organization.ID)
+	item := service.Activity.TimeSell.GetTimeSellByHash(ctx, m.Get.Hash, m.Organization.ID)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", item)}, err
 }

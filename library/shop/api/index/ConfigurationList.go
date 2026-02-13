@@ -15,7 +15,7 @@ func (m *ConfigurationList) HandlePost(ctx constrain.IContext) (constrain.IResul
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*entity.Organization)
 	//var ks []sqltype.ConfigurationKey
 	//util.RequestBodyToJSON(context.Request.Body, &ks)
-	list := service.Configuration.GetConfigurations(0, m.Get...)
+	list := service.Configuration.GetConfigurations(ctx, 0, m.Get...)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", list)}, nil
 }
 func (m *ConfigurationList) Handle(ctx constrain.IContext) (constrain.IResult, error) {

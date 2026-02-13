@@ -19,7 +19,7 @@ type GetGoodsTypeChild struct {
 	} `method:"get"`
 }
 
-func (g *GetGoodsTypeChild) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (g *GetGoodsTypeChild) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	//ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
 	//ID := object.ParseUint(context.Request.URL.Query().Get("ID"))
@@ -35,6 +35,6 @@ func (g *GetGoodsTypeChild) Handle(context constrain.IContext) (r constrain.IRes
 	if g.Get.GoodsTypeID > 0 {
 		where["GoodsTypeID"] = g.Get.GoodsTypeID
 	}
-	goods := dao.GetBy(db.Orm(), entity.GoodsTypeChild, where)
+	goods := dao.GetBy(db.GetDB(ctx), entity.GoodsTypeChild, where)
 	return result.NewData(goods), err
 }

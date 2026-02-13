@@ -32,7 +32,7 @@ type GoodsWish struct {
 }
 
 func (m *Goods) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) {
-	err := dao.DeleteBy(db.Orm(), &model.GoodsWish{}, map[string]any{"UserID": ctx.UID(), "ID": m.Delete.ID})
+	err := dao.DeleteBy(db.GetDB(ctx), &model.GoodsWish{}, map[string]any{"UserID": ctx.UID(), "ID": m.Delete.ID})
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (m *Goods) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) 
 func (m *Goods) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	var total int64
 	var list []GoodsWish
-	db.Orm().Table("GoodsWish").Select(`"GoodsWish".*,"Goods".*`).Joins(`JOIN "Goods" on "Goods"."ID" = "GoodsWish"."GoodsID"`).
+	db.GetDB(ctx).Table("GoodsWish").Select(`"GoodsWish".*,"Goods".*`).Joins(`JOIN "Goods" on "Goods"."ID" = "GoodsWish"."GoodsID"`).
 		Order(`"GoodsWish"."CreatedAt" DESC`).Where(`"GoodsWish"."UserID"=?`, ctx.UID()).
 		Count(&total).Offset(m.Get.Index * m.Get.PageSize).
 		Limit(m.Get.PageSize).Find(&list)
@@ -66,16 +66,16 @@ func (m *Goods) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 		Comment:         m.Post.Comment,
 	}
 
-	has := dao.GetBy(db.Orm(), &model.GoodsWish{}, map[string]any{"GoodsID": wish.GoodsID, "SpecificationID": wish.SpecificationID}).(*model.GoodsWish)
+	has := dao.GetBy(db.GetDB(ctx), &model.GoodsWish{}, map[string]any{"GoodsID": wish.GoodsID, "SpecificationID": wish.SpecificationID}).(*model.GoodsWish)
 	if has.IsZero() == false {
 		has.Quantity = has.Quantity + m.Post.Quantity
-		err := dao.UpdateByPrimaryKey(db.Orm(), &model.GoodsWish{}, has.ID, map[string]any{"Quantity": has.Quantity})
+		err := dao.UpdateByPrimaryKey(db.GetDB(ctx), &model.GoodsWish{}, has.ID, map[string]any{"Quantity": has.Quantity})
 		if err != nil {
 			return nil, err
 		}
 		return nil, nil
 	}
-	err := dao.Create(db.Orm(), wish)
+	err := dao.Create(db.GetDB(ctx), wish)
 	if err != nil {
 		return nil, err
 	}

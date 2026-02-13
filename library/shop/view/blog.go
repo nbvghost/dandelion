@@ -61,7 +61,7 @@ func (m *BlogRequest) Render(context constrain.IContext) (r constrain.IViewResul
 	}*/
 
 	/*reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-		siteName := m.ContentService.GetTitle(db.Orm(), m.Organization.ID)
+		siteName := m.ContentService.GetTitle(db.GetDB(ctx), m.Organization.ID)
 		meta.SetBase(fmt.Sprintf("%s", reply.ContentData.CurrentMenuData.Menus.Name), siteName, "")
 		return nil
 	}*/

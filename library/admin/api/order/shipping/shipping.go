@@ -2,6 +2,7 @@ package shipping
 
 import (
 	"errors"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -25,23 +26,23 @@ type Shipping struct {
 	} `method:"Put"`
 }
 
-func (g *Shipping) Handle(context constrain.IContext) (constrain.IResult, error) {
-	v := dao.GetBy(db.Orm(), &model.OrdersShipping{}, map[string]any{"ID": g.Get.ID, "OID": g.Organization.ID})
+func (g *Shipping) Handle(ctx constrain.IContext) (constrain.IResult, error) {
+	v := dao.GetBy(db.GetDB(ctx), &model.OrdersShipping{}, map[string]any{"ID": g.Get.ID, "OID": g.Organization.ID})
 	return result.NewData(v), nil
 }
-func (g *Shipping) HandleDelete(context constrain.IContext) (constrain.IResult, error) {
-	err := dao.DeleteBy(db.Orm(), &model.OrdersShipping{}, map[string]any{"ID": g.Delete.ID, "OID": g.Organization.ID})
+func (g *Shipping) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) {
+	err := dao.DeleteBy(db.GetDB(ctx), &model.OrdersShipping{}, map[string]any{"ID": g.Delete.ID, "OID": g.Organization.ID})
 	if err != nil {
 		return nil, err
 	}
 	return nil, err
 }
-func (g *Shipping) HandlePut(context constrain.IContext) (constrain.IResult, error) {
-	v := dao.GetBy(db.Orm(), &model.OrdersShipping{}, map[string]any{"ID": g.Put.OrdersShipping.ID, "OID": g.Organization.ID})
+func (g *Shipping) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
+	v := dao.GetBy(db.GetDB(ctx), &model.OrdersShipping{}, map[string]any{"ID": g.Put.OrdersShipping.ID, "OID": g.Organization.ID})
 	if v.IsZero() {
 		return nil, result.NewError(errors.New("找不到数据"))
 	}
-	err := dao.UpdateByPrimaryKey(db.Orm(), &model.OrdersShipping{}, v.Primary(), &model.OrdersShipping{
+	err := dao.UpdateByPrimaryKey(db.GetDB(ctx), &model.OrdersShipping{}, v.Primary(), &model.OrdersShipping{
 		Title: g.Put.OrdersShipping.Title,
 		Image: g.Put.OrdersShipping.Image,
 		No:    g.Put.OrdersShipping.No,

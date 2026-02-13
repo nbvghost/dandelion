@@ -24,7 +24,7 @@ func (m *Delete) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	//_ShoppingCartIDs := context.Request.FormValue("GSIDs")
 	//ShoppingCartIDs := strings.Split(m.Post.GSIDs, ",")
 
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 	for _, goodsSpecification := range m.Post.List {
 		err := service.Order.ShoppingCart.DeleteListByIDs(tx, m.User.ID, goodsSpecification.GoodsID, goodsSpecification.SpecificationID)
 		if err != nil {

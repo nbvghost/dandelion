@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/oss"
 	"github.com/nbvghost/dandelion/entity/extends"
@@ -9,7 +10,6 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/dandelion/service/serviceargument"
-
 )
 
 type ContentRequest struct {
@@ -23,25 +23,25 @@ type ContentReply struct {
 	SiteData serviceargument.SiteData[*model.Content]
 }
 
-func (m *ContentRequest) Render(context constrain.IContext) (r constrain.IViewResult, err error) {
+func (m *ContentRequest) Render(ctx constrain.IContext) (r constrain.IViewResult, err error) {
 	reply := &ContentReply{
 		ViewBase: extends.ViewBase{
 			Name: "content",
 		},
 	}
 
-	reply.SiteData = service.Site.GetContentTypeByUri(context, m.Organization.ID, m.ContentItemUri, m.ContentSubTypeUri, 0)
+	reply.SiteData = service.Site.GetContentTypeByUri(ctx, m.Organization.ID, m.ContentItemUri, m.ContentSubTypeUri, 0)
 
 	if len(reply.SiteData.Pagination.List) > 0 {
 		modelContent := reply.SiteData.Pagination.List[0]
 		reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-			siteName := service.Content.GetTitle(db.Orm(), m.Organization.ID)
+			siteName := service.Content.GetTitle(db.GetDB(ctx), m.Organization.ID)
 			meta.SetBase(fmt.Sprintf("%s | %s", modelContent.Title, reply.SiteData.CurrentMenuData.Menus.Name), siteName, modelContent.Keywords, modelContent.Description)
-			imgUrl, _ := oss.ReadUrl(context, modelContent.Picture)
+			imgUrl, _ := oss.ReadUrl(ctx, modelContent.Picture)
 			meta.SetOGImage(imgUrl, 0, 0, modelContent.Title, "")
 
 			for _, v := range modelContent.Images {
-				imgUrl, _ = oss.ReadUrl(context, v)
+				imgUrl, _ = oss.ReadUrl(ctx, v)
 				meta.SetOGImage(imgUrl, 0, 0, modelContent.Title, "")
 			}
 
@@ -76,7 +76,7 @@ func (m *ContentRequest) Render(context constrain.IContext) (r constrain.IViewRe
 	/*var modelContent = reply.ContentData.Content()
 
 	reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-		siteName := m.ContentService.GetTitle(db.Orm(), m.Organization.ID)
+		siteName := m.ContentService.GetTitle(db.GetDB(ctx), m.Organization.ID)
 		meta.SetBase(fmt.Sprintf("%s | %s", modelContent.Title, reply.ContentData.MenusData.Menus.Name), siteName, modelContent.Summary)
 		imgUrl, err := ossurl.CreateUrl(context, modelContent.Picture)
 		if err != nil {

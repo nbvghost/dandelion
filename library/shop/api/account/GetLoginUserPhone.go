@@ -23,7 +23,6 @@ type GetLoginUserPhone struct {
 		encryptedData string
 		Code          string
 	} `method:"Post"`
-
 }
 
 func (g *GetLoginUserPhone) Handle(ctx constrain.IContext) (constrain.IResult, error) {
@@ -56,11 +55,11 @@ func (g *GetLoginUserPhone) HandlePost(ctx constrain.IContext) (constrain.IResul
 	}
 
 	//CountryCode: object.ParseInt(rb.PhoneInfo.CountryCode)
-	err = dao.UpdateByPrimaryKey(db.Orm(), &model.User{}, ctx.UID(), &model.User{Phone: rb.PhoneInfo.PurePhoneNumber})
+	err = dao.UpdateByPrimaryKey(db.GetDB(ctx), &model.User{}, ctx.UID(), &model.User{Phone: rb.PhoneInfo.PurePhoneNumber})
 	if err != nil {
 		return nil, err
 	}
-	r := result.NewData(map[string]any{"User": dao.GetByPrimaryKey(db.Orm(), &model.User{}, ctx.UID())})
+	r := result.NewData(map[string]any{"User": dao.GetByPrimaryKey(db.GetDB(ctx), &model.User{}, ctx.UID())})
 	r.Message = "成功绑定手机"
 	return r, nil
 }

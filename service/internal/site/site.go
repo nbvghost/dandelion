@@ -46,7 +46,7 @@ func newRedisGoodsDataKey(OID dao.PrimaryKey, ContentItemUri, ContentSubTypeUri 
 	return fmt.Sprintf("goods:%d:%s:%s:%d", OID, ContentItemUri, ContentSubTypeUri, pageIndex)
 }
 func (m Service) menus(ctx constrain.IContext, OID dao.PrimaryKey, showType MenuShowType) extends.MenusData {
-	//Orm := db.Orm()
+	//Orm := db.GetDB(ctx)
 
 	var contentItemList []model.ContentItem
 
@@ -226,10 +226,10 @@ func (m Service) menus(ctx constrain.IContext, OID dao.PrimaryKey, showType Menu
 	return menusData
 
 }
-func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, ContentItemUri, GoodsTypeUri string, filterOption []serviceargument.Option, sortMethod *serviceargument.SortMethod, pageIndex, pageSize int) serviceargument.SiteData[*extends.GoodsDetail] {
+func (m Service) GoodsList(ctx constrain.IContext, OID dao.PrimaryKey, ContentItemUri, GoodsTypeUri string, filterOption []serviceargument.Option, sortMethod *serviceargument.SortMethod, pageIndex, pageSize int) serviceargument.SiteData[*extends.GoodsDetail] {
 	var moduleContentData serviceargument.SiteData[*extends.GoodsDetail]
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 
 	contentItem := dao.GetBy(Orm, &model.ContentItem{}, map[string]interface{}{"OID": OID, "Uri": ContentItemUri}).(*model.ContentItem)
 
@@ -237,13 +237,13 @@ func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, Conte
 	var itemSub model.GoodsTypeChild
 
 	{
-		list := cache.GetCacheGoodsType(context, OID)
+		list := cache.GetCacheGoodsType(ctx, OID)
 
 		item, _ = lo.Find[model.GoodsType](list, func(a model.GoodsType) bool {
 			return a.Uri == GoodsTypeUri
 		})
 		if item.IsZero() {
-			clist := cache.GetCacheGoodsTypeChild(context, OID)
+			clist := cache.GetCacheGoodsTypeChild(ctx, OID)
 			itemSub, _ = lo.Find[model.GoodsTypeChild](clist, func(a model.GoodsTypeChild) bool {
 				return a.Uri == GoodsTypeUri
 			})
@@ -263,8 +263,8 @@ func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, Conte
 		}*/
 	}
 
-	allMenusData := m.FindAllMenus(context, OID)
-	menusData := m.FindShowMenus(context, OID)
+	allMenusData := m.FindAllMenus(ctx, OID)
+	menusData := m.FindShowMenus(ctx, OID)
 
 	var currentMenus extends.Menus
 	if itemSub.IsZero() == false {
@@ -275,7 +275,7 @@ func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, Conte
 		currentMenus = menusData.GetCurrentMenus(contentItem.ID)
 	}
 
-	contentItemMap := repository.ContentItemDao.ListContentItemByOIDMap(OID)
+	contentItemMap := repository.ContentItemDao.ListContentItemByOIDMap(ctx, OID)
 
 	currentMenuData := serviceargument.NewProductMenusData(item, itemSub)
 	for _, v := range menusData.List {
@@ -287,7 +287,7 @@ func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, Conte
 
 	menusPage := allMenusData.ListMenusByType(model.ContentTypePage)
 
-	pagination, options := m.GoodsService.PaginationGoodsDetail(context, OID, currentMenuData.TypeID, currentMenuData.SubTypeID, filterOption, sortMethod, pageIndex, pageSize)
+	pagination, options := m.GoodsService.PaginationGoodsDetail(ctx, OID, currentMenuData.TypeID, currentMenuData.SubTypeID, filterOption, sortMethod, pageIndex, pageSize)
 
 	var navigations []extends.Menus
 
@@ -310,8 +310,8 @@ func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, Conte
 		}
 	}
 
-	organization := m.OrganizationService.GetOrganization(OID).(*model.Organization)
-	contentConfig := repository.ContentConfigDao.GetContentConfig(db.Orm(), OID)
+	organization := m.OrganizationService.GetOrganization(Orm, OID).(*model.Organization)
+	contentConfig := repository.ContentConfigDao.GetContentConfig(db.GetDB(ctx), OID)
 
 	moduleContentData = serviceargument.SiteData[*extends.GoodsDetail]{
 		AllMenusData:    allMenusData,
@@ -339,10 +339,10 @@ func (m Service) GoodsList(context constrain.IContext, OID dao.PrimaryKey, Conte
 	moduleContentData.SiteAuthor = companyName
 	return moduleContentData
 }
-func (m Service) GoodsDetail(context constrain.IContext, OID dao.PrimaryKey, GoodsTypeUri, GoodsTypeChildUri string) serviceargument.SiteData[*extends.GoodsDetail] {
+func (m Service) GoodsDetail(ctx constrain.IContext, OID dao.PrimaryKey, GoodsTypeUri, GoodsTypeChildUri string) serviceargument.SiteData[*extends.GoodsDetail] {
 	var moduleContentData serviceargument.SiteData[*extends.GoodsDetail]
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	var item model.GoodsType
 	var itemSub model.GoodsTypeChild
 
@@ -353,11 +353,11 @@ func (m Service) GoodsDetail(context constrain.IContext, OID dao.PrimaryKey, Goo
 		//itemSub.Uri = "all"
 	}
 
-	contentItemMap := repository.ContentItemDao.ListContentItemByOIDMap(OID)
+	contentItemMap := repository.ContentItemDao.ListContentItemByOIDMap(ctx, OID)
 
-	allMenusData := m.FindAllMenus(context, OID)
+	allMenusData := m.FindAllMenus(ctx, OID)
 
-	menusData := m.FindShowMenus(context, OID)
+	menusData := m.FindShowMenus(ctx, OID)
 
 	currentMenuData := serviceargument.NewProductMenusData(item, itemSub)
 	for _, v := range menusData.List {
@@ -390,8 +390,8 @@ func (m Service) GoodsDetail(context constrain.IContext, OID dao.PrimaryKey, Goo
 		}
 	}
 
-	organization := m.OrganizationService.GetOrganization(OID).(*model.Organization)
-	contentConfig := repository.ContentConfigDao.GetContentConfig(db.Orm(), OID)
+	organization := m.OrganizationService.GetOrganization(Orm, OID).(*model.Organization)
+	contentConfig := repository.ContentConfigDao.GetContentConfig(db.GetDB(ctx), OID)
 
 	leftRightArr := [2]*extends.GoodsDetail{}
 
@@ -420,9 +420,9 @@ func (m Service) GoodsDetail(context constrain.IContext, OID dao.PrimaryKey, Goo
 	moduleContentData.SiteAuthor = companyName
 	return moduleContentData
 }
-func (m Service) GetContentTypeByUri(context constrain.IContext, OID dao.PrimaryKey, ContentItemUri, ContentSubTypeUri string, pageIndex int) serviceargument.SiteData[*model.Content] {
+func (m Service) GetContentTypeByUri(ctx constrain.IContext, OID dao.PrimaryKey, ContentItemUri, ContentSubTypeUri string, pageIndex int) serviceargument.SiteData[*model.Content] {
 	var moduleContentData serviceargument.SiteData[*model.Content]
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 
 	var itemSub model.ContentSubType
 
@@ -441,13 +441,13 @@ func (m Service) GetContentTypeByUri(context constrain.IContext, OID dao.Primary
 		itemSub.Uri = "all"
 	}
 
-	contentItemMap := repository.ContentItemDao.ListContentItemByOIDMap(OID)
+	contentItemMap := repository.ContentItemDao.ListContentItemByOIDMap(ctx, OID)
 
 	currentMenuData := serviceargument.NewMenusData(contentItem, itemSub)
 
-	menusData := m.FindShowMenus(context, OID)
+	menusData := m.FindShowMenus(ctx, OID)
 
-	allMenusData := m.FindAllMenus(context, OID)
+	allMenusData := m.FindAllMenus(ctx, OID)
 	for _, v := range allMenusData.List {
 		if v.ID == currentMenuData.TypeID {
 			currentMenuData.Menus = v
@@ -455,11 +455,11 @@ func (m Service) GetContentTypeByUri(context constrain.IContext, OID dao.Primary
 		}
 	}
 
-	pageIndex, pageSize, total, list := m.ContentService.PaginationContent(OID, currentMenuData.TypeID, currentMenuData.SubTypeID, pageIndex, 20)
+	pageIndex, pageSize, total, list := m.ContentService.PaginationContent(ctx, OID, currentMenuData.TypeID, currentMenuData.SubTypeID, pageIndex, 20)
 
 	pagination := serviceargument.NewPagination(pageIndex, pageSize, total, list)
 
-	tags := m.ContentService.FindContentTagsByContentItemID(OID, currentMenuData.TypeID)
+	tags := m.ContentService.FindContentTagsByContentItemID(ctx, OID, currentMenuData.TypeID)
 
 	var navigations []extends.Menus
 
@@ -495,8 +495,8 @@ func (m Service) GetContentTypeByUri(context constrain.IContext, OID dao.Primary
 		}
 	}
 
-	organization := m.OrganizationService.GetOrganization(OID).(*model.Organization)
-	contentConfig := repository.ContentConfigDao.GetContentConfig(db.Orm(), OID)
+	organization := m.OrganizationService.GetOrganization(Orm, OID).(*model.Organization)
+	contentConfig := repository.ContentConfigDao.GetContentConfig(db.GetDB(ctx), OID)
 
 	menusPage := allMenusData.ListMenusByType(model.ContentTypePage)
 	moduleContentData = serviceargument.SiteData[*model.Content]{
@@ -523,7 +523,7 @@ func (m Service) GetContentTypeByUri(context constrain.IContext, OID dao.Primary
 
 	if len(list) > 0 {
 		c := list[0]
-		moduleContentData.LeftRight = m.ContentService.FindContentListForLeftRight(c.ContentItemID, c.ContentSubTypeID, c.ID, c.CreatedAt)
+		moduleContentData.LeftRight = m.ContentService.FindContentListForLeftRight(ctx, c.ContentItemID, c.ContentSubTypeID, c.ID, c.CreatedAt)
 	}
 	return moduleContentData
 }

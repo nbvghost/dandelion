@@ -10,5 +10,5 @@ type GoodsAllList struct {
 }
 
 func (m *GoodsAllList) Handle(ctx constrain.IContext) (constrain.IResult, error) {
-	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: service.Goods.Goods.AllList()}}, nil
+	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: service.Goods.Goods.AllList(ctx)}}, nil
 }

@@ -28,8 +28,8 @@ type AddGoodsType struct {
 func (m *AddGoodsType) Handle(context constrain.IContext) (r constrain.IResult, err error) {
 	return nil, err
 }
-func (m *AddGoodsType) HandlePost(context constrain.IContext) (constrain.IResult, error) {
-	gt, err := service.Goods.GoodsType.AddGoodsType(m.SessionMappingData.OID, m.Post.GoodsType)
+func (m *AddGoodsType) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
+	gt, err := service.Goods.GoodsType.AddGoodsType(ctx, m.SessionMappingData.OID, m.Post.GoodsType)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (m *AddGoodsType) HandlePost(context constrain.IContext) (constrain.IResult
 		if err != nil {
 			return nil, err
 		}
-		file, err := oss.UploadFile(context, fileBytes, fmt.Sprintf("goodstype/%d", gt.ID), "", true, "badge")
+		file, err := oss.UploadFile(ctx, fileBytes, fmt.Sprintf("goodstype/%d", gt.ID), "", true, "badge")
 		if err != nil {
 
 			return nil, err
@@ -51,14 +51,14 @@ func (m *AddGoodsType) HandlePost(context constrain.IContext) (constrain.IResult
 		if err != nil {
 			return nil, err
 		}
-		file, err := oss.UploadFile(context, fileBytes, fmt.Sprintf("goodstype/%d", gt.ID), "", true, "image")
+		file, err := oss.UploadFile(ctx, fileBytes, fmt.Sprintf("goodstype/%d", gt.ID), "", true, "image")
 		if err != nil {
 
 			return nil, err
 		}
 		m.Post.GoodsType.Image = file.Data.Path
 	}
-	err = dao.UpdateByPrimaryKey(db.Orm(), &model.GoodsType{}, gt.ID, map[string]any{"Badge": m.Post.GoodsType.Badge, "Image": m.Post.GoodsType.Image})
+	err = dao.UpdateByPrimaryKey(db.GetDB(ctx), &model.GoodsType{}, gt.ID, map[string]any{"Badge": m.Post.GoodsType.Badge, "Image": m.Post.GoodsType.Image})
 	if err != nil {
 		return nil, err
 	}

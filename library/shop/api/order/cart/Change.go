@@ -25,7 +25,7 @@ func (m *Change) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	//GSID := object.ParseUint(context.Request.FormValue("GSID"))
 	//Quantity := object.ParseUint(context.Request.FormValue("Quantity"))
 
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 	for _, goodsSpecification := range m.Post.List {
 		err := service.Order.ShoppingCart.UpdateByUserIDAndID(tx, m.User.ID, goodsSpecification.GoodsID, goodsSpecification.SpecificationID, uint(goodsSpecification.Quantity))
 		if err != nil {

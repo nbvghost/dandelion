@@ -30,16 +30,16 @@ func (m *Cache) Handle(context constrain.IContext) (r constrain.IResult, err err
 	return nil, nil
 }
 
-func (m *Cache) HandlePost(context constrain.IContext) (constrain.IResult, error) {
-	dns := repository.DNSDao.GetDefaultDNS(m.Organization.ID)
+func (m *Cache) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
+	dns := repository.DNSDao.GetDefaultDNS(ctx, m.Organization.ID)
 	if dns.IsZero() {
 		return nil, result.NewErrorText("找不到DNS记录")
 	}
-	microServer, err := context.Etcd().GetMicroServer(dns.Domain)
+	microServer, err := ctx.Etcd().GetMicroServer(dns.Domain)
 	if err != nil {
 		return nil, err
 	}
-	server, err := context.Etcd().SelectInsideServer(microServer)
+	server, err := ctx.Etcd().SelectInsideServer(microServer)
 	if err != nil {
 		return nil, err
 	}

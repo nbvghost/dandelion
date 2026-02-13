@@ -23,7 +23,7 @@ func (m *GoodsTrendingList) Handle(ctx constrain.IContext) (constrain.IResult, e
 	params := &serviceargument.ListQueryParam{}
 	orderBy := &dao.Sort{}
 
-	pagination := service.Goods.Goods.GoodsList(params, m.User.OID, orderBy.OrderByColumn(`"CountSale"+"CountView"`, true), m.Get.Index+1, 10)
+	pagination := service.Goods.Goods.GoodsList(ctx, params, m.User.OID, orderBy.OrderByColumn(`"CountSale"+"CountView"`, true), m.Get.Index+1, 10)
 
 	return result.NewData(pagination), nil
 

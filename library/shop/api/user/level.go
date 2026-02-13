@@ -13,13 +13,13 @@ type Level struct {
 	} `method:"Get"`
 }
 
-func (m *Level) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Level) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 
 	//UserID, _ := strconv.ParseUint(context.PathParams["UserID"], 10, 64)
 
-	leve1UserIDs := service.User.Leve1(m.Get.UserID)
+	leve1UserIDs := service.User.Leve1(ctx, m.Get.UserID)
 
-	users := service.User.FindUserByIDs(leve1UserIDs)
+	users := service.User.FindUserByIDs(ctx, leve1UserIDs)
 
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "OK", Data: users}}, nil
 }

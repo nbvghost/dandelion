@@ -1,8 +1,10 @@
 package company
 
 import (
-	"github.com/nbvghost/dandelion/library/db"
+	"context"
 	"log"
+
+	"github.com/nbvghost/dandelion/library/db"
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -12,14 +14,14 @@ type StoreService struct {
 	model.BaseDao
 }
 
-func (service StoreService) GetByPhone(Phone string) model.Store {
-	Orm := db.Orm()
+func (service StoreService) GetByPhone(ctx context.Context, Phone string) model.Store {
+	Orm := db.GetDB(ctx)
 	var store model.Store
 	Orm.Model(&model.Store{}).Where(&model.Store{Phone: Phone}).First(&store)
 	return store
 }
-func (service StoreService) LocationList(Latitude, Longitude float64) []map[string]interface{} {
-	Orm := db.Orm()
+func (service StoreService) LocationList(ctx context.Context, Latitude, Longitude float64) []map[string]interface{} {
+	Orm := db.GetDB(ctx)
 
 	rows, err := Orm.Model(&model.Store{}).Select("ID,Images,Name,Address,ServicePhone,Stars,StarsCount,ROUND(6378.138*2*ASIN(SQRT(POW(SIN((?*PI()/180-Latitude*PI()/180)/2),2)+COS(?*PI()/180)*COS(Latitude*PI()/180)*POW(SIN((?*PI()/180-Longitude*PI()/180)/2),2)))*1000) AS Distance", Latitude, Latitude, Longitude).Order("Distance asc").Rows()
 	log.Println(err)
@@ -45,16 +47,16 @@ func (service StoreService) LocationList(Latitude, Longitude float64) []map[stri
 	return list
 }
 
-func (service StoreService) GetByGoodsIDAndSpecificationIDAndStoreID(GoodsID, SpecificationID, StoreID dao.PrimaryKey) *model.StoreStock {
-	Orm := db.Orm()
+func (service StoreService) GetByGoodsIDAndSpecificationIDAndStoreID(ctx context.Context, GoodsID, SpecificationID, StoreID dao.PrimaryKey) *model.StoreStock {
+	Orm := db.GetDB(ctx)
 	var ss model.StoreStock
 	Orm.Where(&model.StoreStock{GoodsID: GoodsID, SpecificationID: SpecificationID, StoreID: StoreID}).First(&ss)
 	return &ss
 }
 
-func (service StoreService) ListStoreSpecifications(StoreID, GoodsID dao.PrimaryKey) interface{} {
+func (service StoreService) ListStoreSpecifications(ctx context.Context, StoreID, GoodsID dao.PrimaryKey) interface{} {
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	//SELECT g.ID as ID,g.Title as Title,COUNT(ss.ID) as Total,SUM(ss.Stock) as Stock FROM Goods as g,StoreStock as ss where ss.StoreID=2009 and g.ID=ss.GoodsID  group by ss.GoodsID;
 	type Result struct {
 		*model.StoreStock    `json:"StoreStock"`
@@ -71,9 +73,9 @@ func (service StoreService) ListStoreSpecifications(StoreID, GoodsID dao.Primary
 
 	return result
 }
-func (service StoreService) ListStoreStock(StoreID dao.PrimaryKey) interface{} {
+func (service StoreService) ListStoreStock(ctx context.Context, StoreID dao.PrimaryKey) interface{} {
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	//SELECT g.ID as ID,g.Title as Title,COUNT(ss.ID) as Total,SUM(ss.Stock) as Stock FROM Goods as g,StoreStock as ss where ss.StoreID=2009 and g.ID=ss.GoodsID  group by ss.GoodsID;
 	type Result struct {
 		*model.StoreStock `json:"StoreStock"`

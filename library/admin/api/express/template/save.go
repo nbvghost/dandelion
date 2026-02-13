@@ -18,12 +18,12 @@ func (m *Save) Handle(context constrain.IContext) (r constrain.IResult, err erro
 	panic("implement me")
 }
 
-func (m *Save) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Save) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	//item := &model.ExpressTemplate{}
 	//err = util.RequestBodyToJSON(context.Request.Body, item)
 	//log.Println(err)
 	m.Post.ExpressTemplate.OID = m.Organization.ID
-	err = service.Express.ExpressTemplate.SaveExpressTemplate(m.Post.ExpressTemplate)
+	err = service.Express.ExpressTemplate.SaveExpressTemplate(ctx, m.Post.ExpressTemplate)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "保存成功", nil)}, err
 }

@@ -1,6 +1,7 @@
 package order
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -63,15 +64,15 @@ type ShoppingCartResult struct {
 	ShoppingCartList   []*model.ShoppingCart
 }
 
-func (m OrdersService) FindShoppingCartListDetails(oid dao.PrimaryKey, userID dao.PrimaryKey, address *model.Address) (*ShoppingCartResult, error) {
-	list := m.ShoppingCart.FindShoppingCartByUserID(userID)
+func (m OrdersService) FindShoppingCartListDetails(ctx context.Context, oid dao.PrimaryKey, userID dao.PrimaryKey, address *model.Address) (*ShoppingCartResult, error) {
+	list := m.ShoppingCart.FindShoppingCartByUserID(ctx, userID)
 
 	shoppingCartList := make([]*model.ShoppingCart, 0)
 	orderGoodsList := make([]*model.OrdersGoods, 0)
 	for i := range list {
 		item := list[i].(*model.ShoppingCart)
 		shoppingCartList = append(shoppingCartList, item)
-		orderGoods, err := m.createOrdersGoods(item.GoodsID, item.SpecificationID, item.Quantity)
+		orderGoods, err := m.createOrdersGoods(ctx, item.GoodsID, item.SpecificationID, item.Quantity)
 		if err != nil {
 			orderGoodsList = append(orderGoodsList, &model.OrdersGoods{Error: err.Error()})
 		} else {
@@ -81,7 +82,7 @@ func (m OrdersService) FindShoppingCartListDetails(oid dao.PrimaryKey, userID da
 		//results[oredersGoods.OID]=append(results[oredersGoods.OID],oredersGoods)
 	}
 
-	confirmOrdersGoods, err := m.AnalyseOrdersGoodsList(oid, address, orderGoodsList)
+	confirmOrdersGoods, err := m.AnalyseOrdersGoodsList(ctx, oid, address, orderGoodsList)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +93,7 @@ func (m OrdersService) FindShoppingCartListDetails(oid dao.PrimaryKey, userID da
 }
 
 // AfterSettlementUserBrokerage 退款，扣除相应的冻结金额，不用结算，佣金
-func (m OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *model.Orders) error {
+func (m OrdersService) AfterSettlementUserBrokerage(ctx context.Context, tx *gorm.DB, orders *model.Orders) error {
 	var err error
 	//用户自己。下单者
 	//Orm:=singleton.Orm()
@@ -100,7 +101,7 @@ func (m OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *model.O
 	//var orders model.Orders
 	//service.Get(Orm, OrderID, &orders)
 
-	brokerage := m.Configuration.GetBrokerageConfiguration(orders.OID)
+	brokerage := m.Configuration.GetBrokerageConfiguration(ctx, orders.OID)
 
 	//var orderUser model.User
 	orderUser := dao.GetByPrimaryKey(tx, &model.User{}, orders.UserID).(*model.User)
@@ -135,14 +136,14 @@ func (m OrdersService) AfterSettlementUserBrokerage(tx *gorm.DB, orders *model.O
 
 	return err
 }
-func (m OrdersService) FirstSettlementUserBrokerage(tx *gorm.DB, orders model.Orders) error {
+func (m OrdersService) FirstSettlementUserBrokerage(ctx context.Context, tx *gorm.DB, orders model.Orders) error {
 	var err error
 	//用户自己。下单者
 	//Orm:=singleton.Orm()
 
 	//var orders model.Orders
 	//service.Get(Orm, OrderID, &orders)
-	brokerage := m.Configuration.GetBrokerageConfiguration(orders.OID)
+	brokerage := m.Configuration.GetBrokerageConfiguration(ctx, orders.OID)
 
 	ogs, err := m.FindOrdersGoodsByOrdersID(tx, orders.ID)
 	var Brokerage = decimal.NewFromFloat(0)
@@ -253,14 +254,14 @@ func (m OrdersService) OrdersStockManager(db *gorm.DB, orders *model.Orders, isM
 	}
 	return nil
 }
-func (m OrdersService) Situation(StartTime, EndTime int64) interface{} {
+func (m OrdersService) Situation(ctx context.Context, StartTime, EndTime int64) interface{} {
 
 	st := time.Unix(StartTime/1000, 0)
 	st = time.Date(st.Year(), st.Month(), st.Day(), 0, 0, 0, 0, st.Location())
 	et := time.Unix(EndTime/1000, 0).Add(24 * time.Hour)
 	et = time.Date(et.Year(), et.Month(), et.Day(), 0, 0, 0, 0, et.Location())
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 
 	type Result struct {
 		TotalMoney uint `gorm:"column:TotalMoney"`
@@ -310,8 +311,8 @@ func (m OrdersService) AddOrdersPackage(db *gorm.DB, TotalMoney uint, UserID dao
 }
 
 // 确认收货
-func (m OrdersService) TakeDeliver(OrdersID dao.PrimaryKey) error {
-	Orm := db.Orm()
+func (m OrdersService) TakeDeliver(ctx context.Context, OrdersID dao.PrimaryKey) error {
+	Orm := db.GetDB(ctx)
 
 	//var orders model.Orders
 	orders := dao.GetByPrimaryKey(Orm, entity.Orders, OrdersID).(*model.Orders)
@@ -354,7 +355,7 @@ func (m OrdersService) TakeDeliver(OrdersID dao.PrimaryKey) error {
 		//err = service.CardItem.AddOrdersGoodsCardItem()
 
 		//Orm *gorm.DB, UserID uint, Brokerage uint, TargetID uint, PayMenoy uint
-		err = m.Settlement.SettlementUser(tx, ogsList, orders)
+		err = m.Settlement.SettlementUser(ctx, tx, ogsList, orders)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -365,7 +366,7 @@ func (m OrdersService) TakeDeliver(OrdersID dao.PrimaryKey) error {
 					value := ogs[i]
 					_goods := value.Goods
 					if _goods.ID != 0 {
-						err = dao.UpdateByPrimaryKey(db.Orm(), entity.Goods, _goods.ID, &model.Goods{CountSale: _goods.CountSale + uint(value.Quantity)})
+						err = dao.UpdateByPrimaryKey(db.GetDB(ctx), entity.Goods, _goods.ID, &model.Goods{CountSale: _goods.CountSale + uint(value.Quantity)})
 						if err != nil {
 							return
 						}
@@ -381,9 +382,9 @@ func (m OrdersService) TakeDeliver(OrdersID dao.PrimaryKey) error {
 }
 
 // 检查订单状态
-func (m OrdersService) AnalysisOrdersStatus(context constrain.IServiceContext, ordersID dao.PrimaryKey, oid dao.PrimaryKey) error {
+func (m OrdersService) AnalysisOrdersStatus(ctx constrain.IServiceContext, ordersID dao.PrimaryKey, oid dao.PrimaryKey) error {
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 
 	//var orders model.Orders
 	orders := dao.GetByPrimaryKey(Orm, entity.Orders, ordersID).(*model.Orders)
@@ -412,7 +413,7 @@ func (m OrdersService) AnalysisOrdersStatus(context constrain.IServiceContext, o
 			//dao.UpdateByPrimaryKey(Orm, orders.ID, &model.Orders{}, map[string]interface{}{"Status": model.OrdersStatusOrderOk, "ReceiptTime": time.Now()})
 			//管理商品库存
 			//service.Goods.OrdersStockManager(orders, false)
-			err := m.TakeDeliver(ordersID)
+			err := m.TakeDeliver(ctx, ordersID)
 			if err != nil {
 				return err
 			}
@@ -421,7 +422,7 @@ func (m OrdersService) AnalysisOrdersStatus(context constrain.IServiceContext, o
 	} else if orders.Status == model.OrdersStatusCancel {
 		if time.Now().Unix() >= orders.UpdatedAt.Add(5*time.Hour*24).Unix() {
 			//订单已经支付，用户申请了取消订单，超过5天，自动取消
-			_, err := m.CancelOk(context, ordersID)
+			_, err := m.CancelOk(ctx, ordersID)
 			if err != nil {
 				return err
 			}
@@ -432,8 +433,8 @@ func (m OrdersService) AnalysisOrdersStatus(context constrain.IServiceContext, o
 }
 
 // 发货
-func (m OrdersService) Deliver(ShipTitle, ShipKey, ShipNo string, OrdersID dao.PrimaryKey) error {
-	Orm := db.Orm().Begin()
+func (m OrdersService) Deliver(ctx context.Context, ShipTitle, ShipKey, ShipNo string, OrdersID dao.PrimaryKey) error {
+	Orm := db.GetDB(ctx).Begin()
 
 	//var orders model.Orders
 	orders := dao.GetByPrimaryKey(Orm, &model.Orders{}, OrdersID).(*model.Orders)
@@ -475,7 +476,7 @@ func (m OrdersService) Deliver(ShipTitle, ShipKey, ShipNo string, OrdersID dao.P
 		return err
 	}
 
-	/*ogs, err := service.FindOrdersGoodsByOrdersID(db.Orm(), orders.ID)
+	/*ogs, err := service.FindOrdersGoodsByOrdersID(db.GetDB(ctx), orders.ID)
 	if err != nil {
 		Orm.Rollback()
 		return err
@@ -489,22 +490,22 @@ func (m OrdersService) Deliver(ShipTitle, ShipKey, ShipNo string, OrdersID dao.P
 	Orm.Commit()
 	return err
 }
-func (m OrdersService) GetOrdersPackageByOrderNo(OrderNo string) model.OrdersPackage {
-	Orm := db.Orm()
+func (m OrdersService) GetOrdersPackageByOrderNo(ctx context.Context, OrderNo string) model.OrdersPackage {
+	Orm := db.GetDB(ctx)
 	var orders model.OrdersPackage
 	Orm.Where(&model.OrdersPackage{OrderNo: OrderNo}).First(&orders)
 	return orders
 }
 
-func (m OrdersService) GetSupplyOrdersByOrderNo(OrderNo string) model.SupplyOrders {
-	Orm := db.Orm()
+func (m OrdersService) GetSupplyOrdersByOrderNo(ctx context.Context, OrderNo string) model.SupplyOrders {
+	Orm := db.GetDB(ctx)
 	var orders model.SupplyOrders
 	Orm.Where(&model.SupplyOrders{OrderNo: OrderNo}).First(&orders)
 	return orders
 }
 
-func (m OrdersService) ListOrdersStatusCount(UserID dao.PrimaryKey, Status []string) (TotalRecords int64) {
-	Orm := db.Orm()
+func (m OrdersService) ListOrdersStatusCount(ctx context.Context, UserID dao.PrimaryKey, Status []string) (TotalRecords int64) {
+	Orm := db.GetDB(ctx)
 	var orders []model.Orders
 	db := Orm.Model(model.Orders{})
 
@@ -545,8 +546,8 @@ type CollageRecord struct {
 	//OrdersGoods model.OrdersGoods
 }
 
-func (m OrdersService) ListCollageRecord(UserID dao.PrimaryKey, Index int) []CollageRecord {
-	Orm := db.Orm()
+func (m OrdersService) ListCollageRecord(ctx context.Context, UserID dao.PrimaryKey, Index int) []CollageRecord {
+	Orm := db.GetDB(ctx)
 
 	db := Orm.Raw(`
 SELECT
@@ -578,7 +579,7 @@ GROUP BY cr."No"
 	return packs
 }
 
-func (m OrdersService) ListOrders(queryParam *serviceargument.ListOrdersQueryParam, oid dao.PrimaryKey, fieldOrder clause.OrderByColumn, pageNo int, pageSize int) (*result.Pagination, error) {
+func (m OrdersService) ListOrders(ctx context.Context, queryParam *serviceargument.ListOrdersQueryParam, oid dao.PrimaryKey, fieldOrder clause.OrderByColumn, pageNo int, pageSize int) (*result.Pagination, error) {
 	if pageSize <= 0 {
 		pageSize = 10
 	}
@@ -588,7 +589,7 @@ func (m OrdersService) ListOrders(queryParam *serviceargument.ListOrdersQueryPar
 		pageIndex = 0
 	}
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	var orders []model.Orders
 
 	db := Orm.Model(model.Orders{})
@@ -644,7 +645,7 @@ func (m OrdersService) ListOrders(queryParam *serviceargument.ListOrdersQueryPar
 	return result.NewPagination(pageNo, pageSize, recordsTotal, results), nil
 }
 
-func (m OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transactionId string, payTime time.Time, ordersType model.OrdersType) (string, error) {
+func (m OrdersService) OrderPaySuccess(ctx context.Context, totalFee uint, outTradeNo string, transactionId string, payTime time.Time, ordersType model.OrdersType) (string, error) {
 
 	//Orm := singleton.Orm()
 
@@ -655,9 +656,9 @@ func (m OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transac
 
 	if ordersType == model.OrdersTypeSupply {
 		//充值的，目前只涉及到门店自主核销的时候，才需要用到充值
-		orders := m.GetSupplyOrdersByOrderNo(outTradeNo)
+		orders := m.GetSupplyOrdersByOrderNo(ctx, outTradeNo)
 		if orders.IsPay == 0 {
-			tx := db.Orm().Begin()
+			tx := db.GetDB(ctx).Begin()
 			err := dao.UpdateByPrimaryKey(tx, entity.SupplyOrders, orders.ID, &model.SupplyOrders{PayTime: payTime, IsPay: 1, PayMoney: totalFee})
 			if err != nil {
 				tx.Rollback()
@@ -684,8 +685,8 @@ func (m OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transac
 		}
 
 	} else if ordersType == model.OrdersTypeGoodsPackage { //合并商品订单
-		tx := db.Orm().Begin()
-		ordersPackage := m.GetOrdersPackageByOrderNo(outTradeNo)
+		tx := db.GetDB(ctx).Begin()
+		ordersPackage := m.GetOrdersPackageByOrderNo(ctx, outTradeNo)
 		if ordersPackage.TotalPayMoney == totalFee {
 			//var OrderNoList []string
 			//util.JSONToStruct(ordersPackage.OrderList, &OrderNoList)
@@ -696,11 +697,11 @@ func (m OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transac
 				return "", err
 			}
 
-			OrderList := repository.OrdersDao.GetOrdersByOrdersPackageNo(ordersPackage.OrderNo)
+			OrderList := repository.OrdersDao.GetOrdersByOrdersPackageNo(ctx, ordersPackage.OrderNo)
 
 			for index := range OrderList {
 				//orders := service.GetOrdersByOrderNo(value)
-				df, msg := m.ProcessingOrders(tx, OrderList[index], transactionId, payTime)
+				df, msg := m.ProcessingOrders(ctx, tx, OrderList[index], transactionId, payTime)
 				if df == false {
 					tx.Rollback()
 					return "", errors.New(msg)
@@ -715,10 +716,10 @@ func (m OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transac
 
 	} else if ordersType == model.OrdersTypeGoods { //商品订单
 		//orders.PayMoney == total_fee.
-		tx := db.Orm().Begin()
-		orders := repository.OrdersDao.GetOrdersByOrderNo(outTradeNo)
+		tx := db.GetDB(ctx).Begin()
+		orders := repository.OrdersDao.GetOrdersByOrderNo(ctx, outTradeNo)
 		if orders.PayMoney == totalFee {
-			su, msg := m.ProcessingOrders(tx, orders, transactionId, payTime)
+			su, msg := m.ProcessingOrders(ctx, tx, orders, transactionId, payTime)
 			if su == false {
 				tx.Rollback()
 				return "", errors.New(msg)
@@ -736,7 +737,7 @@ func (m OrdersService) OrderPaySuccess(totalFee uint, outTradeNo string, transac
 
 }
 
-func (m OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, transactionId string, payTime time.Time) (Success bool, Message string) {
+func (m OrdersService) ProcessingOrders(ctx context.Context, tx *gorm.DB, orders model.Orders, transactionId string, payTime time.Time) (Success bool, Message string) {
 	if orders.IsPay == 0 {
 		if orders.Status == model.OrdersStatusOrder {
 			var err error
@@ -745,7 +746,7 @@ func (m OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, transa
 			if err != nil {
 				return false, err.Error()
 			}
-			err = m.FirstSettlementUserBrokerage(tx, orders)
+			err = m.FirstSettlementUserBrokerage(ctx, tx, orders)
 			if err != nil {
 
 				return false, err.Error()
@@ -765,7 +766,7 @@ func (m OrdersService) ProcessingOrders(tx *gorm.DB, orders model.Orders, transa
 
 // BuyCollageOrders 拼单购买
 func (m OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, GoodsID, SpecificationID dao.PrimaryKey, Quantity uint) error {
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	//var goods model.Goods
 	//var specification model.Specification
 	//var expresstemplate model.ExpressTemplate
@@ -788,13 +789,13 @@ func (m OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, GoodsID,
 	//shoppingCart.Goods = util.StructToJSON(goods)
 	//shoppingCart.UserID = UserID
 
-	ordersGoods, err := m.createOrdersGoods(goods.ID, specification.ID, Quantity)
+	ordersGoods, err := m.createOrdersGoods(ctx, goods.ID, specification.ID, Quantity)
 	if err != nil {
 		return err
 	}
 
 	//ordersGoods.CollageNo = tool.UUID()
-	collage := m.Collage.GetCollageByGoodsID(goods.ID, goods.OID)
+	collage := m.Collage.GetCollageByGoodsID(ctx, goods.ID, goods.OID)
 	if collage.ID != 0 && collage.TotalNum > 0 {
 
 		favoured := sqltype.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint(collage.Discount)}
@@ -811,7 +812,7 @@ func (m OrdersService) BuyCollageOrders(ctx constrain.IContext, UserID, GoodsID,
 
 // CreateOrdersGoods 从商品外直接购买，生成OrdersGoods，添加到 play.SessionConfirmOrders
 func (m OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, GoodsID, SpecificationID dao.PrimaryKey, Quantity uint) ([]*model.OrdersGoods, error) {
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	//var goods model.Goods
 	//var specification model.Specification
 	//var expresstemplate model.ExpressTemplate
@@ -834,7 +835,7 @@ func (m OrdersService) CreateOrdersGoods(ctx constrain.IContext, UserID, GoodsID
 	//shoppingCart.Goods = util.StructToJSON(goods)
 	//shoppingCart.UserID = UserID
 
-	ordersGoods, err := m.createOrdersGoods(g.ID, specification.ID, Quantity)
+	ordersGoods, err := m.createOrdersGoods(ctx, g.ID, specification.ID, Quantity)
 	if err != nil {
 		return nil, err
 	}
@@ -894,24 +895,24 @@ func (m OrdersService) ConvertOrdersGoods(data *model.OrdersGoods) (*model.Order
 	ordersGoods.SellPrice = data.SellPrice
 	ordersGoods.TotalBrokerage = data.TotalBrokerage
 
-	goodsSkuData := m.goodsSkuData(db.Orm(), g.ID, specification.LabelIndex)
+	goodsSkuData := m.goodsSkuData(db.GetDB(ctx), g.ID, specification.LabelIndex)
 	ordersGoods.SkuImages = goodsSkuData.SkuImages
 	ordersGoods.SkuLabelMap = goodsSkuData.SkuLabelMap
 	ordersGoods.SkuLabelDataMap = goodsSkuData.SkuLabelDataMap
 	return ordersGoods, nil*/
 }
-func (m OrdersService) createOrdersGoods(goodsID dao.PrimaryKey, specificationID dao.PrimaryKey, quantity uint) (*model.OrdersGoods, error) {
+func (m OrdersService) createOrdersGoods(ctx context.Context, goodsID dao.PrimaryKey, specificationID dao.PrimaryKey, quantity uint) (*model.OrdersGoods, error) {
 	ordersGoods := &model.OrdersGoods{}
 	//var goods model.Goods
 	//var specification model.Specification
 	//var timesell model.TimeSell
 
-	g := dao.GetByPrimaryKey(db.Orm(), &model.Goods{}, goodsID).(*model.Goods)
+	g := dao.GetByPrimaryKey(db.GetDB(ctx), &model.Goods{}, goodsID).(*model.Goods)
 	if g.IsZero() {
 		return nil, errors.New("无效的商品或商品已经不存在")
 	}
 
-	specification := dao.GetByPrimaryKey(db.Orm(), &model.Specification{}, specificationID).(*model.Specification)
+	specification := dao.GetByPrimaryKey(db.GetDB(ctx), &model.Specification{}, specificationID).(*model.Specification)
 	if specification.ID == 0 {
 		//return errors.New("找不到规格")
 		return nil, errors.New("无效的商品规格或商品规格已经不存在")
@@ -955,7 +956,7 @@ func (m OrdersService) createOrdersGoods(goodsID dao.PrimaryKey, specificationID
 	ordersGoods.CostPrice = specification.MarketPrice
 	ordersGoods.SellPrice = specification.MarketPrice
 	ordersGoods.OrdersGoodsNo = tool.UUID()
-	ordersGoods.Discounts = m.Goods.GetDiscounts(g.ID, g.OID)
+	ordersGoods.Discounts = m.Goods.GetDiscounts(ctx, g.ID, g.OID)
 
 	/*//限时抢购
 	timesell := service.TimeSell.GetTimeSellByGoodsID(goods.ID)
@@ -1045,11 +1046,11 @@ func (m OrdersService) AddOrders(db *gorm.DB, orders *model.Orders, list []*mode
 	return nil
 
 }
-func (m OrdersService) ChangeOrdersPayMoney(context constrain.IContext, PayMoney float64, OrdersID dao.PrimaryKey, oid dao.PrimaryKey) (Success result.ActionResultCode, Message string) {
-	tx := db.Orm().Begin()
+func (m OrdersService) ChangeOrdersPayMoney(ctx constrain.IContext, PayMoney float64, OrdersID dao.PrimaryKey, oid dao.PrimaryKey) (Success result.ActionResultCode, Message string) {
+	tx := db.GetDB(ctx).Begin()
 
-	orders := repository.OrdersDao.GetOrdersByID(OrdersID)
-	pm := payment.NewPayment(context, oid, orders.PayMethod)
+	orders := repository.OrdersDao.GetOrdersByID(ctx, OrdersID)
+	pm := payment.NewPayment(ctx, oid, orders.PayMethod)
 
 	if strings.EqualFold(orders.PrepayID, "") == false {
 		err := pm.CloseOrder(orders.OrderNo)
@@ -1076,9 +1077,9 @@ func (m OrdersService) ChangeOrdersPayMoney(context constrain.IContext, PayMoney
 
 }
 
-func (m OrdersService) AnalyseOrdersGoodsListByOrders(orders *model.Orders, address *model.Address) (*extends.ConfirmOrdersGoods, error) {
+func (m OrdersService) AnalyseOrdersGoodsListByOrders(ctx context.Context, orders *model.Orders, address *model.Address) (*extends.ConfirmOrdersGoods, error) {
 	orderGoodsList := make([]*model.OrdersGoods, 0)
-	ordersGoodsList, _ := m.FindOrdersGoodsByOrdersID(db.Orm(), orders.ID)
+	ordersGoodsList, _ := m.FindOrdersGoodsByOrdersID(db.GetDB(ctx), orders.ID)
 	for i := 0; i < len(ordersGoodsList); i++ {
 		ordersGoods, err := m.ConvertOrdersGoods(ordersGoodsList[i])
 		if err != nil {
@@ -1086,7 +1087,7 @@ func (m OrdersService) AnalyseOrdersGoodsListByOrders(orders *model.Orders, addr
 		}
 		orderGoodsList = append(orderGoodsList, ordersGoods)
 	}
-	confirmOrdersGoods, err := m.AnalyseOrdersGoodsList(orders.OID, address, orderGoodsList)
+	confirmOrdersGoods, err := m.AnalyseOrdersGoodsList(ctx, orders.OID, address, orderGoodsList)
 	if err != nil {
 		return nil, err
 	}
@@ -1094,7 +1095,7 @@ func (m OrdersService) AnalyseOrdersGoodsListByOrders(orders *model.Orders, addr
 }
 
 // AnalyseOrdersGoodsList 订单分析，
-func (m OrdersService) AnalyseOrdersGoodsList(oid dao.PrimaryKey, addressee *model.Address, orderGoods []*model.OrdersGoods) (*extends.ConfirmOrdersGoods, error) {
+func (m OrdersService) AnalyseOrdersGoodsList(ctx context.Context, oid dao.PrimaryKey, addressee *model.Address, orderGoods []*model.OrdersGoods) (*extends.ConfirmOrdersGoods, error) {
 
 	/*oslist := make(map[dao.PrimaryKey][]*extends.OrdersGoods)
 	for index, v := range orderGoods {
@@ -1110,7 +1111,7 @@ func (m OrdersService) AnalyseOrdersGoodsList(oid dao.PrimaryKey, addressee *mod
 	//var org model.Organization
 	//org := dao.GetByPrimaryKey(singleton.Orm(), &model.Organization{}, key).(*model.Organization)
 
-	analyseResult, err := m.analyseOne(oid, addressee, orderGoods)
+	analyseResult, err := m.analyseOne(ctx, oid, addressee, orderGoods)
 	if err != nil {
 		return nil, err
 	}
@@ -1174,11 +1175,11 @@ func (m OrdersService) goodsSkuData(tx *gorm.DB, goodsID dao.PrimaryKey, specifi
 }
 
 // 订单分析，
-func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, list []*model.OrdersGoods) (*extends.AnalyseResult, error) {
+func (m OrdersService) analyseOne(ctx context.Context, OID dao.PrimaryKey, address *model.Address, list []*model.OrdersGoods) (*extends.AnalyseResult, error) {
 
 	analyseResult := &extends.AnalyseResult{}
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 
 	fullCuts := m.FullCut.FindOrderByAmountDesc(Orm, OID)
 
@@ -1390,9 +1391,9 @@ func (m OrdersService) analyseOne(OID dao.PrimaryKey, address *model.Address, li
 
 func (m OrdersService) AddCartOrders(ctx constrain.IContext, UserID dao.PrimaryKey, GoodsID, SpecificationID dao.PrimaryKey, Quantity uint) error {
 	//Orm := singleton.Orm()
-	shoppingCarts := m.ShoppingCart.FindShoppingCartByUserID(UserID)
+	shoppingCarts := m.ShoppingCart.FindShoppingCartByUserID(ctx, UserID)
 
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 
 	g := dao.GetByPrimaryKey(tx, entity.Goods, GoodsID).(*model.Goods)
 	if g.IsZero() {
@@ -1492,8 +1493,8 @@ func (m OrdersService) FindOrdersGoodsByOrdersID(DB *gorm.DB, OrdersID dao.Prima
 	DB.Model(&model.OrdersGoods{}).Where(`"OrdersID"=?`, OrdersID).Find(&ordersGoodsList)
 	return ordersGoodsList, nil
 }
-func (m OrdersService) FindOrdersGoodsByCollageUser(CollageNo string) []model.User {
-	orm := db.Orm()
+func (m OrdersService) FindOrdersGoodsByCollageUser(ctx context.Context, CollageNo string) []model.User {
+	orm := db.GetDB(ctx)
 	var user []model.User
 
 	var sql = `SELECT u.* FROM "Orders" o,"OrdersGoods" og,"User" u WHERE og."CollageNo"=1 AND o."IsPay"=1 and o."ID"=og."OrdersID" AND u."ID"=o."UserID"`
@@ -1502,11 +1503,11 @@ func (m OrdersService) FindOrdersGoodsByCollageUser(CollageNo string) []model.Us
 	return user
 }
 
-func (m OrdersService) QueryOrdersTask(context constrain.IServiceContext, orders *model.Orders) error {
-	pm := payment.NewPayment(context, orders.OID, orders.PayMethod)
+func (m OrdersService) QueryOrdersTask(ctx constrain.IServiceContext, orders *model.Orders) error {
+	pm := payment.NewPayment(ctx, orders.OID, orders.PayMethod)
 	//if orders.IsPay == 0 {
 	//当前状态为没有支付，去检测一下，订单状态。
-	transaction, err := pm.OrderQuery(orders)
+	transaction, err := pm.OrderQuery(ctx, orders)
 	if err != nil {
 		return err
 	}
@@ -1523,23 +1524,23 @@ func (m OrdersService) QueryOrdersTask(context constrain.IServiceContext, orders
 	*/
 	switch transaction.State {
 	case serviceargument.OrderQueryState_SUCCESS:
-		_, err = m.OrderPaySuccess(uint(transaction.PayerTotalAmount), transaction.OutTradeNo, transaction.TransactionID, transaction.PayTime, orders.Type)
+		_, err = m.OrderPaySuccess(ctx, uint(transaction.PayerTotalAmount), transaction.OutTradeNo, transaction.TransactionID, transaction.PayTime, orders.Type)
 		if err != nil {
 			return err
 		}
 	case serviceargument.OrderQueryState_REFUND:
-		err = m.OrdersRefundSuccess(orders)
+		err = m.OrdersRefundSuccess(ctx, orders)
 		if err != nil {
 			return err
 		}
 	case serviceargument.OrderQueryState_NOTPAY:
 	case serviceargument.OrderQueryState_CLOSED:
-		err = dao.UpdateByPrimaryKey(db.Orm(), entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusClosed})
+		err = dao.UpdateByPrimaryKey(db.GetDB(ctx), entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusClosed})
 		if err != nil {
 			return err
 		}
 	case serviceargument.OrderQueryState_REVOKED:
-		err = dao.UpdateByPrimaryKey(db.Orm(), entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusClosed})
+		err = dao.UpdateByPrimaryKey(db.GetDB(ctx), entity.Orders, orders.ID, map[string]interface{}{"Status": model.OrdersStatusClosed})
 		if err != nil {
 			return err
 		}
@@ -1547,7 +1548,7 @@ func (m OrdersService) QueryOrdersTask(context constrain.IServiceContext, orders
 	case serviceargument.OrderQueryState_PAYERROR:
 	}
 	//}
-	err = m.AnalysisOrdersStatus(context, orders.ID, orders.OID)
+	err = m.AnalysisOrdersStatus(ctx, orders.ID, orders.OID)
 	if err != nil {
 		log.Println(err)
 		return err
@@ -1557,7 +1558,7 @@ func (m OrdersService) QueryOrdersTask(context constrain.IServiceContext, orders
 
 // Cancel 申请取消
 func (m OrdersService) Cancel(ctx constrain.IContext, OrdersID dao.PrimaryKey) (string, error) {
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 
 	//var orders model.Orders
 	orders := dao.GetByPrimaryKey(Orm, entity.Orders, OrdersID).(*model.Orders)

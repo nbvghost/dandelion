@@ -20,9 +20,9 @@ func (m *Index) Handle(context constrain.IContext) (r constrain.IResult, err err
 	panic("implement me")
 }
 
-func (m *Index) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Index) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	//item := &model.Voucher{}
 	//err = util.RequestBodyToJSON(context.Request.Body, item)
 	//if err != nil {

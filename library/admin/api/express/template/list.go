@@ -14,9 +14,9 @@ type List struct {
 	Organization *model.Organization `mapping:""`
 }
 
-func (m *List) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *List) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	//var list []model.ExpressTemplate
 	//err = m.ExpressTemplate.FindAllByOID(Orm, &list, m.Organization.ID)
 	list := dao.Find(Orm, entity.ExpressTemplate).Where(`"OID"=?`, m.Organization.ID).List()

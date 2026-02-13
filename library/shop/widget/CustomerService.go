@@ -16,7 +16,7 @@ func (m *CustomerService) Template() ([]byte, error) {
 }
 
 func (m *CustomerService) Render(ctx constrain.IContext) (map[string]any, error) {
-	ContentConfig := repository.ContentConfigDao.GetContentConfig(db.Orm(), m.Organization.ID)
+	ContentConfig := repository.ContentConfigDao.GetContentConfig(db.GetDB(ctx), m.Organization.ID)
 	return map[string]any{
 		"ContentConfig": ContentConfig,
 	}, nil

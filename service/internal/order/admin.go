@@ -12,8 +12,8 @@ import (
 
 // CancelOk 后台或者客服调用的接口
 // func (m OrdersService) CancelOk(context context.Context, OrdersID dao.PrimaryKey, wxConfig *model.WechatConfig) (string, error) {
-func (m OrdersService) CancelOk(context constrain.IServiceContext, OrdersID dao.PrimaryKey) (string, error) {
-	Orm := db.Orm()
+func (m OrdersService) CancelOk(ctx constrain.IServiceContext, OrdersID dao.PrimaryKey) (string, error) {
+	Orm := db.GetDB(ctx)
 
 	//var orders model.Orders
 	orders := dao.GetByPrimaryKey(Orm, entity.Orders, OrdersID).(*model.Orders)
@@ -21,14 +21,14 @@ func (m OrdersService) CancelOk(context constrain.IServiceContext, OrdersID dao.
 		return "", errors.New("订单不存在")
 	}
 
-	pm := payment.NewPayment(context, orders.OID, orders.PayMethod)
+	pm := payment.NewPayment(ctx, orders.OID, orders.PayMethod)
 
 	//下单状态
 	if orders.Status == model.OrdersStatusCancel || orders.Status == model.OrdersStatusPay {
 
 		if orders.IsPay == model.OrdersIsPayPayed {
 			var err error
-			err = pm.Refund(orders, nil, "用户取消")
+			err = pm.Refund(ctx, orders, nil, "用户取消")
 			if err != nil {
 				return "", err
 			}

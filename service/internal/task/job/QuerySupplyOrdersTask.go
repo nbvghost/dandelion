@@ -2,23 +2,25 @@ package job
 
 import (
 	"context"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/order"
 	"github.com/nbvghost/dandelion/service/internal/wechat"
-	"log"
-	"strings"
-	"time"
 )
 
 type QuerySupplyOrdersTask struct {
 	WxService     wechat.WxService
 	OrdersService order.OrdersService
+	Ctx           context.Context
 }
 
 func (m *QuerySupplyOrdersTask) Run() error {
-	list := m.WxService.MiniProgram(db.Orm())
+	list := m.WxService.MiniProgram(db.GetDB(m.Ctx))
 	for i := range list {
 		item := list[i].(*model.WechatConfig)
 		err := m.work(item)
@@ -32,7 +34,7 @@ func (m *QuerySupplyOrdersTask) work(wxConfig *model.WechatConfig) error {
 	//Orm := singleton.Orm()
 	//var supplyOrdersList []model.SupplyOrders
 	//m.Orders.FindWhere(Orm, &supplyOrdersList, `"IsPay"=?`, 0)
-	supplyOrdersList := dao.Find(db.Orm(), &model.SupplyOrders{}).Where(`"IsPay"=?`, 0).List()
+	supplyOrdersList := dao.Find(db.GetDB(m.Ctx), &model.SupplyOrders{}).Where(`"IsPay"=?`, 0).List()
 	for i := range supplyOrdersList {
 		value := supplyOrdersList[i].(*model.SupplyOrders)
 		transaction, err := m.WxService.OrderQuery(context.TODO(), value.OrderNo, wxConfig)
@@ -49,7 +51,7 @@ func (m *QuerySupplyOrdersTask) work(wxConfig *model.WechatConfig) error {
 			if err != nil {
 				log.Println(err)
 			}
-			_, err = m.OrdersService.OrderPaySuccess(uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, *transaction.TransactionId, payTime, model.OrdersTypeSupply)
+			_, err = m.OrdersService.OrderPaySuccess(m.Ctx, uint(*transaction.Amount.PayerTotal), *transaction.OutTradeNo, *transaction.TransactionId, payTime, model.OrdersTypeSupply)
 			if err != nil {
 				log.Println(err)
 			}

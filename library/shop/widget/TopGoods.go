@@ -37,9 +37,9 @@ func (m *TopGoods) Render(ctx constrain.IContext) (map[string]any, error) {
 
 	var list []model.Goods
 	if m.TopType == TopTypeGoodsView {
-		list = service.Goods.Sort.HotViewList(m.Organization.ID, 8)
+		list = service.Goods.Sort.HotViewList(ctx, m.Organization.ID, 8)
 	} else if m.TopType == TopTypeGoodsSale {
-		list = service.Goods.Sort.HotSaleList(m.Organization.ID, 8)
+		list = service.Goods.Sort.HotSaleList(ctx, m.Organization.ID, 8)
 	}
 
 	return map[string]any{

@@ -2,6 +2,7 @@ package content_sub_type
 
 import (
 	"errors"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -26,14 +27,14 @@ type ID struct {
 	} `method:"Get"`
 }
 
-func (m *ID) HandleDelete(context constrain.IContext) (r constrain.IResult, err error) {
-	Orm := db.Orm()
+func (m *ID) HandleDelete(ctx constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.GetDB(ctx)
 	//ID := object.ParseUint(context.PathParams["ID"])
-	css := repository.ContentSubTypeDao.FindContentSubTypesByParentContentSubTypeID(m.Delete.ID)
+	css := repository.ContentSubTypeDao.FindContentSubTypesByParentContentSubTypeID(ctx, m.Delete.ID)
 	if len(css) > 0 {
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("包含子项内容，无法删除"), "删除成功", nil)}, nil
 	}
-	articles := repository.ContentDao.FindContentByContentSubTypeID(m.Delete.ID)
+	articles := repository.ContentDao.FindContentByContentSubTypeID(ctx, m.Delete.ID)
 	if len(articles) > 0 {
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("包含文章，无法删除"), "删除成功", nil)}, nil
 	}
@@ -43,8 +44,8 @@ func (m *ID) HandleDelete(context constrain.IContext) (r constrain.IResult, err 
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}, err
 }
 
-func (m *ID) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
-	//Orm := db.Orm()
+func (m *ID) HandlePut(ctx constrain.IContext) (r constrain.IResult, err error) {
+	//Orm := db.GetDB(ctx)
 	//ID := object.ParseUint(context.PathParams["ID"])
 	//item := &model.ContentSubType{}
 	//err = util.RequestBodyToJSON(context.Request.Body, item)
@@ -52,14 +53,14 @@ func (m *ID) HandlePut(context constrain.IContext) (r constrain.IResult, err err
 	//	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, err
 	//}
 
-	err = service.Content.SaveContentSubType(m.Organization.ID, &(m.Put.ContentSubType))
+	err = service.Content.SaveContentSubType(ctx, m.Organization.ID, &(m.Put.ContentSubType))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
 }
 
-func (m *ID) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *ID) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//ContentSubTypeID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	var menus model.ContentSubType
 	var pmenus model.ContentSubType
 

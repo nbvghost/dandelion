@@ -21,23 +21,23 @@ func (controller *ListLeve) Handle(ctx constrain.IContext) (constrain.IResult, e
 	//u := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 	u := controller.User
 
-	leve1UserIDs := service.User.Leve1(u.ID)
-	leve1 := service.Journal.ListUserJournalLeveBrokerage(u.ID, leve1UserIDs)
+	leve1UserIDs := service.User.Leve1(ctx, u.ID)
+	leve1 := service.Journal.ListUserJournalLeveBrokerage(ctx, u.ID, leve1UserIDs)
 
-	leve2UserIDs := service.User.Leve2(leve1UserIDs)
-	leve2 := service.Journal.ListUserJournalLeveBrokerage(u.ID, leve2UserIDs)
+	leve2UserIDs := service.User.Leve2(ctx, leve1UserIDs)
+	leve2 := service.Journal.ListUserJournalLeveBrokerage(ctx, u.ID, leve2UserIDs)
 
-	leve3UserIDs := service.User.Leve3(leve2UserIDs)
-	leve3 := service.Journal.ListUserJournalLeveBrokerage(u.ID, leve3UserIDs)
+	leve3UserIDs := service.User.Leve3(ctx, leve2UserIDs)
+	leve3 := service.Journal.ListUserJournalLeveBrokerage(ctx, u.ID, leve3UserIDs)
 
-	leve4UserIDs := service.User.Leve4(leve3UserIDs)
-	leve4 := service.Journal.ListUserJournalLeveBrokerage(u.ID, leve4UserIDs)
+	leve4UserIDs := service.User.Leve4(ctx, leve3UserIDs)
+	leve4 := service.Journal.ListUserJournalLeveBrokerage(ctx, u.ID, leve4UserIDs)
 
-	leve5UserIDs := service.User.Leve5(leve4UserIDs)
-	leve5 := service.Journal.ListUserJournalLeveBrokerage(u.ID, leve5UserIDs)
+	leve5UserIDs := service.User.Leve5(ctx, leve4UserIDs)
+	leve5 := service.Journal.ListUserJournalLeveBrokerage(ctx, u.ID, leve5UserIDs)
 
-	leve6UserIDs := service.User.Leve6(leve5UserIDs)
-	leve6 := service.Journal.ListUserJournalLeveBrokerage(u.ID, leve6UserIDs)
+	leve6UserIDs := service.User.Leve6(ctx, leve5UserIDs)
+	leve6 := service.Journal.ListUserJournalLeveBrokerage(ctx, u.ID, leve6UserIDs)
 
 	results := make(map[string]interface{})
 

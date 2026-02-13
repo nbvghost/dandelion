@@ -18,7 +18,7 @@ type TypeChildren struct {
 
 func (m *TypeChildren) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
-	list := dao.Find(db.Orm(), &model.GoodsType{}).Where(`"OID"=? and "ParentID"=?`, m.OIDMapping.OID, m.Get.ParentID).List()
+	list := dao.Find(db.GetDB(ctx), &model.GoodsType{}).Where(`"OID"=? and "ParentID"=?`, m.OIDMapping.OID, m.Get.ParentID).List()
 
 	return result.NewData(map[string]any{"List": list}), nil
 }

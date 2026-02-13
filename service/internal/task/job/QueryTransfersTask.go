@@ -2,20 +2,22 @@ package job
 
 import (
 	"context"
+	"log"
+
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/wechat"
-	"log"
 )
 
 type QueryTransfersTask struct {
 	WxService wechat.WxService
+	Ctx       context.Context
 }
 
 func (m *QueryTransfersTask) Run() error {
-	list := m.WxService.MiniProgram(db.Orm())
+	list := m.WxService.MiniProgram(db.GetDB(m.Ctx))
 	for i := range list {
 		item := list[i].(*model.WechatConfig)
 		err := m.work(item)
@@ -29,7 +31,7 @@ func (m *QueryTransfersTask) work(wechatConfig *model.WechatConfig) error {
 	//Orm := singleton.Orm()
 	//var transfersList []model.Transfers
 	//m.Transfers.FindWhere(Orm, &transfersList, `"IsPay"=?`, 0)
-	transfersList := dao.Find(db.Orm(), &model.Transfers{}).Where(`"OID"=?`, wechatConfig.OID).Where(`"IsPay"=?`, 0).List()
+	transfersList := dao.Find(db.GetDB(m.Ctx), &model.Transfers{}).Where(`"OID"=?`, wechatConfig.OID).Where(`"IsPay"=?`, 0).List()
 	for i := range transfersList {
 		value := transfersList[i].(*model.Transfers)
 		transferBatchGet, err := m.WxService.GetTransfersInfo(value, wechatConfig)
@@ -49,7 +51,7 @@ func (m *QueryTransfersTask) work(wechatConfig *model.WechatConfig) error {
 			if *transferBatchGet.BatchStatus == "CLOSED" {
 				isPay = 2
 			}
-			err = dao.UpdateByPrimaryKey(db.Orm(), entity.Transfers, value.ID, &model.Transfers{IsPay: uint(isPay), Status: *transferBatchGet.BatchStatus})
+			err = dao.UpdateByPrimaryKey(db.GetDB(m.Ctx), entity.Transfers, value.ID, &model.Transfers{IsPay: uint(isPay), Status: *transferBatchGet.BatchStatus})
 			if err != nil {
 				log.Println(err)
 			}

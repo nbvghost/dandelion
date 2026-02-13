@@ -23,20 +23,20 @@ type DetailReply struct {
 	//Tags      []extends.Tag
 }
 
-func (m *DetailRequest) Render(context constrain.IContext) (constrain.IViewResult, error) {
+func (m *DetailRequest) Render(ctx constrain.IContext) (constrain.IViewResult, error) {
 	reply := &DetailReply{
 		ViewBase: extends.ViewBase{
 			Name: "blog/detail",
 		},
 		//SubTypeMap: map[dao.PrimaryKey]string{},
 	}
-	c := repository.ContentDao.GetContentByUri(m.Organization.ID, m.ContentUri)
+	c := repository.ContentDao.GetContentByUri(ctx, m.Organization.ID, m.ContentUri)
 	//reply.Content = c
 
-	contentItem := repository.ContentItemDao.GetContentItemByID(c.ContentItemID)
-	contentSubType := repository.ContentSubTypeDao.GetContentSubTypeByID(c.ContentSubTypeID)
+	contentItem := repository.ContentItemDao.GetContentItemByID(ctx, c.ContentItemID)
+	contentSubType := repository.ContentSubTypeDao.GetContentSubTypeByID(ctx, c.ContentSubTypeID)
 
-	reply.SiteData = service.Site.GetContentTypeByUri(context, m.Organization.ID, contentItem.Uri, contentSubType.Uri, 0)
+	reply.SiteData = service.Site.GetContentTypeByUri(ctx, m.Organization.ID, contentItem.Uri, contentSubType.Uri, 0)
 	reply.SiteData.Item = c
 	//reply.MenusData = module.NewMenusData(contentItem, contentSubType)
 
@@ -56,7 +56,7 @@ func (m *DetailRequest) Render(context constrain.IContext) (constrain.IViewResul
 	reply.Tags = tag.ToTagsUri(c.Tags)*/
 	//reply.LeftRight = m.ContentService.FindContentListForLeftRight(c.ContentItemID, c.ContentSubTypeID, c.ID, c.CreatedAt)
 	/*reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-		siteName := m.ContentService.GetTitle(db.Orm(), m.Organization.ID)
+		siteName := m.ContentService.GetTitle(db.GetDB(ctx), m.Organization.ID)
 		meta.SetBase(fmt.Sprintf("%s | %s", reply.Content.Title, reply.MenusData.Menus.Name), siteName, reply.Content.Summary)
 		imgUrl, err := ossurl.CreateUrl(context, reply.Content.Picture)
 		if err != nil {

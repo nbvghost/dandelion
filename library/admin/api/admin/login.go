@@ -34,7 +34,7 @@ func (m *Login) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
 func (m *Login) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 
 	account := strings.ToLower(strings.TrimSpace(m.Post.Account))                           //小写
 	password := encryption.Md5ByString(strings.ToLower(strings.TrimSpace(m.Post.Password))) //小写

@@ -2,13 +2,14 @@ package account
 
 import (
 	"fmt"
-	"github.com/nbvghost/dandelion/constrain/key"
-	"github.com/nbvghost/dandelion/library/db"
-	"github.com/nbvghost/dandelion/service"
 	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/nbvghost/dandelion/constrain/key"
+	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/service"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity"
@@ -41,7 +42,7 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 	fmt.Println(err, OpenID, SessionKey)
 
 	if err == nil {
-		tx := db.Orm().Begin()
+		tx := db.GetDB(ctx).Begin()
 		newUser, err := service.User.AddUserByOpenID(tx, g.Organization.ID, OpenID)
 		if err != nil {
 			return nil, err
@@ -57,7 +58,7 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 
 		if newUser.SuperiorID == 0 {
 			if !strings.EqualFold(g.Post.ShareKey, "") {
-				SuperiorID, _ := service.Wechat.WXQRCodeParams.DecodeShareKey(g.Post.ShareKey)
+				SuperiorID, _ := service.Wechat.WXQRCodeParams.DecodeShareKey(ctx, g.Post.ShareKey)
 
 				if newUser.ID != dao.PrimaryKey(SuperiorID) {
 
@@ -125,7 +126,7 @@ func (g *MiniProgramLogin) HandlePost(ctx constrain.IContext) (constrain.IResult
 
 		results := make(map[string]interface{})
 		results["User"] = newUser
-		results["MyShareKey"] = service.Wechat.WXQRCodeParams.EncodeShareKey(newUser.ID, 0) //tool.Hashids{}.Encode(newUser.ID)
+		results["MyShareKey"] = service.Wechat.WXQRCodeParams.EncodeShareKey(ctx, newUser.ID, 0) //tool.Hashids{}.Encode(newUser.ID)
 
 		return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "登陆成功", Data: results}}, nil
 	} else {

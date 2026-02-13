@@ -1,13 +1,14 @@
 package view
 
 import (
+	"strings"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/dandelion/service/serviceargument"
-	"strings"
 )
 
 type ProductsRequest struct {
@@ -27,7 +28,7 @@ type ProductsReply struct {
 	SelectOptionList *serviceargument.Options
 }
 
-func (m *ProductsRequest) Render(context constrain.IContext) (r constrain.IViewResult, err error) {
+func (m *ProductsRequest) Render(ctx constrain.IContext) (r constrain.IViewResult, err error) {
 	reply := &ProductsReply{
 		ViewBase: extends.ViewBase{
 			Name: "products",
@@ -83,7 +84,7 @@ func (m *ProductsRequest) Render(context constrain.IContext) (r constrain.IViewR
 	}
 	reply.SelectOptionList = &serviceargument.Options{Attributes: attributes}
 
-	reply.SiteData = service.Site.GoodsList(context, m.Organization.ID, m.GoodsTypeUri, m.GoodsTypeChildUri, attributes, &serviceargument.SortMethod{Field: m.SortName, Method: m.Sort}, m.PageIndex, 21)
+	reply.SiteData = service.Site.GoodsList(ctx, m.Organization.ID, m.GoodsTypeUri, m.GoodsTypeChildUri, attributes, &serviceargument.SortMethod{Field: m.SortName, Method: m.Sort}, m.PageIndex, 21)
 
 	/*optionList, err := service.Goods.ProductOptions(context, m.Organization.ID)
 	if err != nil {
@@ -118,7 +119,7 @@ func (m *ProductsRequest) Render(context constrain.IContext) (r constrain.IViewR
 
 	reply.OptionList = newOptions
 
-	tags, err := service.Goods.Tag.FindGoodsTags(m.Organization.ID)
+	tags, err := service.Goods.Tag.FindGoodsTags(ctx, m.Organization.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -148,12 +149,12 @@ func (m *ProductsRequest) Render(context constrain.IContext) (r constrain.IViewR
 	}
 
 	reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-		siteName := m.ContentService.GetTitle(db.Orm(), m.Organization.ID)
+		siteName := m.ContentService.GetTitle(db.GetDB(ctx), m.Organization.ID)
 		meta.SetBase(reply.MenusData.Menus.Name, siteName, description)
 		return nil
 	}*/
 	reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-		siteName := service.Content.GetTitle(db.Orm(), m.Organization.ID)
+		siteName := service.Content.GetTitle(db.GetDB(ctx), m.Organization.ID)
 		meta.SetBase(reply.SiteData.CurrentMenuData.Menus.Name, siteName, "", "")
 		return nil
 	}

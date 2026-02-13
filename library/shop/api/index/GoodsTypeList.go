@@ -13,7 +13,7 @@ type GoodsTypeList struct {
 
 func (m *GoodsTypeList) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*entity.Organization)
-	list := service.Goods.GoodsType.ListGoodsType(m.Organization.ID)
+	list := service.Goods.GoodsType.ListGoodsType(ctx, m.Organization.ID)
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: list}}, nil
 
 }

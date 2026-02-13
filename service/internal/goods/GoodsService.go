@@ -1,6 +1,7 @@
 package goods
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"sort"
@@ -39,8 +40,8 @@ type GoodsService struct {
 	ExpressTemplateService express.ExpressTemplateService
 }
 
-func (m GoodsService) PaginationGoodsDetail(context constrain.IContext, OID, GoodsTypeID, GoodsTypeChildID dao.PrimaryKey, filterOption []serviceargument.Option, sortMethod *serviceargument.SortMethod, pageIndex, pageSize int) (serviceargument.Pagination[*extends.GoodsDetail], *serviceargument.Options) {
-	orm := db.Orm().Model(&model.Goods{}).Where(`"Goods"."OID"=?`, OID)
+func (m GoodsService) PaginationGoodsDetail(ctx constrain.IContext, OID, GoodsTypeID, GoodsTypeChildID dao.PrimaryKey, filterOption []serviceargument.Option, sortMethod *serviceargument.SortMethod, pageIndex, pageSize int) (serviceargument.Pagination[*extends.GoodsDetail], *serviceargument.Options) {
+	orm := db.GetDB(ctx).Model(&model.Goods{}).Where(`"Goods"."OID"=?`, OID)
 
 	if GoodsTypeID > 0 && GoodsTypeChildID == 0 {
 		orm.Where(`"Goods"."GoodsTypeID"=?`, GoodsTypeID)
@@ -91,7 +92,7 @@ json_agg("GoodsSkuLabel"."Name")::jsonb as "SKULabel",
 json_agg("GoodsSkuLabelData"."Label")::jsonb as "SKUDataLabel"
 `)
 
-	mainOrm := db.Orm().Table(`(?) as g`, orm)
+	mainOrm := db.GetDB(ctx).Table(`(?) as g`, orm)
 
 	for _, option := range filterOption {
 		switch option.Type {
@@ -224,8 +225,8 @@ func (m GoodsService) goodsOptions(list []*extends.GoodsDetail) *serviceargument
 	}
 */
 
-func (m GoodsService) getGoodsByUri(OID dao.PrimaryKey, uri string) model.Goods {
-	Orm := db.Orm()
+func (m GoodsService) getGoodsByUri(ctx context.Context, OID dao.PrimaryKey, uri string) model.Goods {
+	Orm := db.GetDB(ctx)
 	var goods model.Goods
 	goods.OID = OID
 	goods.Uri = uri
@@ -233,7 +234,7 @@ func (m GoodsService) getGoodsByUri(OID dao.PrimaryKey, uri string) model.Goods 
 	return goods
 }
 
-func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Goods, specifications []model.Specification) (*model.Goods, error) {
+func (m GoodsService) SaveGoods(ctx context.Context, tx *gorm.DB, OID dao.PrimaryKey, goods *model.Goods, specifications []model.Specification) (*model.Goods, error) {
 	if goods.Tags == nil {
 		goods.Tags = make(pq.StringArray, 0)
 	}
@@ -243,7 +244,7 @@ func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Go
 	}
 
 	{
-		has := m.FindGoodsByTitle(OID, goods.Title)
+		has := m.FindGoodsByTitle(ctx, OID, goods.Title)
 		if has.IsZero() == false && has.ID != goods.ID {
 			return nil, errors.Errorf("重复的产品标题")
 		}
@@ -272,7 +273,7 @@ func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Go
 
 	{
 		uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(goods.Title)
-		has := m.getGoodsByUri(OID, uri)
+		has := m.getGoodsByUri(ctx, OID, uri)
 		if has.IsZero() == false && has.ID != goods.ID {
 			uri = fmt.Sprintf("%s-%d", uri, time.Now().Unix())
 		}
@@ -321,13 +322,13 @@ func (m GoodsService) SaveGoods(tx *gorm.DB, OID dao.PrimaryKey, goods *model.Go
 	return goods, nil
 }
 
-func (m GoodsService) Rating(goodsID dao.PrimaryKey) *extends.GoodsRating {
+func (m GoodsService) Rating(ctx context.Context, goodsID dao.PrimaryKey) *extends.GoodsRating {
 	var goodsRating extends.GoodsRating
-	db.Orm().Model(&model.GoodsReview{}).Where(`"GoodsID"=?`, goodsID).Select(`SUM("Rating") as "Rating",COUNT("ID") as "RatingCount"`).Scan(&goodsRating)
+	db.GetDB(ctx).Model(&model.GoodsReview{}).Where(`"GoodsID"=?`, goodsID).Select(`SUM("Rating") as "Rating",COUNT("ID") as "RatingCount"`).Scan(&goodsRating)
 	return &goodsRating
 }
-func (m GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsMix, error) {
-	Orm := db.Orm()
+func (m GoodsService) GetGoodsInfo(ctx context.Context, goods *model.Goods) (*extends.GoodsMix, error) {
+	Orm := db.GetDB(ctx)
 
 	//Orm := singleton.Orm()
 
@@ -337,20 +338,20 @@ func (m GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsMix, error
 	//brokerageProvisoConfV, _ := strconv.ParseUint(brokerageProvisoConf.V, 10, 64)
 	//vipdiscountConf := service.Configuration.GetConfiguration(play.ConfigurationKey_VIPDiscount)
 	//VIPDiscount, _ := strconv.ParseUint(vipdiscountConf.V, 10, 64)
-	timeSell := m.TimeSell.GetTimeSellByGoodsID(goods.ID, goods.OID)
+	timeSell := m.TimeSell.GetTimeSellByGoodsID(ctx, goods.ID, goods.OID)
 	goodsInfo := extends.GoodsMix{}
 	goodsInfo.Goods = *goods
-	goodsInfo.GoodsType = m.GoodsTypeService.GetGoodsType(goods.GoodsTypeID)
-	goodsInfo.GoodsTypeChild = m.GoodsTypeService.GetGoodsTypeChild(goods.GoodsTypeChildID)
+	goodsInfo.GoodsType = m.GoodsTypeService.GetGoodsType(ctx, goods.GoodsTypeID)
+	goodsInfo.GoodsTypeChild = m.GoodsTypeService.GetGoodsTypeChild(ctx, goods.GoodsTypeChildID)
 	goodsInfo.Discounts = make([]sqltype.Discount, 0)
 
-	goodsInfo.Rating = *m.Rating(goods.ID)
+	goodsInfo.Rating = *m.Rating(ctx, goods.ID)
 
 	if timeSell.IsEnable() {
 		//Favoured:=uint(util.Rounding45(float64(goods.Price)*(float64(timeSell.Discount)/float64(100)), 2))
 		goodsInfo.Discounts = append(goodsInfo.Discounts, sqltype.Discount{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: "TimeSell", Discount: uint(timeSell.Discount)})
 	} else {
-		collage := m.Collage.GetCollageByGoodsID(goods.ID, goods.OID)
+		collage := m.Collage.GetCollageByGoodsID(ctx, goods.ID, goods.OID)
 		if collage.ID != 0 && collage.TotalNum > 0 {
 			goodsInfo.Discounts = append(goodsInfo.Discounts, sqltype.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: "Collage", Discount: uint(collage.Discount)})
 		}
@@ -387,16 +388,16 @@ func (m GoodsService) GetGoodsInfo(goods *model.Goods) (*extends.GoodsMix, error
 	return &goodsInfo, nil
 }
 
-func (m GoodsService) GetGoods(DB *gorm.DB, context constrain.IContext, ID dao.PrimaryKey) (*extends.GoodsMix, error) {
-	Orm := db.Orm()
+func (m GoodsService) GetGoods(ctx context.Context, DB *gorm.DB, context constrain.IContext, ID dao.PrimaryKey) (*extends.GoodsMix, error) {
+	Orm := db.GetDB(ctx)
 	//var goods model.Goods
 	goods := dao.GetByPrimaryKey(Orm, &model.Goods{}, ID).(*model.Goods)
 
-	return m.GetGoodsInfo(goods)
+	return m.GetGoodsInfo(ctx, goods)
 }
 
-func (m GoodsService) DeleteGoods(ID dao.PrimaryKey) *result.ActionResult {
-	Orm := db.Orm()
+func (m GoodsService) DeleteGoods(ctx context.Context, ID dao.PrimaryKey) *result.ActionResult {
+	Orm := db.GetDB(ctx)
 	tx := Orm.Begin()
 	list := dao.Find(tx, &model.Specification{}).Where(`"GoodsID"=?`, ID).List()
 	if len(list) > 0 {
@@ -411,8 +412,8 @@ func (m GoodsService) DeleteGoods(ID dao.PrimaryKey) *result.ActionResult {
 	return (&result.ActionResult{}).SmartError(err, "删除成功", nil)
 }
 
-func (m GoodsService) DeleteTimeSellGoods(DB *gorm.DB, GoodsID dao.PrimaryKey, OID dao.PrimaryKey) error {
-	timesell := m.TimeSell.GetTimeSellByGoodsID(GoodsID, OID)
+func (m GoodsService) DeleteTimeSellGoods(ctx context.Context, DB *gorm.DB, GoodsID dao.PrimaryKey, OID dao.PrimaryKey) error {
+	timesell := m.TimeSell.GetTimeSellByGoodsID(ctx, GoodsID, OID)
 	err := dao.DeleteBy(DB, &model.TimeSellGoods{}, map[string]interface{}{
 		"TimeSellHash": timesell.Hash,
 		"GoodsID":      GoodsID,
@@ -422,8 +423,8 @@ func (m GoodsService) DeleteTimeSellGoods(DB *gorm.DB, GoodsID dao.PrimaryKey, O
 	}
 	return err
 }
-func (m GoodsService) DeleteCollageGoods(DB *gorm.DB, GoodsID dao.PrimaryKey, OID dao.PrimaryKey) error {
-	timesell := m.Collage.GetCollageByGoodsID(GoodsID, OID)
+func (m GoodsService) DeleteCollageGoods(ctx context.Context, DB *gorm.DB, GoodsID dao.PrimaryKey, OID dao.PrimaryKey) error {
+	timesell := m.Collage.GetCollageByGoodsID(ctx, GoodsID, OID)
 
 	err := dao.DeleteBy(DB, &model.CollageGoods{}, map[string]interface{}{
 		"CollageHash": timesell.Hash,
@@ -438,8 +439,8 @@ func (m GoodsService) DeleteCollageGoods(DB *gorm.DB, GoodsID dao.PrimaryKey, OI
 	//log.Println(err)
 	//return err
 }
-func (m GoodsService) FindGoodsByTimeSellID(TimeSellID dao.PrimaryKey) []model.Goods {
-	Orm := db.Orm()
+func (m GoodsService) FindGoodsByTimeSellID(ctx context.Context, TimeSellID dao.PrimaryKey) []model.Goods {
+	Orm := db.GetDB(ctx)
 
 	//var timesell model.TimeSell
 	timesell := dao.GetByPrimaryKey(Orm, &model.TimeSell{}, TimeSellID).(*model.TimeSell)
@@ -455,8 +456,8 @@ func (m GoodsService) FindGoodsByTimeSellID(TimeSellID dao.PrimaryKey) []model.G
 	log.Println(timesell)
 	return list
 }
-func (m GoodsService) FindGoodsByTimeSellHash(Hash string) []dao.IEntity {
-	Orm := db.Orm()
+func (m GoodsService) FindGoodsByTimeSellHash(ctx context.Context, Hash string) []dao.IEntity {
+	Orm := db.GetDB(ctx)
 
 	var GoodsIDs []dao.PrimaryKey
 	Orm.Model(&model.TimeSell{}).Where(`"Hash"=?`, Hash).Pluck("GoodsID", &GoodsIDs)
@@ -464,10 +465,10 @@ func (m GoodsService) FindGoodsByTimeSellHash(Hash string) []dao.IEntity {
 	//var list []model.Goods
 	//err := service.FindWhere(Orm, &list, `"ID" in (?)`, GoodsIDs)
 	//list := dao.Find(singleton.Orm(), &model.Goods{}).Where(`"ID" in (?)`, GoodsIDs).List()
-	return m.ListGoodsByIDs(GoodsIDs)
+	return m.ListGoodsByIDs(ctx, GoodsIDs)
 }
-func (m GoodsService) FindGoodsByCollageHash(Hash string) []dao.IEntity {
-	Orm := db.Orm()
+func (m GoodsService) FindGoodsByCollageHash(ctx context.Context, Hash string) []dao.IEntity {
+	Orm := db.GetDB(ctx)
 
 	var GoodsIDs []dao.PrimaryKey
 	Orm.Model(&model.Collage{}).Where(`"Hash"=?`, Hash).Pluck("GoodsID", &GoodsIDs)
@@ -477,30 +478,30 @@ func (m GoodsService) FindGoodsByCollageHash(Hash string) []dao.IEntity {
 	//log.Println(err)
 	//return list
 	//list := dao.Find(singleton.Orm(), &model.Goods{}).Where(`"ID" in (?)`, GoodsIDs).List()
-	return m.ListGoodsByIDs(GoodsIDs)
+	return m.ListGoodsByIDs(ctx, GoodsIDs)
 }
-func (m GoodsService) ListGoodsByIDs(goodsIDs []dao.PrimaryKey) []dao.IEntity {
-	list := dao.Find(db.Orm(), &model.Goods{}).Where(`"ID" in (?)`, goodsIDs).List()
+func (m GoodsService) ListGoodsByIDs(ctx context.Context, goodsIDs []dao.PrimaryKey) []dao.IEntity {
+	list := dao.Find(db.GetDB(ctx), &model.Goods{}).Where(`"ID" in (?)`, goodsIDs).List()
 	return list
 }
-func (m GoodsService) FindGoodsByOrganizationIDAndGoodsID(OrganizationID dao.PrimaryKey, GoodsID dao.PrimaryKey) model.Goods {
+func (m GoodsService) FindGoodsByOrganizationIDAndGoodsID(ctx context.Context, OrganizationID dao.PrimaryKey, GoodsID dao.PrimaryKey) model.Goods {
 	var Goods model.Goods
-	db.Orm().Model(&model.Goods{}).Where(`"ID"=? and "OID"=?`, GoodsID, OrganizationID).First(&Goods)
+	db.GetDB(ctx).Model(&model.Goods{}).Where(`"ID"=? and "OID"=?`, GoodsID, OrganizationID).First(&Goods)
 	return Goods
 }
-func (m GoodsService) FindGoodsByTitle(OID dao.PrimaryKey, Title string) model.Goods {
+func (m GoodsService) FindGoodsByTitle(ctx context.Context, OID dao.PrimaryKey, Title string) model.Goods {
 	var Goods model.Goods
-	db.Orm().Model(&model.Goods{}).Where(`"OID"=? and "Title"=?`, OID, Title).First(&Goods)
+	db.GetDB(ctx).Model(&model.Goods{}).Where(`"OID"=? and "Title"=?`, OID, Title).First(&Goods)
 	return Goods
 }
-func (m GoodsService) FindGoodsLikeMark(Mark string) model.Goods {
+func (m GoodsService) FindGoodsLikeMark(ctx context.Context, Mark string) model.Goods {
 	var Goods model.Goods
-	db.Orm().Model(&model.Goods{}).Where(`"Mark" like ?`, "%"+Mark+"%").First(&Goods)
+	db.GetDB(ctx).Model(&model.Goods{}).Where(`"Mark" like ?`, "%"+Mark+"%").First(&Goods)
 	return Goods
 }
-func (m GoodsService) AllList() []model.Goods {
+func (m GoodsService) AllList(ctx context.Context) []model.Goods {
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 
 	var result []model.Goods
 
@@ -511,14 +512,14 @@ func (m GoodsService) AllList() []model.Goods {
 	return result
 
 }
-func (m GoodsService) GetDiscounts(GoodsID, OID dao.PrimaryKey) []sqltype.Discount {
+func (m GoodsService) GetDiscounts(ctx context.Context, GoodsID, OID dao.PrimaryKey) []sqltype.Discount {
 	discounts := make([]sqltype.Discount, 0)
-	timeSell := m.TimeSell.GetTimeSellByGoodsID(GoodsID, OID)
+	timeSell := m.TimeSell.GetTimeSellByGoodsID(ctx, GoodsID, OID)
 	if timeSell.IsEnable() {
 		//Favoured:=uint(util.Rounding45(float64(value.Price)*(float64(timeSell.Discount)/float64(100)), 2))
 		discounts = append(discounts, sqltype.Discount{Name: "限时抢购", Target: util.StructToJSON(timeSell), TypeName: sqltype.DiscountTypeNameTimeSell, Discount: uint(timeSell.Discount)})
 	} else {
-		collage := m.Collage.GetCollageByGoodsID(GoodsID, OID)
+		collage := m.Collage.GetCollageByGoodsID(ctx, GoodsID, OID)
 		if collage.ID != 0 && collage.TotalNum > 0 {
 			discounts = append(discounts, sqltype.Discount{Name: strconv.Itoa(collage.Num) + "人拼团", Target: util.StructToJSON(collage), TypeName: sqltype.DiscountTypeNameCollage, Discount: uint(collage.Discount)})
 		}
@@ -526,8 +527,8 @@ func (m GoodsService) GetDiscounts(GoodsID, OID dao.PrimaryKey) []sqltype.Discou
 	return discounts
 }
 
-func (m GoodsService) GoodsList(queryParam *serviceargument.ListQueryParam, oid dao.PrimaryKey, orderBy clause.OrderByColumn, pageNo, pageSize int) *result.Pagination {
-	Orm := db.Orm()
+func (m GoodsService) GoodsList(ctx context.Context, queryParam *serviceargument.ListQueryParam, oid dao.PrimaryKey, orderBy clause.OrderByColumn, pageNo, pageSize int) *result.Pagination {
+	Orm := db.GetDB(ctx)
 	//var goodsList []model.Goods
 	//db := Orm.Model(&model.Goods{}).Order("CountSale desc").Limit(10)
 	//db.Find(&result)
@@ -563,7 +564,7 @@ func (m GoodsService) GoodsList(queryParam *serviceargument.ListQueryParam, oid 
 
 	orm.Count(&recordsTotal).Limit(pageSize).Offset(pageSize * pageIndex).Order(orderBy).Order(`"ID" DESC`).Find(&goodsList)
 	//pager := service.FindWherePaging(Orm, SqlOrder, model.Goods{}, Index, Size, where, args...)
-	return result.NewPagination(pageNo, pageSize, recordsTotal, m.getGoodsInfoList(goodsList))
+	return result.NewPagination(pageNo, pageSize, recordsTotal, m.getGoodsInfoList(ctx, goodsList))
 
 	/*return extends.GoodsInfoPagination{
 		List:  service.GetGoodsInfoList(goodsList),
@@ -572,14 +573,14 @@ func (m GoodsService) GoodsList(queryParam *serviceargument.ListQueryParam, oid 
 		Size:  pager.Limit,
 	}*/
 }
-func (m GoodsService) getGoodsInfoList(goodsList []model.Goods) []extends.GoodsMix {
+func (m GoodsService) getGoodsInfoList(ctx context.Context, goodsList []model.Goods) []extends.GoodsMix {
 	var results = make([]extends.GoodsMix, 0)
 	for _, value := range goodsList {
 		goodsInfo := extends.GoodsMix{}
 		goodsInfo.Goods = value
-		goodsInfo.Discounts = m.GetDiscounts(value.ID, value.OID)
-		goodsInfo.GoodsType = m.GoodsTypeService.GetGoodsType(value.GoodsTypeID)
-		goodsInfo.GoodsTypeChild = m.GoodsTypeService.GetGoodsTypeChild(value.GoodsTypeChildID)
+		goodsInfo.Discounts = m.GetDiscounts(ctx, value.ID, value.OID)
+		goodsInfo.GoodsType = m.GoodsTypeService.GetGoodsType(ctx, value.GoodsTypeID)
+		goodsInfo.GoodsTypeChild = m.GoodsTypeService.GetGoodsTypeChild(ctx, value.GoodsTypeChildID)
 		results = append(results, goodsInfo)
 	}
 	return results

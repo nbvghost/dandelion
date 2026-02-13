@@ -19,20 +19,20 @@ type Config struct {
 	Get struct{} `method:"Get"`
 }
 
-func (m *Config) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Config) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 
 	//context.Request.ParseForm()
 	//fieldName := context.Request.FormValue("FieldName")
 	//fieldValue := context.Request.FormValue("FieldValue")
 
-	err = service.Content.ChangeContentConfig(m.Organization.ID, m.POST.FieldName, m.POST.FieldValue)
+	err = service.Content.ChangeContentConfig(ctx, m.Organization.ID, m.POST.FieldName, m.POST.FieldValue)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "设置成功", nil)}, err
 }
 
-func (m *Config) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Config) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
-	contentConfig := repository.ContentConfigDao.GetContentConfig(db.Orm(), m.Organization.ID)
+	contentConfig := repository.ContentConfigDao.GetContentConfig(db.GetDB(ctx), m.Organization.ID)
 	return &result.JsonResult{Data: &result.ActionResult{
 		Code:    result.Success,
 		Message: "OK",

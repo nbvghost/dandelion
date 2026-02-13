@@ -52,7 +52,7 @@ func Register(route constrain.IRoute) {
 	}
 
 	{
-		/*templateNameData, err := dao.Find(db.Orm(), &model.ContentItem{}).Where(`"Type"=?`, model.ContentTypeContents).Group("TemplateName")
+		/*templateNameData, err := dao.Find(db.GetDB(ctx), &model.ContentItem{}).Where(`"Type"=?`, model.ContentTypeContents).Group("TemplateName")
 		if err != nil {
 			panic(err)
 		}

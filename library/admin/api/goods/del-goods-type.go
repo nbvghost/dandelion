@@ -12,9 +12,9 @@ type DelGoodsType struct {
 	} `method:"get"`
 }
 
-func (m *DelGoodsType) Handle(context constrain.IContext) (constrain.IResult, error) {
+func (m *DelGoodsType) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
 	//ID := object.ParseUint(context.Request.URL.Query().Get("ID"))
-	err := service.Goods.GoodsType.DeleteGoodsType(dao.PrimaryKey(m.Get.ID))
+	err := service.Goods.GoodsType.DeleteGoodsType(ctx, dao.PrimaryKey(m.Get.ID))
 	return nil, err
 }

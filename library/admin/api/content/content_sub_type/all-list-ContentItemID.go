@@ -13,17 +13,17 @@ type AllListContentItemID struct {
 	} `method:"GET"`
 }
 
-func (m *AllListContentItemID) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *AllListContentItemID) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	//ContentItemID := object.ParseUint(context.PathParams["ContentItemID"])
-	list := repository.ContentSubTypeDao.FindContentSubTypesByContentItemID(m.GET.ContentItemID)
+	list := repository.ContentSubTypeDao.FindContentSubTypesByContentItemID(ctx, m.GET.ContentItemID)
 
 	resultMap := make(map[dao.PrimaryKey]interface{})
 
 	for index := range list {
 		item := list[index]
-		subTypes := repository.ContentSubTypeDao.FindContentSubTypesByContentItemIDAndParentContentSubTypeID(dao.PrimaryKey(m.GET.ContentItemID), item.ID)
+		subTypes := repository.ContentSubTypeDao.FindContentSubTypesByContentItemIDAndParentContentSubTypeID(ctx, dao.PrimaryKey(m.GET.ContentItemID), item.ID)
 
 		childrenMap := make(map[dao.PrimaryKey]interface{})
 

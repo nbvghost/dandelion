@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -27,17 +28,17 @@ type ContentsReply struct {
 	SubTypeMap map[dao.PrimaryKey]string
 }
 
-func (m *ContentsRequest) Render(context constrain.IContext) (r constrain.IViewResult, err error) {
+func (m *ContentsRequest) Render(ctx constrain.IContext) (r constrain.IViewResult, err error) {
 	reply := &ContentsReply{
 		SubTypeMap: map[dao.PrimaryKey]string{},
 	}
 
-	reply.SiteData = service.Site.GetContentTypeByUri(context, m.Organization.ID, m.ContentItemUri, m.ContentSubTypeUri, m.PageIndex)
+	reply.SiteData = service.Site.GetContentTypeByUri(ctx, m.Organization.ID, m.ContentItemUri, m.ContentSubTypeUri, m.PageIndex)
 
 	reply.Name = "contents/" + reply.SiteData.CurrentMenuData.Menus.TemplateName
 
 	reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-		siteName := service.Content.GetTitle(db.Orm(), m.Organization.ID)
+		siteName := service.Content.GetTitle(db.GetDB(ctx), m.Organization.ID)
 		meta.SetBase(fmt.Sprintf("%s", reply.SiteData.CurrentMenuData.Menus.Name), siteName, "", "")
 		return nil
 	}

@@ -26,31 +26,31 @@ type InfoOrders struct {
 }
 
 func (m *InfoOrders) Handle(ctx constrain.IContext) (constrain.IResult, error) {
-	orders := repository.OrdersDao.GetOrdersByOrderNo(m.Get.OrderNo)
+	orders := repository.OrdersDao.GetOrdersByOrderNo(ctx, m.Get.OrderNo)
 	var address model.Address
 	if err := json.Unmarshal([]byte(orders.Address), &address); err != nil {
 		return nil, err
 	}
-	confirmOrdersGoods, err := service.Order.Orders.AnalyseOrdersGoodsListByOrders(&orders, &address)
+	confirmOrdersGoods, err := service.Order.Orders.AnalyseOrdersGoodsListByOrders(ctx, &orders, &address)
 	if err != nil {
 		return nil, err
 	}
 	return result.NewData(map[string]any{"ConfirmOrdersGoods": confirmOrdersGoods, "Orders": orders}), err
 }
 func (m *InfoOrders) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
-	address := dao.GetByPrimaryKey(db.Orm(), &model.Address{}, m.Put.AddressID).(*model.Address)
+	address := dao.GetByPrimaryKey(db.GetDB(ctx), &model.Address{}, m.Put.AddressID).(*model.Address)
 	if address.ID == 0 {
 		return nil, errors.New("地址不能为空")
 	}
 	if len(m.Put.OrderNo) == 0 {
 		return nil, errors.New("the parameter is invalid")
 	}
-	orders := repository.OrdersDao.GetOrdersByOrderNo(m.Put.OrderNo)
+	orders := repository.OrdersDao.GetOrdersByOrderNo(ctx, m.Put.OrderNo)
 	if orders.ID == 0 {
 		return nil, errors.New("order data does not exist")
 	}
 
-	confirmOrdersGoods, err := service.Order.Orders.AnalyseOrdersGoodsListByOrders(&orders, address)
+	confirmOrdersGoods, err := service.Order.Orders.AnalyseOrdersGoodsListByOrders(ctx, &orders, address)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +58,6 @@ func (m *InfoOrders) HandlePut(ctx constrain.IContext) (constrain.IResult, error
 	changeData := make(map[string]any)
 	changeData["Address"] = util.StructToJSON(address)
 	changeData["ExpressMoney"] = confirmOrdersGoods.ExpressPrice
-	err = dao.UpdateByPrimaryKey(db.Orm(), &model.Orders{}, orders.ID, changeData)
+	err = dao.UpdateByPrimaryKey(db.GetDB(ctx), &model.Orders{}, orders.ID, changeData)
 	return result.NewData(confirmOrdersGoods), err
 }

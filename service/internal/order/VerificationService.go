@@ -1,6 +1,7 @@
 package order
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -39,9 +40,9 @@ type VerificationService struct {
 }
 
 // 核销卡卷
-func (service VerificationService) VerificationCardItem(DB *gorm.DB, VerificationNo string, Quantity uint, user *model.User, store *model.Store) error {
+func (service VerificationService) VerificationCardItem(ctx context.Context, DB *gorm.DB, VerificationNo string, Quantity uint, user *model.User, store *model.Store) error {
 
-	verification := service.GetVerificationByVerificationNo(VerificationNo)
+	verification := service.GetVerificationByVerificationNo(ctx, VerificationNo)
 	if verification.ID == 0 {
 		return errors.New("找不到核销单")
 	}
@@ -100,9 +101,9 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 
 		go func() {
 			//var _goods model.Goods
-			_goods := dao.GetByPrimaryKey(db.Orm(), entity.Goods, goods.ID).(*model.Goods)
+			_goods := dao.GetByPrimaryKey(db.GetDB(ctx), entity.Goods, goods.ID).(*model.Goods)
 			if _goods.ID != 0 {
-				dao.UpdateByPrimaryKey(db.Orm(), entity.Goods, _goods.ID, &model.Goods{CountSale: _goods.CountSale + uint(Quantity)})
+				dao.UpdateByPrimaryKey(db.GetDB(ctx), entity.Goods, _goods.ID, &model.Goods{CountSale: _goods.CountSale + uint(Quantity)})
 			}
 		}()
 
@@ -125,7 +126,7 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 				return err
 			}
 			//要减掉门店的库存
-			storeStock := service.Store.GetByGoodsIDAndSpecificationIDAndStoreID(goods.ID, specification.ID, store.ID)
+			storeStock := service.Store.GetByGoodsIDAndSpecificationIDAndStoreID(ctx, goods.ID, specification.ID, store.ID)
 			if int64(storeStock.Stock-storeStock.UseStock-uint(Quantity)) < 0 {
 				return errors.New("门店库存不足，无法核销")
 			} else {
@@ -156,7 +157,7 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 				}
 
 				//线下订单，由核销后结算给用户。邮寄快递，由确定收货时，结算。
-				err = service.Settlement.SettlementUser(DB, ogsList, orders)
+				err = service.Settlement.SettlementUser(ctx, DB, ogsList, orders)
 				if err != nil {
 					return err
 				}
@@ -201,16 +202,16 @@ func (service VerificationService) VerificationCardItem(DB *gorm.DB, Verificatio
 
 	return nil
 }
-func (service VerificationService) GetVerificationByVerificationNo(VerificationNo string) model.Verification {
-	Orm := db.Orm()
+func (service VerificationService) GetVerificationByVerificationNo(ctx context.Context, VerificationNo string) model.Verification {
+	Orm := db.GetDB(ctx)
 	item := model.Verification{}
 	err := Orm.Where("VerificationNo=?", VerificationNo).First(&item).Error //SelectOne(user, "select * from User where Tel=?", Tel)
 	log.Println(err)
 	return item
 }
 
-func (service VerificationService) VerificationSelf(StoreID, StoreStockID dao.PrimaryKey, Quantity uint) *result.ActionResult {
-	Orm := db.Orm()
+func (service VerificationService) VerificationSelf(ctx context.Context, StoreID, StoreStockID dao.PrimaryKey, Quantity uint) *result.ActionResult {
+	Orm := db.GetDB(ctx)
 	//var ss model.StoreStock
 	ss := dao.GetByPrimaryKey(Orm, entity.StoreStock, StoreStockID).(*model.StoreStock)
 	if ss.IsZero() {

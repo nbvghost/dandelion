@@ -13,8 +13,8 @@ type DelGoodsTypeChild struct {
 	} `method:"get"`
 }
 
-func (g *DelGoodsTypeChild) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (g *DelGoodsTypeChild) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
 	//ID := object.ParseUint(context.Request.URL.Query().Get("ID"))
-	return &result.JsonResult{Data: service.Goods.GoodsType.DeleteGoodsTypeChild(dao.PrimaryKey(g.Get.ID))}, err
+	return &result.JsonResult{Data: service.Goods.GoodsType.DeleteGoodsTypeChild(ctx, dao.PrimaryKey(g.Get.ID))}, err
 }

@@ -1,6 +1,8 @@
 package goods
 
 import (
+	"context"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -11,17 +13,17 @@ import (
 type SpecificationService struct {
 }
 
-func (service SpecificationService) GetSpecification(ID dao.PrimaryKey) *model.Specification {
-	Orm := db.Orm()
+func (service SpecificationService) GetSpecification(ctx context.Context, ID dao.PrimaryKey) *model.Specification {
+	Orm := db.GetDB(ctx)
 	return dao.GetByPrimaryKey(Orm, &model.Specification{}, ID).(*model.Specification)
 }
-func (service SpecificationService) DeleteSpecification(ID dao.PrimaryKey) error {
-	Orm := db.Orm()
+func (service SpecificationService) DeleteSpecification(ctx context.Context, ID dao.PrimaryKey) error {
+	Orm := db.GetDB(ctx)
 	err := dao.DeleteByPrimaryKey(Orm, &model.Specification{}, ID)
 	return err
 }
 func (service SpecificationService) ChangeSpecification(context constrain.IContext, goodsID dao.PrimaryKey) (r constrain.IResult, err error) {
-	//Orm := db.Orm()
+	//Orm := db.GetDB(ctx)
 	//GoodsID, _ := strconv.ParseUint(context.PathParams["GoodsID"], 10, 64)
 	//GoodsID := object.ParseUint(context.PathParams["GoodsID"])
 	//item := &model.Specification{}

@@ -16,6 +16,6 @@ type GoodsTypeChildList struct {
 func (m *GoodsTypeChildList) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//GoodsTypeID, _ := strconv.ParseUint(context.PathParams["GoodsTypeID"], 10, 64)
 	//GoodsTypeID := object.ParseUint(context.PathParams["GoodsTypeID"])
-	results := service.Goods.GoodsType.ListGoodsTypeChild(dao.PrimaryKey(m.Get.GoodsTypeID))
+	results := service.Goods.GoodsType.ListGoodsTypeChild(ctx, dao.PrimaryKey(m.Get.GoodsTypeID))
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: results}}, nil
 }

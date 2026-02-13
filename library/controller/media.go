@@ -31,28 +31,28 @@ type Media struct {
 }
 
 func (m *Media) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) {
-	err := dao.DeleteByPrimaryKey(db.Orm(), &model.Media{}, m.Delete.ID)
+	err := dao.DeleteByPrimaryKey(db.GetDB(ctx), &model.Media{}, m.Delete.ID)
 	if err != nil {
 		return nil, err
 	}
 	return result.NewData(map[string]any{}), nil
 }
 func (m *Media) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
-	media := dao.GetBy(db.Orm(), &model.Media{}, map[string]any{"OID": m.Admin.OID, "ID": m.Put.ID}).(*model.Media)
+	media := dao.GetBy(db.GetDB(ctx), &model.Media{}, map[string]any{"OID": m.Admin.OID, "ID": m.Put.ID}).(*model.Media)
 	if media.IsZero() {
 		return nil, result.NewNotFound()
 	}
-	err := dao.UpdateByPrimaryKey(db.Orm(), &model.Media{}, media.ID, map[string]any{"Tags": lo.Union(m.Put.Tags)})
+	err := dao.UpdateByPrimaryKey(db.GetDB(ctx), &model.Media{}, media.ID, map[string]any{"Tags": lo.Union(m.Put.Tags)})
 	if err != nil {
 		return nil, err
 	}
 	return result.NewSuccess("添加成功"), nil
 }
 func (m *Media) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
-	list := dao.Find(db.Orm(), &model.Media{}).Where(`"OID"=? and "TargetID" in (?) and "Target"=?`, m.Admin.OID, m.Post.TargetIDList, m.Post.Target).List()
+	list := dao.Find(db.GetDB(ctx), &model.Media{}).Where(`"OID"=? and "TargetID" in (?) and "Target"=?`, m.Admin.OID, m.Post.TargetIDList, m.Post.Target).List()
 	return result.NewData(map[string]any{"List": list}), nil
 }
 func (m *Media) Handle(ctx constrain.IContext) (constrain.IResult, error) {
-	list := dao.Find(db.Orm(), &model.Media{}).Where(`"OID"=? and "TargetID"=? and "Target"=?`, m.Admin.OID, m.Get.TargetID, m.Get.Target).Order(`"CreatedAt" desc`).List()
+	list := dao.Find(db.GetDB(ctx), &model.Media{}).Where(`"OID"=? and "TargetID"=? and "Target"=?`, m.Admin.OID, m.Get.TargetID, m.Get.Target).Order(`"CreatedAt" desc`).List()
 	return result.NewData(map[string]any{"List": list}), nil
 }

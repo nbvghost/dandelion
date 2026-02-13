@@ -15,7 +15,6 @@ import (
 )
 
 type Index struct {
-
 }
 
 var bingTranslateHttpParamsReg = regexp.MustCompile(`var\sparams_RichTranslateHelper.*?;`)
@@ -105,7 +104,7 @@ func (m *Index) BingTranslate(query, from, to string) (_ string, err error) {
 
 	var translate model.Translate
 
-	/*tx := db.Orm().Begin(&sql.TxOptions{Isolation: sql.LevelReadUncommitted})
+	/*tx := db.GetDB(ctx).Begin(&sql.TxOptions{Isolation: sql.LevelReadUncommitted})
 	defer func() {
 		if err != nil {
 			tx.Rollback()

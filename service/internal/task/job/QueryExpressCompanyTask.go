@@ -2,9 +2,10 @@ package job
 
 import (
 	"context"
+	"log"
+
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/wechat"
-	"log"
 
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -14,12 +15,13 @@ import (
 type QueryExpressCompanyTask struct {
 	WxService          wechat.WxService
 	AccessTokenService wechat.AccessTokenService
+	Ctx                context.Context
 }
 
 func (m *QueryExpressCompanyTask) Run() error {
-	wxConfigList := m.WxService.MiniProgram(db.Orm())
+	wxConfigList := m.WxService.MiniProgram(db.GetDB(m.Ctx))
 	for _, config := range wxConfigList {
-		Orm := db.Orm()
+		Orm := db.GetDB(m.Ctx)
 		deliverys, err := m.WxService.GetDeliveryList(m.AccessTokenService.GetAccessToken(config.(*model.WechatConfig)))
 		if err != nil {
 			log.Println(err)
@@ -41,5 +43,5 @@ func (m *QueryExpressCompanyTask) Run() error {
 	return nil
 }
 func NewQueryExpressCompanyTask(context context.Context) Job {
-	return &QueryExpressCompanyTask{}
+	return &QueryExpressCompanyTask{Ctx: context}
 }

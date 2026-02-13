@@ -1,11 +1,13 @@
 package order
 
 import (
+	"context"
+	"log"
+
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/activity"
 	"github.com/nbvghost/dandelion/service/internal/company"
 	"github.com/nbvghost/dandelion/service/internal/goods"
-	"log"
 
 	"gorm.io/gorm"
 
@@ -21,8 +23,8 @@ type ShoppingCartService struct {
 	Organization company.OrganizationService
 }
 
-func (m ShoppingCartService) GetGSIDs(UserID dao.PrimaryKey, GSIDs []string) []model.ShoppingCart {
-	Orm := db.Orm()
+func (m ShoppingCartService) GetGSIDs(ctx context.Context, UserID dao.PrimaryKey, GSIDs []string) []model.ShoppingCart {
+	Orm := db.GetDB(ctx)
 	var scs []model.ShoppingCart
 	//Orm := Orm()
 	//return Orm.Where("GSID in (?)", IDs).Where(&model.ShoppingCart{UserID: UserID}).Delete(&model.ShoppingCart{}).Error
@@ -69,13 +71,13 @@ func (m ShoppingCartService) DeleteByUserIDAndGoodsIDAndSpecificationID(db *gorm
 func (m ShoppingCartService) DeleteListByIDs(db *gorm.DB, UserID dao.PrimaryKey, GoodsID, SpecificationID dao.PrimaryKey) error {
 	return db.Where(&model.ShoppingCart{UserID: UserID, GoodsID: GoodsID, SpecificationID: SpecificationID}).Delete(&model.ShoppingCart{}).Error
 }
-func (m ShoppingCartService) FindShoppingCartByUserID(UserID dao.PrimaryKey) []dao.IEntity {
-	Orm := db.Orm()
+func (m ShoppingCartService) FindShoppingCartByUserID(ctx context.Context, UserID dao.PrimaryKey) []dao.IEntity {
+	Orm := db.GetDB(ctx)
 	//var list []model.ShoppingCart
 	list := dao.Find(Orm, entity.ShoppingCart).Where(model.ShoppingCart{UserID: UserID}).List() //service.FindWhere(Orm, &list, model.ShoppingCart{UserID: UserID})
 	return list
 }
-func (m ShoppingCartService) FindShoppingCartListCount(UserID dao.PrimaryKey) (uint, error) {
-	list := m.FindShoppingCartByUserID(UserID)
+func (m ShoppingCartService) FindShoppingCartListCount(ctx context.Context, UserID dao.PrimaryKey) (uint, error) {
+	list := m.FindShoppingCartByUserID(ctx, UserID)
 	return uint(len(list)), nil
 }

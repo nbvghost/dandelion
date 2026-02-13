@@ -1,15 +1,17 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
+
 	"github.com/nbvghost/dandelion/config"
 	"github.com/nbvghost/dandelion/domain/cache"
 	"github.com/nbvghost/dandelion/library/db"
 	"golang.org/x/sync/errgroup"
-	"io"
-	"log"
-	"net/http"
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/environments"
@@ -27,7 +29,7 @@ func Init(app *config.MicroServer) error {
 	}
 
 	var err error
-	_database := db.Orm()
+	_database := db.GetDB(context.Background())
 
 	models := make([]model.IDataBaseFace, 0)
 
@@ -237,13 +239,13 @@ $Goods$ LANGUAGE plpgsql;`
 	group := &errgroup.Group{}
 	group.Go(func() error {
 		var cacheList []model.Pinyin
-		db.Orm().Model(model.Pinyin{}).Find(&cacheList)
+		db.GetDB(context.Background()).Model(model.Pinyin{}).Find(&cacheList)
 		for _, v := range cacheList {
 			cache.Cache.ChinesePinyinCache.Pinyin[v.Word] = v.Pinyin
 		}
 
 		var languageList []model.Language
-		db.Orm().Model(model.Language{}).Where(`"Code"<>''`).Order(`"Name"`).Find(&languageList)
+		db.GetDB(context.Background()).Model(model.Language{}).Where(`"Code"<>''`).Order(`"Name"`).Find(&languageList)
 		for index, v := range languageList {
 			cache.Cache.LanguageCache.ShowLanguage = append(cache.Cache.LanguageCache.ShowLanguage, languageList[index])
 			cache.Cache.LanguageCodeCache.LangCode[v.Code] = v.Name
@@ -285,7 +287,7 @@ func downloadLang() {
 			Code: code,
 			Name: name,
 		}
-		db.Orm().Create(&lang)
+		db.GetDB(context.Background()).Create(&lang)
 	}
 
 	log.Println(mm, targets)
@@ -294,7 +296,7 @@ func downloadLang() {
 func RebuildFullTextSearch() {
 	var err error
 	var goodsList []model.Goods
-	db.Orm().Model(model.Goods{}).Find(&goodsList)
+	db.GetDB(context.Background()).Model(model.Goods{}).Find(&goodsList)
 	for _, v := range goodsList {
 		var picture string
 		if len(v.Images) > 0 {
@@ -302,7 +304,7 @@ func RebuildFullTextSearch() {
 		}
 
 		fts := model.FullTextSearch{}
-		db.Orm().Model(model.FullTextSearch{}).Where(`"TID"=? and "Type"=?`, v.ID, model.FullTextSearchTypeProducts).First(&fts)
+		db.GetDB(context.Background()).Model(model.FullTextSearch{}).Where(`"TID"=? and "Type"=?`, v.ID, model.FullTextSearchTypeProducts).First(&fts)
 
 		fts.CreatedAt = v.CreatedAt
 		fts.UpdatedAt = v.UpdatedAt
@@ -314,20 +316,20 @@ func RebuildFullTextSearch() {
 		fts.Picture = picture
 		fts.Type = model.FullTextSearchTypeProducts
 
-		if err = db.Orm().Model(&fts).Save(&fts).Error; err != nil {
+		if err = db.GetDB(context.Background()).Model(&fts).Save(&fts).Error; err != nil {
 			panic(err)
 		}
-		if err = db.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') || setweight(to_tsvector('english', coalesce("Content",'')),'C') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
+		if err = db.GetDB(context.Background()).Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') || setweight(to_tsvector('english', coalesce("Content",'')),'C') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
 			panic(err)
 		}
 	}
 
 	var contentList []model.Content
-	db.Orm().Model(model.Content{}).Find(&contentList)
+	db.GetDB(context.Background()).Model(model.Content{}).Find(&contentList)
 	for _, v := range contentList {
 
 		fts := model.FullTextSearch{}
-		db.Orm().Model(model.FullTextSearch{}).Where(`"TID"=? and "Type"=?`, v.ID, model.FullTextSearchTypeContent).First(&fts)
+		db.GetDB(context.Background()).Model(model.FullTextSearch{}).Where(`"TID"=? and "Type"=?`, v.ID, model.FullTextSearchTypeContent).First(&fts)
 
 		fts.CreatedAt = v.CreatedAt
 		fts.UpdatedAt = v.UpdatedAt
@@ -340,10 +342,10 @@ func RebuildFullTextSearch() {
 		fts.Type = model.FullTextSearchTypeContent
 		fts.ContentItemID = v.ContentItemID
 
-		if err = db.Orm().Model(&fts).Save(&fts).Error; err != nil {
+		if err = db.GetDB(context.Background()).Model(&fts).Save(&fts).Error; err != nil {
 			panic(err)
 		}
-		if err = db.Orm().Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
+		if err = db.GetDB(context.Background()).Exec(fmt.Sprintf(`UPDATE "FullTextSearch" SET "Index" = setweight(to_tsvector('english', coalesce("Title",'')),'A') || setweight(to_tsvector('english', coalesce("Content",'')),'B') WHERE "ID" = '%d'`, fts.ID)).Error; err != nil {
 			panic(err)
 		}
 	}

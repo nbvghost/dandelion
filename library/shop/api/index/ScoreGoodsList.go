@@ -11,6 +11,6 @@ type ScoreGoodsList struct {
 
 func (m *ScoreGoodsList) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*entity.Organization)
-	list := service.Activity.ScoreGoods.ListScoreGoods()
+	list := service.Activity.ScoreGoods.ListScoreGoods(ctx)
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: list}}, nil
 }

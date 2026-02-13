@@ -2,14 +2,15 @@ package goods
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/lib/pq"
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/tool/object"
-	"regexp"
-	"strings"
 
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
@@ -31,7 +32,7 @@ func (m *ChangeGoods) Handle(ctx constrain.IContext) (constrain.IResult, error) 
 
 var spaceRegexp = regexp.MustCompile(`\s`)
 
-func (m *ChangeGoods) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *ChangeGoods) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 
 	var item *model.Goods
 	item, err = util.JSONToStruct[*model.Goods](m.Post.GoodsJSON)
@@ -47,7 +48,7 @@ func (m *ChangeGoods) HandlePost(context constrain.IContext) (r constrain.IResul
 		}
 	}
 
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 	{
 		//生成标签
 		item.Tags = make(pq.StringArray, 0)
@@ -84,7 +85,7 @@ func (m *ChangeGoods) HandlePost(context constrain.IContext) (r constrain.IResul
 			}
 		}
 	}
-	hasGoods, err := service.Goods.Goods.SaveGoods(tx, m.Organization.ID, item, specifications)
+	hasGoods, err := service.Goods.Goods.SaveGoods(ctx, tx, m.Organization.ID, item, specifications)
 	if err != nil {
 		tx.Rollback()
 		as := &result.ActionResult{}

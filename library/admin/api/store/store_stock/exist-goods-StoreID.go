@@ -19,8 +19,8 @@ func (m *ExistGoodsStoreID) Handle(context constrain.IContext) (r constrain.IRes
 	panic("implement me")
 }
 
-func (m *ExistGoodsStoreID) HandleGet(context constrain.IContext) (r constrain.IResult, err error) {
-	Orm := db.Orm()
+func (m *ExistGoodsStoreID) HandleGet(ctx constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.GetDB(ctx)
 	//StoreID, _ := strconv.ParseUint(context.PathParams["StoreID"], 10, 64)
 	//StoreID := object.ParseUint(context.PathParams["StoreID"])
 	type Result struct {

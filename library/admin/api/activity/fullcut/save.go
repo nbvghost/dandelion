@@ -19,9 +19,9 @@ func (m *Save) Handle(context constrain.IContext) (r constrain.IResult, err erro
 	panic("implement me")
 }
 
-func (m *Save) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Save) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	//item := &model.FullCut{}
 	//err = util.RequestBodyToJSON(context.Request.Body, item)
 	//if err != nil {

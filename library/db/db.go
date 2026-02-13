@@ -1,7 +1,9 @@
 package db
 
 import (
+	"context"
 	"errors"
+
 	"github.com/nbvghost/dandelion/constrain"
 
 	"gorm.io/gorm"
@@ -13,11 +15,11 @@ var instance struct {
 	pq postgres.IPostgres
 }
 
-func Orm() *gorm.DB {
+func GetDB(ctx context.Context) *gorm.DB {
 	if instance.pq == nil {
 		panic(errors.New("请初化数据库"))
 	}
-	return instance.pq.Orm()
+	return instance.pq.Orm().WithContext(ctx)
 }
 func ConnectWithout(dsn string) error {
 	pq := postgres.New(dsn)

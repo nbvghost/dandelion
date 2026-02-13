@@ -17,10 +17,10 @@ func (m *Get) Handle(context constrain.IContext) (r constrain.IResult, err error
 	panic("implement me")
 }
 
-func (m *Get) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Get) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//context.Request.ParseForm()
 	//ContentItemID := object.ParseInt(context.Request.FormValue("ContentItemID"))
 	//Title := context.Request.FormValue("Title")
-	content := repository.ContentDao.GetContentByContentItemIDAndTitle(uint(m.POST.ContentItemID), m.POST.Title)
+	content := repository.ContentDao.GetContentByContentItemIDAndTitle(ctx, uint(m.POST.ContentItemID), m.POST.Title)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", content)}, err
 }

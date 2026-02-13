@@ -2,8 +2,9 @@ package admin
 
 import (
 	"errors"
-	"github.com/nbvghost/dandelion/service"
 	"strings"
+
+	"github.com/nbvghost/dandelion/service"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity"
@@ -32,8 +33,8 @@ type ID struct {
 	} `method:"Post"`
 }
 
-func (m *ID) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
-	Orm := db.Orm()
+func (m *ID) HandlePut(ctx constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.GetDB(ctx)
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ID"])
 	//item := &model.Admin{}
@@ -59,10 +60,10 @@ func (m *ID) HandlePut(context constrain.IContext) (r constrain.IResult, err err
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
 }
 
-func (m *ID) HandleDelete(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *ID) HandleDelete(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//ID := object.ParseUint(context.PathParams["ID"])
 	//item := &model.Admin{}
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 
 	item := dao.GetByPrimaryKey(Orm, entity.Admin, dao.PrimaryKey(m.Delete.ID)).(*model.Admin)
 	if err != nil {
@@ -76,11 +77,11 @@ func (m *ID) HandleDelete(context constrain.IContext) (r constrain.IResult, err 
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "删除成功", nil)}, err
 }
 
-func (m *ID) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *ID) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//admin := context.Session.Attributes.Get(play.SessionAdmin).(*model.Admin)
 	//dts := &model.Datatables{}
 	//util.RequestBodyToJSON(context.Request.Body, dts)
-	draw, recordsTotal, recordsFiltered, list := service.Admin.Service.DatatablesListOrder(db.Orm(), m.Post.Datatables, &[]model.Admin{}, m.Admin.OID, "")
+	draw, recordsTotal, recordsFiltered, list := service.Admin.Service.DatatablesListOrder(db.GetDB(ctx), m.Post.Datatables, &[]model.Admin{}, m.Admin.OID, "")
 	return &result.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}, err
 }
 
@@ -88,10 +89,10 @@ func (m *ID) Handle(context constrain.IContext) (r constrain.IResult, err error)
 	panic("implement me")
 }
 
-func (m *ID) HandleGet(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *ID) HandleGet(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ID"])
 	//item := &model.Admin{}
-	item := dao.GetByPrimaryKey(db.Orm(), entity.Admin, dao.PrimaryKey(m.Get.ID))
+	item := dao.GetByPrimaryKey(db.GetDB(ctx), entity.Admin, dao.PrimaryKey(m.Get.ID))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", item)}, err
 }

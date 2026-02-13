@@ -20,12 +20,12 @@ func (g *ListSpecification) Handle(ctx constrain.IContext) (constrain.IResult, e
 	panic("implement me")
 }
 
-func (g *ListSpecification) HandleGet(context constrain.IContext) (r constrain.IResult, err error) {
+func (g *ListSpecification) HandleGet(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	//GoodsID, _ := strconv.ParseUint(context.Request.URL.Query().Get("GoodsID"), 10, 64)
 	//GoodsID := object.ParseUint(context.Request.URL.Query().Get("GoodsID"))
 	//var gts []model.Specification
-	gts := dao.Find(db.Orm(), &model.Specification{}).Where(`"GoodsID"=?`, g.Get.GoodsID).List()
-	//err = g.Goods.SpecificationService.FindWhere(db.Orm(), &gts, g.Organization.ID, model.Specification{GoodsID: dao.PrimaryKey(g.Get.GoodsID)})
+	gts := dao.Find(db.GetDB(ctx), &model.Specification{}).Where(`"GoodsID"=?`, g.Get.GoodsID).List()
+	//err = g.Goods.SpecificationService.FindWhere(db.GetDB(ctx), &gts, g.Organization.ID, model.Specification{GoodsID: dao.PrimaryKey(g.Get.GoodsID)})
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", gts)}, err
 }

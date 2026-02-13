@@ -1,13 +1,14 @@
 package api
 
 import (
+	"strings"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/translate"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"strings"
 )
 
 type Translate struct {
@@ -21,14 +22,14 @@ type Translate struct {
 func (m *Translate) Handle(context constrain.IContext) (r constrain.IResult, err error) {
 	return &result.JsonResult{Data: result.NewSuccess("OK")}, err
 }
-func (m *Translate) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Translate) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	tran, err := translate.NewTranslate()
 	if err != nil {
 		return nil, err
 	}
 
 	var translateModelList []model.Translate
-	db.Orm().Model(model.Translate{}).Where(`"LangType"=? and "Text" in ?`, m.Post.To, m.Post.Query).Find(&translateModelList)
+	db.GetDB(ctx).Model(model.Translate{}).Where(`"LangType"=? and "Text" in ?`, m.Post.To, m.Post.Query).Find(&translateModelList)
 
 	outList := make([]string, 0)
 
@@ -49,7 +50,7 @@ func (m *Translate) HandlePost(context constrain.IContext) (r constrain.IResult,
 				return nil, err
 			}
 
-			err = dao.Create(db.Orm(), &model.Translate{
+			err = dao.Create(db.GetDB(ctx), &model.Translate{
 				Text:     q,
 				LangType: m.Post.To,
 				LangText: translateText[0],

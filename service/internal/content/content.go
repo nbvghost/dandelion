@@ -1,7 +1,6 @@
 package content
 
 import (
-	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service/internal/company"
 	"github.com/nbvghost/dandelion/service/internal/journal"
@@ -17,9 +16,9 @@ type ContentService struct {
 	OrganizationService company.OrganizationService
 }
 
-func (m ContentService) GetTitle(orm *gorm.DB, OID dao.PrimaryKey) string {
-	organization := m.OrganizationService.GetOrganization(OID).(*model.Organization)
-	contentConfig := repository.ContentConfigDao.GetContentConfig(db.Orm(), organization.Primary())
+func (m ContentService) GetTitle(tx *gorm.DB, OID dao.PrimaryKey) string {
+	organization := m.OrganizationService.GetOrganization(tx, OID).(*model.Organization)
+	contentConfig := repository.ContentConfigDao.GetContentConfig(tx, organization.Primary())
 	title := contentConfig.Name
 	if len(title) == 0 {
 		title = organization.Name
@@ -28,5 +27,5 @@ func (m ContentService) GetTitle(orm *gorm.DB, OID dao.PrimaryKey) string {
 }
 
 func (m ContentService) GetByTitle(orm *gorm.DB, OID dao.PrimaryKey, title string) *model.Content {
-	return dao.GetBy(orm, &model.Content{}, map[string]any{"UseType":"tag","Title": title, "OID": OID}).(*model.Content)
+	return dao.GetBy(orm, &model.Content{}, map[string]any{"UseType": "tag", "Title": title, "OID": OID}).(*model.Content)
 }

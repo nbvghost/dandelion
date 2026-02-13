@@ -2,6 +2,7 @@ package page
 
 import (
 	"fmt"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -22,10 +23,10 @@ type SubPageReply struct {
 	SiteData serviceargument.SiteData[*model.Content]
 }
 
-func (m *SubPageRequest) Render(context constrain.IContext) (r constrain.IViewResult, err error) {
+func (m *SubPageRequest) Render(ctx constrain.IContext) (r constrain.IViewResult, err error) {
 	reply := &SubPageReply{}
 
-	reply.SiteData = service.Site.GetContentTypeByUri(context, m.Organization.ID, "", "", 0)
+	reply.SiteData = service.Site.GetContentTypeByUri(ctx, m.Organization.ID, "", "", 0)
 	//reply.ContentData = m.ContentService.GetContentTypeByUri(context, m.Organization.ID, m.Uri, "", 0)
 	//contentItem, contentSubType := m.ContentService.GetContentTypeByUri(m.Organization.ID, m.Uri, "")
 	//reply.MenusData = module.NewMenusData(contentItem, contentSubType)
@@ -41,7 +42,7 @@ func (m *SubPageRequest) Render(context constrain.IContext) (r constrain.IViewRe
 	}*/
 
 	reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-		siteName := service.Content.GetTitle(db.Orm(), m.Organization.ID)
+		siteName := service.Content.GetTitle(db.GetDB(ctx), m.Organization.ID)
 		meta.SetBase(fmt.Sprintf("%s", reply.SiteData.ContentItem.Name), siteName, "", "")
 		return nil
 	}

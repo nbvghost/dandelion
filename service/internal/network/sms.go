@@ -1,7 +1,9 @@
 package network
 
 import (
+	"context"
 	"encoding/json"
+
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	dysmsapi20170525 "github.com/alibabacloud-go/dysmsapi-20170525/v3/client"
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
@@ -20,9 +22,9 @@ type SMS struct {
 	ConfigurationService configuration.ConfigurationService
 }
 
-func NewSMS(oid dao.PrimaryKey) *SMS {
+func NewSMS(ctx context.Context, oid dao.PrimaryKey) *SMS {
 	sms := &SMS{}
-	c := sms.ConfigurationService.GetConfigurations(oid, model.ConfigurationKeyAliyunAccessKeyID, model.ConfigurationKeyAliyunAccessKeySecret, model.ConfigurationKeyAliyunSMSSignName)
+	c := sms.ConfigurationService.GetConfigurations(ctx, oid, model.ConfigurationKeyAliyunAccessKeyID, model.ConfigurationKeyAliyunAccessKeySecret, model.ConfigurationKeyAliyunSMSSignName)
 	sms.AccessKeyID = c[model.ConfigurationKeyAliyunAccessKeyID]
 	sms.AccessKeySecret = c[model.ConfigurationKeyAliyunAccessKeySecret]
 	sms.SignName = c[model.ConfigurationKeyAliyunSMSSignName]

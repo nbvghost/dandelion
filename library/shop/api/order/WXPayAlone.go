@@ -1,11 +1,12 @@
 package order
 
 import (
+	"log"
+	"strings"
+
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service"
-	"log"
-	"strings"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity"
@@ -36,7 +37,7 @@ func (m *WXPayAlone) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	wechat := service.Payment.NewWechat(ctx, m.User.OID)
 
 	//package
-	orders := repository.OrdersDao.GetOrdersByOrderNo(m.Get.OrderNo)
+	orders := repository.OrdersDao.GetOrdersByOrderNo(ctx, m.Get.OrderNo)
 	if strings.EqualFold(orders.PrepayID, "") == false {
 
 		outData, err := wechat.GetWXAConfig(orders.PrepayID)
@@ -56,7 +57,7 @@ func (m *WXPayAlone) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 		return nil, err
 	}
 
-	err = dao.UpdateByPrimaryKey(db.Orm(), entity.Orders, orders.ID, map[string]interface{}{"PrepayID": r.PrepayId})
+	err = dao.UpdateByPrimaryKey(db.GetDB(ctx), entity.Orders, orders.ID, map[string]interface{}{"PrepayID": r.PrepayId})
 	if err != nil {
 		log.Println(err)
 	}

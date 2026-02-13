@@ -2,6 +2,7 @@ package catch
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -601,16 +602,16 @@ func (m *Catch1688Service) getGoodsType(content string) (map[string]interface{},
 
 	return goodsType, goodsInfo
 }
-func (m *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
+func (m *Catch1688Service) Catch(ctx context.Context, CatchContent, Mark string, isGbk bool) {
 	//b, err := ioutil.ReadAll(res.Body)
 
 	addPriceRotia := 0.3
 	brokerageRotia := 0.1
 	expresstePrice := 500
 
-	haveAdmin := m.Admin.FindAdminByAccount(db.Orm(), "admin")
+	haveAdmin := m.Admin.FindAdminByAccount(db.GetDB(ctx), "admin")
 	//邮件模板
-	express := m.ExpressTemplate.GetExpressTemplateByOID(haveAdmin.OID)
+	express := m.ExpressTemplate.GetExpressTemplateByOID(ctx, haveAdmin.OID)
 	if express.ID == 0 {
 		log.Println("没有创建快递模板无法添加产品")
 		return
@@ -618,7 +619,7 @@ func (m *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 
 	//content_item := service.URLS[i]
 
-	_havg := m.Goods.FindGoodsLikeMark(Mark)
+	_havg := m.Goods.FindGoodsLikeMark(ctx, Mark)
 	if _havg.ID > 0 {
 		return
 	}
@@ -649,7 +650,7 @@ func (m *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 		goods.Title = title
 	})
 
-	_goods := m.Goods.FindGoodsByTitle(haveAdmin.OID, goods.Title)
+	_goods := m.Goods.FindGoodsByTitle(ctx, haveAdmin.OID, goods.Title)
 	if _goods.ID != 0 {
 		return
 	}
@@ -755,7 +756,7 @@ func (m *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 	categoryA := categoryList[0].(map[string]interface{})
 	categoryB := categoryList[1].(map[string]interface{})
 
-	gt, gtc := m.GoodsTypeService.AddGoodsTypeByNameByChild(categoryA["name"].(string), categoryB["name"].(string))
+	gt, gtc := m.GoodsTypeService.AddGoodsTypeByNameByChild(ctx, categoryA["name"].(string), categoryB["name"].(string))
 	goods.GoodsTypeID = gt.ID
 	goods.GoodsTypeChildID = gtc.ID
 
@@ -900,13 +901,13 @@ func (m *Catch1688Service) Catch(CatchContent, Mark string, isGbk bool) {
 
 	//goods.Videos = "[]"
 
-	dao.Create(db.Orm(), goods)
+	dao.Create(db.GetDB(ctx), goods)
 	for s := 0; s < len(specifications); s++ {
 		specifications[s].GoodsID = goods.ID
-		dao.Create(db.Orm(), &(specifications[s]))
+		dao.Create(db.GetDB(ctx), &(specifications[s]))
 	}
 }
-func (m *Catch1688Service) URLCatch(URL string) {
+func (m *Catch1688Service) URLCatch(ctx context.Context, URL string) {
 
 	res, err := http.Get(URL)
 	if err != nil {
@@ -921,6 +922,6 @@ func (m *Catch1688Service) URLCatch(URL string) {
 
 	b, err := ioutil.ReadAll(res.Body)
 	log.Println(err)
-	m.Catch(string(b), URL, true)
+	m.Catch(ctx, string(b), URL, true)
 
 }

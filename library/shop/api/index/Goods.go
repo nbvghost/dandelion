@@ -17,14 +17,14 @@ type Goods struct {
 }
 
 func (m *Goods) Handle(ctx constrain.IContext) (constrain.IResult, error) {
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ID"])
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 
-	goodsInfo, err := service.Goods.Goods.GetGoods(Orm, ctx, dao.PrimaryKey(m.Get.ID))
+	goodsInfo, err := service.Goods.Goods.GetGoods(ctx, Orm, ctx, dao.PrimaryKey(m.Get.ID))
 
-	err = dao.UpdateByPrimaryKey(db.Orm(), entity.Goods, goodsInfo.Goods.ID, &model.Goods{CountView: goodsInfo.Goods.CountView + 1})
+	err = dao.UpdateByPrimaryKey(db.GetDB(ctx), entity.Goods, goodsInfo.Goods.ID, &model.Goods{CountView: goodsInfo.Goods.CountView + 1})
 	if err != nil {
 		return nil, err
 	}

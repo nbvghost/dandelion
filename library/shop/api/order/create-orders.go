@@ -1,6 +1,8 @@
 package order
 
 import (
+	"strings"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -11,7 +13,6 @@ import (
 	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/tool"
 	"github.com/pkg/errors"
-	"strings"
 )
 
 type CreateOrders struct {
@@ -45,13 +46,13 @@ func (m *CreateOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 
 	var address = m.Post.Address
 	if m.Post.AddressID > 0 {
-		address = dao.GetByPrimaryKey(db.Orm(), &model.Address{}, m.Post.AddressID).(*model.Address)
+		address = dao.GetByPrimaryKey(db.GetDB(ctx), &model.Address{}, m.Post.AddressID).(*model.Address)
 		if address.ID == 0 {
 			return nil, errors.New("the address cannot be empty")
 		}
 	}
 
-	confirmOrdersGoods, err := service.Order.Orders.AnalyseOrdersGoodsList(m.User.OID, address, list)
+	confirmOrdersGoods, err := service.Order.Orders.AnalyseOrdersGoodsList(ctx, m.User.OID, address, list)
 	//如果 organizationOrders 存在着多个商家的订单，无法进入合拼支付，只能分开支付
 	/*if len(organizationOrders) == 0 {
 		return nil, errors.New("找不到订单")
@@ -68,7 +69,7 @@ func (m *CreateOrders) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 		//OrdersGoodsLen := float64(0)
 		//OrdersGoodsNo := ""
 
-		tx := db.Orm().Begin()
+		tx := db.GetDB(ctx).Begin()
 
 		/*op, err := m.OrdersService.AddOrdersPackage(tx, TotalPrice, m.User.ID)
 		if err != nil {

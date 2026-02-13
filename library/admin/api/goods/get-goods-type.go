@@ -17,7 +17,7 @@ type GetGoodsType struct {
 	} `method:"get"`
 }
 
-func (g *GetGoodsType) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (g *GetGoodsType) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	where := make(map[string]any)
 	where["OID"] = g.Organization.GetOID()
 	if g.Get.ID > 0 {
@@ -26,6 +26,6 @@ func (g *GetGoodsType) Handle(context constrain.IContext) (r constrain.IResult, 
 	if len(g.Get.Name) > 0 {
 		where["Name"] = g.Get.Name
 	}
-	goods := dao.GetBy(db.Orm(), entity.GoodsType, where)
+	goods := dao.GetBy(db.GetDB(ctx), entity.GoodsType, where)
 	return result.NewData(goods), err
 }

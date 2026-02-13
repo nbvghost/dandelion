@@ -16,10 +16,10 @@ type StockGoodsList struct {
 	} `method:"Get"`
 }
 
-func (m *StockGoodsList) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *StockGoodsList) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//GoodsID
 	//GoodsID, _ := strconv.ParseUint(context.PathParams["GoodsID"], 10, 64)
 
-	list := service.Company.Store.ListStoreSpecifications(m.Store.ID, m.Get.GoodsID)
+	list := service.Company.Store.ListStoreSpecifications(ctx, m.Store.ID, m.Get.GoodsID)
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: list}}, nil
 }

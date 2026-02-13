@@ -31,8 +31,8 @@ func (g *Verification) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 		//核销卡卷
 
 		//verification := controller.Verification.GetVerificationByVerificationNo(VerificationNo)
-		tx := db.Orm().Begin()
-		err := service.Order.Verification.VerificationCardItem(tx, g.Post.VerificationNo, g.Post.Quantity, g.User, g.Store)
+		tx := db.GetDB(ctx).Begin()
+		err := service.Order.Verification.VerificationCardItem(ctx, tx, g.Post.VerificationNo, g.Post.Quantity, g.User, g.Store)
 		if err != nil {
 			tx.Rollback()
 			return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, nil
@@ -46,7 +46,7 @@ func (g *Verification) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 		//StoreStockID, _ := strconv.ParseUint(context.Request.FormValue("StoreStockID"), 10, 64)
 		//Quantity, _ := strconv.ParseUint(context.Request.FormValue("Quantity"), 10, 64)
 
-		as := service.Order.Verification.VerificationSelf(g.Store.ID, g.Post.StoreStockID, g.Post.Quantity)
+		as := service.Order.Verification.VerificationSelf(ctx, g.Store.ID, g.Post.StoreStockID, g.Post.Quantity)
 		return &result.JsonResult{Data: as}, nil
 
 	}
@@ -55,10 +55,10 @@ func (g *Verification) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 
 func (g *Verification) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
-	verification := service.Order.Verification.GetVerificationByVerificationNo(g.Get.VerificationNo)
+	verification := service.Order.Verification.GetVerificationByVerificationNo(ctx, g.Get.VerificationNo)
 
 	//var cardItem model.CardItem
-	cardItem := dao.GetByPrimaryKey(db.Orm(), entity.CardItem, verification.CardItemID)
+	cardItem := dao.GetByPrimaryKey(db.GetDB(ctx), entity.CardItem, verification.CardItemID)
 
 	if verification.ID == 0 {
 		return &result.JsonResult{Data: &result.ActionResult{Code: result.Fail, Message: "", Data: nil}}, nil

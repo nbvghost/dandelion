@@ -20,9 +20,9 @@ func (m *GoodsGoodsID) Handle(context constrain.IContext) (r constrain.IResult, 
 	panic("implement me")
 }
 
-func (m *GoodsGoodsID) HandleDelete(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *GoodsGoodsID) HandleDelete(ctx constrain.IContext) (r constrain.IResult, err error) {
 
-	/*Orm := db.Orm()
+	/*Orm := db.GetDB(ctx)
 	ID, _ := strconv.ParseUint(context.PathParams["GoodsID"], 10, 64)
 	company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	list := GlobalService.Goods.DeleteTimeSellGoods(Orm, ID, company.ID)
@@ -30,11 +30,11 @@ func (m *GoodsGoodsID) HandleDelete(context constrain.IContext) (r constrain.IRe
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "删除成功", list)}
 	*/
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	//ID, _ := strconv.ParseUint(context.PathParams["GoodsID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["GoodsID"])
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
-	list := service.Goods.Goods.DeleteCollageGoods(Orm, dao.PrimaryKey(m.Delete.GoodsID), m.Organization.ID)
+	list := service.Goods.Goods.DeleteCollageGoods(ctx, Orm, dao.PrimaryKey(m.Delete.GoodsID), m.Organization.ID)
 
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "删除成功", list)}, err
 }

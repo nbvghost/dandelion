@@ -38,7 +38,7 @@ func (m *Buy) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 		list = append(list, goods...)
 	}
 
-	results, err := service.Order.Orders.AnalyseOrdersGoodsList(m.User.OID, &m.Post.Address, list)
+	results, err := service.Order.Orders.AnalyseOrdersGoodsList(ctx, m.User.OID, &m.Post.Address, list)
 
 	return result.NewData(map[string]any{"ConfirmOrdersGoods": results}), err
 

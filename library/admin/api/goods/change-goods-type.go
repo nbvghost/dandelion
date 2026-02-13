@@ -2,13 +2,14 @@ package goods
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/oss"
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service"
-	"strings"
 )
 
 type ChangeGoodsType struct {
@@ -21,7 +22,7 @@ type ChangeGoodsType struct {
 func (g *ChangeGoodsType) Handle(context constrain.IContext) (r constrain.IResult, err error) {
 	return nil, err
 }
-func (g *ChangeGoodsType) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (g *ChangeGoodsType) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//item := &model.GoodsType{}
 	//err = util.RequestBodyToJSON(context.Request.Body, item)
 	//log.Println(err)
@@ -31,7 +32,7 @@ func (g *ChangeGoodsType) HandlePost(context constrain.IContext) (r constrain.IR
 		if err != nil {
 			return nil, err
 		}
-		file, err := oss.UploadFile(context, fileBytes, fmt.Sprintf("goodstype/%d", g.Post.ID), "", true, "badge")
+		file, err := oss.UploadFile(ctx, fileBytes, fmt.Sprintf("goodstype/%d", g.Post.ID), "", true, "badge")
 		if err != nil {
 
 			return nil, err
@@ -43,7 +44,7 @@ func (g *ChangeGoodsType) HandlePost(context constrain.IContext) (r constrain.IR
 		if err != nil {
 			return nil, err
 		}
-		file, err := oss.UploadFile(context, fileBytes, fmt.Sprintf("goodstype/%d", g.Post.ID), "", true, "image")
+		file, err := oss.UploadFile(ctx, fileBytes, fmt.Sprintf("goodstype/%d", g.Post.ID), "", true, "image")
 		if err != nil {
 
 			return nil, err
@@ -51,7 +52,7 @@ func (g *ChangeGoodsType) HandlePost(context constrain.IContext) (r constrain.IR
 		g.Post.GoodsType.Image = file.Data.Path
 	}
 
-	err = service.Goods.GoodsType.ChangeGoodsType(g.OIDMapping.OID, g.Post.GoodsType)
+	err = service.Goods.GoodsType.ChangeGoodsType(ctx, g.OIDMapping.OID, g.Post.GoodsType)
 	if err != nil {
 		return nil, err
 	}

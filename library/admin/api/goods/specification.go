@@ -40,11 +40,11 @@ type Specification struct {
 	Put model.Specification `method:"Put"`
 }
 
-func (g *Specification) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (g *Specification) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 
-	return result.NewData(map[string]any{"Specifications": dao.Find(db.Orm(), &model.Specification{}).Where(`"GoodsID"=?`, g.Get.GoodsID).Order(`"LabelIndex"::text asc`).List()}), err
+	return result.NewData(map[string]any{"Specifications": dao.Find(db.GetDB(ctx), &model.Specification{}).Where(`"GoodsID"=?`, g.Get.GoodsID).Order(`"LabelIndex"::text asc`).List()}), err
 }
-func (g *Specification) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
+func (g *Specification) HandlePut(ctx constrain.IContext) (r constrain.IResult, err error) {
 	if g.Put.ID == 0 {
 		return nil, errors.New("数据错误")
 	}
@@ -81,18 +81,18 @@ func (g *Specification) HandlePut(context constrain.IContext) (r constrain.IResu
 		s["Language"] = g.Put.Language
 	}
 
-	err = dao.UpdateByPrimaryKey(db.Orm(), &model.Specification{}, g.Put.ID, s)
+	err = dao.UpdateByPrimaryKey(db.GetDB(ctx), &model.Specification{}, g.Put.ID, s)
 	if err != nil {
 		return nil, err
 	}
-	return result.NewData(map[string]any{"Specifications": dao.Find(db.Orm(), &model.Specification{}).Where(`"GoodsID"=?`, g.Put.GoodsID).Order(`"LabelIndex"::text asc`).List()}), err
+	return result.NewData(map[string]any{"Specifications": dao.Find(db.GetDB(ctx), &model.Specification{}).Where(`"GoodsID"=?`, g.Put.GoodsID).Order(`"LabelIndex"::text asc`).List()}), err
 }
-func (g *Specification) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (g *Specification) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	if g.Post.GoodsID == 0 {
 		return nil, errors.New("数据错误")
 	}
 
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 
 	specificationList := dao.Find(tx, &model.Specification{}).Where(map[string]any{"GoodsID": g.Post.GoodsID}).List()
 
@@ -149,16 +149,16 @@ func (g *Specification) HandlePost(context constrain.IContext) (r constrain.IRes
 		}
 	}
 	tx.Commit()
-	return result.NewData(map[string]any{"Specifications": dao.Find(db.Orm(), &model.Specification{}).Where(`"GoodsID"=?`, g.Post.GoodsID).Order(`"LabelIndex"::text asc`).List()}), err
+	return result.NewData(map[string]any{"Specifications": dao.Find(db.GetDB(ctx), &model.Specification{}).Where(`"GoodsID"=?`, g.Post.GoodsID).Order(`"LabelIndex"::text asc`).List()}), err
 }
-func (g *Specification) HandleDelete(context constrain.IContext) (r constrain.IResult, err error) {
+func (g *Specification) HandleDelete(ctx constrain.IContext) (r constrain.IResult, err error) {
 	if g.Delete.ID == 0 {
 		return nil, errors.New("没找到记录")
 	}
-	has := dao.GetByPrimaryKey(db.Orm(), &model.Specification{}, g.Delete.ID).(*model.Specification)
-	err = service.Goods.Specification.DeleteSpecification(has.ID)
+	has := dao.GetByPrimaryKey(db.GetDB(ctx), &model.Specification{}, g.Delete.ID).(*model.Specification)
+	err = service.Goods.Specification.DeleteSpecification(ctx, has.ID)
 	if err != nil {
 		return nil, err
 	}
-	return result.NewData(map[string]any{"Specifications": dao.Find(db.Orm(), &model.Specification{}).Where(`"GoodsID"=?`, has.GoodsID).Order(`"LabelIndex"::text asc`).List()}), err
+	return result.NewData(map[string]any{"Specifications": dao.Find(db.GetDB(ctx), &model.Specification{}).Where(`"GoodsID"=?`, has.GoodsID).Order(`"LabelIndex"::text asc`).List()}), err
 }

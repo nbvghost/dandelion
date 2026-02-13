@@ -1,13 +1,14 @@
 package user
 
 import (
+	"log"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
-	"log"
 )
 
 type Address struct {
@@ -47,38 +48,38 @@ type Address struct {
 	} `method:"Delete"`
 }
 
-func (m *Address) HandleDelete(context constrain.IContext) (constrain.IResult, error) {
+func (m *Address) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) {
 	where := dao.NewWhere()
-	where.Eq(`"UserID"`, context.UID())
+	where.Eq(`"UserID"`, ctx.UID())
 
-	err := dao.DeleteBy(db.Orm(), &model.Address{}, map[string]any{"UserID": context.UID(), "ID": m.Delete.ID})
+	err := dao.DeleteBy(db.GetDB(ctx), &model.Address{}, map[string]any{"UserID": ctx.UID(), "ID": m.Delete.ID})
 	if err != nil {
 		return nil, err
 	}
 
 	w, vs := where.Text()
-	addressList := dao.Find(db.Orm(), &model.Address{}).Where(w, vs...).List()
+	addressList := dao.Find(db.GetDB(ctx), &model.Address{}).Where(w, vs...).List()
 	return result.NewData(map[string]any{"AddressList": addressList}), nil
 }
 
-func (m *Address) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Address) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	where := dao.NewWhere()
-	where.Eq(`"UserID"`, context.UID())
+	where.Eq(`"UserID"`, ctx.UID())
 	if m.Get.ID > 0 {
 		where.Eq(`"ID"`, m.Get.ID)
 	}
 	w, vs := where.Text()
-	addressList := dao.Find(db.Orm(), &model.Address{}).Where(w, vs...).List()
+	addressList := dao.Find(db.GetDB(ctx), &model.Address{}).Where(w, vs...).List()
 	return result.NewData(map[string]any{"AddressList": addressList}), nil
 }
 
-func (m *Address) HandlePut(context constrain.IContext) (constrain.IResult, error) {
-	contextValue := contexext.FromContext(context)
+func (m *Address) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
+	contextValue := contexext.FromContext(ctx)
 	log.Println(contextValue)
 
 	address := map[string]any{
 		"ID":              m.Put.ID,
-		"UserID":          context.UID(),
+		"UserID":          ctx.UID(),
 		"Name":            m.Put.Name,
 		"CountyCode":      m.Put.CountyCode,
 		"CountyName":      m.Put.CountyName,
@@ -92,7 +93,7 @@ func (m *Address) HandlePut(context constrain.IContext) (constrain.IResult, erro
 		"DefaultShipping": m.Put.DefaultShipping,
 	}
 
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 	if m.Put.DefaultBilling || m.Put.DefaultShipping {
 		changeValue := map[string]any{}
 		if m.Put.DefaultBilling {
@@ -102,7 +103,7 @@ func (m *Address) HandlePut(context constrain.IContext) (constrain.IResult, erro
 			changeValue["DefaultShipping"] = false
 		}
 		if len(changeValue) > 0 {
-			err := dao.UpdateBy(tx, &model.Address{}, changeValue, map[string]any{"UserID": context.UID()})
+			err := dao.UpdateBy(tx, &model.Address{}, changeValue, map[string]any{"UserID": ctx.UID()})
 			if err != nil {
 				tx.Rollback()
 				return nil, err
@@ -136,7 +137,7 @@ func (m *Address) HandlePost(context constrain.IContext) (constrain.IResult, err
 		DefaultShipping: m.Post.DefaultShipping,
 	}
 
-	tx := db.Orm().Begin()
+	tx := db.GetDB(context).Begin()
 	if m.Post.DefaultBilling || m.Post.DefaultShipping {
 		changeValue := map[string]any{}
 		if m.Post.DefaultBilling {

@@ -3,6 +3,8 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/entity/sqltype"
@@ -11,7 +13,6 @@ import (
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service"
-	"strings"
 )
 
 type LeaveMessage struct {
@@ -29,8 +30,8 @@ func (m *LeaveMessage) Handle(context constrain.IContext) (r constrain.IResult, 
 	panic("implement me")
 }
 
-func (m *LeaveMessage) HandlePost(context constrain.IContext) (constrain.IResult, error) {
-	contextValue := contexext.FromContext(context)
+func (m *LeaveMessage) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
+	contextValue := contexext.FromContext(ctx)
 	leaveMessage := &model.LeaveMessage{}
 	leaveMessage.OID = m.Organization.ID
 	leaveMessage.Name = m.Post.Name
@@ -57,14 +58,14 @@ func (m *LeaveMessage) HandlePost(context constrain.IContext) (constrain.IResult
 	extendByte, _ := json.Marshal(&extend)
 	leaveMessage.Extend = string(extendByte)
 
-	err := db.Orm().Model(model.LeaveMessage{}).Create(leaveMessage).Error
+	err := db.GetDB(ctx).Model(model.LeaveMessage{}).Create(leaveMessage).Error
 	if err != nil {
 		return nil, err
 	}
 
 	{
 		botMessage := strings.Builder{}
-		botMessage.WriteString(fmt.Sprintf("网站[%s]有新的消息，请注意查收。\n", context.AppName()))
+		botMessage.WriteString(fmt.Sprintf("网站[%s]有新的消息，请注意查收。\n", ctx.AppName()))
 		botMessage.WriteString(fmt.Sprintf(">姓名：%s\n", leaveMessage.Name))
 		botMessage.WriteString(fmt.Sprintf(">Email：%s\n", leaveMessage.Email))
 		botMessage.WriteString(fmt.Sprintf(">内容：%s\n", leaveMessage.Content))

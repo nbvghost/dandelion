@@ -6,6 +6,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/library/contexext"
@@ -13,12 +20,6 @@ import (
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service/internal/network"
 	"github.com/pkg/errors"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"net/url"
-	"strings"
-	"time"
 
 	"github.com/nbvghost/dandelion/library/result"
 
@@ -72,7 +73,7 @@ func (s Service) SendPhoneVerifyCode(ctx constrain.IContext, oid dao.PrimaryKey,
 	if err != nil {
 		return err
 	}
-	sms := network.NewSMS(oid)
+	sms := network.NewSMS(ctx, oid)
 	err = sms.Send("SMS_4785426", phone, map[string]any{"code": codes, "product": "手机号"})
 	if err != nil {
 		return err

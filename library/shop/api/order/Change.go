@@ -10,7 +10,7 @@ import (
 
 type Change struct {
 	//WechatConfig *model.WechatConfig `mapping:""`
-	Put          struct {
+	Put struct {
 		Action        string         `form:"Action"`
 		OrdersID      dao.PrimaryKey `form:"OrdersID"`
 		OrdersGoodsID dao.PrimaryKey `form:"OrdersGoodsID"`
@@ -32,7 +32,7 @@ func (m *Change) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
 		//OrdersGoodsID := object.ParseUint(context.Request.FormValue("OrdersGoodsID"))
 		//ShipName := context.Request.FormValue("ShipName")
 		//ShipNo := context.Request.FormValue("ShipNo")
-		err, info := service.Order.Orders.RefundShip(dao.PrimaryKey(m.Put.OrdersID), m.Put.ShipKey, m.Put.ShipName, m.Put.ShipNo)
+		err, info := service.Order.Orders.RefundShip(ctx, dao.PrimaryKey(m.Put.OrdersID), m.Put.ShipKey, m.Put.ShipName, m.Put.ShipNo)
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, nil
 	case "AskRefund":
 		//OrdersGoodsID, _ := strconv.ParseUint(context.Request.FormValue("OrdersGoodsID"), 10, 64)
@@ -40,12 +40,12 @@ func (m *Change) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
 		//RefundInfoJson := context.Request.FormValue("RefundInfo")
 		//var refundInfo sqltype.RefundInfo //{"HasGoods":true,"Reason":"dsfdsfds fdsfad"}
 		//util.JSONToStruct(m.Put.RefundInfo, &refundInfo)
-		err, info := service.Order.Orders.AskRefund(m.Put.OrdersID, m.Put.OrdersGoodsID, m.Put.HasGoods, m.Put.Reason)
+		err, info := service.Order.Orders.AskRefund(ctx, m.Put.OrdersID, m.Put.OrdersGoodsID, m.Put.HasGoods, m.Put.Reason)
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, err
 	case "TakeDeliver":
 		//ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
 		//ID := object.ParseUint(context.Request.FormValue("ID"))
-		err := service.Order.Orders.TakeDeliver(dao.PrimaryKey(m.Put.ID))
+		err := service.Order.Orders.TakeDeliver(ctx, dao.PrimaryKey(m.Put.ID))
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "确认收货成功", nil)}, err
 	case "Cancel":
 		//ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)

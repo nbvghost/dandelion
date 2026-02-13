@@ -1,17 +1,20 @@
 package content
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/nbvghost/dandelion/domain/cache"
 
-	"github.com/nbvghost/dandelion/library/db"
-	"github.com/nbvghost/dandelion/repository"
-	"go.uber.org/zap"
 	"log"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/repository"
+	"go.uber.org/zap"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/tag"
@@ -27,9 +30,9 @@ import (
 	"github.com/nbvghost/tool/object"
 )
 
-func (m ContentService) FindContentByTag(OID dao.PrimaryKey, tag extends.Tag, _pageIndex int, orders ...dao.Sort) (pageIndex, pageSize int, total int64, list []*model.Content, err error) {
+func (m ContentService) FindContentByTag(ctx context.Context, OID dao.PrimaryKey, tag extends.Tag, _pageIndex int, orders ...dao.Sort) (pageIndex, pageSize int, total int64, list []*model.Content, err error) {
 	//select * from "Content" where array_length("Tags",1) is null;
-	db := db.Orm().Model(model.Content{}).Where(`"OID"=?`, OID).
+	db := db.GetDB(ctx).Model(model.Content{}).Where(`"OID"=?`, OID).
 		Where(`array_length("Tags",1) is not null`).
 		Where(`"Tags" @> array[?]`, tag.Name)
 
@@ -46,28 +49,28 @@ func (m ContentService) FindContentByTag(OID dao.PrimaryKey, tag extends.Tag, _p
 
 	return
 }
-func (m ContentService) FindContentTags(OID dao.PrimaryKey) ([]extends.Tag, error) {
+func (m ContentService) FindContentTags(ctx context.Context, OID dao.PrimaryKey) ([]extends.Tag, error) {
 	//SELECT unnest("Tags") as Tag,count("Tags") as Count FROM "Content" where  group by unnest("Tags");
 	var tags []extends.Tag
-	err := db.Orm().Model(model.Content{}).Select(`unnest("Tags") as "Name",count("Tags") as "Count"`).Where(map[string]interface{}{
+	err := db.GetDB(ctx).Model(model.Content{}).Select(`unnest("Tags") as "Name",count("Tags") as "Count"`).Where(map[string]interface{}{
 		"OID": OID,
 	}).Where(`array_length("Tags",1)>0`).Group(`unnest("Tags")`).Find(&tags).Error
 	tags = tag.CreateUri(tags)
 	return tags, err
 }
-func (m ContentService) FindContentTagsByContentItemID(OID, ContentItemID dao.PrimaryKey) []extends.Tag {
+func (m ContentService) FindContentTagsByContentItemID(ctx context.Context, OID, ContentItemID dao.PrimaryKey) []extends.Tag {
 	//SELECT unnest("Tags") as Tag,count("Tags") as Count FROM "Content" where  group by unnest("Tags");
 	var tags []extends.Tag
-	db.Orm().Model(model.Content{}).Select(`unnest("Tags") as "Name",count("Tags") as "Count"`).Where(map[string]interface{}{
+	db.GetDB(ctx).Model(model.Content{}).Select(`unnest("Tags") as "Name",count("Tags") as "Count"`).Where(map[string]interface{}{
 		"OID":           OID,
 		"ContentItemID": ContentItemID,
 	}).Where(`array_length("Tags",1)>0`).Group(`unnest("Tags")`).Find(&tags)
 	tags = tag.CreateUri(tags)
 	return tags
 }
-func (m ContentService) PaginationContent(OID, ContentItemID, ContentSubTypeID dao.PrimaryKey, pageIndex int, pageSize int) (int, int, int, []*model.Content) {
+func (m ContentService) PaginationContent(ctx context.Context, OID, ContentItemID, ContentSubTypeID dao.PrimaryKey, pageIndex int, pageSize int) (int, int, int, []*model.Content) {
 	if ContentItemID == 0 {
-		db := dao.Find(db.Orm(), &model.Content{}).Where(`"OID"=?`, OID)
+		db := dao.Find(db.GetDB(ctx), &model.Content{}).Where(`"OID"=?`, OID)
 		total := db.Limit(pageIndex, pageSize)
 		mlist := db.Order(`"CreatedAt" desc`).List()
 		list := make([]*model.Content, 0)
@@ -77,7 +80,7 @@ func (m ContentService) PaginationContent(OID, ContentItemID, ContentSubTypeID d
 		return pageIndex, pageSize, int(total), list
 	}
 	if ContentSubTypeID == 0 {
-		db := dao.Find(db.Orm(), &model.Content{}).Where(`"OID"=? and "ContentItemID"=?`, OID, ContentItemID)
+		db := dao.Find(db.GetDB(ctx), &model.Content{}).Where(`"OID"=? and "ContentItemID"=?`, OID, ContentItemID)
 		total := db.Limit(pageIndex, pageSize)
 		mlist := db.Order(`"CreatedAt" desc`).List()
 		list := make([]*model.Content, 0)
@@ -87,10 +90,10 @@ func (m ContentService) PaginationContent(OID, ContentItemID, ContentSubTypeID d
 		return pageIndex, pageSize, int(total), list
 		//return repository.Content.FindByOIDAndContentItemIDLimit(OID, ContentItemID, params.NewLimit(pageIndex, 20))
 	}
-	contentSubTypeIDs := repository.ContentSubTypeDao.GetContentSubTypeAllIDByID(ContentItemID, ContentSubTypeID)
+	contentSubTypeIDs := repository.ContentSubTypeDao.GetContentSubTypeAllIDByID(ctx, ContentItemID, ContentSubTypeID)
 
 	var total int64
-	db := db.Orm().Model(model.Content{}).Where(map[string]interface{}{
+	db := db.GetDB(ctx).Model(model.Content{}).Where(map[string]interface{}{
 		"OID":           OID,
 		"ContentItemID": ContentItemID,
 	}).Where(`"ContentSubTypeID" in (?)`, contentSubTypeIDs)
@@ -101,8 +104,8 @@ func (m ContentService) PaginationContent(OID, ContentItemID, ContentSubTypeID d
 
 	return pageIndex, pageSize, int(total), list
 }
-func (m ContentService) GetContentTypeByID(OID dao.PrimaryKey, ContentItemID, ContentSubTypeID dao.PrimaryKey) (model.ContentItem, model.ContentSubType) {
-	Orm := db.Orm()
+func (m ContentService) GetContentTypeByID(ctx context.Context, OID dao.PrimaryKey, ContentItemID, ContentSubTypeID dao.PrimaryKey) (model.ContentItem, model.ContentSubType) {
+	Orm := db.GetDB(ctx)
 	var item model.ContentItem
 	var itemSub model.ContentSubType
 
@@ -118,15 +121,15 @@ func (m ContentService) GetContentTypeByID(OID dao.PrimaryKey, ContentItemID, Co
 	return item, itemSub
 }
 
-func (m ContentService) SaveContentSubType(OID dao.PrimaryKey, item *model.ContentSubType) error {
-	Orm := db.Orm()
-	mm := repository.ContentSubTypeDao.GetContentSubTypeByName(OID, item.ContentItemID, item.ID, item.Name)
+func (m ContentService) SaveContentSubType(ctx context.Context, OID dao.PrimaryKey, item *model.ContentSubType) error {
+	Orm := db.GetDB(ctx)
+	mm := repository.ContentSubTypeDao.GetContentSubTypeByName(ctx, OID, item.ContentItemID, item.ID, item.Name)
 	if !mm.IsZero() {
 		return errors.Errorf("名字重复")
 	}
 
 	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(item.Name)
-	g := repository.ContentSubTypeDao.GetContentSubTypeByUri(OID, item.ContentItemID, item.ID, uri)
+	g := repository.ContentSubTypeDao.GetContentSubTypeByUri(ctx, OID, item.ContentItemID, item.ID, uri)
 	if !g.IsZero() {
 		uri = fmt.Sprintf("%s-%d", uri, time.Now().Unix())
 	}
@@ -135,12 +138,12 @@ func (m ContentService) SaveContentSubType(OID dao.PrimaryKey, item *model.Conte
 
 	if item.IsZero() {
 		item.Sort = time.Now().Unix()
-		contentItem := repository.ContentItemDao.GetContentItemByID(item.ContentItemID)
+		contentItem := repository.ContentItemDao.GetContentItemByID(ctx, item.ContentItemID)
 		if contentItem.IsZero() {
 			return errors.Errorf("类型不存在:%d", item.ContentItemID)
 		}
 		if !item.ParentContentSubTypeID.IsZero() {
-			cst := repository.ContentSubTypeDao.GetContentSubTypeByID(item.ParentContentSubTypeID)
+			cst := repository.ContentSubTypeDao.GetContentSubTypeByID(ctx, item.ParentContentSubTypeID)
 			if cst.IsZero() {
 				return errors.Errorf("父类不存在:%d", item.ContentItemID)
 			}
@@ -159,14 +162,14 @@ func (m ContentService) SaveContentSubType(OID dao.PrimaryKey, item *model.Conte
 
 	return nil
 }
-func (m ContentService) SaveContentItem(OID dao.PrimaryKey, item *model.ContentItem) error {
-	Orm := db.Orm()
+func (m ContentService) SaveContentItem(ctx context.Context, OID dao.PrimaryKey, item *model.ContentItem) error {
+	Orm := db.GetDB(ctx)
 
 	if len(item.Name) == 0 {
 		return errors.Errorf("请指定名称")
 	}
 
-	have := repository.ContentItemDao.ExistContentItemByNameAndOID(OID, item.ID, item.Name)
+	have := repository.ContentItemDao.ExistContentItemByNameAndOID(ctx, OID, item.ID, item.Name)
 	if !have.IsZero() {
 		return &result.ActionResult{
 			Code:    result.Fail,
@@ -178,14 +181,14 @@ func (m ContentService) SaveContentItem(OID dao.PrimaryKey, item *model.ContentI
 	item.OID = OID
 
 	uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(item.Name)
-	g := repository.ContentItemDao.GetContentItemByUri(OID, item.ID, uri)
+	g := repository.ContentItemDao.GetContentItemByUri(ctx, OID, item.ID, uri)
 	if !g.IsZero() {
 		uri = fmt.Sprintf("%s-%s", uri, time.Now().Format("20060102150405"))
 	}
 	item.Uri = uri
 
 	if item.ID == 0 {
-		contentItemList := repository.ContentItemDao.ListContentItemByOID(OID)
+		contentItemList := repository.ContentItemDao.ListContentItemByOID(ctx, OID)
 		if len(contentItemList) > 0 {
 			item.Sort = contentItemList[len(contentItemList)-1].Sort + 1
 		}
@@ -200,7 +203,7 @@ func (m ContentService) SaveContentItem(OID dao.PrimaryKey, item *model.ContentI
 			}
 		}
 		if strings.EqualFold(string(mt.Type), string(model.ContentTypeBlog)) || strings.EqualFold(string(mt.Type), string(model.ContentTypeProducts)) {
-			haveList := repository.ContentItemDao.FindContentItemByType(mt.Type, OID)
+			haveList := repository.ContentItemDao.FindContentItemByType(ctx, mt.Type, OID)
 			if len(haveList) != 0 {
 				return &result.ActionResult{
 					Code:    result.Fail,
@@ -241,7 +244,7 @@ func (m ContentService) SaveContentItem(OID dao.PrimaryKey, item *model.ContentI
 		Data:    nil,
 	}
 }
-func (m ContentService) ChangeContentConfig(OID dao.PrimaryKey, fieldName, fieldValue string) error {
+func (m ContentService) ChangeContentConfig(ctx context.Context, OID dao.PrimaryKey, fieldName, fieldValue string) error {
 
 	changeMap := make(map[string]interface{})
 
@@ -278,7 +281,7 @@ func (m ContentService) ChangeContentConfig(OID dao.PrimaryKey, fieldName, field
 		changeMap["FocusPicture"] = focusPicture
 
 	}
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	err := Orm.Model(&model.ContentConfig{}).Where(map[string]interface{}{"OID": OID}).Updates(changeMap).Error
 	return err
 }
@@ -286,7 +289,7 @@ func (m ContentService) ChangeContentConfig(OID dao.PrimaryKey, fieldName, field
 //-----------------------------------------Content----------------------------------------------------------
 
 // AddSpiderContent -----------------------
-func (m ContentService) AddSpiderContent(OID dao.PrimaryKey, ContentName string, ContentSubTypeName string, Author, Title string, FromUrl string, Introduce string, Picture string, Content string, CreatedAt time.Time) error {
+func (m ContentService) AddSpiderContent(ctx context.Context, OID dao.PrimaryKey, ContentName string, ContentSubTypeName string, Author, Title string, FromUrl string, Introduce string, Picture string, Content string, CreatedAt time.Time) error {
 	var article model.Content
 	article.Title = Title
 	article.FromUrl = FromUrl
@@ -304,15 +307,15 @@ func (m ContentService) AddSpiderContent(OID dao.PrimaryKey, ContentName string,
 	article.Picture = Picture
 	article.Content = Content
 
-	contentType := repository.ContentTypeDao.ListContentTypeByType(play.ContentTypeArticles)
+	contentType := repository.ContentTypeDao.ListContentTypeByType(ctx, play.ContentTypeArticles)
 
-	content := repository.ContentItemDao.ExistContentItemByNameAndOID(OID, 0, ContentName)
+	content := repository.ContentItemDao.ExistContentItemByNameAndOID(ctx, OID, 0, ContentName)
 	if content.ID == 0 {
 		content.OID = OID
 		content.Type = contentType.Type
 		content.Name = ContentName
 		content.ContentTypeID = contentType.ID
-		err := dao.Save(db.Orm(), &content)
+		err := dao.Save(db.GetDB(ctx), &content)
 		if err != nil {
 			return err
 		}
@@ -320,11 +323,11 @@ func (m ContentService) AddSpiderContent(OID dao.PrimaryKey, ContentName string,
 	}
 
 	article.ContentItemID = content.ID
-	contentSubType := repository.ContentSubTypeDao.FindContentSubTypesByNameAndContentItemID(ContentSubTypeName, content.ID)
+	contentSubType := repository.ContentSubTypeDao.FindContentSubTypesByNameAndContentItemID(ctx, ContentSubTypeName, content.ID)
 	if contentSubType.ID == 0 {
 		contentSubType.Name = ContentSubTypeName
 		contentSubType.ContentItemID = content.ID
-		err := dao.Save(db.Orm(), &contentSubType)
+		err := dao.Save(db.GetDB(ctx), &contentSubType)
 		if err != nil {
 			return err
 		}
@@ -332,7 +335,7 @@ func (m ContentService) AddSpiderContent(OID dao.PrimaryKey, ContentName string,
 
 	article.Author = Author
 	article.ContentSubTypeID = contentSubType.ID
-	err := m.SaveContent(OID, &article)
+	err := m.SaveContent(ctx, OID, &article)
 	if err != nil {
 		return err
 	}
@@ -426,7 +429,7 @@ func (m ContentService) FindContentByTypeID(menusData *extends.MenusData, Conten
 
 	return content
 }
-func (m ContentService) FindContentListByTypeID(menusData *extends.MenusData, ContentItemID, ContentSubTypeID, ContentSubTypeChildID dao.PrimaryKey, _Page int, _Limit int) result.Pager {
+func (m ContentService) FindContentListByTypeID(ctx context.Context, menusData *extends.MenusData, ContentItemID, ContentSubTypeID, ContentSubTypeChildID dao.PrimaryKey, _Page int, _Limit int) result.Pager {
 
 	var pager result.Pager
 
@@ -439,20 +442,20 @@ func (m ContentService) FindContentListByTypeID(menusData *extends.MenusData, Co
 		if len(menusData.List) > 0 {
 
 		}
-		db := db.Orm().Model(&model.Content{}).Where(`"ContentItemID"=?`, ContentItemID).
+		db := db.GetDB(ctx).Model(&model.Content{}).Where(`"ContentItemID"=?`, ContentItemID).
 			Order(`"CreatedAt" desc`).Order(`"ID" desc`)
 		return model.Paging(db, _Page, _Limit, model.Content{})
 	} else {
 
 		if ContentSubTypeChildID > 0 {
-			db := db.Orm().Model(&model.Content{}).Where(`"ContentItemID"=? and "ContentSubTypeID"=?`, ContentItemID, ContentSubTypeChildID).
+			db := db.GetDB(ctx).Model(&model.Content{}).Where(`"ContentItemID"=? and "ContentSubTypeID"=?`, ContentItemID, ContentSubTypeChildID).
 				Order(`"CreatedAt" desc`).Order(`"ID" desc`)
 			return model.Paging(db, _Page, _Limit, model.Content{})
 		} else {
 
-			ContentSubTypeIDList := repository.ContentSubTypeDao.GetContentSubTypeAllIDByID(ContentItemID, ContentSubTypeID)
+			ContentSubTypeIDList := repository.ContentSubTypeDao.GetContentSubTypeAllIDByID(ctx, ContentItemID, ContentSubTypeID)
 
-			db := db.Orm().Model(&model.Content{}).
+			db := db.GetDB(ctx).Model(&model.Content{}).
 				Where(`"ContentItemID"=? and "ContentSubTypeID" in (?)`, ContentItemID, ContentSubTypeIDList).
 				Order(`"CreatedAt" desc`).Order(`"ID" desc`)
 			return model.Paging(db, _Page, _Limit, model.Content{})
@@ -461,14 +464,14 @@ func (m ContentService) FindContentListByTypeID(menusData *extends.MenusData, Co
 
 }
 
-func (m ContentService) FindContentListForLeftRight(ContentItemID, ContentSubTypeID dao.PrimaryKey, ContentID dao.PrimaryKey, ContentCreatedAt time.Time) [2]*model.Content {
+func (m ContentService) FindContentListForLeftRight(ctx context.Context, ContentItemID, ContentSubTypeID dao.PrimaryKey, ContentID dao.PrimaryKey, ContentCreatedAt time.Time) [2]*model.Content {
 	var contentList [2]*model.Content
 	if ContentItemID == 0 {
 		return contentList
 	}
 	var ContentSubTypeIDList []dao.PrimaryKey
 	if ContentSubTypeID > 0 {
-		ContentSubTypeIDList = repository.ContentSubTypeDao.GetContentSubTypeAllIDByID(ContentItemID, ContentSubTypeID)
+		ContentSubTypeIDList = repository.ContentSubTypeDao.GetContentSubTypeAllIDByID(ctx, ContentItemID, ContentSubTypeID)
 	}
 
 	ContentSubTypeIDListStr := make([]string, 0)
@@ -486,11 +489,11 @@ func (m ContentService) FindContentListForLeftRight(ContentItemID, ContentSubTyp
 
 	var left model.Content
 	var right model.Content
-	err := db.Orm().Raw(`SELECT * FROM "Content" WHERE `+whereSql+` and "ID"<>? and "CreatedAt">=? ORDER BY "CreatedAt","ID" limit 1`, ContentID, ContentCreatedAt).Scan(&left).Error
+	err := db.GetDB(ctx).Raw(`SELECT * FROM "Content" WHERE `+whereSql+` and "ID"<>? and "CreatedAt">=? ORDER BY "CreatedAt","ID" limit 1`, ContentID, ContentCreatedAt).Scan(&left).Error
 	if err != nil {
 		log.Println(err)
 	}
-	err = db.Orm().Raw(`SELECT * FROM "Content" WHERE `+whereSql+` and "ID"<>? and "CreatedAt"<=? ORDER BY "CreatedAt" desc,"ID" desc limit 1`, ContentID, ContentCreatedAt).Scan(&right).Error
+	err = db.GetDB(ctx).Raw(`SELECT * FROM "Content" WHERE `+whereSql+` and "ID"<>? and "CreatedAt"<=? ORDER BY "CreatedAt" desc,"ID" desc limit 1`, ContentID, ContentCreatedAt).Scan(&right).Error
 	if err != nil {
 		log.Println(err)
 	}
@@ -500,7 +503,7 @@ func (m ContentService) FindContentListForLeftRight(ContentItemID, ContentSubTyp
 
 func (m ContentService) GetContentAndAddLook(ctx constrain.IContext, ArticleID dao.PrimaryKey) *model.Content {
 
-	article := dao.GetByPrimaryKey(db.Orm(), &model.Content{}, ArticleID).(*model.Content) //SelectOne(user, "select * from User where Email=?", Email)
+	article := dao.GetByPrimaryKey(db.GetDB(ctx), &model.Content{}, ArticleID).(*model.Content) //SelectOne(user, "select * from User where Email=?", Email)
 
 	lc, _ := ctx.Redis().Get(ctx, redis.NewArticleLookCount(ctx.UID(), ArticleID))
 
@@ -510,7 +513,7 @@ func (m ContentService) GetContentAndAddLook(ctx constrain.IContext, ArticleID d
 		endDayTime := time.Date(tomorrowTime.Year(), tomorrowTime.Month(), tomorrowTime.Day(), 0, 0, 0, 0, tomorrowTime.Location())
 		//context.Session.Attributes.Put(gweb.AttributesKey(strconv.Itoa(int(ArticleID))), "CountView")
 		ctx.Redis().Set(ctx, redis.NewArticleLookCount(ctx.UID(), ArticleID), "true", endDayTime.Sub(now))
-		err := dao.UpdateByPrimaryKey(db.Orm(), &model.Content{}, ArticleID, map[string]interface{}{"CountView": article.CountView + 1})
+		err := dao.UpdateByPrimaryKey(db.GetDB(ctx), &model.Content{}, ArticleID, map[string]interface{}{"CountView": article.CountView + 1})
 		if err != nil {
 			ctx.Logger().Error("GetContentAndAddLook", zap.Error(err))
 		}
@@ -519,8 +522,8 @@ func (m ContentService) GetContentAndAddLook(ctx constrain.IContext, ArticleID d
 
 		//if context.Session.Attributes.Get(play.SessionUser) != nil {
 		//user := context.Session.Attributes.Get(play.SessionUser).(*model.User)
-		//err = service.Journal.AddScoreJournal(db.Orm(), ctx.UID(), "看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)), play.ScoreJournal_Type_Look_Article, int64(LookArticle), extends.KV{Key: "ArticleID", Value: article.ID})
-		err = m.Journal.AddScoreJournal(db.Orm(), ctx.UID(), "看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)), model.ScoreJournal_Type_Look_Article, int64(LookArticle))
+		//err = service.Journal.AddScoreJournal(db.GetDB(ctx), ctx.UID(), "看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)), play.ScoreJournal_Type_Look_Article, int64(LookArticle), extends.KV{Key: "ArticleID", Value: article.ID})
+		err = m.Journal.AddScoreJournal(db.GetDB(ctx), ctx.UID(), "看文章送积分", "看文章/"+strconv.Itoa(int(article.ID)), model.ScoreJournal_Type_Look_Article, int64(LookArticle))
 		if err != nil {
 			ctx.Logger().Error("GetContentAndAddLook", zap.Error(err))
 		}
@@ -530,26 +533,26 @@ func (m ContentService) GetContentAndAddLook(ctx constrain.IContext, ArticleID d
 	return article
 }
 
-func (m ContentService) SaveContent(OID dao.PrimaryKey, article *model.Content) error {
-	Orm := db.Orm()
+func (m ContentService) SaveContent(ctx context.Context, OID dao.PrimaryKey, article *model.Content) error {
+	Orm := db.GetDB(ctx)
 	if article.ContentItemID == 0 {
 		return errors.Errorf("必须指定ContentItemID")
 	}
 
-	contentItem := repository.ContentItemDao.GetContentItemByID(article.ContentItemID)
+	contentItem := repository.ContentItemDao.GetContentItemByID(ctx, article.ContentItemID)
 	switch contentItem.Type {
 
 	case model.ContentTypeContent:
 		if article.ContentSubTypeID == 0 {
 			//return &result.ActionResult{Code: result.Fail, Message: fmt.Sprintf("%v内容请指定类型", contentItem.Type)}
 		} else {
-			contentSubType := repository.ContentSubTypeDao.GetContentSubTypeByID(article.ContentSubTypeID)
+			contentSubType := repository.ContentSubTypeDao.GetContentSubTypeByID(ctx, article.ContentSubTypeID)
 
 			if contentSubType.ID == 0 {
 				return errors.Errorf("无效的类别%v", contentSubType.ID)
 			}
 
-			content := repository.ContentDao.FindContentByContentItemIDAndContentSubTypeID(article.ContentItemID, article.ContentSubTypeID)
+			content := repository.ContentDao.FindContentByContentItemIDAndContentSubTypeID(ctx, article.ContentItemID, article.ContentSubTypeID)
 			if content.ID > 0 && article.ID != content.ID {
 				return errors.Errorf("添加的内容与原内容冲突")
 			}
@@ -561,13 +564,13 @@ func (m ContentService) SaveContent(OID dao.PrimaryKey, article *model.Content) 
 		return errors.Errorf("添加失败,存在相同的标题")
 	}
 	if g.IsZero() {
-		g = repository.ContentDao.GetContentByID(article.ID)
+		g = repository.ContentDao.GetContentByID(ctx, article.ID)
 	}
 
 	article.OID = OID
 	if len(g.Uri) == 0 {
 		uri := cache.Cache.ChinesePinyinCache.AutoDetectUri(article.Title)
-		hasContent := repository.ContentDao.GetContentByUri(OID, uri)
+		hasContent := repository.ContentDao.GetContentByUri(ctx, OID, uri)
 		if !hasContent.IsZero() && hasContent.ID != g.ID {
 			return errors.Errorf("添加失败,存在相同的标题")
 		}
@@ -600,21 +603,21 @@ func (m ContentService) SaveContent(OID dao.PrimaryKey, article *model.Content) 
 	return err
 }
 
-func (m ContentService) GalleryBlock(OID dao.PrimaryKey, num int) ([]model.ContentItem, []model.Content) {
-	contentItemList := repository.ContentItemDao.FindContentItemByType(model.ContentTypeGallery, OID)
+func (m ContentService) GalleryBlock(ctx context.Context, OID dao.PrimaryKey, num int) ([]model.ContentItem, []model.Content) {
+	contentItemList := repository.ContentItemDao.FindContentItemByType(ctx, model.ContentTypeGallery, OID)
 	contentItemIDList := make([]dao.PrimaryKey, 0)
 	for _, item := range contentItemList {
 		contentItemIDList = append(contentItemIDList, item.ID)
 	}
-	contentList := repository.ContentDao.FindContentByIDAndNum(contentItemIDList, num)
+	contentList := repository.ContentDao.FindContentByIDAndNum(ctx, contentItemIDList, num)
 	return contentItemList, contentList
 }
 
-func (m ContentService) FindContentByTypeTemplate(oid dao.PrimaryKey, contentType string, templateName string, pageIndex int) (int64, []*model.Content) {
+func (m ContentService) FindContentByTypeTemplate(ctx context.Context, oid dao.PrimaryKey, contentType string, templateName string, pageIndex int) (int64, []*model.Content) {
 	var list []*model.Content
 	var total int64
 
-	d := db.Orm().Model(model.Content{}).Select(`"Content".*`).
+	d := db.GetDB(ctx).Model(model.Content{}).Select(`"Content".*`).
 		Joins(`left join "ContentItem" on "Content"."ContentItemID"="ContentItem"."ID"`).Order(`"Content"."CreatedAt" desc`).
 		Where(`"Content"."OID"=? and "ContentItem"."Type"=? and "ContentItem"."TemplateName"=?`, oid, contentType, templateName)
 

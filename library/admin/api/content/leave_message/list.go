@@ -2,6 +2,7 @@ package leave_message
 
 import (
 	"fmt"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -31,7 +32,7 @@ func (m *List) Handle(context constrain.IContext) (r constrain.IResult, err erro
 	panic("implement me")
 }
 
-func (m *List) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *List) HandlePut(ctx constrain.IContext) (r constrain.IResult, err error) {
 
 	var pageSize = m.Put.PageSize
 	var pageIndex = m.Put.PageNo - 1
@@ -44,7 +45,7 @@ func (m *List) HandlePut(context constrain.IContext) (r constrain.IResult, err e
 		pageIndex = 0
 	}
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	var contents []model.LeaveMessage
 
 	db := Orm.Model(model.LeaveMessage{}).Where(`"OID"=?`, m.Organization.ID)

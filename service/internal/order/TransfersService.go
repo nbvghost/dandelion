@@ -1,8 +1,10 @@
 package order
 
 import (
+	"context"
 	"errors"
 	"fmt"
+
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/journal"
 	"github.com/nbvghost/dandelion/service/internal/wechat"
@@ -25,8 +27,8 @@ type TransfersService struct {
 	Wx      wechat.WxService
 }
 
-func (m TransfersService) UserTransfers(UserID dao.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
-	Orm := db.Orm().Begin()
+func (m TransfersService) UserTransfers(ctx context.Context, UserID dao.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
+	Orm := db.GetDB(ctx).Begin()
 
 	//var user model.User
 	user := dao.GetByPrimaryKey(Orm, entity.User, UserID).(*model.User)
@@ -85,8 +87,8 @@ func (m TransfersService) UserTransfers(UserID dao.PrimaryKey, ReUserName, IP st
 	}
 
 }
-func (m TransfersService) StoreTransfers(StoreID dao.PrimaryKey, UserID dao.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
-	Orm := db.Orm().Begin()
+func (m TransfersService) StoreTransfers(ctx context.Context, StoreID dao.PrimaryKey, UserID dao.PrimaryKey, ReUserName, IP string, wxConfig *model.WechatConfig) error {
+	Orm := db.GetDB(ctx).Begin()
 
 	//var store model.Store
 	store := dao.GetByPrimaryKey(Orm, entity.Store, StoreID).(*model.Store)

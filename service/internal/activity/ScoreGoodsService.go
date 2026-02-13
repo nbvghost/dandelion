@@ -1,10 +1,12 @@
 package activity
 
 import (
+	"context"
 	"errors"
+	"time"
+
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/journal"
-	"time"
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -17,9 +19,9 @@ type ScoreGoodsService struct {
 	CardItem CardItemService
 }
 
-func (service ScoreGoodsService) Exchange(user *model.User, ScoreGoodsID dao.PrimaryKey) error {
+func (service ScoreGoodsService) Exchange(ctx context.Context, user *model.User, ScoreGoodsID dao.PrimaryKey) error {
 
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 	//var scoreGoods model.ScoreGoods
 	scoreGoods := dao.GetByPrimaryKey(tx, &model.ScoreGoods{}, ScoreGoodsID).(*model.ScoreGoods)
 	if scoreGoods.ID == 0 {
@@ -54,14 +56,14 @@ func (service ScoreGoodsService) Exchange(user *model.User, ScoreGoodsID dao.Pri
 	}
 
 }
-func (service ScoreGoodsService) Situation(StartTime, EndTime int64) interface{} {
+func (service ScoreGoodsService) Situation(ctx context.Context, StartTime, EndTime int64) interface{} {
 
 	st := time.Unix(StartTime/1000, 0)
 	st = time.Date(st.Year(), st.Month(), st.Day(), 0, 0, 0, 0, st.Location())
 	et := time.Unix(EndTime/1000, 0).Add(24 * time.Hour)
 	et = time.Date(et.Year(), et.Month(), et.Day(), 0, 0, 0, 0, et.Location())
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 
 	type Result struct {
 		TotalScore uint `gorm:"column:TotalScore"`
@@ -77,8 +79,8 @@ func (service ScoreGoodsService) Situation(StartTime, EndTime int64) interface{}
 	return result
 }
 
-func (service ScoreGoodsService) ListScoreGoods() []dao.IEntity {
-	Orm := db.Orm()
+func (service ScoreGoodsService) ListScoreGoods(ctx context.Context) []dao.IEntity {
+	Orm := db.GetDB(ctx)
 	//var list []model.ScoreGoods
 	//dao.Find(Orm, &model.ScoreGoods{})
 	return dao.Find(Orm, &model.ScoreGoods{}).List()

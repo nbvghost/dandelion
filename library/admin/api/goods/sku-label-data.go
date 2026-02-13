@@ -1,7 +1,9 @@
 package goods
 
 import (
+	"context"
 	"errors"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -35,7 +37,7 @@ type SkuLabelData struct {
 	} `method:"Delete"`
 }
 
-func (m *SkuLabelData) listData(goodsID, goodsSkuLabelID dao.PrimaryKey, Name string, OID dao.PrimaryKey) map[dao.PrimaryKey][]*model.GoodsSkuLabelData {
+func (m *SkuLabelData) listData(ctx context.Context, goodsID, goodsSkuLabelID dao.PrimaryKey, Name string, OID dao.PrimaryKey) map[dao.PrimaryKey][]*model.GoodsSkuLabelData {
 	list := make(map[dao.PrimaryKey][]*model.GoodsSkuLabelData)
 	where := make(map[string]any)
 	where["OID"] = OID
@@ -49,7 +51,7 @@ func (m *SkuLabelData) listData(goodsID, goodsSkuLabelID dao.PrimaryKey, Name st
 		where["Name"] = Name
 	}
 
-	LabelList := dao.Find(db.Orm(), &model.GoodsSkuLabelData{}).Where(where).List()
+	LabelList := dao.Find(db.GetDB(ctx), &model.GoodsSkuLabelData{}).Where(where).List()
 	for i := range LabelList {
 		item := LabelList[i].(*model.GoodsSkuLabelData)
 		if _, ok := list[item.GoodsSkuLabelID]; !ok {
@@ -61,14 +63,14 @@ func (m *SkuLabelData) listData(goodsID, goodsSkuLabelID dao.PrimaryKey, Name st
 }
 func (m *SkuLabelData) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
-	return result.NewData(map[string]any{"SkuLabelDataList": m.listData(m.Get.GoodsID, m.Get.GoodsSkuLabelID, m.Get.Name, m.Organization.ID)}), nil
+	return result.NewData(map[string]any{"SkuLabelDataList": m.listData(ctx, m.Get.GoodsID, m.Get.GoodsSkuLabelID, m.Get.Name, m.Organization.ID)}), nil
 }
-func (m *SkuLabelData) HandleDelete(context constrain.IContext) (constrain.IResult, error) {
-	has := dao.GetByPrimaryKey(db.Orm(), &model.GoodsSkuLabelData{}, m.Delete.ID).(*model.GoodsSkuLabelData)
+func (m *SkuLabelData) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) {
+	has := dao.GetByPrimaryKey(db.GetDB(ctx), &model.GoodsSkuLabelData{}, m.Delete.ID).(*model.GoodsSkuLabelData)
 	if has.IsZero() {
 		return nil, errors.New("记录不存在")
 	}
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 
 	specificationList := dao.Find(tx, &model.Specification{}).Where(`"GoodsID"=?`, has.GoodsID).List()
 	for i2 := range specificationList {
@@ -96,10 +98,10 @@ func (m *SkuLabelData) HandleDelete(context constrain.IContext) (constrain.IResu
 
 	tx.Commit()
 
-	return result.NewData(map[string]any{"SkuLabelDataList": m.listData(has.GoodsID, 0, "", m.Organization.ID)}), err
+	return result.NewData(map[string]any{"SkuLabelDataList": m.listData(ctx, has.GoodsID, 0, "", m.Organization.ID)}), err
 }
-func (m *SkuLabelData) HandlePut(context constrain.IContext) (constrain.IResult, error) {
-	tx := db.Orm().Begin()
+func (m *SkuLabelData) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
+	tx := db.GetDB(ctx).Begin()
 
 	has := dao.GetByPrimaryKey(tx, &model.GoodsSkuLabelData{}, m.Put.ID).(*model.GoodsSkuLabelData)
 	if has.IsZero() {
@@ -132,15 +134,15 @@ func (m *SkuLabelData) HandlePut(context constrain.IContext) (constrain.IResult,
 		}
 	}
 	tx.Commit()
-	return result.NewData(map[string]any{"SkuLabelDataList": m.listData(has.GoodsID, 0, "", m.Organization.ID)}), nil
+	return result.NewData(map[string]any{"SkuLabelDataList": m.listData(ctx, has.GoodsID, 0, "", m.Organization.ID)}), nil
 }
 
-func (m *SkuLabelData) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *SkuLabelData) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	if m.Post.GoodsSkuLabelID == 0 {
 		return nil, errors.New("数据出错")
 	}
 
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 	has := dao.GetBy(tx, &model.GoodsSkuLabelData{}, map[string]any{"GoodsSkuLabelID": m.Post.GoodsSkuLabelID, "Name": m.Post.Name})
 	if !has.IsZero() {
 		tx.Rollback()
@@ -163,5 +165,5 @@ func (m *SkuLabelData) HandlePost(context constrain.IContext) (r constrain.IResu
 
 	tx.Commit()
 
-	return result.NewData(map[string]any{"SkuLabelDataList": m.listData(m.Post.GoodsID, 0, "", m.Organization.ID)}), err
+	return result.NewData(map[string]any{"SkuLabelDataList": m.listData(ctx, m.Post.GoodsID, 0, "", m.Organization.ID)}), err
 }

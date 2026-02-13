@@ -2,6 +2,7 @@ package product
 
 import (
 	"fmt"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/domain/tag"
 	"github.com/nbvghost/dandelion/entity/extends"
@@ -30,7 +31,7 @@ type TagReply struct {
 	SiteData serviceargument.SiteData[*model.Goods]
 }
 
-func (m *TagRequest) Render(context constrain.IContext) (r constrain.IViewResult, err error) {
+func (m *TagRequest) Render(ctx constrain.IContext) (r constrain.IViewResult, err error) {
 	reply := &TagReply{
 		ViewBase: extends.ViewBase{
 			Name: "product/tag",
@@ -45,7 +46,7 @@ func (m *TagRequest) Render(context constrain.IContext) (r constrain.IViewResult
 			break
 		}
 	}*/
-	reply.SiteData = service.GetSiteData[*model.Goods](context, m.Organization.ID)
+	reply.SiteData = service.GetSiteData[*model.Goods](ctx, m.Organization.ID)
 
 	ts := tag.ToTagsName([]extends.Tag{{Uri: m.Tag}})
 	reply.Tag = ts[0]
@@ -76,10 +77,10 @@ func (m *TagRequest) Render(context constrain.IContext) (r constrain.IViewResult
 		})
 		reply.Order = "trending"
 	}
-	pageIndex, pageSize, total, list, err := service.Goods.Tag.FindGoodsByTag(m.Organization.ID, reply.Tag, m.PageIndex, orderMethod...)
+	pageIndex, pageSize, total, list, err := service.Goods.Tag.FindGoodsByTag(ctx, m.Organization.ID, reply.Tag, m.PageIndex, orderMethod...)
 	reply.SiteData.Pagination = serviceargument.NewPagination(pageIndex, pageSize, int(total), list)
 
-	reply.TagContent = service.Content.GetByTitle(db.Orm(), m.Organization.ID, reply.Tag.Name)
+	reply.TagContent = service.Content.GetByTitle(db.GetDB(ctx), m.Organization.ID, reply.Tag.Name)
 
 	/*listContentItem := m.GoodsTypeService.ListGoodsByOID(m.Organization.ID)
 	for _, v := range listContentItem {
@@ -91,13 +92,13 @@ func (m *TagRequest) Render(context constrain.IContext) (r constrain.IViewResult
 		}
 	}*/
 
-	tags, err := service.Goods.Tag.FindGoodsTags(m.Organization.ID)
+	tags, err := service.Goods.Tag.FindGoodsTags(ctx, m.Organization.ID)
 	if err != nil {
 		return nil, err
 	}
 	reply.SiteData.Tags = tags
 	reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-		siteName := service.Content.GetTitle(db.Orm(), m.Organization.ID)
+		siteName := service.Content.GetTitle(db.GetDB(ctx), m.Organization.ID)
 		meta.SetBase(fmt.Sprintf("%s", reply.Tag.Name), siteName, "", "")
 		return nil
 	}

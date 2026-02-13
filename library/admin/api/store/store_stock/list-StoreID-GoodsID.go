@@ -1,9 +1,10 @@
 package store_stock
 
 import (
+	"strings"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/result"
-	"strings"
 
 	"github.com/nbvghost/dandelion/entity/model"
 
@@ -22,7 +23,7 @@ func (m *ListStoreIDGoodsID) Handle(context constrain.IContext) (r constrain.IRe
 	panic("implement me")
 }
 
-func (m *ListStoreIDGoodsID) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *ListStoreIDGoodsID) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//dts := &model.Datatables{}
 	//util.RequestBodyToJSON(context.Request.Body, dts)
 
@@ -30,7 +31,7 @@ func (m *ListStoreIDGoodsID) HandlePost(context constrain.IContext) (r constrain
 	//GoodsID, _ := strconv.ParseUint(context.PathParams["GoodsID"], 10, 64)
 	//StoreID, _ := strconv.ParseUint(context.PathParams["StoreID"], 10, 64)
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	//SELECT g.ID as ID,g.Title as Title,COUNT(ss.ID) as Total,SUM(ss.Stock) as Stock FROM Goods as g,StoreStock as ss where ss.StoreID=2009 and g.ID=ss.GoodsID  group by ss.GoodsID;
 	type Result struct {
 		*model.StoreStock    `json:"StoreStock"`

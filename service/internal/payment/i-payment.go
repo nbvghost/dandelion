@@ -1,6 +1,8 @@
 package payment
 
 import (
+	"context"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -14,10 +16,10 @@ var _ IPayment = &paypal.Service{}
 
 type IPayment interface {
 	Order(OrderNo string, title, description string, detail, openid string, IP string, Money uint, ordersType model.OrdersType) (*serviceargument.OrderResult, error)
-	OrderQuery(orders *model.Orders) (*serviceargument.OrderQueryResult, error)
+	OrderQuery(ctx context.Context, orders *model.Orders) (*serviceargument.OrderQueryResult, error)
 	Deliver(orders *model.Orders) error
 	CloseOrder(OrderNo string) error
-	Refund(order *model.Orders, ordersGoods *model.OrdersGoods, reason string) error
+	Refund(ctx context.Context, order *model.Orders, ordersGoods *model.OrdersGoods, reason string) error
 }
 
 func NewPayment(ctx constrain.IServiceContext, oid dao.PrimaryKey, payMethod model.OrdersPayMethod) IPayment {

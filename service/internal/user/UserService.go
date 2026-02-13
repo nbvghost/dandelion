@@ -1,8 +1,14 @@
 package user
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"log"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service/internal/company"
@@ -10,10 +16,6 @@ import (
 	"github.com/nbvghost/dandelion/service/internal/journal"
 	"github.com/nbvghost/dandelion/service/serviceargument"
 	"github.com/nbvghost/tool/object"
-	"log"
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -36,37 +38,37 @@ type UserService struct {
 	Journal journal.JournalService
 }
 
-func (m UserService) Login(oid dao.PrimaryKey, account string) (user *model.User) {
-	if user = m.GetByPhone(db.Orm(), oid, account); user.IsZero() {
-		user = m.GetByEmail(db.Orm(), oid, account)
+func (m UserService) Login(ctx context.Context, oid dao.PrimaryKey, account string) (user *model.User) {
+	if user = m.GetByPhone(db.GetDB(ctx), oid, account); user.IsZero() {
+		user = m.GetByEmail(db.GetDB(ctx), oid, account)
 	}
 	return user
 }
-func (m UserService) UpdateLoginStatus(userID dao.PrimaryKey) error {
+func (m UserService) UpdateLoginStatus(ctx context.Context, userID dao.PrimaryKey) error {
 
-	return dao.UpdateByPrimaryKey(db.Orm(), &model.User{}, userID, map[string]interface{}{"LastLoginAt": time.Now()}) //repository.User.UpdateByID(userID, map[string]interface{}{"LastLoginAt": time.Now()}).Err
+	return dao.UpdateByPrimaryKey(db.GetDB(ctx), &model.User{}, userID, map[string]interface{}{"LastLoginAt": time.Now()}) //repository.User.UpdateByID(userID, map[string]interface{}{"LastLoginAt": time.Now()}).Err
 
 }
-func (m UserService) AddUser(oid dao.PrimaryKey, name, email, password string) error {
+func (m UserService) AddUser(ctx context.Context, oid dao.PrimaryKey, name, email, password string) error {
 
-	hasUser := m.GetByEmail(db.Orm(), oid, email)
+	hasUser := m.GetByEmail(db.GetDB(ctx), oid, email)
 	if hasUser.IsZero() == false {
 		return errors.New("record is exist")
 	}
 	user := &model.User{Name: name, Email: email, Password: encryption.Md5ByString(password)}
 
-	err := dao.Create(db.Orm(), user) //repository.User.Create(user)
+	err := dao.Create(db.GetDB(ctx), user) //repository.User.Create(user)
 	return err
 
 }
-func (m UserService) Situation(StartTime, EndTime int64) interface{} {
+func (m UserService) Situation(ctx context.Context, StartTime, EndTime int64) interface{} {
 
 	st := time.Unix(StartTime/1000, 0)
 	st = time.Date(st.Year(), st.Month(), st.Day(), 0, 0, 0, 0, st.Location())
 	et := time.Unix(EndTime/1000, 0).Add(24 * time.Hour)
 	et = time.Date(et.Year(), et.Month(), et.Day(), 0, 0, 0, 0, et.Location())
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 
 	type Result struct {
 		TotalCount  uint `gorm:"column:TotalCount"`
@@ -82,12 +84,12 @@ func (m UserService) Situation(StartTime, EndTime int64) interface{} {
 	return result
 }
 
-func (m UserService) FindUserByIDs(IDs []uint) []model.User {
+func (m UserService) FindUserByIDs(ctx context.Context, IDs []uint) []model.User {
 	var users []model.User
 	if len(IDs) == 0 {
 		return users
 	}
-	err := db.Orm().Where(IDs).Find(&users).Error //SelectOne(user, "select * from User where Tel=?", Tel)
+	err := db.GetDB(ctx).Where(IDs).Find(&users).Error //SelectOne(user, "select * from User where Tel=?", Tel)
 	log.Println(err)
 	return users
 }
@@ -121,8 +123,8 @@ func (m UserService) LeveAll6(Orm *gorm.DB, OneSuperiorID dao.PrimaryKey) string
 
 	return strings.Join(leveIDs, ",")
 }
-func (m UserService) Leve1(UserID dao.PrimaryKey) []uint {
-	Orm := db.Orm()
+func (m UserService) Leve1(ctx context.Context, UserID dao.PrimaryKey) []uint {
+	Orm := db.GetDB(ctx)
 	var levea []uint
 	if UserID <= 0 {
 		return levea
@@ -130,8 +132,8 @@ func (m UserService) Leve1(UserID dao.PrimaryKey) []uint {
 	Orm.Model(&model.User{}).Where(`"SuperiorID"=?`, UserID).Pluck(`"ID"`, &levea)
 	return levea
 }
-func (m UserService) Leve2(Leve1IDs []uint) []uint {
-	Orm := db.Orm()
+func (m UserService) Leve2(ctx context.Context, Leve1IDs []uint) []uint {
+	Orm := db.GetDB(ctx)
 	var levea []uint
 	if len(Leve1IDs) <= 0 {
 		return levea
@@ -139,8 +141,8 @@ func (m UserService) Leve2(Leve1IDs []uint) []uint {
 	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve1IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
-func (m UserService) Leve3(Leve2IDs []uint) []uint {
-	Orm := db.Orm()
+func (m UserService) Leve3(ctx context.Context, Leve2IDs []uint) []uint {
+	Orm := db.GetDB(ctx)
 	var levea []uint
 	if len(Leve2IDs) <= 0 {
 		return levea
@@ -148,8 +150,8 @@ func (m UserService) Leve3(Leve2IDs []uint) []uint {
 	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve2IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
-func (m UserService) Leve4(Leve3IDs []uint) []uint {
-	Orm := db.Orm()
+func (m UserService) Leve4(ctx context.Context, Leve3IDs []uint) []uint {
+	Orm := db.GetDB(ctx)
 	var levea []uint
 	if len(Leve3IDs) <= 0 {
 		return levea
@@ -157,8 +159,8 @@ func (m UserService) Leve4(Leve3IDs []uint) []uint {
 	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve3IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
-func (m UserService) Leve5(Leve4IDs []uint) []uint {
-	Orm := db.Orm()
+func (m UserService) Leve5(ctx context.Context, Leve4IDs []uint) []uint {
+	Orm := db.GetDB(ctx)
 	var levea []uint
 	if len(Leve4IDs) <= 0 {
 		return levea
@@ -166,8 +168,8 @@ func (m UserService) Leve5(Leve4IDs []uint) []uint {
 	Orm.Model(&model.User{}).Where(`"SuperiorID" in (?)`, Leve4IDs).Pluck(`"ID"`, &levea)
 	return levea
 }
-func (m UserService) Leve6(Leve5IDs []uint) []uint {
-	Orm := db.Orm()
+func (m UserService) Leve6(ctx context.Context, Leve5IDs []uint) []uint {
+	Orm := db.GetDB(ctx)
 	var levea []uint
 	if len(Leve5IDs) <= 0 {
 		return levea
@@ -176,8 +178,8 @@ func (m UserService) Leve6(Leve5IDs []uint) []uint {
 	return levea
 }
 
-func (m UserService) GetUserInfo(UserID dao.PrimaryKey) *UserInfoValue {
-	Orm := db.Orm()
+func (m UserService) GetUserInfo(ctx context.Context, UserID dao.PrimaryKey) *UserInfoValue {
+	Orm := db.GetDB(ctx)
 	//.First(&user, 10)
 	sourceData := make(map[model.UserInfoKey]string)
 	oldD := make(map[model.UserInfoKey]string)
@@ -307,7 +309,7 @@ func (m *UserInfoValue) GetState() serviceargument.UserInfoKeyStateType {
 
 func (m UserService) UserAction(context constrain.IContext) (r constrain.IResult, err error) {
 	/*company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	action := context.Request.URL.Query().Get("action")
 	switch action {
 	case "list":

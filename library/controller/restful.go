@@ -136,7 +136,7 @@ func (m *Restful) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
 	tableType := reflect.TypeOf(table).Elem()
 
-	d := db.Orm().Model(table)
+	d := db.GetDB(ctx).Model(table)
 	_, exist := tableType.FieldByName("OID")
 	if exist {
 		d.Where(`"OID"=?`, m.Admin.OID)
@@ -206,22 +206,22 @@ func (m *Restful) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 	var primaryId dao.PrimaryKey
 
 	if newData.Primary() > 0 {
-		oldData := dao.GetByPrimaryKey(db.Orm(), table, newData.Primary())
+		oldData := dao.GetByPrimaryKey(db.GetDB(ctx), table, newData.Primary())
 		if oldData.IsZero() {
 			reflect.ValueOf(newData).Elem().FieldByName("OID").Set(reflect.ValueOf(m.Admin.OID))
-			err = dao.Create(db.Orm(), newData)
+			err = dao.Create(db.GetDB(ctx), newData)
 			primaryId = newData.Primary()
 		} else {
 			changeMap := com.Diff(oldData, newData)
 			where["ID"] = newData.Primary()
 			where["OID"] = m.Admin.OID
-			err = dao.UpdateBy(db.Orm(), table, changeMap, where)
+			err = dao.UpdateBy(db.GetDB(ctx), table, changeMap, where)
 			primaryId = newData.Primary()
 		}
 	} else {
 		if existOID && len(where) > 0 {
 			where["OID"] = m.Admin.OID
-			oldData := dao.GetBy(db.Orm(), table, where)
+			oldData := dao.GetBy(db.GetDB(ctx), table, where)
 			if !oldData.IsZero() {
 				var fieldValue string
 				if len(where) > 0 {
@@ -243,14 +243,14 @@ func (m *Restful) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 				field.Set(reflect.ValueOf(m.Admin.OID))
 			}
 		}
-		err = dao.Create(db.Orm(), newData)
+		err = dao.Create(db.GetDB(ctx), newData)
 		primaryId = newData.Primary()
 
 	}
 	if err != nil {
 		return nil, err
 	}
-	return result.NewDataMessage(dao.GetByPrimaryKey(db.Orm(), table, primaryId), "添加成功"), err
+	return result.NewDataMessage(dao.GetByPrimaryKey(db.GetDB(ctx), table, primaryId), "添加成功"), err
 }
 func (m *Restful) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
 	//m.bindQuery(ctx)
@@ -273,7 +273,7 @@ func (m *Restful) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
 		where[k] = query.Get(k)
 	}
 
-	oldData := dao.GetByPrimaryKey(db.Orm(), table, m.Put.ID)
+	oldData := dao.GetByPrimaryKey(db.GetDB(ctx), table, m.Put.ID)
 	if oldData.IsZero() {
 		return nil, errors.New("数据不存在")
 	}
@@ -327,7 +327,7 @@ func (m *Restful) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
 	//changeMap := com.Diff(oldData, m.Put.Body)
 
 	if len(where) > 0 {
-		hasData := dao.GetBy(db.Orm(), table, where)
+		hasData := dao.GetBy(db.GetDB(ctx), table, where)
 		if hasData.IsZero() == false && hasData.Primary() != m.Put.ID {
 			var fieldValue string
 			if len(where) > 0 {
@@ -344,7 +344,7 @@ func (m *Restful) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
 	}
 
 	if len(changeMap) > 0 {
-		tx := db.Orm().Begin()
+		tx := db.GetDB(ctx).Begin()
 		err = dao.UpdateByPrimaryKey(tx, table, m.Put.ID, changeMap)
 		if err != nil {
 			tx.Rollback()
@@ -352,7 +352,7 @@ func (m *Restful) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
 		}
 		tx.Commit()
 	}
-	return result.NewDataMessage(dao.GetByPrimaryKey(db.Orm(), table, m.Put.ID), "更新成功"), err
+	return result.NewDataMessage(dao.GetByPrimaryKey(db.GetDB(ctx), table, m.Put.ID), "更新成功"), err
 }
 func (m *Restful) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) {
 	table, err := entity.GetModel(m.Put.Model)
@@ -360,7 +360,7 @@ func (m *Restful) HandleDelete(ctx constrain.IContext) (constrain.IResult, error
 		return nil, err
 	}
 	if m.Del.ID > 0 {
-		err = dao.DeleteByPrimaryKey(db.Orm(), table, m.Del.ID)
+		err = dao.DeleteByPrimaryKey(db.GetDB(ctx), table, m.Del.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -372,7 +372,7 @@ func (m *Restful) HandleDelete(ctx constrain.IContext) (constrain.IResult, error
 			where[k] = query.Get(k)
 		}
 		if len(where) > 0 {
-			err = dao.DeleteBy(db.Orm(), table, where)
+			err = dao.DeleteBy(db.GetDB(ctx), table, where)
 			if err != nil {
 				return nil, err
 			}

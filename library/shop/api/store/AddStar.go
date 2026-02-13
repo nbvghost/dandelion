@@ -25,14 +25,14 @@ func (g *AddStar) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 	//Num := object.ParseUint(context.Request.FormValue("Num"))
 
 	//var store model.Store
-	store := dao.GetByPrimaryKey(db.Orm(), entity.Store, g.Post.StoreID).(*model.Store)
+	store := dao.GetByPrimaryKey(db.GetDB(ctx), entity.Store, g.Post.StoreID).(*model.Store)
 	if g.Post.Num > 5 {
 		g.Post.Num = 5
 	}
 	store.Stars = store.Stars + g.Post.Num
 
 	store.StarsCount = store.StarsCount + 1
-	err := dao.UpdateByPrimaryKey(db.Orm(), entity.Store, store.ID, &model.Store{Stars: store.Stars, StarsCount: store.StarsCount})
+	err := dao.UpdateByPrimaryKey(db.GetDB(ctx), entity.Store, store.ID, &model.Store{Stars: store.Stars, StarsCount: store.StarsCount})
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "评价成功", nil)}, nil
 }
 

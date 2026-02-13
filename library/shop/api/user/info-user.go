@@ -14,10 +14,10 @@ type InfoUser struct {
 	} `method:"Get"`
 }
 
-func (m *InfoUser) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *InfoUser) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//UserID, _ := strconv.ParseUint(context.PathParams["UserID"], 10, 64)
 
 	//var user model.User
-	user := dao.GetByPrimaryKey(db.Orm(), entity.User, m.Get.UserID)
+	user := dao.GetByPrimaryKey(db.GetDB(ctx), entity.User, m.Get.UserID)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", user)}, nil
 }

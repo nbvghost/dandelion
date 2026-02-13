@@ -18,7 +18,7 @@ func (m *Add) Handle(context constrain.IContext) (r constrain.IResult, err error
 	panic("implement me")
 }
 
-func (m *Add) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Add) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 
 	/*item := &model.ContentItem{}
@@ -27,5 +27,5 @@ func (m *Add) HandlePost(context constrain.IContext) (r constrain.IResult, err e
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}, err
 	}*/
 
-	return &result.JsonResult{Data: service.Content.SaveContentItem(m.Organization.ID, m.POST.ContentItem)}, nil
+	return &result.JsonResult{Data: service.Content.SaveContentItem(ctx, m.Organization.ID, m.POST.ContentItem)}, nil
 }

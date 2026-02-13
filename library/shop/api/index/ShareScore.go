@@ -19,7 +19,7 @@ func (m *ShareScore) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
 	//Share := 50 //config.Config.Share
 
-	err := service.Journal.AddScoreJournal(db.Orm(), ctx.UID(), "转发与分享送积分", "转发与分享", model.ScoreJournal_Type_Share, 50)
+	err := service.Journal.AddScoreJournal(db.GetDB(ctx), ctx.UID(), "转发与分享送积分", "转发与分享", model.ScoreJournal_Type_Share, 50)
 	if err != nil {
 		log.Println(err)
 	}

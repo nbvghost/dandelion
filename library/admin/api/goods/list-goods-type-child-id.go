@@ -13,9 +13,9 @@ type ListGoodsTypeChildID struct {
 	} `method:"get"`
 }
 
-func (g *ListGoodsTypeChildID) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (g *ListGoodsTypeChildID) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
 	//ID := object.ParseUint(context.Request.URL.Query().Get("ID"))
-	gts := service.Goods.GoodsType.ListAllGoodsTypeChild(dao.PrimaryKey(g.Get.ID))
+	gts := service.Goods.GoodsType.ListAllGoodsTypeChild(ctx, dao.PrimaryKey(g.Get.ID))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", gts)}, err
 }

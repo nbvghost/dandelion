@@ -28,7 +28,7 @@ func (g *ListHot) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	//var articles []entity.Content
 	//controller.Content.FindOrderWhereLength(entity.Orm(),"Look desc",&articles,)
 
-	pager := service.Content.FindSelectWherePaging(db.Orm(), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "Look desc", model.Content{}, g.Get.Offset, "ContentItemID=?", g.Get.ContentItemID)
+	pager := service.Content.FindSelectWherePaging(db.GetDB(ctx), "ID,Title,Picture,ContentItemID,ContentSubTypeID,Author,Look,FromUrl", "Look desc", model.Content{}, g.Get.Offset, "ContentItemID=?", g.Get.ContentItemID)
 
 	return result.NewData(&pager), nil
 

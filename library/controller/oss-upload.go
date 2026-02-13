@@ -52,7 +52,7 @@ func (m *OSSUpload) HandlePost(context constrain.IContext) (constrain.IResult, e
 		if uploadFile.Code != 0 {
 			return nil, result.NewCodeWithMessage(result.ActionResultCode(uploadFile.Code), uploadFile.Message)
 		}
-		media := dao.GetBy(db.Orm(), &model.Media{}, map[string]any{"OID": m.Admin.OID, "TargetID": m.Post.TargetID, "Target": m.Post.Target, "SHA256": uploadFile.Data.SHA256}).(*model.Media)
+		media := dao.GetBy(db.GetDB(context), &model.Media{}, map[string]any{"OID": m.Admin.OID, "TargetID": m.Post.TargetID, "Target": m.Post.Target, "SHA256": uploadFile.Data.SHA256}).(*model.Media)
 		if media.IsZero() {
 			media = &model.Media{
 				OID:      m.Admin.OID,
@@ -68,7 +68,7 @@ func (m *OSSUpload) HandlePost(context constrain.IContext) (constrain.IResult, e
 				Format:   uploadFile.Data.Format,
 				Tags:     []string{},
 			}
-			err = dao.Create(db.Orm(), media)
+			err = dao.Create(db.GetDB(context), media)
 			if err != nil {
 				return nil, err
 			}

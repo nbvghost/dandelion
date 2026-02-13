@@ -17,12 +17,12 @@ func (m *GetContentSubTypeID) Handle(context constrain.IContext) (r constrain.IR
 	panic("implement me")
 }
 
-func (m *GetContentSubTypeID) HandleGet(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *GetContentSubTypeID) HandleGet(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//ContentSubTypeID, _ := strconv.ParseUint(context.PathParams["ContentSubTypeID"], 10, 64)
 	//ContentSubTypeID := object.ParseUint(context.PathParams["ContentSubTypeID"])
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 
-	item := repository.ContentSubTypeDao.GetContentSubTypeByID(dao.PrimaryKey(m.GET.ContentSubTypeID))
+	item := repository.ContentSubTypeDao.GetContentSubTypeByID(ctx, dao.PrimaryKey(m.GET.ContentSubTypeID))
 
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", item)}, nil
 }

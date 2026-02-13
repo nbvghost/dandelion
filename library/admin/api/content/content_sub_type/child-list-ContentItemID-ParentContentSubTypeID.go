@@ -14,14 +14,14 @@ type ChildListContentItemIDParentContentSubTypeID struct {
 	} `method:"GET"`
 }
 
-func (m *ChildListContentItemIDParentContentSubTypeID) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *ChildListContentItemIDParentContentSubTypeID) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//ParentContentSubTypeID, _ := strconv.ParseUint(context.PathParams["ParentContentSubTypeID"], 10, 64)
 	//ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	//ParentContentSubTypeID := object.ParseUint(context.PathParams["ParentContentSubTypeID"])
 	//ContentItemID := object.ParseUint(context.PathParams["ContentItemID"])
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 
-	list := repository.ContentSubTypeDao.FindContentSubTypesByContentItemIDAndParentContentSubTypeID(dao.PrimaryKey(m.GET.ContentItemID), dao.PrimaryKey(m.GET.ParentContentSubTypeID))
+	list := repository.ContentSubTypeDao.FindContentSubTypesByContentItemIDAndParentContentSubTypeID(ctx, dao.PrimaryKey(m.GET.ContentItemID), dao.PrimaryKey(m.GET.ParentContentSubTypeID))
 
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", list)}, nil
 }

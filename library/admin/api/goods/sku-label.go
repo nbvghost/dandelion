@@ -2,6 +2,7 @@ package goods
 
 import (
 	"errors"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -36,19 +37,19 @@ func (m *SkuLabel) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	if m.Get.GoodsID > 0 {
 		where["GoodsID"] = m.Get.GoodsID
 	}
-	LabelList := dao.Find(db.Orm(), &model.GoodsSkuLabel{}).Where(where).List()
+	LabelList := dao.Find(db.GetDB(ctx), &model.GoodsSkuLabel{}).Where(where).List()
 	return result.NewData(map[string]any{"SkuLabelList": LabelList}), nil
 }
 func (m *SkuLabel) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) {
 	if m.Delete.ID == 0 {
 		return nil, errors.New("数据错误")
 	}
-	has := dao.GetByPrimaryKey(db.Orm(), &model.GoodsSkuLabel{}, m.Delete.ID).(*model.GoodsSkuLabel)
+	has := dao.GetByPrimaryKey(db.GetDB(ctx), &model.GoodsSkuLabel{}, m.Delete.ID).(*model.GoodsSkuLabel)
 	if has.IsZero() {
 		return nil, errors.New("找不到数据")
 	}
 
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 
 	err := dao.DeleteByPrimaryKey(tx, &model.GoodsSkuLabel{}, has.ID)
 	if err != nil {
@@ -88,11 +89,11 @@ func (m *SkuLabel) HandleDelete(ctx constrain.IContext) (constrain.IResult, erro
 	}
 	tx.Commit()
 
-	LabelList := dao.Find(db.Orm(), &model.GoodsSkuLabel{}).Where(`"GoodsID"=?`, has.GoodsID).List()
+	LabelList := dao.Find(db.GetDB(ctx), &model.GoodsSkuLabel{}).Where(`"GoodsID"=?`, has.GoodsID).List()
 	return result.NewData(map[string]any{"SkuLabelList": LabelList}), nil
 }
-func (m *SkuLabel) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
-	tx := db.Orm().Begin()
+func (m *SkuLabel) HandlePut(ctx constrain.IContext) (r constrain.IResult, err error) {
+	tx := db.GetDB(ctx).Begin()
 	for _, label := range m.Put.LabelList {
 		if label.ID > 0 {
 			err := dao.UpdateByPrimaryKey(tx, &model.GoodsSkuLabel{}, label.ID, map[string]any{
@@ -135,6 +136,6 @@ func (m *SkuLabel) HandlePut(context constrain.IContext) (r constrain.IResult, e
 	}
 
 	tx.Commit()
-	LabelList := dao.Find(db.Orm(), &model.GoodsSkuLabel{}).Where(`"GoodsID"=?`, m.Put.GoodsID).List()
+	LabelList := dao.Find(db.GetDB(ctx), &model.GoodsSkuLabel{}).Where(`"GoodsID"=?`, m.Put.GoodsID).List()
 	return result.NewData(map[string]any{"SkuLabelList": LabelList}), err
 }

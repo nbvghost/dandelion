@@ -53,13 +53,13 @@ func (m *Update) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 	}
 
 	if len(changeMap) > 0 {
-		err := dao.UpdateByPrimaryKey(db.Orm(), entity.User, m.User.ID, changeMap)
+		err := dao.UpdateByPrimaryKey(db.GetDB(ctx), entity.User, m.User.ID, changeMap)
 		if err != nil {
 			return &result.JsonResult{Data: &result.ActionResult{Code: result.Fail, Message: err.Error(), Data: nil}}, err
 		}
 	}
 
-	u := dao.GetByPrimaryKey(db.Orm(), entity.User, m.User.ID)
+	u := dao.GetByPrimaryKey(db.GetDB(ctx), entity.User, m.User.ID)
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "资料更新成功", Data: u}}, nil
 
 }

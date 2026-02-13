@@ -19,8 +19,8 @@ type ListField struct {
 func (m *ListField) Handle(context constrain.IContext) (r constrain.IResult, err error) {
 	return nil, nil
 }
-func (m *ListField) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
-	d := dao.Find(db.Orm(), &model.CustomizeField{})
+func (m *ListField) HandlePut(ctx constrain.IContext) (r constrain.IResult, err error) {
+	d := dao.Find(db.GetDB(ctx), &model.CustomizeField{})
 	if m.Put.GroupID > 0 {
 		d.Where(`"GroupID"=?`, m.Put.GroupID)
 	}

@@ -3,6 +3,7 @@ package page
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -28,10 +29,10 @@ type Config struct {
 	Type         string
 }
 
-func (m *PageRequest) Render(context constrain.IContext) (r constrain.IViewResult, err error) {
+func (m *PageRequest) Render(ctx constrain.IContext) (r constrain.IViewResult, err error) {
 	reply := &PageReply{}
 
-	reply.SiteData = service.Site.GetContentTypeByUri(context, m.Organization.ID, m.Uri, "", 0)
+	reply.SiteData = service.Site.GetContentTypeByUri(ctx, m.Organization.ID, m.Uri, "", 0)
 	//reply.ContentData = m.ContentService.GetContentTypeByUri(context, m.Organization.ID, m.Uri, "", 0)
 	//contentItem, contentSubType := m.ContentService.GetContentTypeByUri(m.Organization.ID, m.Uri, "")
 	//reply.MenusData = module.NewMenusData(contentItem, contentSubType)
@@ -39,7 +40,7 @@ func (m *PageRequest) Render(context constrain.IContext) (r constrain.IViewResul
 
 	var c Config
 	json.Unmarshal([]byte(reply.SiteData.ContentItem.Config), &c)
-	total, list := repository.ContentItemDao.FindContentItemByTypeTemplate(m.Organization.ID, c.Type, c.TemplateName, m.PageIndex)
+	total, list := repository.ContentItemDao.FindContentItemByTypeTemplate(ctx, m.Organization.ID, c.Type, c.TemplateName, m.PageIndex)
 	pagination := serviceargument.NewPagination[*model.ContentItem](m.PageIndex, 20, int(total), list)
 	reply.Pagination = pagination
 	//<option value="contents">文章列表</option>
@@ -56,7 +57,7 @@ func (m *PageRequest) Render(context constrain.IContext) (r constrain.IViewResul
 	}*/
 
 	reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-		siteName := service.Content.GetTitle(db.Orm(), m.Organization.ID)
+		siteName := service.Content.GetTitle(db.GetDB(ctx), m.Organization.ID)
 		meta.SetBase(fmt.Sprintf("%s", reply.SiteData.ContentItem.Name), siteName, reply.SiteData.CurrentMenuData.Menus.Name, reply.SiteData.CurrentMenuData.Menus.Introduction)
 		return nil
 	}

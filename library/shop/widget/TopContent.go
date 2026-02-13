@@ -25,9 +25,9 @@ func (m *TopContent) Template() ([]byte, error) {
 
 func (m *TopContent) Render(ctx constrain.IContext) (map[string]any, error) {
 
-	contentItem := repository.ContentItemDao.GetContentItemByTypeTemplateName(db.Orm(), m.Organization.ID, m.Type, m.TemplateName)
+	contentItem := repository.ContentItemDao.GetContentItemByTypeTemplateName(db.GetDB(ctx), m.Organization.ID, m.Type, m.TemplateName)
 
-	var list = repository.ContentDao.SortList(m.Organization.ID, contentItem.ID, m.SoreField, m.SoreMethod, m.Count)
+	var list = repository.ContentDao.SortList(ctx, m.Organization.ID, contentItem.ID, m.SoreField, m.SoreMethod, m.Count)
 	/*if m.TopType == TopTypeContentView {
 		list = m.ContentService.HotViewList(m.Organization.ID, contentItem.ID, m.Count)
 	} else if m.TopType == TopTypeContentLike {

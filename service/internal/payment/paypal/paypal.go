@@ -2,9 +2,17 @@ package paypal
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -12,12 +20,6 @@ import (
 	"github.com/nbvghost/dandelion/service/internal/configuration"
 	"github.com/nbvghost/dandelion/service/serviceargument"
 	"github.com/nbvghost/tool/object"
-	"io"
-	"log"
-	"net/http"
-	"net/url"
-	"strings"
-	"time"
 )
 
 type Service struct {
@@ -48,8 +50,8 @@ type OrderQueryResponse struct {
 	CreateTime    string                 `json:"create_time"`
 }
 
-func (m *Service) OrderQuery(orders *model.Orders) (*serviceargument.OrderQueryResult, error) {
-	token, err := m.GetAccessToken()
+func (m *Service) OrderQuery(ctx context.Context, orders *model.Orders) (*serviceargument.OrderQueryResult, error) {
+	token, err := m.GetAccessToken(ctx)
 	//token, err := generateAccessToken(ctx, oid)
 	if err != nil {
 		return nil, err
@@ -177,9 +179,9 @@ type RefundResponse struct {
 	StatusDetails StatusDetails `json:"status_details"`
 }
 
-func (m *Service) Refund(order *model.Orders, ordersGoods *model.OrdersGoods, reason string) error {
+func (m *Service) Refund(ctx context.Context, order *model.Orders, ordersGoods *model.OrdersGoods, reason string) error {
 
-	token, err := m.GetAccessToken()
+	token, err := m.GetAccessToken(ctx)
 	//token, err := generateAccessToken(ctx, oid)
 	if err != nil {
 		return err
@@ -253,9 +255,9 @@ type responseBody struct {
 	ErrorDescription string `json:"error_description"`
 }
 
-func (m *Service) GetAccessToken() (*PaypalAccessToken, error) {
+func (m *Service) GetAccessToken(ctx context.Context) (*PaypalAccessToken, error) {
 
-	configMap := m.configuration.GetConfigurations(m.OID, model.ConfigurationKeyPaymentPaypalClientId, model.ConfigurationKeyPaymentPaypalAppSecret)
+	configMap := m.configuration.GetConfigurations(ctx, m.OID, model.ConfigurationKeyPaymentPaypalClientId, model.ConfigurationKeyPaymentPaypalAppSecret)
 
 	at := &responseBody{}
 	clientId := configMap[model.ConfigurationKeyPaymentPaypalClientId]

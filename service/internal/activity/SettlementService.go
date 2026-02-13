@@ -1,6 +1,8 @@
 package activity
 
 import (
+	"context"
+
 	"github.com/nbvghost/dandelion/service/internal/configuration"
 	"github.com/nbvghost/dandelion/service/internal/journal"
 	"github.com/nbvghost/dandelion/service/internal/user"
@@ -32,7 +34,7 @@ type SettlementService struct {
 }
 
 // SettlementUser 结算佣金，结算积分，结算成长值，是否送福利卷
-func (service SettlementService) SettlementUser(Orm *gorm.DB, ordersGoodsList []*model.OrdersGoods, orders *model.Orders) error {
+func (service SettlementService) SettlementUser(ctx context.Context, Orm *gorm.DB, ordersGoodsList []*model.OrdersGoods, orders *model.Orders) error {
 	var err error
 	//用户自己。下单者
 
@@ -44,7 +46,7 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, ordersGoodsList []
 	u := dao.GetByPrimaryKey(Orm, &model.User{}, orders.UserID).(*model.User)
 	//fmt.Println(user.Name)
 
-	brokerage := service.Configuration.GetBrokerageConfiguration(orders.OID) //service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageType)
+	brokerage := service.Configuration.GetBrokerageConfiguration(ctx, orders.OID) //service.Configuration.GetConfiguration(orders.OID, model.ConfigurationKeyBrokerageType)
 
 	var Brokerage = decimal.NewFromFloat(0)
 	for i := range ordersGoodsList {
@@ -74,7 +76,7 @@ func (service SettlementService) SettlementUser(Orm *gorm.DB, ordersGoodsList []
 		return err
 	}
 
-	gvs := service.GiveVoucher.FindASC()
+	gvs := service.GiveVoucher.FindASC(ctx)
 	for _, value := range gvs {
 		//主订单的金额来决定是否送卡卷
 		if uint(orders.PayMoney) >= value.ScoreMaxValue {

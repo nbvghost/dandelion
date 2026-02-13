@@ -1,11 +1,12 @@
 package account
 
 import (
+	"strings"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service"
-	"strings"
 )
 
 type Register struct {
@@ -22,14 +23,14 @@ func (m *Register) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
 func (m *Register) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 
 	if haveAdmin := service.Admin.Service.FindAdminByAccount(tx, strings.TrimSpace(m.Post.Account)); !haveAdmin.IsZero() {
 		tx.Rollback()
 		return nil, result.NewErrorText("这个账号已经存在")
 	}
 
-	if _, err := service.Admin.Service.InitOrganizationInfo(m.Post.Account, m.Post.Password); err != nil {
+	if _, err := service.Admin.Service.InitOrganizationInfo(ctx, m.Post.Account, m.Post.Password); err != nil {
 		tx.Rollback()
 		return nil, err
 	}

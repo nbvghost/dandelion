@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -28,6 +29,7 @@ type IServiceContext interface {
 	Logger() *zap.Logger
 	SyncCache() *sync.Map
 	Destroy()
+	GetDB() *gorm.DB
 }
 type IContext interface {
 	IServiceContext

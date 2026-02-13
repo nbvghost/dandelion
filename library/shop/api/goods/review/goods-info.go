@@ -25,7 +25,7 @@ type GoodsInfo struct {
 }
 
 func (m *GoodsInfo) Handle(ctx constrain.IContext) (constrain.IResult, error) {
-	db := dao.Find(db.Orm(), &model.GoodsReview{}).Where(`"GoodsID"=?`, m.Get.GoodsID).Order(`"CreatedAt" desc`)
+	db := dao.Find(db.GetDB(ctx), &model.GoodsReview{}).Where(`"GoodsID"=?`, m.Get.GoodsID).Order(`"CreatedAt" desc`)
 	total := db.Limit(m.Get.Index, m.Get.PageSize)
 	list := db.List()
 	return result.NewData(result.NewPagination(m.Get.Index, m.Get.PageSize, total, list)), nil
@@ -45,7 +45,7 @@ func (m *GoodsInfo) HandlePost(ctx constrain.IContext) (constrain.IResult, error
 
 		return nil, errors.New("same title")
 	}*/
-	err := dao.Create(db.Orm(), review)
+	err := dao.Create(db.GetDB(ctx), review)
 	if err != nil {
 		return nil, err
 	}

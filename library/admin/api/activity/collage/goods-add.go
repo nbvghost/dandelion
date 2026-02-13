@@ -2,6 +2,7 @@ package collage
 
 import (
 	"errors"
+
 	"github.com/nbvghost/dandelion/service"
 
 	"github.com/nbvghost/dandelion/constrain"
@@ -24,7 +25,7 @@ func (m *GoodsAdd) Handle(context constrain.IContext) (r constrain.IResult, err 
 	panic("implement me")
 }
 
-func (m *GoodsAdd) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *GoodsAdd) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//organization := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 
 	//context.Request.ParseForm()
@@ -33,22 +34,22 @@ func (m *GoodsAdd) HandlePost(context constrain.IContext) (r constrain.IResult, 
 	//GoodsID := object.ParseUint(context.Request.FormValue("GoodsID"))
 	//CollageHash := context.Request.FormValue("CollageHash")
 
-	goods := service.Goods.Goods.FindGoodsByOrganizationIDAndGoodsID(m.Organization.ID, dao.PrimaryKey(m.Post.GoodsID))
+	goods := service.Goods.Goods.FindGoodsByOrganizationIDAndGoodsID(ctx, m.Organization.ID, dao.PrimaryKey(m.Post.GoodsID))
 	if goods.ID == 0 {
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("没有找到商品"), "", nil)}, err
 	}
-	collage := service.Activity.Collage.GetCollageByHash(m.Post.CollageHash, m.Organization.ID)
+	collage := service.Activity.Collage.GetCollageByHash(ctx, m.Post.CollageHash, m.Organization.ID)
 	if collage.ID == 0 {
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("没有找到限时抢购"), "", nil)}, err
 	}
 
-	have := service.Activity.Collage.GetCollageGoodsByGoodsID(goods.ID, m.Organization.ID)
+	have := service.Activity.Collage.GetCollageGoodsByGoodsID(ctx, goods.ID, m.Organization.ID)
 	if have.ID > 0 {
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("这个商品已被添加为限时抢购"), "", nil)}, err
 	}
 
-	//service.ChangeMap(db.Orm(), timeSell.ID, &model.TimeSell{}, map[string]interface{}{})
-	err = dao.Create(db.Orm(), &model.CollageGoods{
+	//service.ChangeMap(db.GetDB(ctx), timeSell.ID, &model.TimeSell{}, map[string]interface{}{})
+	err = dao.Create(db.GetDB(ctx), &model.CollageGoods{
 		CollageHash: collage.Hash,
 		GoodsID:     goods.ID,
 		Disable:     false,

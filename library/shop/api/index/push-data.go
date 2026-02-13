@@ -26,7 +26,7 @@ func (m *PushData) HandlePost(ctx constrain.IContext) (constrain.IResult, error)
 		return nil, err
 	}
 
-	db.Orm().Model(model.PushData{}).Create(&model.PushData{
+	db.GetDB(ctx).Model(model.PushData{}).Create(&model.PushData{
 		Content: string(body),
 	})
 	post, err := http.Post("https://admin.7846.com/api/weiXin1Callback", "application/json", bytes.NewBuffer(body))

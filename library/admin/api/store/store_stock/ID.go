@@ -18,8 +18,8 @@ type ID struct {
 	} `method:"GET"`
 }
 
-func (m *ID) HandleDelete(context constrain.IContext) (r constrain.IResult, err error) {
-	Orm := db.Orm()
+func (m *ID) HandleDelete(ctx constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.GetDB(ctx)
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ID"])
 	//item := &model.StoreStock{}
@@ -31,8 +31,8 @@ func (m *ID) Handle(context constrain.IContext) (r constrain.IResult, err error)
 	panic("implement me")
 }
 
-func (m *ID) HandleGet(context constrain.IContext) (r constrain.IResult, err error) {
-	Orm := db.Orm()
+func (m *ID) HandleGet(ctx constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.GetDB(ctx)
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ID"])
 	//item := &model.StoreStock{}

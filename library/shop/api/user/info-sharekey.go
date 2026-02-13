@@ -23,7 +23,7 @@ func (m *InfoSharekey) HandlePost(ctx constrain.IContext) (constrain.IResult, er
 	UserID := object.ParseUint(encryption.CipherDecrypter(play.GWebSecretKey, m.Post.ShareKey))
 
 	//var user model.User
-	user := dao.GetByPrimaryKey(db.Orm(), entity.User, dao.PrimaryKey(UserID))
+	user := dao.GetByPrimaryKey(db.GetDB(ctx), entity.User, dao.PrimaryKey(UserID))
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: user}}, nil
 }
 func (m *InfoSharekey) Handle(context constrain.IContext) (r constrain.IResult, err error) {

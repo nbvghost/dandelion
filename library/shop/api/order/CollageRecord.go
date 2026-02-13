@@ -18,7 +18,7 @@ func (m *CollageRecord) Handle(ctx constrain.IContext) (constrain.IResult, error
 
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 	//Index, _ := strconv.Atoi(context.Request.URL.Query().Get("Index"))
-	list := service.Order.Orders.ListCollageRecord(m.User.ID, m.Get.Index)
+	list := service.Order.Orders.ListCollageRecord(ctx, m.User.ID, m.Get.Index)
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "OK", Data: list}}, nil
 
 }

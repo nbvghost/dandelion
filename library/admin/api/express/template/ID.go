@@ -17,8 +17,8 @@ type ID struct {
 	} `method:"Delete"`
 }
 
-func (m *ID) Handle(context constrain.IContext) (r constrain.IResult, err error) {
-	Orm := db.Orm()
+func (m *ID) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.GetDB(ctx)
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ID"])
 	//var item model.ExpressTemplate
@@ -26,8 +26,8 @@ func (m *ID) Handle(context constrain.IContext) (r constrain.IResult, err error)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", item)}, err
 }
 
-func (m *ID) HandleDelete(context constrain.IContext) (r constrain.IResult, err error) {
-	Orm := db.Orm()
+func (m *ID) HandleDelete(ctx constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.GetDB(ctx)
 	//ID, _ := strconv.ParseUint(context.PathParams["ID"], 10, 64)
 	//ID := object.ParseUint(context.PathParams["ID"])
 	//err = m.ExpressTemplate.Delete(Orm, &model.ExpressTemplate{}, dao.PrimaryKey(m.Delete.ID))

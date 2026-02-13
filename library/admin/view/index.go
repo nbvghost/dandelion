@@ -20,11 +20,11 @@ type IndexView struct {
 	DNSList      []model.DNS
 }
 
-func (m *Index) Render(context constrain.IContext) (r constrain.IViewResult, err error) {
-	ossHost, err := context.Etcd().SelectOutsideServer(config.MicroServerOSS)
+func (m *Index) Render(ctx constrain.IContext) (r constrain.IViewResult, err error) {
+	ossHost, err := ctx.Etcd().SelectOutsideServer(config.MicroServerOSS)
 	if err != nil {
 		return nil, err
 	}
-	dnsList := repository.DNSDao.ListDNS(m.Organization.ID)
+	dnsList := repository.DNSDao.ListDNS(ctx, m.Organization.ID)
 	return &IndexView{Organization: m.Organization, OSSHost: ossHost, Admin: m.Admin, DNSList: dnsList}, nil
 }

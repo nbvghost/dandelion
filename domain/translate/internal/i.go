@@ -1,9 +1,13 @@
 package internal
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/nbvghost/dandelion/domain/translate/internal/aliyun"
 	"github.com/nbvghost/dandelion/domain/translate/internal/volcengine"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -11,8 +15,6 @@ import (
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service"
-	"log"
-	"time"
 )
 
 type Translate interface {
@@ -27,7 +29,7 @@ var fakeTranslate = &FakeTranslate{}
 func (m *NewTranslate) checkTranslate(c *model.Configuration) [2]int {
 	vs := make([]int, 0)
 
-	tx := db.Orm()
+	tx := db.GetDB(context.Background())
 	now := time.Now()
 
 	_, ok := translatorConfig[string(c.K)]
@@ -70,7 +72,7 @@ func (m *NewTranslate) Translate(query []string, from, to string) (map[int]strin
 
 		translator := translatorConfig[key]
 
-		config := service.Configuration.GetTranslate(db.Orm(), key)
+		config := service.Configuration.GetTranslate(db.GetDB(context.Background()), key)
 		if config.IsZero() {
 			return nil, errors.New("没有配制翻译参数") //fakeTranslate.Translate(query, from, to)
 		}
@@ -88,7 +90,7 @@ func (m *NewTranslate) Translate(query []string, from, to string) (map[int]strin
 				continue
 			}
 			wordCounts[0] = ableWordCount - translateWordCount
-			err = dao.UpdateByPrimaryKey(db.Orm(), &model.Configuration{}, config.ID, map[string]any{"V": util.StructToJSON(wordCounts)})
+			err = dao.UpdateByPrimaryKey(db.GetDB(context.Background()), &model.Configuration{}, config.ID, map[string]any{"V": util.StructToJSON(wordCounts)})
 			if err != nil {
 				return nil, err
 			}

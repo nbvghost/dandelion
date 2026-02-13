@@ -20,15 +20,15 @@ type ListGoodsType struct {
 	} `method:"Post"`
 }
 
-func (g *ListGoodsType) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (g *ListGoodsType) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	//dts := &model.Datatables{}
 	//util.RequestBodyToJSON(context.Request.Body, dts)
-	//draw, recordsTotal, recordsFiltered, list := g.Goods.DatatablesListOrder(db.Orm(), g.Post.Datatables, &[]model.GoodsType{}, g.Organization.ID, "")
+	//draw, recordsTotal, recordsFiltered, list := g.Goods.DatatablesListOrder(db.GetDB(ctx), g.Post.Datatables, &[]model.GoodsType{}, g.Organization.ID, "")
 
 	var goodsList []model.GoodsType
 
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 
 	orm := Orm.Model(model.GoodsType{})
 	if g.Organization.ID > 0 {
@@ -45,7 +45,7 @@ func (g *ListGoodsType) Handle(context constrain.IContext) (constrain.IResult, e
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	//dts := &model.Datatables{}
 	//util.RequestBodyToJSON(context.Request.Body, dts)
-	//draw, recordsTotal, recordsFiltered, list := g.Goods.DatatablesListOrder(db.Orm(), g.Get.Datatables, &[]model.GoodsType{}, g.Organization.ID, "")
+	//draw, recordsTotal, recordsFiltered, list := g.Goods.DatatablesListOrder(db.GetDB(ctx), g.Get.Datatables, &[]model.GoodsType{}, g.Organization.ID, "")
 	//return &result.JsonResult{Data: map[string]interface{}{"data": list, "draw": draw, "recordsTotal": recordsTotal, "recordsFiltered": recordsFiltered}}, err
 	return nil, nil
 }

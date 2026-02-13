@@ -3,15 +3,16 @@ package internal
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"time"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/constrain/key"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/dandelion/service/serviceargument"
-	"io"
-	"log"
-	"net/http"
-	"time"
 )
 
 type CaptureRequest struct {
@@ -58,7 +59,7 @@ type CaptureResponse struct {
 
 func Capture(ctx constrain.IContext, oid dao.PrimaryKey, request *CaptureRequest) (*CaptureResponse, error) {
 	pp := service.Payment.NewPaypal(ctx, oid)
-	token, err := pp.GetAccessToken()
+	token, err := pp.GetAccessToken(ctx)
 	//token, err := generateAccessToken(ctx, oid)
 	if err != nil {
 		return nil, err

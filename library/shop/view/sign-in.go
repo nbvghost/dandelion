@@ -1,6 +1,9 @@
 package view
 
 import (
+	"net/url"
+	"strings"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/extends"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -10,8 +13,6 @@ import (
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/dandelion/service/serviceargument"
-	"net/url"
-	"strings"
 )
 
 type SignInRequest struct {
@@ -49,8 +50,8 @@ func (m *SignInReply) GetResult(context constrain.IContext, viewHandler constrai
 	return &result.RedirectToUrlResult{Url: "/sign-in?" + params.Encode()}
 }
 
-func (m *SignInRequest) Render(context constrain.IContext) (r constrain.IViewResult, err error) {
-	contextValue := contexext.FromContext(context)
+func (m *SignInRequest) Render(ctx constrain.IContext) (r constrain.IViewResult, err error) {
+	contextValue := contexext.FromContext(ctx)
 	reply := &SignInReply{
 		ViewBase: extends.ViewBase{},
 		Redirect: "",
@@ -60,11 +61,11 @@ func (m *SignInRequest) Render(context constrain.IContext) (r constrain.IViewRes
 		redirect = contextValue.Request.Header.Get("Referer")
 	}
 	reply.Redirect = redirect
-	contentItem := repository.ContentItemDao.GetContentItemOfIndex(db.Orm(), m.Organization.ID)
-	reply.SiteData = service.Site.GetContentTypeByUri(context, m.Organization.ID, contentItem.Uri, "", 0)
+	contentItem := repository.ContentItemDao.GetContentItemOfIndex(db.GetDB(ctx), m.Organization.ID)
+	reply.SiteData = service.Site.GetContentTypeByUri(ctx, m.Organization.ID, contentItem.Uri, "", 0)
 
 	/*reply.HtmlMetaCallback = func(viewBase extends.ViewBase, meta *extends.HtmlMeta) error {
-		siteName := m.ContentService.GetTitle(db.Orm(), m.Organization.ID)
+		siteName := m.ContentService.GetTitle(db.GetDB(ctx), m.Organization.ID)
 		meta.SetBase(contentItem.Name, siteName, m.Organization.Introduction)
 		photos := m.Organization.Photos
 		if len(photos) > 0 {

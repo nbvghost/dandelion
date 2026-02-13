@@ -12,12 +12,12 @@ type ListContentItemID struct {
 	} `method:"GET"`
 }
 
-func (m *ListContentItemID) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *ListContentItemID) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//ContentItemID, _ := strconv.ParseUint(context.PathParams["ContentItemID"], 10, 64)
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	//ContentItemID := object.ParseUint(context.PathParams["ContentItemID"])
 
-	list := repository.ContentSubTypeDao.FindContentSubTypesByContentItemID(m.GET.ContentItemID)
+	list := repository.ContentSubTypeDao.FindContentSubTypesByContentItemID(ctx, m.GET.ContentItemID)
 
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", list)}, nil
 }

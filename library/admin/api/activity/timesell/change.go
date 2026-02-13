@@ -2,6 +2,7 @@ package timesell
 
 import (
 	"errors"
+
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service"
 
@@ -27,7 +28,7 @@ func (m *Change) Handle(context constrain.IContext) (r constrain.IResult, err er
 	panic("implement me")
 }
 
-func (m *Change) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Change) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 
 	//context.Request.ParseForm()
@@ -41,7 +42,7 @@ func (m *Change) HandlePost(context constrain.IContext) (r constrain.IResult, er
 	//return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "", nil)}
 	//}
 
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 	defer func() {
 		if err == nil {
 			tx.Commit()
@@ -80,7 +81,7 @@ func (m *Change) HandlePost(context constrain.IContext) (r constrain.IResult, er
 		err = dao.Save(tx, item)
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "提交成功", item)}, err
 	} else {
-		_item := service.Activity.TimeSell.GetTimeSellByHash(item.Hash, m.Organization.ID)
+		_item := service.Activity.TimeSell.GetTimeSellByHash(ctx, item.Hash, m.Organization.ID)
 		if _item.ID == 0 {
 			return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(errors.New("无法修改"), "", nil)}, err
 		}

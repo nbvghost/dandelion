@@ -1,9 +1,10 @@
 package goods
 
 import (
+	"log"
+
 	"github.com/nbvghost/dandelion/library/db"
 	"github.com/nbvghost/dandelion/service"
-	"log"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -26,7 +27,7 @@ func (m *AddGoods) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	panic("implement me")
 }
 
-func (m *AddGoods) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *AddGoods) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 
 	//context.Request.ParseForm()
@@ -49,8 +50,8 @@ func (m *AddGoods) HandlePost(context constrain.IContext) (r constrain.IResult, 
 	}
 
 	item.OID = m.Organization.ID
-	tx := db.Orm().Begin()
-	hasGoods, err := service.Goods.Goods.SaveGoods(tx, m.Organization.ID, item, specifications)
+	tx := db.GetDB(ctx).Begin()
+	hasGoods, err := service.Goods.Goods.SaveGoods(ctx, tx, m.Organization.ID, item, specifications)
 	if err != nil {
 		tx.Rollback()
 		as := &result.ActionResult{}

@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
+	"html/template"
+	"regexp"
+	"strings"
+	"sync"
+
 	"github.com/nbvghost/dandelion/domain/translate/internal"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/samber/lo"
 	"go.uber.org/zap"
 	"golang.org/x/net/html"
-	"html/template"
-	"regexp"
-	"strings"
-	"sync"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -62,8 +63,8 @@ var ignoreKeyWords = []string{"usokay", "usokay.com"}
 func (m *Html) Translate(query []string, from, to string) (map[int]string, error) {
 	return m.translate.Translate(query, from, to)
 }
-func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byte, error) {
-	contextValue := contexext.FromContext(context)
+func (m *Html) TranslateHtml(ctx constrain.IContext, docBytes []byte) ([]byte, error) {
+	contextValue := contexext.FromContext(ctx)
 	var err error
 	var node *html.Node
 	node, err = html.Parse(bytes.NewBuffer(docBytes))
@@ -76,7 +77,7 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 		return docBytes, nil
 	}
 
-	lang := dao.GetBy(db.Orm(), &model.Language{}, map[string]any{"Code": contextValue.Lang})
+	lang := dao.GetBy(db.GetDB(ctx), &model.Language{}, map[string]any{"Code": contextValue.Lang})
 	if lang.IsZero() {
 		//当前语言不在翻译列表中
 		return docBytes, nil
@@ -180,7 +181,7 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 
 	f(node)
 
-	tx := db.Orm().Begin(&sql.TxOptions{Isolation: sql.LevelReadUncommitted})
+	tx := db.GetDB(ctx).Begin(&sql.TxOptions{Isolation: sql.LevelReadUncommitted})
 	defer func() {
 		if err != nil || recover() != nil {
 			tx.Rollback()
@@ -227,7 +228,7 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 		var translatedMap map[int]string
 		translatedMap, err = m.translate.Translate(queryArr, "en", contextValue.Lang)
 		if err != nil {
-			context.Logger().Error("translate error", zap.Error(err))
+			ctx.Logger().Error("translate error", zap.Error(err))
 			return nil, err
 		}
 
@@ -254,7 +255,7 @@ func (m *Html) TranslateHtml(context constrain.IContext, docBytes []byte) ([]byt
 				LangType: contextValue.Lang,
 				LangText: tInfo.Dst,
 			}).Error; err != nil {
-				context.Logger().Error("write db.Translate error", zap.Error(err))
+				ctx.Logger().Error("write db.Translate error", zap.Error(err))
 				return nil, err
 			}
 		}

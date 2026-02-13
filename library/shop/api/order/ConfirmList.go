@@ -2,8 +2,9 @@ package order
 
 import (
 	"encoding/json"
-	"github.com/nbvghost/dandelion/service"
 	"log"
+
+	"github.com/nbvghost/dandelion/service"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -49,7 +50,7 @@ func (m *ConfirmList) HandlePost(ctx constrain.IContext) (constrain.IResult, err
 	//address := model.Address{}
 	//util.JSONToStruct(m.Post.Address, &address)
 
-	results, err := service.Order.Orders.AnalyseOrdersGoodsList(m.User.OID, &m.Post.Address, ogs)
+	results, err := service.Order.Orders.AnalyseOrdersGoodsList(ctx, m.User.OID, &m.Post.Address, ogs)
 
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "OK", results)}, err
 }

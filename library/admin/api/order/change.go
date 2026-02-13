@@ -2,6 +2,7 @@ package order
 
 import (
 	"errors"
+
 	"github.com/nbvghost/dandelion/service"
 
 	"github.com/nbvghost/dandelion/constrain"
@@ -40,35 +41,35 @@ func (m *Change) Handle(context constrain.IContext) (r constrain.IResult, err er
 	panic("implement me")
 }
 
-func (m *Change) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Change) HandlePut(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 
 	switch m.Put.Action {
 	case "RefundComplete":
 		//OrdersGoodsID, _ := strconv.ParseUint(context.Request.FormValue("OrdersGoodsID"), 10, 64)
 		//RefundType, _ := strconv.ParseUint(context.Request.FormValue("RefundType"), 10, 64)
-		info, err := service.Order.Orders.RefundComplete(context, dao.PrimaryKey(m.Put.OrdersID), m.Put.RefundType)
+		info, err := service.Order.Orders.RefundComplete(ctx, dao.PrimaryKey(m.Put.OrdersID), m.Put.RefundType)
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, err
 	case "RefundAgree":
 		//OrdersGoodsID, _ := strconv.ParseUint(context.Request.FormValue("OrdersGoodsID"), 10, 64)
-		err, info := service.Order.Orders.RefundAgree(dao.PrimaryKey(m.Put.OrdersID))
+		err, info := service.Order.Orders.RefundAgree(ctx, dao.PrimaryKey(m.Put.OrdersID))
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, err
 	case "RefundReject":
 		//OrdersGoodsID, _ := strconv.ParseUint(context.Request.FormValue("OrdersGoodsID"), 10, 64)
-		err, info := service.Order.Orders.RefundReject(dao.PrimaryKey(m.Put.OrdersID))
+		err, info := service.Order.Orders.RefundReject(ctx, dao.PrimaryKey(m.Put.OrdersID))
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, err
 	case "Cancel":
 		//ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
-		info, err := service.Order.Orders.Cancel(context, dao.PrimaryKey(m.Put.OrdersID))
+		info, err := service.Order.Orders.Cancel(ctx, dao.PrimaryKey(m.Put.OrdersID))
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, err
 	case "CancelOk":
 		//ID, _ := strconv.ParseUint(context.Request.FormValue("ID"), 10, 64)
 		//RefundType, _ := strconv.ParseUint(context.Request.FormValue("RefundType"), 10, 64) //退款资金来源	 0=未结算资金退款,1=可用余额退款
-		info, err := service.Order.Orders.CancelOk(context, dao.PrimaryKey(m.Put.OrdersID))
+		info, err := service.Order.Orders.CancelOk(ctx, dao.PrimaryKey(m.Put.OrdersID))
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, info, nil)}, err
 	case "Deliver":
-		err := service.Order.Orders.Deliver(m.Put.ShipTitle, m.Put.ShipKey, m.Put.ShipNo, m.Put.OrdersID)
+		err := service.Order.Orders.Deliver(ctx, m.Put.ShipTitle, m.Put.ShipKey, m.Put.ShipNo, m.Put.OrdersID)
 		return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "发货成功", nil)}, err
 	case "PayMoney":
 		err := dao.UpdateByPrimaryKey(Orm, entity.Orders, dao.PrimaryKey(m.Put.OrdersID), map[string]interface{}{"PayMoney": uint(m.Put.PayMoney * 100)})

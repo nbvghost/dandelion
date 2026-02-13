@@ -1,7 +1,9 @@
 package company
 
 import (
+	"context"
 	"errors"
+
 	"github.com/nbvghost/dandelion/library/db"
 
 	"gorm.io/gorm"
@@ -25,7 +27,7 @@ func (service OrganizationService) AddOrganizationBlockAmount(Orm *gorm.DB, OID 
 		return errors.New("冻结金额不足，无法扣款")
 	}
 
-	err := dao.UpdateByPrimaryKey(db.Orm(), &model.Organization{}, OID, map[string]interface{}{"BlockAmount": tm})
+	err := dao.UpdateByPrimaryKey(Orm, &model.Organization{}, OID, map[string]interface{}{"BlockAmount": tm})
 	return err
 }
 func (service OrganizationService) FindByName(Orm *gorm.DB, Name string) *model.Organization {
@@ -45,22 +47,22 @@ func (service OrganizationService) FindByDomain(Orm *gorm.DB, Domain string) *mo
 	Orm.Where(map[string]interface{}{"ID": dns.OID}).First(manager) //SelectOne(user, "select * from User where Email=?", Email)
 	return manager
 }
-func (service OrganizationService) GetOrganization(ID dao.PrimaryKey) dao.IEntity {
-	Orm := db.Orm()
+func (service OrganizationService) GetOrganization(tx *gorm.DB, ID dao.PrimaryKey) dao.IEntity {
+	//Orm := db.GetDB(ctx)
 	//target := model.Organization{}
 	//service.Get(Orm, ID, &target)
-	return dao.GetByPrimaryKey(Orm, &model.Organization{}, ID)
+	return dao.GetByPrimaryKey(tx, &model.Organization{}, ID)
 }
 
-func (service OrganizationService) DelCompany(ID dao.PrimaryKey) error {
-	Orm := db.Orm()
+func (service OrganizationService) DelCompany(ctx context.Context, ID dao.PrimaryKey) error {
+	Orm := db.GetDB(ctx)
 	return dao.DeleteByPrimaryKey(Orm, &model.Organization{}, ID)
 }
-func (service OrganizationService) ChangeOrganization(ID dao.PrimaryKey, shop *model.Organization) error {
-	Orm := db.Orm()
+func (service OrganizationService) ChangeOrganization(tx *gorm.DB, ID dao.PrimaryKey, shop *model.Organization) error {
+	//Orm := db.GetDB(ctx)
 	//return Orm.Save(article).Error
 	//err := db.Orm.Save(shop).Error
-	org := service.GetOrganization(ID).(*model.Organization)
+	org := service.GetOrganization(tx, ID).(*model.Organization)
 	if org.IsZero() {
 		return errors.New("企业信息不存在")
 	} else {
@@ -68,7 +70,7 @@ func (service OrganizationService) ChangeOrganization(ID dao.PrimaryKey, shop *m
 		shop.BlockAmount = org.BlockAmount
 		shop.Vip = org.Vip
 		shop.Expire = org.Expire
-		err := dao.UpdateByPrimaryKey(Orm, &model.Organization{}, ID, shop)
+		err := dao.UpdateByPrimaryKey(tx, &model.Organization{}, ID, shop)
 		if err != nil {
 			return err
 		} else {

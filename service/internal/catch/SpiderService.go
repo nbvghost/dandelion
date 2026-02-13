@@ -2,16 +2,18 @@ package catch
 
 import (
 	"bytes"
-	"github.com/nbvghost/dandelion/library/db"
-	"github.com/nbvghost/dandelion/service/internal/admin"
-	"github.com/nbvghost/dandelion/service/internal/content"
-	"github.com/nbvghost/dandelion/service/internal/file"
+	"context"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/nbvghost/dandelion/library/db"
+	"github.com/nbvghost/dandelion/service/internal/admin"
+	"github.com/nbvghost/dandelion/service/internal/content"
+	"github.com/nbvghost/dandelion/service/internal/file"
 
 	"github.com/nbvghost/dandelion/entity/model"
 
@@ -35,9 +37,9 @@ func init() {
 	//SpiderService{}.ReadWeiXinArticle("https://mp.weixin.qq.com/s/Z5s02hxVJ2MbFnYbMLGGkw")
 	//SpiderService{}.ReadWeiXinArticle("https://mp.weixin.qq.com/s?src=11&timestamp=1532599519&ver=1022&signature=s8FEg9-9SjADeW1PmUmWrGS8yCY1dBBFZ8Jh1Zhx06BBkfPM21KkPvZPQyYEt2i7AS-UALDxRvq-SAS9T68EYkM5bXHDdb3YI91I3s8Cn6wXcQ27wI*XMtuj8ulx*d5O&new=1")
 }
-func (spider SpiderService) StartSpider() {
+func (spider SpiderService) StartSpider(ctx context.Context) {
 
-	admin := spider.Admin.FindAdminByAccount(db.Orm(), "admin")
+	admin := spider.Admin.FindAdminByAccount(db.GetDB(ctx), "admin")
 	spider.OID = uint(admin.OID)
 	//美女
 	urlList := [][]string{
@@ -46,7 +48,7 @@ func (spider SpiderService) StartSpider() {
 		{"http://weixin.sogou.com/weixin?type=2&ie=utf8&query=%E6%9D%A8%E5%B9%82%E6%80%A7%E6%84%9F%E8%A7%86%E9%A2%91&s_from=bottom_hint", "美女"},
 		{"http://weixin.sogou.com/weixin?type=2&ie=utf8&query=%E6%80%A7%E6%84%9F%E7%B2%89%E8%89%B2%E5%A5%B6%E7%BD%A9&s_from=up_hint", "美女"},
 	}
-	go spider.WeixinQuerySogou(urlList)
+	go spider.WeixinQuerySogou(ctx, urlList)
 
 	if true {
 		//return
@@ -54,23 +56,23 @@ func (spider SpiderService) StartSpider() {
 
 	//搞笑=pc_1
 	urls := []string{"pc_1/pc_1.html", "pc_1/1.html", "pc_1/2.html", "pc_1/3.html", "pc_1/4.html", "pc_1/5.html", "pc_1/6.html", "pc_1/7.html", "pc_1/8.html", "pc_1/9.html", "pc_1/10.html", "pc_1/11.html", "pc_1/12.html", "pc_1/13.html", "pc_1/14.html"}
-	go spider.WeixinSogou(urls, "搞笑")
+	go spider.WeixinSogou(ctx, urls, "搞笑")
 
 	//养生堂=pc_2
 	urls = []string{"pc_2/pc_2.html", "pc_2/1.html", "pc_2/2.html", "pc_2/3.html", "pc_2/4.html", "pc_2/5.html", "pc_2/6.html", "pc_2/7.html", "pc_2/8.html", "pc_2/9.html", "pc_2/10.html", "pc_2/11.html", "pc_2/12.html", "pc_2/13.html", "pc_2/14.html"}
-	go spider.WeixinSogou(urls, "养生堂")
+	go spider.WeixinSogou(ctx, urls, "养生堂")
 
 	//私房话=pc_3
 	urls = []string{"pc_3/pc_3.html", "pc_3/1.html", "pc_3/2.html", "pc_3/3.html", "pc_3/4.html", "pc_3/5.html", "pc_3/6.html", "pc_3/7.html", "pc_3/8.html", "pc_3/9.html", "pc_3/10.html", "pc_3/11.html", "pc_3/12.html", "pc_3/13.html", "pc_3/14.html"}
-	go spider.WeixinSogou(urls, "私房话")
+	go spider.WeixinSogou(ctx, urls, "私房话")
 
 	//八卦精=pc_4
 	urls = []string{"pc_4/pc_4.html", "pc_4/1.html", "pc_4/2.html", "pc_4/3.html", "pc_4/4.html", "pc_4/5.html", "pc_4/6.html", "pc_4/7.html", "pc_4/8.html", "pc_4/9.html", "pc_4/10.html", "pc_4/11.html", "pc_4/12.html", "pc_4/13.html", "pc_4/14.html"}
-	go spider.WeixinSogou(urls, "八卦精")
+	go spider.WeixinSogou(ctx, urls, "八卦精")
 
 	//科技咖=pc_5
 	urls = []string{"pc_5/pc_5.html", "pc_5/1.html", "pc_5/2.html", "pc_5/3.html", "pc_5/4.html", "pc_5/5.html", "pc_5/6.html", "pc_5/7.html", "pc_5/8.html", "pc_5/9.html", "pc_5/10.html", "pc_5/11.html", "pc_5/12.html", "pc_5/13.html", "pc_5/14.html"}
-	go spider.WeixinSogou(urls, "科技咖")
+	go spider.WeixinSogou(ctx, urls, "科技咖")
 
 	//财经迷=pc_6
 	//urls=[]string{"pc_6/pc_6.html","pc_6/1.html","pc_6/2.html","pc_6/3.html","pc_6/4.html","pc_6/5.html","pc_6/6.html","pc_6/7.html","pc_6/8.html","pc_6/9.html","pc_6/10.html","pc_6/11.html","pc_6/12.html","pc_6/13.html","pc_6/14.html"}
@@ -82,7 +84,7 @@ func (spider SpiderService) StartSpider() {
 
 	//生活家=pc_8
 	urls = []string{"pc_8/pc_8.html", "pc_8/1.html", "pc_8/2.html", "pc_8/3.html", "pc_8/4.html", "pc_8/5.html", "pc_8/6.html", "pc_8/7.html", "pc_8/8.html", "pc_8/9.html", "pc_8/10.html", "pc_8/11.html", "pc_8/12.html", "pc_8/13.html", "pc_8/14.html"}
-	go spider.WeixinSogou(urls, "生活家")
+	go spider.WeixinSogou(ctx, urls, "生活家")
 
 	//时尚圈=pc_9
 	//urls=[]string{"pc_9/pc_9.html","pc_9/1.html","pc_9/2.html","pc_9/3.html","pc_9/4.html","pc_9/5.html","pc_9/6.html","pc_9/7.html","pc_9/8.html","pc_9/9.html","pc_9/10.html","pc_9/11.html","pc_9/12.html","pc_9/13.html","pc_9/14.html"}
@@ -90,19 +92,19 @@ func (spider SpiderService) StartSpider() {
 
 	//育儿=pc_10
 	urls = []string{"pc_10/pc_10.html", "pc_10/1.html", "pc_10/2.html", "pc_10/3.html", "pc_10/4.html", "pc_10/5.html", "pc_10/6.html", "pc_10/7.html", "pc_10/8.html", "pc_10/9.html", "pc_10/10.html", "pc_10/11.html", "pc_10/12.html", "pc_10/13.html", "pc_10/14.html"}
-	go spider.WeixinSogou(urls, "育儿")
+	go spider.WeixinSogou(ctx, urls, "育儿")
 
 	//旅游=pc_11
 	urls = []string{"pc_11/pc_11.html", "pc_11/1.html", "pc_11/2.html", "pc_11/3.html", "pc_11/4.html", "pc_11/5.html", "pc_11/6.html", "pc_11/7.html", "pc_11/8.html", "pc_11/9.html", "pc_11/10.html", "pc_11/11.html", "pc_11/12.html", "pc_11/13.html", "pc_11/14.html"}
-	go spider.WeixinSogou(urls, "旅游")
+	go spider.WeixinSogou(ctx, urls, "旅游")
 
 	//职场=pc_12
 	urls = []string{"pc_12/pc_12.html", "pc_12/1.html", "pc_12/2.html", "pc_12/3.html", "pc_12/4.html", "pc_12/5.html", "pc_12/6.html", "pc_12/7.html", "pc_12/8.html", "pc_12/9.html", "pc_12/10.html", "pc_12/11.html", "pc_12/12.html", "pc_12/13.html", "pc_12/14.html"}
-	go spider.WeixinSogou(urls, "职场")
+	go spider.WeixinSogou(ctx, urls, "职场")
 
 	//美食=pc_13
 	urls = []string{"pc_13/pc_13.html", "pc_13/1.html", "pc_13/2.html", "pc_13/3.html", "pc_13/4.html", "pc_13/5.html", "pc_13/6.html", "pc_13/7.html", "pc_13/8.html", "pc_13/9.html", "pc_13/10.html", "pc_13/11.html", "pc_13/12.html", "pc_13/13.html", "pc_13/14.html"}
-	go spider.WeixinSogou(urls, "美食")
+	go spider.WeixinSogou(ctx, urls, "美食")
 
 	//历史=pc_14
 	//urls=[]string{"pc_14/pc_14.html","pc_14/1.html","pc_14/2.html","pc_14/3.html","pc_14/4.html","pc_14/5.html","pc_14/6.html","pc_14/7.html","pc_14/8.html","pc_14/9.html","pc_14/10.html","pc_14/11.html","pc_14/12.html","pc_14/13.html","pc_14/14.html"}
@@ -110,7 +112,7 @@ func (spider SpiderService) StartSpider() {
 
 	//教育=pc_15
 	urls = []string{"pc_15/pc_15.html", "pc_15/1.html", "pc_15/2.html", "pc_15/3.html", "pc_15/4.html", "pc_15/5.html", "pc_15/6.html", "pc_15/7.html", "pc_15/8.html", "pc_15/9.html", "pc_15/10.html", "pc_15/11.html", "pc_15/12.html", "pc_15/13.html", "pc_15/14.html"}
-	go spider.WeixinSogou(urls, "教育")
+	go spider.WeixinSogou(ctx, urls, "教育")
 
 	//星座=pc_16
 	//urls=[]string{"pc_16/pc_16.html","pc_16/1.html","pc_16/2.html","pc_16/3.html","pc_16/4.html","pc_16/5.html","pc_16/6.html","pc_16/7.html","pc_16/8.html","pc_16/9.html","pc_16/10.html","pc_16/11.html","pc_16/12.html","pc_16/13.html","pc_16/14.html"}
@@ -133,7 +135,7 @@ func (spider SpiderService) StartSpider() {
 	//go spider.WeixinSogou(urls,"萌宠")
 
 }
-func (spider SpiderService) WeixinQuerySogou(urls [][]string) {
+func (spider SpiderService) WeixinQuerySogou(ctx context.Context, urls [][]string) {
 
 	for {
 
@@ -163,7 +165,7 @@ func (spider SpiderService) WeixinQuerySogou(urls [][]string) {
 			fmt.Println(string(b))*/
 
 			if err == nil {
-				spider.GetArticleQueryDataAndAdd(response.Body, value[1])
+				spider.GetArticleQueryDataAndAdd(ctx, response.Body, value[1])
 			}
 
 			time.Sleep(1 * time.Minute)
@@ -173,7 +175,7 @@ func (spider SpiderService) WeixinQuerySogou(urls [][]string) {
 	}
 
 }
-func (spider SpiderService) GetArticleQueryDataAndAdd(body io.ReadCloser, ContentSubTypeName string) {
+func (spider SpiderService) GetArticleQueryDataAndAdd(ctx context.Context, body io.ReadCloser, ContentSubTypeName string) {
 
 	defer body.Close()
 	doc, err := goquery.NewDocumentFromReader(body)
@@ -231,14 +233,14 @@ func (spider SpiderService) GetArticleQueryDataAndAdd(body io.ReadCloser, Conten
 			}
 			//fmt.Println(timedate)
 			//fmt.Println(df)
-			spider.Content.AddSpiderContent(dao.PrimaryKey(spider.OID), "热点文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
+			spider.Content.AddSpiderContent(ctx, dao.PrimaryKey(spider.OID), "热点文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
 
 		}
 
 	})
 
 }
-func (spider SpiderService) GetArticleDataAndAdd(body io.ReadCloser, ContentSubTypeName string) {
+func (spider SpiderService) GetArticleDataAndAdd(ctx context.Context, body io.ReadCloser, ContentSubTypeName string) {
 
 	defer body.Close()
 	doc, err := goquery.NewDocumentFromReader(body)
@@ -294,7 +296,7 @@ func (spider SpiderService) GetArticleDataAndAdd(body io.ReadCloser, ContentSubT
 			}
 			//fmt.Println(timedate)
 			//fmt.Println(df)
-			spider.Content.AddSpiderContent(dao.PrimaryKey(spider.OID), "热点文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
+			spider.Content.AddSpiderContent(ctx, dao.PrimaryKey(spider.OID), "热点文摘", ContentSubTypeName, auth.Text(), title, link, desTxt, imgsurl, content, createTime)
 
 		}
 
@@ -303,7 +305,7 @@ func (spider SpiderService) GetArticleDataAndAdd(body io.ReadCloser, ContentSubT
 }
 
 // http://weixin.sogou.com/
-func (spider SpiderService) WeixinSogou(urls []string, ContentSubTypeName string) {
+func (spider SpiderService) WeixinSogou(ctx context.Context, urls []string, ContentSubTypeName string) {
 
 	/*for _,value:=range urls{
 		client:=http.Client{}
@@ -333,7 +335,7 @@ func (spider SpiderService) WeixinSogou(urls []string, ContentSubTypeName string
 		response, err := client.Do(request)
 		log.Println(err)
 		if err == nil {
-			spider.GetArticleDataAndAdd(response.Body, ContentSubTypeName)
+			spider.GetArticleDataAndAdd(ctx, response.Body, ContentSubTypeName)
 		}
 		time.Sleep(30 * time.Minute)
 	}

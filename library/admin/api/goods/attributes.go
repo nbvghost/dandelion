@@ -22,8 +22,8 @@ type Attributes struct {
 	} `method:"DELETE"`
 }
 
-func (g *Attributes) HandlePost(context constrain.IContext) (constrain.IResult, error) {
-	at, err := service.Goods.Attributes.AddGoodsAttributes(g.Organization.ID, g.POST.GoodsID, g.POST.GroupID, g.POST.Name, g.POST.Value)
+func (g *Attributes) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
+	at, err := service.Goods.Attributes.AddGoodsAttributes(ctx, g.Organization.ID, g.POST.GoodsID, g.POST.GroupID, g.POST.Name, g.POST.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (g *Attributes) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	panic("implement me")
 }
 
-func (g *Attributes) HandleDelete(context constrain.IContext) (r constrain.IResult, err error) {
-	err = service.Goods.Attributes.DeleteGoodsAttributes(g.DELETE.ID)
+func (g *Attributes) HandleDelete(ctx constrain.IContext) (r constrain.IResult, err error) {
+	err = service.Goods.Attributes.DeleteGoodsAttributes(ctx, g.DELETE.ID)
 	return &result.JsonResult{Data: result.New(err, "属性删除成功")}, err
 }

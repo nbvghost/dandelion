@@ -116,10 +116,10 @@ func NewClient(config *model.WechatConfig) (*core.Client, error) {
 	db.Model(model.WechatConfig{}).Where(`"AppID"=?`, appId).Take(&wc)
 	return &wc
 }*/
-func (m WxService) getConfig() *model.WechatConfig {
+func (m WxService) getConfig(ctx context.Context) *model.WechatConfig {
 	if m.Config == nil {
 		m.Config = &model.WechatConfig{}
-		db.Orm().Model(model.WechatConfig{}).Where(`"OID"=?`, m.OID).Take(m.Config)
+		db.GetDB(ctx).Model(model.WechatConfig{}).Where(`"OID"=?`, m.OID).Take(m.Config)
 		return m.Config
 	}
 	return m.Config
@@ -135,14 +135,14 @@ type DeliveryInfo struct {
 	DeliveryName string `json:"delivery_name"`
 }
 
-func (m WxService) GetTraceWaybill(context constrain.IContext, ordersID dao.PrimaryKey, OrdersShipping *model.OrdersShipping) (string, error) {
+func (m WxService) GetTraceWaybill(ctx constrain.IContext, ordersID dao.PrimaryKey, OrdersShipping *model.OrdersShipping) (string, error) {
 	//trace_waybill
 	////https://api.weixin.qq.com/cgi-bin/express/delivery/open_msg/trace_waybill?access_token=XXX
 
-	orders := dao.GetByPrimaryKey(db.Orm(), &model.Orders{}, ordersID).(*model.Orders)
-	ordersGoodsList := dao.Find(db.Orm(), &model.OrdersGoods{}).Where(`"OrdersID"=?`, orders.ID).List() //.(*model.OrdersGoods)
+	orders := dao.GetByPrimaryKey(db.GetDB(ctx), &model.Orders{}, ordersID).(*model.Orders)
+	ordersGoodsList := dao.Find(db.GetDB(ctx), &model.OrdersGoods{}).Where(`"OrdersID"=?`, orders.ID).List() //.(*model.OrdersGoods)
 
-	u := dao.GetByPrimaryKey(db.Orm(), &model.User{}, orders.UserID).(*model.User)
+	u := dao.GetByPrimaryKey(db.GetDB(ctx), &model.User{}, orders.UserID).(*model.User)
 
 	var address = &model.Address{}
 	err := json.Unmarshal([]byte(orders.Address), address)
@@ -150,9 +150,9 @@ func (m WxService) GetTraceWaybill(context constrain.IContext, ordersID dao.Prim
 		return "", err
 	}
 
-	wxConfig := m.getConfig()
+	wxConfig := m.getConfig(ctx)
 
-	ossUrl, err := oss.Url(context)
+	ossUrl, err := oss.Url(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -650,7 +650,7 @@ func (m WxService) CloseOrder(OrderNo string, OID dao.PrimaryKey, wxConfig *mode
 // Refund 退款-订单内的所有的商品/订单内某个商品
 func (m WxService) Refund(ctx context.Context, order *model.Orders, ordersGoods *model.OrdersGoods, reason string) error {
 
-	client, err := NewClient(m.getConfig())
+	client, err := NewClient(m.getConfig(ctx))
 	if err != nil {
 		return err
 	}
@@ -669,7 +669,7 @@ func (m WxService) Refund(ctx context.Context, order *model.Orders, ordersGoods 
 			OutTradeNo:   core.String(order.OrderNo),
 			OutRefundNo:  core.String(order.OrderNo),
 			Reason:       core.String(reason),
-			NotifyUrl:    core.String(m.getConfig().RefundNotifyUrl),
+			NotifyUrl:    core.String(m.getConfig(ctx).RefundNotifyUrl),
 			FundsAccount: refunddomestic.REQFUNDSACCOUNT_AVAILABLE.Ptr(),
 			Amount: &refunddomestic.AmountReq{
 				Refund:   core.Int64(int64(order.PayMoney)),
@@ -697,7 +697,7 @@ func (m WxService) Refund(ctx context.Context, order *model.Orders, ordersGoods 
 			OutTradeNo:   core.String(order.OrderNo),
 			OutRefundNo:  core.String(ordersGoods.OrdersGoodsNo),
 			Reason:       core.String(reason),
-			NotifyUrl:    core.String(m.getConfig().RefundNotifyUrl),
+			NotifyUrl:    core.String(m.getConfig(ctx).RefundNotifyUrl),
 			FundsAccount: refunddomestic.REQFUNDSACCOUNT_AVAILABLE.Ptr(),
 			Amount: &refunddomestic.AmountReq{
 				Refund:   core.Int64(int64(refundAmount.IntPart())),
@@ -911,9 +911,9 @@ func (m WxService) MwGetTicket(WxConfig *model.WechatConfig) string {
 	}
 
 }
-func (m WxService) MwGetWXJSConfig(url string, OID dao.PrimaryKey) map[string]interface{} {
+func (m WxService) MwGetWXJSConfig(ctx context.Context, url string, OID dao.PrimaryKey) map[string]interface{} {
 
-	wxConfig := m.getConfig()
+	wxConfig := m.getConfig(ctx)
 
 	appId := wxConfig.AppID
 	timestamp := time.Now().Unix()

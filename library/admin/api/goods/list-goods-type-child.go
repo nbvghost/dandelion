@@ -11,9 +11,9 @@ import (
 type ListGoodsTypeChild struct {
 }
 
-func (g *ListGoodsTypeChild) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (g *ListGoodsTypeChild) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//var gts []model.GoodsTypeChild
-	//err = g.Goods.FindAll(db.Orm(), &gts)
-	gts := dao.Find(db.Orm(), entity.GoodsTypeChild).List()
+	//err = g.Goods.FindAll(db.GetDB(ctx), &gts)
+	gts := dao.Find(db.GetDB(ctx), entity.GoodsTypeChild).List()
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", gts)}, err
 }

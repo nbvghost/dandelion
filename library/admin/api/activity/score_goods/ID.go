@@ -23,8 +23,8 @@ type ID struct {
 	} `method:"Get"`
 }
 
-func (m *ID) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
-	Orm := db.Orm()
+func (m *ID) HandlePut(ctx constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.GetDB(ctx)
 	//ID := object.ParseUint(context.PathParams["ID"])
 	/*item := &model.ScoreGoods{}
 	err = util.RequestBodyToJSON(context.Request.Body, item)
@@ -35,8 +35,8 @@ func (m *ID) HandlePut(context constrain.IContext) (r constrain.IResult, err err
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "修改成功", nil)}, err
 }
 
-func (m *ID) HandleDelete(context constrain.IContext) (r constrain.IResult, err error) {
-	Orm := db.Orm()
+func (m *ID) HandleDelete(ctx constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.GetDB(ctx)
 	//ID := object.ParseUint(context.PathParams["ID"])
 	//item := &model.ScoreGoods{}
 	err = dao.DeleteByPrimaryKey(Orm, entity.ScoreGoods, dao.PrimaryKey(m.Delete.ID))
@@ -47,8 +47,8 @@ func (m *ID) Handle(context constrain.IContext) (r constrain.IResult, err error)
 	panic("implement me")
 }
 
-func (m *ID) HandleGet(context constrain.IContext) (r constrain.IResult, err error) {
-	Orm := db.Orm()
+func (m *ID) HandleGet(ctx constrain.IContext) (r constrain.IResult, err error) {
+	Orm := db.GetDB(ctx)
 	//ID := object.ParseUint(context.PathParams["ID"])
 	//item := &model.ScoreGoods{}
 	item := dao.GetByPrimaryKey(Orm, entity.ScoreGoods, dao.PrimaryKey(m.Get.ID))

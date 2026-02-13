@@ -3,6 +3,7 @@ package field
 import (
 	"errors"
 	"fmt"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -26,17 +27,17 @@ type Field struct {
 	} `method:"delete"` //删除
 }
 
-func (m *Field) Handle(context constrain.IContext) (r constrain.IResult, err error) {
-	list := dao.Find(db.Orm(), &model.CustomizeField{}).Where(map[string]any{"OID": m.Organization.ID}).Order(`"Sort","UpdatedAt" desc`).List()
+func (m *Field) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
+	list := dao.Find(db.GetDB(ctx), &model.CustomizeField{}).Where(map[string]any{"OID": m.Organization.ID}).Order(`"Sort","UpdatedAt" desc`).List()
 	return result.NewData(map[string]any{"List": list}), nil
 }
-func (m *Field) HandlePost(context constrain.IContext) (constrain.IResult, error) {
-	/*customizeFieldGroup := dao.GetBy(db.Orm(), &model.CustomizeField{}, map[string]any{"GroupID": m.Post.GroupID, "Type": m.Post.Type, "Field": m.Post.Field}).(*model.CustomizeField)
+func (m *Field) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
+	/*customizeFieldGroup := dao.GetBy(db.GetDB(ctx), &model.CustomizeField{}, map[string]any{"GroupID": m.Post.GroupID, "Type": m.Post.Type, "Field": m.Post.Field}).(*model.CustomizeField)
 	if !customizeFieldGroup.IsZero() {
 		return nil, errors.New(fmt.Sprintf("字段[%s]已经存在", m.Post.Field))
 	}*/
 
-	err := dao.Create(db.Orm(), &model.CustomizeField{
+	err := dao.Create(db.GetDB(ctx), &model.CustomizeField{
 		OID:      m.Organization.ID,
 		GroupID:  m.Post.GroupID,
 		Type:     m.Post.Type,
@@ -49,12 +50,12 @@ func (m *Field) HandlePost(context constrain.IContext) (constrain.IResult, error
 	}
 	return result.NewSuccess("添加成功"), nil
 }
-func (m *Field) HandlePut(context constrain.IContext) (constrain.IResult, error) {
-	/*customizeFieldGroup := dao.GetBy(db.Orm(), &model.CustomizeField{}, map[string]any{"GroupID": m.Put.GroupID, "Type": m.Put.Type, "Field": m.Put.Field}).(*model.CustomizeField)
+func (m *Field) HandlePut(ctx constrain.IContext) (constrain.IResult, error) {
+	/*customizeFieldGroup := dao.GetBy(db.GetDB(ctx), &model.CustomizeField{}, map[string]any{"GroupID": m.Put.GroupID, "Type": m.Put.Type, "Field": m.Put.Field}).(*model.CustomizeField)
 	if customizeFieldGroup.IsZero() == false && customizeFieldGroup.ID != m.Put.ID {
 		return nil, errors.New(fmt.Sprintf("字段[%s]已经存在", m.Put.Field))
 	}*/
-	err := dao.UpdateByPrimaryKey(db.Orm(), &model.CustomizeField{}, m.Put.ID, map[string]any{
+	err := dao.UpdateByPrimaryKey(db.GetDB(ctx), &model.CustomizeField{}, m.Put.ID, map[string]any{
 		//"GroupID":  m.Put.GroupID,
 		//"Type":     m.Put.Type,
 		"Field": m.Put.Field,
@@ -66,15 +67,15 @@ func (m *Field) HandlePut(context constrain.IContext) (constrain.IResult, error)
 	}
 	return result.NewSuccess("修改成功"), nil
 }
-func (m *Field) HandleDelete(context constrain.IContext) (constrain.IResult, error) {
-	field := dao.GetByPrimaryKey(db.Orm(), &model.CustomizeField{}, m.Delete.ID).(*model.CustomizeField)
+func (m *Field) HandleDelete(ctx constrain.IContext) (constrain.IResult, error) {
+	field := dao.GetByPrimaryKey(db.GetDB(ctx), &model.CustomizeField{}, m.Delete.ID).(*model.CustomizeField)
 	if field.ParentID == 0 {
-		hasList := dao.Find(db.Orm(), &model.CustomizeField{}).Where(`"ParentID"=?`, m.Delete.ID).List()
+		hasList := dao.Find(db.GetDB(ctx), &model.CustomizeField{}).Where(`"ParentID"=?`, m.Delete.ID).List()
 		if len(hasList) > 0 {
 			return nil, errors.New(fmt.Sprintf("分组包含子项内容，无法删除"))
 		}
 	}
-	err := dao.DeleteByPrimaryKey(db.Orm(), &model.CustomizeField{}, m.Delete.ID)
+	err := dao.DeleteByPrimaryKey(db.GetDB(ctx), &model.CustomizeField{}, m.Delete.ID)
 	if err != nil {
 		return nil, err
 	}

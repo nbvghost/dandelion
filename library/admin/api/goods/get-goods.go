@@ -14,10 +14,10 @@ import (
 type GetGoods struct {
 }
 
-func (g *GetGoods) Handle(context constrain.IContext) (r constrain.IResult, err error) {
-	contextValue := contexext.FromContext(context)
+func (g *GetGoods) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
+	contextValue := contexext.FromContext(ctx)
 	//ID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ID"), 10, 64)
 	ID := object.ParseUint(contextValue.Query.Get("ID"))
-	goodsInfo, err := service.Goods.Goods.GetGoods(db.Orm(), context, dao.PrimaryKey(ID))
+	goodsInfo, err := service.Goods.Goods.GetGoods(ctx, db.GetDB(ctx), ctx, dao.PrimaryKey(ID))
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", goodsInfo)}, err
 }

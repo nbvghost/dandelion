@@ -20,14 +20,14 @@ type AddGoodsTypeChild struct {
 	} `method:"Post"`
 }
 
-func (m *AddGoodsTypeChild) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *AddGoodsTypeChild) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//item := &model.GoodsTypeChild{}
 	//err = util.RequestBodyToJSON(context.Request.Body, item)
 	//log.Println(err)
-	err = dao.Create(db.Orm(), m.Get.GoodsTypeChild)
+	err = dao.Create(db.GetDB(ctx), m.Get.GoodsTypeChild)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "添加成功", nil)}, err
 }
-func (m *AddGoodsTypeChild) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
-	goodsTypeChild, err := service.Goods.Goods.GoodsTypeService.AddGoodsTypeChild(m.Organization.ID, m.Post.GoodsTypeID, m.Post.GoodsTypeChild.Name, m.Post.GoodsTypeChild.Image)
+func (m *AddGoodsTypeChild) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
+	goodsTypeChild, err := service.Goods.Goods.GoodsTypeService.AddGoodsTypeChild(ctx, m.Organization.ID, m.Post.GoodsTypeID, m.Post.GoodsTypeChild.Name, m.Post.GoodsTypeChild.Image)
 	return result.NewData(goodsTypeChild), err
 }

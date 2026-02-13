@@ -128,12 +128,12 @@ func NewClient(config *model.WechatConfig) (*core.Client, error) {
 func (m *Service) GetConfig() *model.WechatConfig {
 	if m.config == nil {
 		m.config = &model.WechatConfig{}
-		db.Orm().Model(model.WechatConfig{}).Where(`"OID"=?`, m.OID).Take(m.config)
+		db.GetDB(m.Context).Model(model.WechatConfig{}).Where(`"OID"=?`, m.OID).Take(m.config)
 		return m.config
 	}
 	return m.config
 }
-func (m *Service) OrderQuery(orders *model.Orders) (*serviceargument.OrderQueryResult, error) {
+func (m *Service) OrderQuery(ctx context.Context, orders *model.Orders) (*serviceargument.OrderQueryResult, error) {
 	client, err := NewClient(m.GetConfig())
 	if err != nil {
 		return nil, err
@@ -204,7 +204,7 @@ func (m *Service) Order(OrderNo string, title, description string, detail, openi
 	}, nil
 }
 
-func (m *Service) Refund(order *model.Orders, ordersGoods *model.OrdersGoods, reason string) error {
+func (m *Service) Refund(ctx context.Context, order *model.Orders, ordersGoods *model.OrdersGoods, reason string) error {
 
 	client, err := NewClient(m.GetConfig())
 	if err != nil {

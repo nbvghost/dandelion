@@ -36,7 +36,7 @@ func (m *List) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	return nil, nil
 }
 func (m *List) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
-	orm := db.Orm().Model(&model.Goods{}).
+	orm := db.GetDB(ctx).Model(&model.Goods{}).
 		Joins(`left join "GoodsType" on ("GoodsType"."ID" = "Goods"."GoodsTypeID")
          left join "Specification" on ("Specification"."GoodsID" = "Goods"."ID")`).
 		Where(`"Goods"."OID"=?`, m.Admin.OID).Select(`"Goods".*,"GoodsType".*,to_json(array_agg("Specification")) as "SpecificationList"`).

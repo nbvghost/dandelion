@@ -18,9 +18,9 @@ func (m *TableList) Handle(context constrain.IContext) (r constrain.IResult, err
 	panic("implement me")
 }
 
-func (m *TableList) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *TableList) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
-	Orm := db.Orm()
+	Orm := db.GetDB(ctx)
 	//dts := &model.Datatables{}
 	//util.RequestBodyToJSON(context.Request.Body, dts)
 	draw, recordsTotal, recordsFiltered, list := service.Content.DatatablesListOrder(Orm, m.POST.Datatables, &[]model.Content{}, 0, "")

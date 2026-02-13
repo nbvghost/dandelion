@@ -23,10 +23,10 @@ func (m *List) Handle(context constrain.IContext) (r constrain.IResult, err erro
 	panic("implement me")
 }
 
-func (m *List) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *List) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 
-	//Orm := db.Orm()
+	//Orm := db.GetDB(ctx)
 	//dts := &model.Datatables{}
 	//util.RequestBodyToJSON(context.Request.Body, dts)
 
@@ -43,7 +43,7 @@ func (m *List) HandlePost(context constrain.IContext) (r constrain.IResult, err 
 		}
 	}*/
 	//fmt.Println(dts)
-	d, err := service.Order.Orders.ListOrders(m.Post.Query, m.Organization.ID, m.Post.Order.OrderByColumn(`"CreatedAt"`, true), m.Post.PageNo, m.Post.PageSize)
+	d, err := service.Order.Orders.ListOrders(ctx, m.Post.Query, m.Organization.ID, m.Post.Order.OrderByColumn(`"CreatedAt"`, true), m.Post.PageNo, m.Post.PageSize)
 
 	return result.NewData(map[string]any{
 		"Pagination": d,

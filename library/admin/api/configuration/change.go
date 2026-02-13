@@ -20,11 +20,11 @@ func (m *Change) Handle(context constrain.IContext) (r constrain.IResult, err er
 	panic("implement me")
 }
 
-func (m *Change) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Change) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*model.Organization)
 	//item := model.Configuration{}
 	//util.RequestBodyToJSON(context.Request.Body, &item)
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 	for i := range m.POST.Configurations {
 		item := m.POST.Configurations[i]
 		err = service.Configuration.ChangeConfiguration(tx, m.Organization.ID, item.K, item.V)

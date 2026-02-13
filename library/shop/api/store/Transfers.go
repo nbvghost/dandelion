@@ -18,11 +18,11 @@ type Transfers struct {
 	} `method:"Post"`
 }
 
-func (m *Transfers) HandlePost(context constrain.IContext) (constrain.IResult, error) {
-	contextValue := contexext.FromContext(context)
+func (m *Transfers) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
+	contextValue := contexext.FromContext(ctx)
 
 	IP := util.GetIP(contextValue.Request)
-	err := service.Order.Transfers.StoreTransfers(m.Store.ID, m.User.ID, m.Post.ReUserName, IP, m.WechatConfig)
+	err := service.Order.Transfers.StoreTransfers(ctx, m.Store.ID, m.User.ID, m.Post.ReUserName, IP, m.WechatConfig)
 
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(err, "提现申请成功，请查看到账通知结果", nil)}, nil
 }

@@ -2,6 +2,8 @@ package field
 
 import (
 	"encoding/json"
+	"strings"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
 	"github.com/nbvghost/dandelion/library/dao"
@@ -9,7 +11,6 @@ import (
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/repository"
 	"github.com/nbvghost/tool/object"
-	"strings"
 )
 
 type Sync struct {
@@ -24,12 +25,12 @@ func (m *Sync) Handle(context constrain.IContext) (r constrain.IResult, err erro
 	return nil, nil
 }
 
-func (m *Sync) HandlePost(context constrain.IContext) (constrain.IResult, error) {
+func (m *Sync) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 
-	customizeFieldList := dao.Find(db.Orm(), &model.CustomizeField{}).Where(`"GroupID"=? and "OID"=? and "Type"='BLOCK'`, m.Post.ID, m.Organization.ID).List()
-	list := repository.ContentDao.FindContentByFieldGroupID(m.Organization.ID, m.Post.ID)
+	customizeFieldList := dao.Find(db.GetDB(ctx), &model.CustomizeField{}).Where(`"GroupID"=? and "OID"=? and "Type"='BLOCK'`, m.Post.ID, m.Organization.ID).List()
+	list := repository.ContentDao.FindContentByFieldGroupID(ctx, m.Organization.ID, m.Post.ID)
 
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 
 	for i := range list {
 		item := list[i]

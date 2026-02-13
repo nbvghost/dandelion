@@ -13,7 +13,7 @@ type Title struct {
 }
 
 func (g *Title) Call(ctx constrain.IContext) funcmap.IFuncResult {
-	title := service.Content.GetTitle(db.Orm(), g.Organization.ID)
+	title := service.Content.GetTitle(db.GetDB(ctx), g.Organization.ID)
 
 	return funcmap.NewStringFuncResult(title)
 }

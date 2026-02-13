@@ -1,6 +1,10 @@
 package account
 
 import (
+	"io/ioutil"
+	"net/http"
+	"strings"
+
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -9,9 +13,6 @@ import (
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/library/util"
 	"github.com/nbvghost/dandelion/service"
-	"io/ioutil"
-	"net/http"
-	"strings"
 )
 
 type MiniprogramQRcode struct {
@@ -30,8 +31,8 @@ func (g *MiniprogramQRcode) HandlePost(ctx constrain.IContext) (constrain.IResul
 
 func (g *MiniprogramQRcode) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 
-	user := dao.GetByPrimaryKey(db.Orm(), entity.User, g.Get.UserID).(*model.User)
-	//wechatConfig := service.Wechat.Wx.MiniProgramByOID(db.Orm(), user.OID)
+	user := dao.GetByPrimaryKey(db.GetDB(ctx), entity.User, g.Get.UserID).(*model.User)
+	//wechatConfig := service.Wechat.Wx.MiniProgramByOID(db.GetDB(ctx), user.OID)
 
 	//user := context.Session.Attributes.Get(play.SessionUser).(*entity.User)
 	//company := context.Session.Attributes.Get(play.SessionOrganization).(*entity.Organization)
@@ -42,15 +43,15 @@ func (g *MiniprogramQRcode) Handle(ctx constrain.IContext) (constrain.IResult, e
 	//Page := object.ParseUint(context.Request.URL.Query().Get("Page"))
 	//UserID := object.ParseUint(context.Request.URL.Query().Get("UserID"))
 
-	MyShareKey := service.Wechat.WXQRCodeParams.EncodeShareKey(g.Get.UserID, 0)
+	MyShareKey := service.Wechat.WXQRCodeParams.EncodeShareKey(ctx, g.Get.UserID, 0)
 
 	//ProductID, _ := strconv.ParseUint(context.Request.URL.Query().Get("ProductID"), 10, 64)
 	//ProductID := object.ParseUint(context.Request.URL.Query().Get("ProductID"))
 	if g.Get.ProductID != 0 {
-		MyShareKey = service.Wechat.WXQRCodeParams.EncodeShareKey(g.Get.UserID, uint(g.Get.ProductID))
+		MyShareKey = service.Wechat.WXQRCodeParams.EncodeShareKey(ctx, g.Get.UserID, uint(g.Get.ProductID))
 	}
 
-	wechat := service.Payment.NewWechat(ctx,user.OID)
+	wechat := service.Payment.NewWechat(ctx, user.OID)
 
 	accessToken := service.Wechat.AccessToken.GetAccessToken(wechat.GetConfig())
 

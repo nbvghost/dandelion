@@ -11,7 +11,7 @@ type ListGoodsTypeAll struct {
 	Organization *model.Organization `mapping:""`
 }
 
-func (g *ListGoodsTypeAll) Handle(context constrain.IContext) (r constrain.IResult, err error) {
-	gts := service.Goods.Goods.GoodsTypeService.ListGoodsTypeByOIDForAdmin(g.Organization.ID)
+func (g *ListGoodsTypeAll) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
+	gts := service.Goods.Goods.GoodsTypeService.ListGoodsTypeByOIDForAdmin(ctx, g.Organization.ID)
 	return &result.JsonResult{Data: (&result.ActionResult{}).SmartError(nil, "OK", gts)}, err
 }

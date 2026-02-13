@@ -3,11 +3,12 @@ package paypal
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/nbvghost/dandelion/library/shop/api/payment/method/paypal/internal"
 	"github.com/nbvghost/dandelion/service"
 	"github.com/nbvghost/tool/object"
-	"strings"
-	"time"
 
 	"github.com/nbvghost/dandelion/constrain"
 	"github.com/nbvghost/dandelion/entity/model"
@@ -35,7 +36,7 @@ func (m *Capture) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 	if len(capture.PurchaseUnits) == 0 {
 		return nil, errors.New("payment failed,invalid order")
 	}
-	mOrder := repository.OrdersDao.GetOrdersByOrderNo(capture.PurchaseUnits[0].ReferenceId)
+	mOrder := repository.OrdersDao.GetOrdersByOrderNo(ctx, capture.PurchaseUnits[0].ReferenceId)
 	if mOrder.IsZero() {
 		return nil, errors.New("unable to confirm order, confirmation order failed")
 	}
@@ -52,7 +53,7 @@ func (m *Capture) HandlePost(ctx constrain.IContext) (constrain.IResult, error) 
 		PayTime:       time.Now(),
 		TransactionID: capture.PurchaseUnits[0].Payments.Captures[0].Id,
 	}
-	err = dao.UpdateByPrimaryKey(db.Orm(), &model.Orders{}, mOrder.ID, changeOrder)
+	err = dao.UpdateByPrimaryKey(db.GetDB(ctx), &model.Orders{}, mOrder.ID, changeOrder)
 	if err != nil {
 		return nil, err
 	}

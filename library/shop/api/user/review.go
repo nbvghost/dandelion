@@ -20,14 +20,14 @@ type GoodsReview struct {
 	model.Goods       `json:"Goods"`
 }
 
-func (m *Review) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Review) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 	var list []GoodsReview
 	var total int64
-	db.Orm().Table(`"GoodsReview"`).
+	db.GetDB(ctx).Table(`"GoodsReview"`).
 		Select(`"GoodsReview".*,"Goods".*`).
 		Joins(`JOIN "Goods" on "Goods"."ID" = "GoodsReview"."GoodsID"`).
 		Order(`"GoodsReview"."CreatedAt" DESC`).
-		Where(`"GoodsReview"."UserID"=?`, context.UID()).
+		Where(`"GoodsReview"."UserID"=?`, ctx.UID()).
 		Count(&total).Offset(m.Get.Index * m.Get.PageSize).
 		Limit(m.Get.PageSize).Find(&list)
 

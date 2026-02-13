@@ -68,12 +68,12 @@ type Index struct {
 	} `method:"Put"`
 }
 
-func (g *Index) Handle(context constrain.IContext) (r constrain.IResult, err error) {
+func (g *Index) Handle(ctx constrain.IContext) (r constrain.IResult, err error) {
 
-	return result.NewData(dao.GetByPrimaryKey(db.Orm(), &model.Specification{}, g.Get.ID)), err
+	return result.NewData(dao.GetByPrimaryKey(db.GetDB(ctx), &model.Specification{}, g.Get.ID)), err
 }
-func (g *Index) HandlePut(context constrain.IContext) (r constrain.IResult, err error) {
-	has := dao.GetByPrimaryKey(db.Orm(), &model.Specification{}, g.Put.Specification.ID).(*model.Specification)
+func (g *Index) HandlePut(ctx constrain.IContext) (r constrain.IResult, err error) {
+	has := dao.GetByPrimaryKey(db.GetDB(ctx), &model.Specification{}, g.Put.Specification.ID).(*model.Specification)
 	if has.IsZero() {
 		return nil, errors.New("数据错误")
 	}
@@ -128,7 +128,7 @@ func (g *Index) HandlePut(context constrain.IContext) (r constrain.IResult, err 
 					//tx.Rollback()
 					return nil, err
 				}
-				file, err := oss.UploadFile(context, fileBytes, fmt.Sprintf("goods/specification/%d", g.Put.Specification.ID), "", true, item.Alt)
+				file, err := oss.UploadFile(ctx, fileBytes, fmt.Sprintf("goods/specification/%d", g.Put.Specification.ID), "", true, item.Alt)
 				if err != nil {
 					//tx.Rollback()
 					return nil, err
@@ -142,18 +142,18 @@ func (g *Index) HandlePut(context constrain.IContext) (r constrain.IResult, err 
 	}
 	s["Pictures"] = g.Put.Specification.Pictures
 
-	err = dao.UpdateByPrimaryKey(db.Orm(), &model.Specification{}, g.Put.Specification.ID, s)
+	err = dao.UpdateByPrimaryKey(db.GetDB(ctx), &model.Specification{}, g.Put.Specification.ID, s)
 	if err != nil {
 		return nil, err
 	}
-	return result.NewDataMessage(map[string]any{"Specifications": dao.Find(db.Orm(), &model.Specification{}).Where(`"GoodsID"=?`, g.Put.Specification.GoodsID).Order(`"LabelIndex"::text asc`).List()}, "修改成功"), err
+	return result.NewDataMessage(map[string]any{"Specifications": dao.Find(db.GetDB(ctx), &model.Specification{}).Where(`"GoodsID"=?`, g.Put.Specification.GoodsID).Order(`"LabelIndex"::text asc`).List()}, "修改成功"), err
 }
-func (g *Index) HandlePost(context constrain.IContext) (r constrain.IResult, err error) {
+func (g *Index) HandlePost(ctx constrain.IContext) (r constrain.IResult, err error) {
 	if g.Post.Specification.GoodsID == 0 {
 		return nil, errors.New("数据错误")
 	}
 
-	tx := db.Orm().Begin()
+	tx := db.GetDB(ctx).Begin()
 
 	specificationList := dao.Find(tx, &model.Specification{}).Where(map[string]any{"GoodsID": g.Post.Specification.GoodsID}).List()
 
@@ -227,7 +227,7 @@ func (g *Index) HandlePost(context constrain.IContext) (r constrain.IResult, err
 				tx.Rollback()
 				return nil, err
 			}
-			file, err := oss.UploadFile(context, fileBytes, fmt.Sprintf("goods/specification/%d", newSpecification.ID), "", true, item.Alt)
+			file, err := oss.UploadFile(ctx, fileBytes, fmt.Sprintf("goods/specification/%d", newSpecification.ID), "", true, item.Alt)
 			if err != nil {
 				tx.Rollback()
 				return nil, err
@@ -241,16 +241,16 @@ func (g *Index) HandlePost(context constrain.IContext) (r constrain.IResult, err
 		return nil, err
 	}
 	tx.Commit()
-	return result.NewDataMessage(map[string]any{"Specifications": dao.Find(db.Orm(), &model.Specification{}).Where(`"GoodsID"=?`, g.Post.Specification.GoodsID).Order(`"LabelIndex"::text asc`).List()}, "添加成功"), err
+	return result.NewDataMessage(map[string]any{"Specifications": dao.Find(db.GetDB(ctx), &model.Specification{}).Where(`"GoodsID"=?`, g.Post.Specification.GoodsID).Order(`"LabelIndex"::text asc`).List()}, "添加成功"), err
 }
-func (m *Index) HandleDelete(context constrain.IContext) (r constrain.IResult, err error) {
+func (m *Index) HandleDelete(ctx constrain.IContext) (r constrain.IResult, err error) {
 	if m.Delete.ID == 0 {
 		return nil, errors.New("没找到记录")
 	}
-	has := dao.GetByPrimaryKey(db.Orm(), &model.Specification{}, m.Delete.ID).(*model.Specification)
-	err = service.Goods.Specification.DeleteSpecification(has.ID)
+	has := dao.GetByPrimaryKey(db.GetDB(ctx), &model.Specification{}, m.Delete.ID).(*model.Specification)
+	err = service.Goods.Specification.DeleteSpecification(ctx, has.ID)
 	if err != nil {
 		return nil, err
 	}
-	return result.NewDataMessage(map[string]any{"Specifications": dao.Find(db.Orm(), &model.Specification{}).Where(`"GoodsID"=?`, has.GoodsID).Order(`"LabelIndex"::text asc`).List()}, "删除成功"), err
+	return result.NewDataMessage(map[string]any{"Specifications": dao.Find(db.GetDB(ctx), &model.Specification{}).Where(`"GoodsID"=?`, has.GoodsID).Order(`"LabelIndex"::text asc`).List()}, "删除成功"), err
 }

@@ -1,8 +1,10 @@
 package aliyun
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+
 	alimt20181012 "github.com/alibabacloud-go/alimt-20181012/v2/client"
 	openapi "github.com/alibabacloud-go/darabonba-openapi/v2/client"
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
@@ -26,7 +28,7 @@ var aliyunClient *alimt20181012.Client
 func (m *Index) getClient() (*alimt20181012.Client, error) {
 	if aliyunClient == nil {
 		if m.config == nil {
-			m.config = service.Configuration.GetAliyunConfiguration(0)
+			m.config = service.Configuration.GetAliyunConfiguration(context.Background(), 0)
 		}
 		// 工程代码泄露可能会导致 AccessKey 泄露，并威胁账号下所有资源的安全性。以下代码示例仅供参考。
 		// 建议使用更安全的 STS 方式，更多鉴权访问方式请参见：https://help.aliyun.com/document_detail/378661.html。

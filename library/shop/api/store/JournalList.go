@@ -16,11 +16,11 @@ type JournalList struct {
 	} `method:"Post"`
 }
 
-func (m *JournalList) HandlePost(context constrain.IContext) (constrain.IResult, error) {
+func (m *JournalList) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 
 	//StoreID, _ := strconv.ParseUint(context.Request.FormValue("StoreID"), 10, 64)
 
-	list := service.Journal.StoreListJournal(m.Store.ID, m.Post.StartDate, m.Post.EndDate)
+	list := service.Journal.StoreListJournal(ctx, m.Store.ID, m.Post.StartDate, m.Post.EndDate)
 
 	return &result.JsonResult{Data: &result.ActionResult{Code: result.Success, Message: "", Data: list}}, nil
 }
