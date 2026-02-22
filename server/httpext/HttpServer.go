@@ -1,17 +1,23 @@
 package httpext
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/nbvghost/dandelion/config"
-	"github.com/nbvghost/dandelion/library/result"
-	"github.com/nbvghost/dandelion/server/route"
-	"golang.org/x/sync/errgroup"
 	"log"
 	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
+
+	"github.com/nbvghost/dandelion/config"
+	"github.com/nbvghost/dandelion/library/environments"
+	"github.com/nbvghost/dandelion/library/result"
+	"github.com/nbvghost/dandelion/server/route"
+	"golang.org/x/sync/errgroup"
 
 	"go.uber.org/zap"
 
@@ -64,12 +70,14 @@ func (m *httpServer) Listen(microServerConfig *config.MicroServerConfig, callbac
 		}
 	}()*/
 	m.defaultMiddleware.serverName = microServerConfig.MicroServer.Name
-	if m.etcdClient != nil {
+	if environments.EtcdAble() && m.etcdClient != nil {
 		var err error
 		microServerConfig, err = m.etcdClient.Register(microServerConfig)
 		if err != nil {
 			return err
 		}
+	} else {
+		log.Println("没有启用ETCD或ETCD实例是空的")
 	}
 
 	listenAddr := fmt.Sprintf("%s:%d", microServerConfig.IP, microServerConfig.Port)
@@ -101,7 +109,9 @@ func (m *httpServer) Listen(microServerConfig *config.MicroServerConfig, callbac
 		log.Println(fmt.Sprintf("tcp:server:%s:%s:START_ERROR:%s", m.defaultMiddleware.serverName, listenAddr, err.Error()))
 		return err
 	}
+
 	go func() {
+		//检测服务是否可用
 		_, err := net.DialTimeout("tcp", listenAddr, time.Second*5)
 		if err != nil {
 			log.Println(fmt.Sprintf("tcp:server:%s:%s:START_ERROR:%s", m.defaultMiddleware.serverName, listenAddr, err.Error()))
@@ -109,7 +119,26 @@ func (m *httpServer) Listen(microServerConfig *config.MicroServerConfig, callbac
 			log.Println(fmt.Sprintf("tcp:server:%s:%s:START_SUCCESS", m.defaultMiddleware.serverName, listenAddr))
 		}
 	}()
-	return srv.Serve(ln)
+	go func() {
+		err = srv.Serve(ln)
+		if err != nil {
+			log.Fatalf("HTTP 服务启动失败: %v", err)
+		}
+	}()
+
+	// 3. 优雅退出处理（捕获终止信号，反注册服务）
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	// 关闭 HTTP 服务
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("HTTP 服务关闭失败: %v", err)
+	}
+	log.Println("服务已优雅退出")
+	return nil
 }
 
 type Option interface {
@@ -268,6 +297,10 @@ func NewHttpServer(etcdClient constrain.IEtcd, redisClient constrain.IRedis, eng
 	}
 
 	if s.router != nil && s.route != nil {
+		http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("ok"))
+		})
 		router.NotFoundHandler = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			/*if s.notFoundViewRender == nil {
 				if request.URL.Path == "/404" {
