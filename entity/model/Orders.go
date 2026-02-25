@@ -12,7 +12,7 @@ import (
 
 type OrdersStatus string
 
-func (m OrdersStatus) CanUpdateOrder() bool {
+func (m OrdersStatus) CanUpdateOrder() (bool, error) {
 	switch m {
 	case OrdersStatusPending:
 		fallthrough
@@ -21,9 +21,9 @@ func (m OrdersStatus) CanUpdateOrder() bool {
 	case OrdersStatusOrder:
 		fallthrough
 	case OrdersStatusPay:
-		return true
+		return true, nil
 	}
-	return false
+	return false, errors.New("当前订单状态不允许更新")
 }
 
 const (
