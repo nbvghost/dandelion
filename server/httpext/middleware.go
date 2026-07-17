@@ -366,68 +366,76 @@ func (m *httpMiddleware) Handle(ctx constrain.IContext, router constrain.IRoute,
 		}
 
 		var handle func(ctx constrain.IContext) (constrain.IResult, error)
-		switch r.Method {
-		case http.MethodGet:
-			if v, ok := apiHandler.(constrain.IHandler); ok {
-				handle = v.Handle
-			}
-		case http.MethodPost:
-			if v, ok := apiHandler.(constrain.IHandlerPost); ok {
-				handle = v.HandlePost
-			}
-		/*case http.MethodHead:
-		if v, ok := apiHandler.(constrain.IHandlerHead); ok {
-			handle = v.HandleHead
-		}*/
-		case http.MethodPut:
-			if v, ok := apiHandler.(constrain.IHandlerPut); ok {
-				handle = v.HandlePut
-			}
-		case http.MethodPatch:
-			if v, ok := apiHandler.(constrain.IHandlerPatch); ok {
-				handle = v.HandlePatch
-			}
-		case http.MethodDelete:
-			if v, ok := apiHandler.(constrain.IHandlerDelete); ok {
-				handle = v.HandleDelete
-			}
-		/*case http.MethodConnect:
-		if v, ok := apiHandler.(constrain.IHandlerConnect); ok {
-			handle = v.HandleConnect
-		}*/
-		/*case http.MethodOptions:
-		if v, ok := apiHandler.(constrain.IHandlerOptions); ok {
-			handle = v.HandleOptions
-		}*/
-		/*case http.MethodTrace:
-		if v, ok := apiHandler.(constrain.IHandlerTrace); ok {
-			handle = v.HandleTrace
-		}*/
-		default:
-			return result.NewCodeWithMessage(result.HttpError, fmt.Sprintf("错误的http方法:%s", r.Method))
 
-		}
-		if handle == nil {
-			return result.NewCodeWithMessage(result.HttpError, fmt.Sprintf("找不到http方法:%s的handle", r.Method))
-		}
-
-		sc := ctx.(*contexext.HandlerContext)
-		sc.DB = sc.DB.Begin()
-
-		var returnResult constrain.IResult
-		returnResult, err = handle(ctx)
-		if err == nil && returnResult == nil {
-			returnResult = result.NewSuccess("OK")
-			sc.DB.Commit()
-		} else {
+		if v, ok := apiHandler.(constrain.IHandlerWebSocket); ok && r.Method == http.MethodGet {
+			_, err := v.Message(ctx)
 			if err != nil {
-				sc.DB.Rollback()
-				returnResult = result.NewError(err)
-			} else {
-				sc.DB.Commit()
+				log.Println(err)
 			}
+		} else {
+			switch r.Method {
+			case http.MethodGet:
+				if v, ok := apiHandler.(constrain.IHandler); ok {
+					handle = v.Handle
+				}
+			case http.MethodPost:
+				if v, ok := apiHandler.(constrain.IHandlerPost); ok {
+					handle = v.HandlePost
+				}
+			/*case http.MethodHead:
+			if v, ok := apiHandler.(constrain.IHandlerHead); ok {
+				handle = v.HandleHead
+			}*/
+			case http.MethodPut:
+				if v, ok := apiHandler.(constrain.IHandlerPut); ok {
+					handle = v.HandlePut
+				}
+			case http.MethodPatch:
+				if v, ok := apiHandler.(constrain.IHandlerPatch); ok {
+					handle = v.HandlePatch
+				}
+			case http.MethodDelete:
+				if v, ok := apiHandler.(constrain.IHandlerDelete); ok {
+					handle = v.HandleDelete
+				}
+			/*case http.MethodConnect:
+			if v, ok := apiHandler.(constrain.IHandlerConnect); ok {
+				handle = v.HandleConnect
+			}*/
+			/*case http.MethodOptions:
+			if v, ok := apiHandler.(constrain.IHandlerOptions); ok {
+				handle = v.HandleOptions
+			}*/
+			/*case http.MethodTrace:
+			if v, ok := apiHandler.(constrain.IHandlerTrace); ok {
+				handle = v.HandleTrace
+			}*/
+			default:
+				return result.NewCodeWithMessage(result.HttpError, fmt.Sprintf("错误的http方法:%s", r.Method))
+
+			}
+			if handle == nil {
+				return result.NewCodeWithMessage(result.HttpError, fmt.Sprintf("找不到http方法:%s的handle", r.Method))
+			}
+
+			sc := ctx.(*contexext.HandlerContext)
+			sc.DB = sc.DB.Begin()
+
+			var returnResult constrain.IResult
+			returnResult, err = handle(ctx)
+			if err == nil && returnResult == nil {
+				returnResult = result.NewSuccess("OK")
+				sc.DB.Commit()
+			} else {
+				if err != nil {
+					sc.DB.Rollback()
+					returnResult = result.NewError(err)
+				} else {
+					sc.DB.Commit()
+				}
+			}
+			returnResult.Apply(ctx)
 		}
-		returnResult.Apply(ctx)
 
 	} else {
 		if beforeViewRender != nil {

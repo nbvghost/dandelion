@@ -96,7 +96,7 @@ func (r *protoResult) Apply(context constrain.IContext) {
 	v.Response.Header().Set("Content-Type", "application/x-protobuf; charset=utf-8")
 	v.Response.WriteHeader(http.StatusOK)
 	//context.Response.Header().Add("Content-Type", "application/json")
-	v.Response.Write(b)
+	_, _ = v.Response.Write(b)
 }
 func NewProtoResult(d proto.Message) *protoResult {
 	return &protoResult{Data: d}
@@ -135,7 +135,7 @@ func (r *JsonResult) Apply(context constrain.IContext) {
 	}
 	v.Response.WriteHeader(r.statusCode)
 	//context.Response.Header().Add("Content-Type", "application/json")
-	v.Response.Write(b)
+	_, _ = v.Response.Write(b)
 }
 func NewJsonResult(d interface{}) *JsonResult {
 	return &JsonResult{Data: d, statusCode: http.StatusOK}
@@ -149,7 +149,7 @@ func (r *TextResult) Apply(context constrain.IContext) {
 	v := contexext.FromContext(context)
 	v.Response.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	v.Response.WriteHeader(http.StatusOK)
-	v.Response.Write([]byte(r.Data))
+	_, _ = v.Response.Write([]byte(r.Data))
 }
 func NewTextResult(d string) *TextResult {
 	return &TextResult{Data: d}

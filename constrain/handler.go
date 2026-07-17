@@ -29,6 +29,10 @@ type IHandlerDelete interface {
 	IHandler
 	HandleDelete(ctx IContext) (IResult, error)
 }
+type IHandlerWebSocket interface {
+	IHandler
+	Message(ctx IContext) (IResult, error)
+}
 
 /*type IHandlerConnect interface {
 	IHandler
@@ -45,6 +49,7 @@ type IHandlerDelete interface {
 type IHandler interface {
 	Handle(ctx IContext) (IResult, error)
 }
+
 type IViewHandler interface {
 	Render(ctx IContext) (IViewResult, error)
 }
