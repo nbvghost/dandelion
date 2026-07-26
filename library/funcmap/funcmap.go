@@ -19,6 +19,7 @@ import (
 	"strings"
 	"time"
 
+	sprig "github.com/go-task/slim-sprig"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/tool"
 
@@ -267,7 +268,7 @@ func (fo *templateFuncMap) Build(context constrain.IContext) template.FuncMap {
 
 func NewFuncMap() ITemplateFunc {
 	fm := &templateFuncMap{}
-	fm.funcMap = make(template.FuncMap)
+	fm.funcMap = sprig.FuncMap() //make(template.FuncMap)
 	fm.funcMap["Include"] = fm.include
 	fm.funcMap["Split"] = fm.splitFunc
 	fm.funcMap["FromJSONToMap"] = fm.fromJSONToMap
