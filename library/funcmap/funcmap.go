@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	sprig "github.com/go-task/slim-sprig"
+	"github.com/Masterminds/sprig/v3"
 	"github.com/nbvghost/dandelion/library/contexext"
 	"github.com/nbvghost/tool"
 
