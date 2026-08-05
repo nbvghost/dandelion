@@ -28,8 +28,8 @@ require (
 	go.uber.org/zap v1.19.1
 	golang.org/x/exp v0.0.0-20200224162631-6cc2880d07d6
 	golang.org/x/net v0.55.0
-	golang.org/x/sync v0.20.0
-	golang.org/x/text v0.37.0
+	golang.org/x/sync v0.21.0
+	golang.org/x/text v0.38.0
 	google.golang.org/grpc v1.79.3
 	google.golang.org/protobuf v1.36.10 // indirect
 	gorm.io/driver/postgres v1.5.7
@@ -42,7 +42,7 @@ require (
 	github.com/samber/lo v1.47.0
 	github.com/shopspring/decimal v1.4.0
 	go.etcd.io/etcd/client/v3 v3.5.16
-	golang.org/x/image v0.18.0
+	golang.org/x/image v0.42.0
 )
 
 require (
