@@ -29,41 +29,43 @@ type Index struct {
 	} `method:"Delete"`
 	Post struct {
 		Specification struct {
-			ID          dao.PrimaryKey
-			GoodsID     dao.PrimaryKey
-			Label       string
-			CodeNo      string
-			CodeHS      string
-			Num         uint
-			Unit        string
-			Weight      decimal.Decimal
-			Stock       uint
-			CostPrice   decimal.Decimal
-			MarketPrice decimal.Decimal
-			Currency    model.Currency
-			Brokerage   decimal.Decimal
-			Pictures    sqltype.Array[sqltype.Image]
-			Language    model.SpecificationLanguage
-			Remark      string
+			ID               dao.PrimaryKey
+			GoodsID          dao.PrimaryKey
+			Label            string
+			CodeNo           string
+			CodeHS           string
+			Num              uint
+			Unit             string
+			Weight           decimal.Decimal
+			Stock            uint
+			CostPrice        decimal.Decimal
+			CostPriceTaxRate decimal.Decimal
+			MarketPrice      decimal.Decimal
+			Currency         model.Currency
+			Brokerage        decimal.Decimal
+			Pictures         sqltype.Array[sqltype.Image]
+			Language         model.SpecificationLanguage
+			Remark           string
 		}
 	} `method:"Post"`
 	Put struct {
 		Specification struct {
-			ID          dao.PrimaryKey
-			GoodsID     dao.PrimaryKey
-			Label       string
-			CodeNo      string
-			CodeHS      string
-			Num         uint
-			Unit        string
-			Weight      decimal.Decimal
-			Stock       uint
-			CostPrice   decimal.Decimal
-			MarketPrice decimal.Decimal
-			Brokerage   decimal.Decimal
-			Pictures    sqltype.Array[sqltype.Image]
-			Language    model.SpecificationLanguage
-			Remark      string
+			ID               dao.PrimaryKey
+			GoodsID          dao.PrimaryKey
+			Label            string
+			CodeNo           string
+			CodeHS           string
+			Num              uint
+			Unit             string
+			Weight           decimal.Decimal
+			Stock            uint
+			CostPrice        decimal.Decimal
+			CostPriceTaxRate decimal.Decimal
+			MarketPrice      decimal.Decimal
+			Brokerage        decimal.Decimal
+			Pictures         sqltype.Array[sqltype.Image]
+			Language         model.SpecificationLanguage
+			Remark           string
 		}
 	} `method:"Put"`
 }
@@ -102,6 +104,9 @@ func (g *Index) HandlePut(ctx constrain.IContext) (r constrain.IResult, err erro
 
 	if g.Put.Specification.Stock != has.Stock {
 		s["Stock"] = g.Put.Specification.Stock
+	}
+	if g.Put.Specification.CostPriceTaxRate != has.CostPriceTaxRate {
+		s["CostPriceTaxRate"] = g.Put.Specification.CostPriceTaxRate
 	}
 
 	s["CodeHS"] = g.Put.Specification.CodeHS
@@ -201,18 +206,19 @@ func (g *Index) HandlePost(ctx constrain.IContext) (r constrain.IResult, err err
 		//Name:        item.Name,
 		Label: specification.Label,
 		//LabelIndex:  specification.LabelIndex,
-		Num:         specification.Num,
-		Unit:        specification.Unit,
-		CodeNo:      specification.CodeNo,
-		CodeHS:      specification.CodeHS,
-		Weight:      specification.Weight.Mul(decimal.NewFromInt(1000)), //object.ParseUint(specification.Weight * 1000.0),
-		Stock:       specification.Stock,
-		CostPrice:   specification.CostPrice.Mul(decimal.NewFromInt(100)),   //object.ParseUint(specification.CostPrice * 100.0),
-		MarketPrice: specification.MarketPrice.Mul(decimal.NewFromInt(100)), //object.ParseUint(specification.MarketPrice * 100.0),
-		Brokerage:   specification.Brokerage.Mul(decimal.NewFromInt(100)),   //object.ParseUint(specification.Brokerage * 100.0),
-		Language:    specification.Language,
-		Remark:      specification.Remark,
-		Currency:    currency,
+		Num:              specification.Num,
+		Unit:             specification.Unit,
+		CodeNo:           specification.CodeNo,
+		CodeHS:           specification.CodeHS,
+		Weight:           specification.Weight.Mul(decimal.NewFromInt(1000)), //object.ParseUint(specification.Weight * 1000.0),
+		Stock:            specification.Stock,
+		CostPriceTaxRate: specification.CostPriceTaxRate,
+		CostPrice:        specification.CostPrice.Mul(decimal.NewFromInt(100)),   //object.ParseUint(specification.CostPrice * 100.0),
+		MarketPrice:      specification.MarketPrice.Mul(decimal.NewFromInt(100)), //object.ParseUint(specification.MarketPrice * 100.0),
+		Brokerage:        specification.Brokerage.Mul(decimal.NewFromInt(100)),   //object.ParseUint(specification.Brokerage * 100.0),
+		Language:         specification.Language,
+		Remark:           specification.Remark,
+		Currency:         currency,
 	}
 	err = dao.Create(tx, newSpecification)
 	if err != nil {
