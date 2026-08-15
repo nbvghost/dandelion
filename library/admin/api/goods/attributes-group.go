@@ -2,15 +2,15 @@ package goods
 
 import (
 	"github.com/nbvghost/dandelion/constrain"
-	"github.com/nbvghost/dandelion/entity/model"
+	"github.com/nbvghost/dandelion/entity"
 	"github.com/nbvghost/dandelion/library/dao"
 	"github.com/nbvghost/dandelion/library/result"
 	"github.com/nbvghost/dandelion/service"
 )
 
 type AttributesGroup struct {
-	Organization *model.Organization `mapping:""`
-	POST         struct {
+	SessionMappingData entity.SessionMappingData `mapping:""`
+	POST               struct {
 		GoodsID dao.PrimaryKey `form:"GoodsID"`
 		Name    string         `form:"Name"`
 	} `method:"POST"`
@@ -31,7 +31,7 @@ func (g *AttributesGroup) Handle(ctx constrain.IContext) (constrain.IResult, err
 	return &result.JsonResult{Data: result.NewData(list)}, nil
 }
 func (g *AttributesGroup) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
-	gr, err := service.Goods.Attributes.AddGoodsAttributesGroup(ctx, g.Organization.ID, g.POST.GoodsID, g.POST.Name)
+	gr, err := service.Goods.Attributes.AddGoodsAttributesGroup(ctx, g.SessionMappingData.OID, g.POST.GoodsID, g.POST.Name)
 	if err != nil {
 		return nil, err
 	}

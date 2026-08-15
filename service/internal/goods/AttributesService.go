@@ -110,8 +110,11 @@ func (m AttributesService) DeleteGoodsAttributes(ctx context.Context, ID dao.Pri
 }
 
 func (m AttributesService) AddGoodsAttributes(ctx context.Context, oid, goodsID, groupID dao.PrimaryKey, name, value string) (*model.GoodsAttributes, error) {
-	if goodsID == 0 || groupID == 0 {
+	/*if goodsID == 0 || groupID == 0 {
 		return nil, errors.New(fmt.Sprintf("产品ID不能为空或组ID不能为空"))
+	}*/
+	if goodsID == 0 {
+		return nil, errors.New(fmt.Sprintf("产品ID不能为空"))
 	}
 	if strings.EqualFold(name, "") || strings.EqualFold(value, "") {
 		return nil, errors.New(fmt.Sprintf("名称不能为空"))
