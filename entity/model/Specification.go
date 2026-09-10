@@ -46,3 +46,26 @@ func (m *Specification) GetMarketPrice(quantity uint) decimal.Decimal {
 func (Specification) TableName() string {
 	return "Specification"
 }
+
+type StockCheckType string
+
+const (
+	StockCheckTypeNone StockCheckType = ""
+	StockCheckTypeOut  StockCheckType = "out"
+	StockCheckTypeIn   StockCheckType = "in"
+)
+
+type AssetCode struct {
+	dao.Entity
+	OID             dao.PrimaryKey `gorm:"column:OID;index"`
+	Code            string         `gorm:"column:Code;unique"` //EPC
+	TID             string         `gorm:"column:TID"`         //TID
+	Type            StockCheckType `gorm:"column:Type;index"`
+	LocationID      dao.PrimaryKey `gorm:"column:LocationID"`
+	GoodsID         dao.PrimaryKey `gorm:"column:GoodsID"`
+	SpecificationID dao.PrimaryKey `gorm:"column:SpecificationID"`
+}
+
+func (AssetCode) TableName() string {
+	return "AssetCode"
+}
