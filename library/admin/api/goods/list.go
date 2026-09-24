@@ -25,27 +25,30 @@ type List struct {
 }
 
 type ListQuery struct {
-	Keyword     string
-	Code        string
-	GoodsTypeID dao.PrimaryKey
-	LocationID  dao.PrimaryKey
-	CreatedAts  []string
+	Keyword                string
+	Code                   string
+	GoodsTypeID            dao.PrimaryKey
+	LocationID             dao.PrimaryKey
+	CreatedAts             []string
+	OnlyMatchSpecification bool
 }
 
 func (m *List) Handle(ctx constrain.IContext) (constrain.IResult, error) {
 	return nil, nil
 }
 func (m *List) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
-	orm := db.GetDB(ctx).Model(&model.Goods{}).
-		Joins(`left join "GoodsType" on ("GoodsType"."ID" = "Goods"."GoodsTypeID")`).
-		//Joins(`left join "Specification" on ("Specification"."GoodsID" = "Goods"."ID")`).
-		Joins(`left join (SELECT "GoodsID",(to_json(array_agg("Specification"))) AS "SpecificationList" FROM "Specification" GROUP BY "GoodsID") "Specification" ON ("Specification"."GoodsID" = "Goods"."ID")`).
-		Joins(`left join (SELECT "GoodsID",(to_json(array_agg("GoodsAttributes"))) AS "GoodsAttributesList" FROM "GoodsAttributes" GROUP BY "GoodsID") "GoodsAttributes" ON ("GoodsAttributes"."GoodsID" = "Goods"."ID")`).
-		Joins(`left join (SELECT "GoodsID",(to_json(array_agg("AssetCode"))) AS "AssetCodeList" FROM "AssetCode" GROUP BY "GoodsID") "AssetCode" ON ("AssetCode"."GoodsID" = "Goods"."ID")`).
-		Where(`"Goods"."OID"=?`, m.Admin.OID).Select(`"Goods".*,"GoodsType".*,COALESCE("Specification"."SpecificationList", '[]'::json) as "SpecificationList",COALESCE("AssetCode"."AssetCodeList", '[]'::json) as "AssetCodeList",COALESCE("GoodsAttributes"."GoodsAttributesList", '[]'::json) as "GoodsAttributesList"`).
-		//Group(`"Goods"."ID"`).
-		//Group(`"GoodsType"."ID"`).
-		Order(m.Post.Sort.OrderByColumn(`"Goods"."CreatedAt"`, true))
+	orm := db.GetDB(ctx).Model(&model.Goods{})
+	orm.Joins(`left join "GoodsType" on ("GoodsType"."ID" = "Goods"."GoodsTypeID")`)
+	//Joins(`left join "Specification" on ("Specification"."GoodsID" = "Goods"."ID")`).
+
+	orm.Joins(`left join (SELECT "GoodsID",(to_json(array_agg("GoodsAttributes"))) AS "GoodsAttributesList" FROM "GoodsAttributes" GROUP BY "GoodsID") "GoodsAttributes" ON ("GoodsAttributes".
+"GoodsID" = "Goods"."ID")`)
+	orm.Joins(`left join (SELECT "GoodsID",(to_json(array_agg("AssetCode"))) AS "AssetCodeList" FROM "AssetCode" GROUP BY "GoodsID") "AssetCode" ON ("AssetCode"."GoodsID" = "Goods"."ID")`)
+	orm.Where(`"Goods"."OID"=?`, m.Admin.OID).Select(`"Goods".*,"GoodsType".*,COALESCE("Specification"."SpecificationList", '[]'::json) as "SpecificationList",COALESCE("AssetCode"."AssetCodeList", 
+'[]'::json) as "AssetCodeList",COALESCE("GoodsAttributes"."GoodsAttributesList", '[]'::json) as "GoodsAttributesList"`)
+	//Group(`"Goods"."ID"`).
+	//Group(`"GoodsType"."ID"`).
+	orm.Order(m.Post.Sort.OrderByColumn(`"Goods"."CreatedAt"`, true))
 
 	if m.Post.Query.GoodsTypeID > 0 {
 		orm.Where(`"Goods"."GoodsTypeID" = ?`, m.Post.Query.GoodsTypeID)
@@ -56,6 +59,14 @@ func (m *List) HandlePost(ctx constrain.IContext) (constrain.IResult, error) {
 
 	keyword := strings.TrimSpace(m.Post.Query.Keyword)
 	if len(keyword) > 0 {
+
+		if m.Post.Query.OnlyMatchSpecification {
+			orm.Joins(`left join (SELECT "GoodsID",(to_json(array_agg("Specification"))) AS "SpecificationList" FROM "Specification" where "Specification"."Label" ilike ? or "Specification".
+"CodeNo" ilike ? or "Specification"."Language" ->> 'Label' ilike ? GROUP BY "GoodsID") "Specification" ON ("Specification"."GoodsID" = "Goods"."ID")`, fmt.Sprintf("%%%s%%", keyword),
+				fmt.Sprintf("%%%s%%", keyword), fmt.Sprintf("%%%s%%", keyword))
+		} else {
+			orm.Joins(`left join (SELECT "GoodsID",(to_json(array_agg("Specification"))) AS "SpecificationList" FROM "Specification" GROUP BY "GoodsID") "Specification" ON ("Specification"."GoodsID" = "Goods"."ID")`)
+		}
 		orm.Where(`
 "Goods"."Title" ilike ? or
 "Goods"."Summary" ilike ? or
@@ -80,6 +91,8 @@ EXISTS (SELECT 1 FROM "GoodsAttributes" ac WHERE ac."GoodsID" = "Goods"."ID" AND
 			fmt.Sprintf("%%%s%%", keyword),
 			fmt.Sprintf("%%%s%%", keyword),
 			fmt.Sprintf("%%%s%%", keyword))
+	} else {
+		orm.Joins(`left join (SELECT "GoodsID",(to_json(array_agg("Specification"))) AS "SpecificationList" FROM "Specification" GROUP BY "GoodsID") "Specification" ON ("Specification"."GoodsID" = "Goods"."ID")`)
 	}
 
 	if len(m.Post.Query.CreatedAts) == 2 {
